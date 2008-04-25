@@ -1,0 +1,156 @@
+#include "bsdtar_platform.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "crypto.h"
+#include "netpacket_internal.h"
+#include "netproto.h"
+#include "sysendian.h"
+#include "warnp.h"
+
+#include "netpacket.h"
+
+/**
+ * netpacket_transaction_getnonce(NPC, machinenum, callback):
+ * Construct and send a NETPACKET_TRANSACTION_GETNONCE packet asking to get
+ * a transaction server nonce.
+ */
+int
+netpacket_transaction_getnonce(NETPACKET_CONNECTION * NPC,
+    uint64_t machinenum, handlepacket_callback * callback)
+{
+	uint8_t packetbuf[8];
+
+	/* Construct the packet. */
+	be64enc(&packetbuf[0], machinenum);
+
+	/* Send the packet. */
+	if (netproto_writepacket(NPC->NC, NETPACKET_TRANSACTION_GETNONCE,
+	    packetbuf, 8, netpacket_op_packetsent, NPC))
+		goto err0;
+
+	/* Set callback for handling a response. */
+	NPC->pending_current->handlepacket = callback;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * netpacket_transaction_start(NPC, machinenum, operation, snonce, cnonce,
+ *     state, callback):
+ * Construct and send a NETPACKET_TRANSACTION_GETNONCE packet asking to
+ * start a transaction; the transaction is a write transaction if
+ * ${operation} is 0, a delete transaction if ${operation} is 1, or a fsck
+ * transaction if ${operation} is 2.
+ */
+int
+netpacket_transaction_start(NETPACKET_CONNECTION * NPC,
+    uint64_t machinenum, uint8_t operation, const uint8_t snonce[32],
+    const uint8_t cnonce[32], const uint8_t state[32],
+    handlepacket_callback * callback)
+{
+	uint8_t packetbuf[137];
+	int key;
+
+	/* Look up the key which is used to sign this packet. */
+	switch (operation) {
+	case 0:	/* Write. */
+		key = CRYPTO_KEY_AUTH_PUT;
+		break;
+	case 1:	/* Delete. */
+	case 2:	/* Fsck. */
+		key = CRYPTO_KEY_AUTH_DELETE;
+		break;
+	default:
+		warn0("Programmer error: "
+		    "Invalid operation in netpacket_transaction_start");
+		goto err0;
+	}
+
+	/* Construct the packet. */
+	be64enc(&packetbuf[0], machinenum);
+	packetbuf[8] = operation;
+	memcpy(&packetbuf[9], snonce, 32);
+	memcpy(&packetbuf[41], cnonce, 32);
+	memcpy(&packetbuf[73], state, 32);
+
+	/* Append hmac. */
+	if (netpacket_hmac_append(NETPACKET_TRANSACTION_START,
+	    packetbuf, 105, key))
+		goto err0;
+
+	/* Send the packet. */
+	if (netproto_writepacket(NPC->NC, NETPACKET_TRANSACTION_START,
+	    packetbuf, 137, netpacket_op_packetsent, NPC))
+		goto err0;
+
+	/* Set callback for handling a response. */
+	NPC->pending_current->handlepacket = callback;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * netpacket_transaction_commit(NPC, machinenum, whichkey, nonce, callback):
+ * Construct and send a NETPACKET_TRANSACTION_COMMIT packet asking to commit
+ * a transaction; the packet is signed with the write access key if
+ * ${whichkey} is 0, and with the delete access key if ${whichkey} is 1.
+ */
+int
+netpacket_transaction_commit(NETPACKET_CONNECTION * NPC,
+    uint64_t machinenum, uint8_t whichkey, const uint8_t nonce[32],
+    handlepacket_callback * callback)
+{
+	uint8_t packetbuf[73];
+	int key;
+
+	/* Look up the key which is used to sign this packet. */
+	switch (whichkey) {
+	case 0:
+		key = CRYPTO_KEY_AUTH_PUT;
+		break;
+	case 1:
+		key = CRYPTO_KEY_AUTH_DELETE;
+		break;
+	default:
+		warn0("Programmer error: "
+		    "Invalid operation in netpacket_transaction_commit");
+		goto err0;
+	}
+
+	/* Construct the packet. */
+	be64enc(&packetbuf[0], machinenum);
+	packetbuf[8] = whichkey;
+	memcpy(&packetbuf[9], nonce, 32);
+
+	/* Append hmac. */
+	if (netpacket_hmac_append(NETPACKET_TRANSACTION_COMMIT,
+	    packetbuf, 41, key))
+		goto err0;
+
+	/* Send the packet. */
+	if (netproto_writepacket(NPC->NC, NETPACKET_TRANSACTION_COMMIT,
+	    packetbuf, 73, netpacket_op_packetsent, NPC))
+		goto err0;
+
+	/* Set callback for handling a response. */
+	NPC->pending_current->handlepacket = callback;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
