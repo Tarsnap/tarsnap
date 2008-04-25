@@ -1,0 +1,27 @@
+.\" Copyright 2007 Colin Percival
+.\" All rights reserved.
+.\"
+.Dd November 11, 2007
+.Dt TARSNAP-KEYGEN 1
+.Os
+.Sh NAME
+.Nm tarsnap-keygen
+.Nd generate a key file for use with
+.Xr tarsnap 1
+.Sh SYNOPSIS
+.Nm
+.Fl -keyfile Ar key-file
+.Fl -user Ar user-name
+.Fl -machine Ar machine-name
+.Sh DESCRIPTION
+.Nm
+generates cryptographic keys, registers with the
+tarsnap server, and writes a key file for use with
+.Xr tarsnap 1 .
+.Pp
+The
+.Fl -keyfile ,
+.Fl -user ,
+and
+.Fl -machine
+parameters are all required.

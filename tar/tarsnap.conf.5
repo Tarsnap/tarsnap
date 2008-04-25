@@ -1,0 +1,71 @@
+.\"-
+.\" Copyright 2008 Colin Percival
+.\" All rights reserved
+.\"
+.Dd April 3, 2008
+.Dt TARSNAP.CONF 5
+.Os
+.Sh NAME
+.Nm tarsnap.conf
+.Nd configuration file for
+.Xr tarsnap 1
+.Sh DESCRIPTION
+The
+.Nm
+file is read by the
+.Xr tarsnap 1
+utility and specifies default options which will be
+ignored if the options in question are specified at
+the command line.
+Options may be specified in
+.Pa /usr/local/etc/tarsnap.conf
+and/or
+.Pa ~/.tarsnaprc ;
+if the two files conflict, the user's local configuration
+takes precedence.
+.Pp
+The
+.Nm
+file(s) contain lines consisting of a case-sensitive option name and
+zero or one parameters depending upon the option.
+Empty lines and lines starting with a
+.Ql #
+character are ignored.
+.Pp
+The following options may be specified:
+.Pp
+.Bl -tag -width "store-atime"
+.It cachedir Ar cache-dir
+.It exclude Ar pattern
+.It include Ar pattern
+.It keyfile Pa key-file
+.It nodump
+.It print-stats
+.It snaptime Pa file
+.It store-atime
+.It totals
+.El
+.Pp
+Each option is handled the same way as the corresponding
+.Fl -option ;
+see
+.Xr tarsnap 1
+for more details.
+.Sh FILES
+.Bl -tag -width indent
+.It Pa /usr/local/etc/tarsnap.conf
+The system global
+.Nm
+configuration file.
+Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the command line.
+.It Pa ~/.tarsnaprc
+The
+.Nm
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.El
+.Sh SEE ALSO
+.Xr tarsnap 1
