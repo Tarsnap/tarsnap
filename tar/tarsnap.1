@@ -461,6 +461,41 @@ for more information.
 .El
 .Sh EXIT STATUS
 .Ex -std
+.Sh EXAMPLES
+Register with the server and generate keys:
+.Dl Nm tarsnap-keygen Fl -keyfile Pa /usr/tarsnap.key Fl -user Ar me@example.com Fl -machine Ar myserver
+.Pp
+Perform a backup of
+.Pa /usr/home
+and
+.Pa /other/stuff/to/backup :
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl c Fl f Ar backup-2008-04-24 Pa /usr/home Pa /other/stuff/to/backup
+.Pp
+Perform another backup, a day later;
+this is much faster since tarsnap will avoid
+storing data which was previously stored:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl c Fl f Ar backup-2008-04-25 Pa /usr/home Pa /other/stuff/to/backup
+.Pp
+List the archives:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -list-archives
+.Pp
+Delete the first backup, leaving the second backup intact:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl d Ar backup-2008-04-24
+.Pp
+List the files in the remaining backup:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl tv Fl f Ar backup-2008-04-25
+.Pp
+Restore two users' home directories from the backup:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl x Fl f Ar backup-2008-04-25 Pa /usr/home/auser Pa /usr/home/anotheruser
+.Pp
+Note that the
+.Fl -keyfile
+and
+.Fl -cachedir
+options can be specified via the
+.Xr tarsnap.conf 5
+configuration file, in which case they may be omitted
+from the command line.
 .Sh SECURITY
 Certain security issues are common to many archiving programs, including
 .Nm .
