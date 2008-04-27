@@ -497,7 +497,7 @@ ccache_entry_end(CCACHE * cache, CCACHE_ENTRY * cce, TAPE_W * cookie,
 
 	/*
 	 * If the entry is worth keeping, make sure it's in the cache;
-	 * otherwise, free it.
+	 * otherwise, free it if it's not already in the cache.
 	 */
 	if ((cce->ccr->nch != 0) || (cce->ccr->tlen != 0)) {
 		if (cce->ccrp == NULL) {
@@ -511,7 +511,8 @@ ccache_entry_end(CCACHE * cache, CCACHE_ENTRY * cce, TAPE_W * cookie,
 		 * Don't need to free ztrailer or chp -- if we got here they
 		 * must both be NULL.
 		 */
-		free(cce->ccr);
+		if (cce->ccrp == NULL)
+			free(cce->ccr);
 	}
 
 	/* Free the cache entry cookie. */
