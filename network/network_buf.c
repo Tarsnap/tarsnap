@@ -12,6 +12,17 @@
 
 #include "network.h"
 
+/*
+ * If MSG_NOSIGNAL isn't defined, define it to zero; and then fiddle with
+ * the socket options when needed.
+ */
+#ifdef MSG_NOSIGNAL
+#define HAVE_MSG_NOSIGNAL
+#endif
+#ifndef HAVE_MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 struct network_buf_cookie {
 	network_callback * callback;
 	void * cookie;
@@ -44,6 +55,9 @@ callback_buf(void * cookie, int status)
 	struct timeval curtime;
 	ssize_t len;
 	int rc = -1;	/* If not callback or reset, we have an error. */
+#ifndef HAVE_MSG_NOSIGNAL
+	int val;
+#endif
 
 	if (status != NETWORK_STATUS_OK) {
 		/* If we have no data, mark a timeout as "no data" instead. */
@@ -53,8 +67,27 @@ callback_buf(void * cookie, int status)
 	}
 
 	/* Try to read/write data to/from the buffer. */
-	if ((len = (C->sendrecv)(C->fd, C->buf + C->bufpos,
-	    C->buflen - C->bufpos, C->flags)) == -1) {
+#ifndef HAVE_MSG_NOSIGNAL
+	val = 1;
+
+	if (setsockopt(C->fd, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof(int))) {
+		status = NETWORK_STATUS_ERR;
+		goto docallback;
+	}
+#endif
+	len = (C->sendrecv)(C->fd, C->buf + C->bufpos,
+	    C->buflen - C->bufpos, C->flags);
+#ifndef HAVE_MSG_NOSIGNAL
+	val = 0;
+
+	if (setsockopt(C->fd, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof(int))) {
+		status = NETWORK_STATUS_ERR;
+		goto docallback;
+	}
+#endif
+
+	/* Failure, closed, or success? */
+	if (len == -1) {
 		/* If no data is available, reset the callback. */
 		if ((errno == EAGAIN) ||
 		    (errno == EWOULDBLOCK) ||
