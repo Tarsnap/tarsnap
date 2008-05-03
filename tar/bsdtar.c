@@ -617,6 +617,11 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Keys must be provided via --keyfile option");
 
+	/* The -f option doesn't make sense for --list-archives and --fsck. */
+	if ((bsdtar->tapename != NULL) &&
+	    (bsdtar->mode != OPTION_PRINT_STATS))
+		only_mode(bsdtar, "-f", "cxtdr");
+
 	/* These options don't make sense for "delete" and "convert to tar" */
 	if (bsdtar->pending_chdir)
 		only_mode(bsdtar, "-C", "cxt");

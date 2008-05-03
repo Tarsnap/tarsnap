@@ -125,7 +125,7 @@ main(int argc, char **argv)
 
 	/* If stdin is a terminal, prompt the user to enter the password */
 	if (notatty == 0)
-		fprintf(stderr, "Enter password: ");
+		fprintf(stderr, "Enter tarsnap account password: ");
 
 	/* Read the password. */
 	if (fgets(passbuf, IBUFLEN, stdin) == NULL) {

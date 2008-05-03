@@ -95,10 +95,22 @@ netproto_connect(network_callback * callback, void * cookie)
 
 	/* Look up the server's IP address. */
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_INET;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
+#ifdef AI_NUMERICSERV
+	/**
+	 * XXX Portability
+	 * XXX POSIX states that AI_NUMERICSERV should be defined in netdb.h,
+	 * XXX but some operating systems don't provide it.  The flag isn't
+	 * XXX really necessary anyway, since getaddrinfo should interpret
+	 * XXX "9279" as 'a string specifying a decimal port number'; but
+	 * XXX passing the flag (on operating systems which provide it) might
+	 * XXX avoid waiting for a name resolution service (e.g., NIS+) to
+	 * XXX be invoked.
+	 */
 	hints.ai_flags = AI_NUMERICSERV;
+#endif
 	if ((error = getaddrinfo(TSSERVER "-server.tarsnap.com", "9279",
 	    &hints, &res)) != 0) {
 		warn0("Error looking up " TSSERVER "-server.tarsnap.com: %s",
