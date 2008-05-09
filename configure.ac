@@ -14,6 +14,8 @@ AC_INIT([tarsnap],TAR_VERS())
 AC_CONFIG_SRCDIR([libarchive])
 # Use auxiliary subscripts from this subdirectory (cleans up root)
 AC_CONFIG_AUX_DIR([config.aux])
+# Figure out what OS we're compiling for
+AC_CANONICAL_TARGET
 # Must follow AC_CONFIG macros above...
 AM_INIT_AUTOMAKE()
 
@@ -60,6 +62,9 @@ AC_CHECK_TOOL([STRIP],[strip])
 # We use asprintf, which is hidden behind _GNU_SOURCE on linux.
 AC_GNU_SOURCE
 
+# Don't rebuild the configure script.  I'm distributing a perfectly good one.
+AM_MAINTAINER_MODE
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
@@ -84,12 +89,8 @@ AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h zlib.h])
 AC_CHECK_LIB(bz2,BZ2_bzDecompressInit)
 AC_CHECK_LIB(z,inflate)
 
-# TODO: Give the user the option of using a pre-existing system
-# libarchive.  This will define HAVE_LIBARCHIVE which will cause
-# bsdtar_platform.h to use #include <...> for the libarchive headers.
-# Need to include Makefile.am magic to link against system
-# -larchive in that case.
-#AC_CHECK_LIB(archive,archive_version)
+# Check if we're on an operating system with a broken TCP_NOPUSH
+CHECK_BROKEN_TCP_NOPUSH
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
