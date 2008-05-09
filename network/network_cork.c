@@ -21,7 +21,9 @@
  * XXX
  * XXX POSIX defines TCP_NODELAY for purpose #2, although it does not require
  * XXX that implementations obey it; BSD and Linux respectively define
- * XXX TCP_NOPUSH and TCP_CORK for purpose #1.
+ * XXX TCP_NOPUSH and TCP_CORK for purpose #1.  On OS X, TCP_NOPUSH is
+ * XXX defined, but seems to be broken; we use autoconf to detect OS X and
+ * XXX define BROKEN_TCP_NOPUSH.
  */
 
 /* Macro to simplify setting options. */
@@ -55,7 +57,9 @@ network_cork(int fd)
 	setopt(fd, TCP_CORK, 1, err0);
 #else
 #ifdef TCP_NOPUSH
+#ifndef BROKEN_TCP_NOPUSH
 	setopt(fd, TCP_NOPUSH, 1, err0);
+#endif
 #endif
 #endif
 
@@ -84,7 +88,9 @@ network_uncork(int fd)
 	setopt(fd, TCP_CORK, 0, err0);
 #else
 #ifdef TCP_NOPUSH
+#ifndef BROKEN_TCP_NOPUSH
 	setopt(fd, TCP_NOPUSH, 0, err0);
+#endif
 #endif
 #endif
 
