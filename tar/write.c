@@ -659,16 +659,6 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			descend = 1;
 
 		/*
-		 * Don't back up the cache directory or any files inside it.
-		 */
-		if ((lst->st_ino == bsdtar->cachedir_ino) &&
-		    (lst->st_dev == bsdtar->cachedir_dev)) {
-			bsdtar_warnc(bsdtar, 0,
-			    "Not adding cache directory to archive: %s", name);
-			continue;
-		}
-
-		/*
 		 * If user has asked us not to cross mount points,
 		 * then don't descend into into a dir on a different
 		 * device.
@@ -711,6 +701,16 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 */
 		if (excluded(bsdtar, name))
 			continue;
+
+		/*
+		 * Don't back up the cache directory or any files inside it.
+		 */
+		if ((lst->st_ino == bsdtar->cachedir_ino) &&
+		    (lst->st_dev == bsdtar->cachedir_dev)) {
+			bsdtar_warnc(bsdtar, 0,
+			    "Not adding cache directory to archive: %s", name);
+			continue;
+		}
 
 		/*
 		 * If the user vetoes this file/directory, skip it.
