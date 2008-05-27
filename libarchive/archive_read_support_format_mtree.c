@@ -24,7 +24,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_mtree.c,v 1.4 2008/03/15 11:02:47 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_mtree.c,v 1.5 2008/05/19 18:06:48 cperciva Exp $");
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -596,6 +596,7 @@ read_data(struct archive_read *a, const void **buff, size_t *size, off_t *offset
 			archive_set_error(&a->archive, ENOMEM,
 			    "Can't allocate memory");
 		}
+		return (ARCHIVE_FATAL);
 	}
 
 	*buff = mtree->buff;

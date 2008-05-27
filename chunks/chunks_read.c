@@ -62,7 +62,7 @@ chunks_read_init(STORAGE_R * S, size_t maxchunksize)
 	return (C);
 
 err1:
-	free(S);
+	free(C);
 err0:
 	/* Failure! */
 	return (NULL);

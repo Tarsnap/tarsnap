@@ -29,7 +29,7 @@
  */
 
 #include "bsdtar_platform.h"
-__FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.65 2008/03/15 02:41:44 kientzle Exp $");
+__FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.69 2008/05/23 05:07:22 cperciva Exp $");
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -73,7 +73,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.65 2008/03/15 02:41:44 kientzle 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
-#include <signal.h>
 #include <stdio.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -97,9 +96,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.65 2008/03/15 02:41:44 kientzle 
 #define	name_cache_size 101
 
 static const char * const NO_NAME = "(noname)";
-
-/* Is there a pending SIGINFO or SIGUSR1? */
-static sig_atomic_t siginfo_received;
 
 /* Initial size of link cache. */
 #define	links_cache_initial_size 1024
@@ -156,12 +152,10 @@ static int		 lookup_uname_helper(struct bsdtar *bsdtar,
 			     const char **name, id_t uid);
 static int		 new_enough(struct bsdtar *, const char *path,
 			     const struct stat *);
-static int		 print_info(void);
 static void		 setup_acls(struct bsdtar *, struct archive_entry *,
 			     const char *path);
 static void		 setup_xattrs(struct bsdtar *, struct archive_entry *,
 			     const char *path);
-static void		 siginfo_handler(int sig);
 static int		 truncate_archive(struct bsdtar *);
 static void		 write_archive(struct archive *, struct bsdtar *);
 static void		 write_entry(struct bsdtar *, struct archive *,
@@ -214,53 +208,20 @@ truncate_archive(struct bsdtar *bsdtar)
 	return (1);
 }
 
-/* Handler for SIGINFO / SIGUSR1. */
-static void
-siginfo_handler(int sig)
-{
-
-	(void)sig; /* UNUSED */
-
-	/* Record that SIGINFO or SIGUSR1 has been received. */
-	siginfo_received = 1;
-}
-
-/* Return and zero siginfo_received. */
-static int
-print_info(void)
-{
-
-	if (siginfo_received) {
-		siginfo_received = 0;
-		return (1);
-	} else {
-		return (0);
-	}
-}
-
 void
 tarsnap_mode_c(struct bsdtar *bsdtar)
 {
 	struct archive *a;
-#ifdef SIGINFO
-	void (*siginfo_old)(int);
-#endif
-	void (*sigusr1_old)(int);
 
 	if (*bsdtar->argv == NULL && bsdtar->names_from_file == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "no files or directories specified");
 
-	/* We want to catch SIGQUIT and ^Q. */
+	/* We want to catch SIGINFO and SIGUSR1. */
+	siginfo_init(bsdtar);
+
+	/* We also want to catch SIGQUIT and ^Q. */
 	if (sigquit_init())
 		exit(1);
-
-#ifdef SIGINFO
-	/* We want to catch SIGINFO, if it exists. */
-	siginfo_received = 0;
-	siginfo_old = signal(SIGINFO, siginfo_handler);
-#endif
-	/* ... and treat SIGUSR1 the same way as SIGINFO. */
-	sigusr1_old = signal(SIGUSR1, siginfo_handler);
 
 	a = archive_write_new();
 
@@ -302,12 +263,8 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 
 	archive_write_finish(a);
 
-#ifdef SIGINFO
-	/* Restore old SIGINFO handler. */
-	signal(SIGINFO, siginfo_old);
-#endif
-	/* And the old SIGUSR1 handler, too. */
-	signal(SIGUSR1, sigusr1_old);
+	/* Restore old SIGINFO + SIGUSR1 handlers. */
+	siginfo_done(bsdtar);
 
 	/* Write the chunkification cache back to disk. */
 	if (bsdtar->cachecrunch < 2) {
@@ -503,12 +460,13 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 		if (bsdtar->option_interactive &&
 		    !yes("copy '%s'", archive_entry_pathname(in_entry)))
 			continue;
-		if (print_info())
-			fprintf(stderr, "copying %s\n",
-			    archive_entry_pathname(in_entry));
 		if (bsdtar->verbose)
 			safe_fprintf(stderr, "a %s",
 			    archive_entry_pathname(in_entry));
+		siginfo_setinfo(bsdtar, "copying",
+		    archive_entry_pathname(in_entry),
+		    archive_entry_size(in_entry));
+		siginfo_printinfo(bsdtar, 0);
 
 		if (MODE_HEADER(bsdtar, a))
 			goto err_fatal;
@@ -573,11 +531,14 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 	char	buff[64*1024];
 	ssize_t	bytes_read;
 	ssize_t	bytes_written;
+	off_t	progress = 0;
 
 	bytes_read = archive_read_data(ina, buff, sizeof(buff));
 	while (bytes_read > 0) {
 		if (network_select(0))
 			return (-1);
+
+		siginfo_printinfo(bsdtar, progress);
 
 		bytes_written = archive_write_data(a, buff, bytes_read);
 		if (bytes_written < bytes_read) {
@@ -588,6 +549,7 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 		if (truncate_archive(bsdtar))
 			break;
 
+		progress += bytes_written;
 		bytes_read = archive_read_data(ina, buff, sizeof(buff));
 	}
 
@@ -816,11 +778,6 @@ write_entry(struct bsdtar *bsdtar, struct archive *a, const struct stat *st,
 	if (!S_ISDIR(st->st_mode) && (st->st_nlink > 1))
 		lookup_hardlink(bsdtar, entry, st);
 
-	/* Handle SIGINFO / SIGUSR1 request. */
-	if (print_info())
-		fprintf(stderr, "adding  %s\n",
-		    archive_entry_pathname(entry));
-
 	/* Display entry as we process it. This format is required by SUSv2. */
 	if (bsdtar->verbose)
 		safe_fprintf(stderr, "a %s", archive_entry_pathname(entry));
@@ -912,6 +869,13 @@ write_entry(struct bsdtar *bsdtar, struct archive *a, const struct stat *st,
 	/* Non-regular files get archived with zero size. */
 	if (!S_ISREG(st->st_mode))
 		archive_entry_set_size(entry, 0);
+
+	/* Record what we're doing, for the benefit of SIGINFO / SIGUSR1. */
+	siginfo_setinfo(bsdtar, "adding", archive_entry_pathname(entry),
+	    archive_entry_size(entry));
+
+	/* Handle SIGINFO / SIGUSR1 request if one was made. */
+	siginfo_printinfo(bsdtar, 0);
 
 	/* Write the archive header. */
 	if (MODE_HEADER(bsdtar, a)) {
@@ -1022,8 +986,7 @@ abort:
 	if (fd >= 0)
 		close(fd);
 
-	if (entry != NULL)
-		archive_entry_free(entry);
+	archive_entry_free(entry);
 }
 
 
@@ -1034,6 +997,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a, int fd)
 	char	buff[64*1024];
 	ssize_t	bytes_read;
 	ssize_t	bytes_written;
+	off_t	progress = 0;
 
 	/* XXX TODO: Allocate buffer on heap and store pointer to
 	 * it in bsdtar structure; arrange cleanup as well. XXX */
@@ -1042,6 +1006,8 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a, int fd)
 	while (bytes_read > 0) {
 		if (network_select(0))
 			return (-1);
+
+		siginfo_printinfo(bsdtar, progress);
 
 		bytes_written = archive_write_data(a, buff, bytes_read);
 		if (bytes_written < 0) {
@@ -1059,6 +1025,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a, int fd)
 		if (truncate_archive(bsdtar))
 			break;
 
+		progress += bytes_written;
 		bytes_read = read(fd, buff, sizeof(buff));
 	}
 	return 0;
@@ -1194,8 +1161,7 @@ lookup_hardlink(struct bsdtar *bsdtar, struct archive_entry *entry,
 					le->previous->next = le->next;
 				if (le->next != NULL)
 					le->next->previous = le->previous;
-				if (le->name != NULL)
-					free(le->name);
+				free(le->name);
 				if (links_cache->buckets[hash] == le)
 					links_cache->buckets[hash] = le->next;
 				links_cache->number_entries--;
