@@ -88,7 +88,7 @@ netproto_connect(network_callback * callback, void * cookie)
 
 	/* Create a cookie to be passed to callback_connect. */
 	if ((C = malloc(sizeof(struct netproto_connect_cookie))) == NULL)
-		goto err0;
+		goto err1;
 	C->callback = callback;
 	C->cookie = cookie;
 	C->NC = NC;
@@ -115,11 +115,11 @@ netproto_connect(network_callback * callback, void * cookie)
 	    &hints, &res)) != 0) {
 		warn0("Error looking up " TSSERVER "-server.tarsnap.com: %s",
 		    gai_strerror(error));
-		goto err1;
+		goto err2;
 	}
 	if (res == NULL) {
 		warn0("Cannot look up " TSSERVER "-server.tarsnap.com");
-		goto err1;
+		goto err2;
 	}
 
 	/* Try to connect to server within 5 seconds. */
@@ -128,12 +128,14 @@ netproto_connect(network_callback * callback, void * cookie)
 	if (network_connect(s, res->ai_addr, res->ai_addrlen,
 	    &timeo, callback_connect, C)) {
 		netproto_printerr(NETWORK_STATUS_CONNERR);
-		goto err1;
+		goto err2;
 	}
 
 	/* Success! */
 	return (NC);
 
+err2:
+	free(C);
 err1:
 	netproto_close(NC);
 err0:

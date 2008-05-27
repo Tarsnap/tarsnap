@@ -89,6 +89,7 @@ tarsnap_SOURCES=				\
 		tar/getdate.c			\
 		tar/matching.c			\
 		tar/read.c			\
+		tar/siginfo.c			\
 		tar/tree.c			\
 		tar/tree.h			\
 		tar/util.c			\

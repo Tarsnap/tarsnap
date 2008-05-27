@@ -29,7 +29,7 @@
  */
 
 #include "bsdtar_platform.h"
-__FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.86 2008/03/15 05:08:21 kientzle Exp $");
+__FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.90 2008/05/19 18:38:01 cperciva Exp $");
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -143,6 +143,7 @@ enum {
 	OPTION_HELP,
 	OPTION_INCLUDE,
 	OPTION_KEYFILE,
+	OPTION_KEEP_NEWER_FILES,
 	OPTION_LIST_ARCHIVES,
 	OPTION_LOWMEM,
 	OPTION_NEWER_CTIME,
@@ -188,6 +189,7 @@ static const struct option tar_longopts[] = {
 	{ "include",            required_argument, NULL, OPTION_INCLUDE },
 	{ "interactive",        no_argument,       NULL, 'w' },
 	{ "insecure",           no_argument,       NULL, 'P' },
+	{ "keep-newer-files",   no_argument,       NULL, OPTION_KEEP_NEWER_FILES },
 	{ "keep-old-files",     no_argument,       NULL, 'k' },
 	{ "keyfile",		required_argument, NULL, OPTION_KEYFILE },
 	{ "list",               no_argument,       NULL, 't' },
@@ -400,6 +402,9 @@ main(int argc, char **argv)
 			break;
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
+			break;
+		case OPTION_KEEP_NEWER_FILES: /* GNU tar */
+			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER;
 			break;
 		case OPTION_KEYFILE: /* tarsnap */
 			load_keys(bsdtar, optarg);
@@ -1068,12 +1073,16 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		if ((bsdtar->mode == 'c') || (bsdtar->mode == 'd'))
 			bsdtar->option_print_stats = 1;
 	} else if (strcmp(conf_opt, "snaptime") == 0) {
+		if (conf_arg == NULL)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Argument required for "
+			    "configuration file option: %s", conf_opt);
 		if ((bsdtar->mode == 'c') && (bsdtar->snaptime == 0)) {
 			struct stat st;
 
 			if (stat(conf_arg, &st) != 0)
 				bsdtar_errc(bsdtar, 1, 0,
-				    "Can't open file %s", conf_arg);
+				    "Can't stat file %s", conf_arg);
 			bsdtar->snaptime = st.st_ctime;
 		}
 	} else if (strcmp(conf_opt, "store-atime") == 0) {

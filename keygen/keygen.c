@@ -154,7 +154,7 @@ main(int argc, char **argv)
 
 	/* Set the permissions on the key file to 0600. */
 	if (fchmod(fileno(keyfile), S_IRUSR | S_IWUSR)) {
-		warnp("fchmod(%s)", keyfilename);
+		warnp("Cannot set permissions on key file: %s", keyfilename);
 		exit(1);
 	}
 
