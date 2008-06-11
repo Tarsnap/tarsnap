@@ -122,7 +122,7 @@ network_init(void)
 	N.alloclen = 0;
 
 	/* No file descriptors yet, either. */
-	N.maxfd = 0;
+	N.maxfd = -1;
 
 	/* Success! */
 	return (0);
