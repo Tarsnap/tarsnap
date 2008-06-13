@@ -1,0 +1,11 @@
+# Tarsnap cache directory
+cachedir /usr/local/tarsnap-cache
+
+# Tarsnap key file
+keyfile /root/tarsnap.key
+
+# Don't archive files which have the nodump flag set
+nodump
+
+# Print statistics when creating or deleting archievs
+print-stats

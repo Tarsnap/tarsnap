@@ -232,3 +232,6 @@ tarsnap_keygen_CFLAGS=				\
 tarsnap_keygen_LDADD= -lcrypto
 
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
+
+#  Tarsnap sample configuration file
+sysconf_DATA	=	tar/tarsnap.conf.sample

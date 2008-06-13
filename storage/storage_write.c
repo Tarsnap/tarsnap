@@ -18,11 +18,23 @@
  */
 #define MAXPENDING_WRITEBYTES	(5 * 1024 * 1024)
 
+/*
+ * Number of connections to use for writes when --aggressive-networking is
+ * enabled.  This MUST NOT be set to more than 8.
+ */
+#define AGGRESSIVE_CNUM	8
+
 struct storage_write_internal {
 	/* Transaction parameters. */
-	NETPACKET_CONNECTION * NPC;
+	NETPACKET_CONNECTION * NPC[AGGRESSIVE_CNUM];
 	uint64_t machinenum;
 	uint8_t nonce[32];
+
+	/* Number of connections to use. */
+	size_t numconns;
+
+	/* Last connection through which a request was sent. */
+	size_t lastcnum;
 
 	/* Number of bytes of pending writes. */
 	size_t nbytespending;
@@ -62,6 +74,12 @@ static handlepacket_callback callback_fexist_response;
 static sendpacket_callback callback_write_file_send;
 static handlepacket_callback callback_write_file_response;
 
+/*
+ * Should the storage code be aggressive in its networking by using multiple
+ * TCP connections for writes?
+ */
+int storage_aggressive_networking = 0;
+
 /**
  * storage_write_start(machinenum, lastseq, seqnum):
  * Start a write transaction, presuming that ${lastseq} is the the sequence
@@ -74,6 +92,7 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
     uint8_t seqnum[32])
 {
 	struct storage_write_internal * S;
+	size_t i;
 
 	/* Allocate memory. */
 	if ((S = malloc(sizeof(struct storage_write_internal))) == NULL)
@@ -82,15 +101,23 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 	/* Store machine number. */
 	S->machinenum = machinenum;
 
+	/* Figure out how many connections to use. */
+	S->numconns = storage_aggressive_networking ? AGGRESSIVE_CNUM : 1;
+
+	/* No connections used yet. */
+	S->lastcnum = 0;
+
 	/* No pending writes so far. */
 	S->nbytespending = 0;
 
-	/* Open netpacket connection. */
-	if ((S->NPC = netpacket_open()) == NULL)
-		goto err1;
+	/* Open netpacket connections. */
+	for (i = 0; i < S->numconns; i++) {
+		if ((S->NPC[i] = netpacket_open()) == NULL)
+			goto err1;
+	}
 
 	/* Start a write transaction. */
-	if (storage_transaction_start_write(S->NPC, machinenum,
+	if (storage_transaction_start_write(S->NPC[0], machinenum,
 	    lastseq, S->nonce))
 		goto err2;
 
@@ -101,8 +128,10 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 	return (S);
 
 err2:
-	netpacket_close(S->NPC);
+	i = S->numconns;
 err1:
+	for (i--; i < S->numconns; i--)
+		netpacket_close(S->NPC[i]);
 	free(S);
 err0:
 	/* Failure! */
@@ -128,7 +157,7 @@ storage_write_fexist(STORAGE_W * S, char class, const uint8_t name[32])
 	C.done = 0;
 
 	/* Ask the netpacket layer to send a request and get a response. */
-	if (netpacket_op(S->NPC, callback_fexist_send, &C))
+	if (netpacket_op(S->NPC[0], callback_fexist_send, &C))
 		goto err0;
 
 	/* Wait until the server has responded or we have failed. */
@@ -269,7 +298,8 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	}
 
 	/* Ask the netpacket layer to send a request and get a response. */
-	if (netpacket_op(S->NPC, callback_write_file_send, C))
+	S->lastcnum = (S->lastcnum + 1) % S->numconns;
+	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
 		goto err2;
 
 	/* Success! */
@@ -396,14 +426,16 @@ err0:
 int
 storage_write_end(STORAGE_W * S)
 {
+	size_t i;
 
 	/* Flush any pending writes. */
 	if (storage_write_flush(S))
 		goto err2;
 
-	/* Close netpacket connection. */
-	if (netpacket_close(S->NPC))
-		goto err1;
+	/* Close netpacket connections. */
+	for (i = S->numconns - 1; i < S->numconns; i--)
+		if (netpacket_close(S->NPC[i]))
+			goto err1;
 
 	/* Free structure. */
 	free(S);
@@ -412,8 +444,10 @@ storage_write_end(STORAGE_W * S)
 	return (0);
 
 err2:
-	netpacket_close(S->NPC);
+	i = S->numconns;
 err1:
+	for (i--; i < S->numconns; i--)
+		netpacket_close(S->NPC[i]);
 	free(S);
 
 	/* Failure! */
@@ -428,9 +462,11 @@ err1:
 void
 storage_write_free(STORAGE_W * S)
 {
+	size_t i;
 
-	/* Close netpacket connection. */
-	netpacket_close(S->NPC);
+	/* Close netpacket connections. */
+	for (i = S->numconns - 1; i < S->numconns; i--)
+		netpacket_close(S->NPC[i]);
 
 	/* Free structure. */
 	free(S);
