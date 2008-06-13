@@ -146,6 +146,16 @@ The specified
 .Nm
 archive is read and the entries in it will be
 appended to the current archive.
+.It Fl -aggressive-networking
+(c mode only)
+Use multiple TCP connections to send data to the
+.Nm
+server.
+If the upload rate is congestion-limited rather than
+being limited by individual bottleneck(s), this may
+allow tarsnap to use a significantly larger fraction
+of the available bandwidth, at the expense of slowing
+down any other network traffic.
 .It Fl C Ar directory
 (c and x modes only)
 In c mode, this changes the directory before adding

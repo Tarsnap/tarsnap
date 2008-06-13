@@ -84,6 +84,7 @@ struct option {
 #include "bsdtar.h"
 #include "crypto.h"
 #include "network.h"
+#include "storage.h"
 #include "sysendian.h"
 
 #if !HAVE_DECL_OPTARG
@@ -135,7 +136,8 @@ static const char *tar_opts = "+@:BC:cdf:HhI:kLlmnOoPprtT:UvW:wX:x";
 
 /* Fake short equivalents for long options that otherwise lack them. */
 enum {
-	OPTION_CACHEDIR=1,
+	OPTION_AGGRESSIVE_NETWORKING=1,
+	OPTION_CACHEDIR,
 	OPTION_CHECK_LINKS,
 	OPTION_CHROOT,
 	OPTION_EXCLUDE,
@@ -170,6 +172,7 @@ enum {
  */
 static const struct option tar_longopts[] = {
 	{ "absolute-paths",     no_argument,       NULL, 'P' },
+	{ "aggressive-networking", no_argument,	   NULL, OPTION_AGGRESSIVE_NETWORKING },
 	{ "cachedir",		required_argument, NULL, OPTION_CACHEDIR },
 	{ "cd",                 required_argument, NULL, 'C' },
 	{ "check-links",        no_argument,       NULL, OPTION_CHECK_LINKS },
@@ -332,6 +335,9 @@ main(int argc, char **argv)
 	 */
 	while ((opt = bsdtar_getopt(bsdtar, tar_opts, &option)) != -1) {
 		switch (opt) {
+		case OPTION_AGGRESSIVE_NETWORKING: /* tarsnap */
+			storage_aggressive_networking = 1;
+			break;
 		case 'B': /* GNU tar */
 			/* libarchive doesn't need this; just ignore it. */
 			break;
@@ -642,6 +648,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--null", "cxt");
 
 	/* Check boolean options only permitted in certain modes. */
+	if (storage_aggressive_networking)
+		only_mode(bsdtar, "--aggressive-networking", "c");
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
 	if (bsdtar->option_fast_read)
@@ -1001,8 +1009,8 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_arg;
 	size_t optlen;
 
-	/* Ignore comments. */
-	if (line[0] == '#')
+	/* Ignore comments and blank lines. */
+	if ((line[0] == '#') || (line[0] == '\0'))
 		return (0);
 
 	/* Duplicate line. */
@@ -1023,7 +1031,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 
 		/*
 		 * If the line is whitespace-terminated, there might not be
-		 * an option here after all.
+		 * an argument here after all.
 		 */
 		if (conf_arg[0] == '\0')
 			conf_arg = NULL;
@@ -1093,7 +1101,8 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 			bsdtar->option_totals++;
 	} else {
 		bsdtar_errc(bsdtar, 1, 0,
-		    "Unrecognized configuration file option: %s", conf_opt);
+		    "Unrecognized configuration file option: \"%s\"",
+		    conf_opt);
 	}
 
 	/* Free memory allocated by strdup. */
