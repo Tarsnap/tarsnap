@@ -83,11 +83,20 @@ AC_CHECK_HEADER(inttypes.h,
 AC_CHECK_HEADERS([locale.h paths.h poll.h pwd.h stdarg.h])
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/acl.h sys/ioctl.h])
 AC_CHECK_HEADERS([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
-AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h zlib.h])
+AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h])
 
-# Checks for libraries.
+# Checks for libraries.  While libbz2 is optional (if it is not present,
+# support for @archive.bz2 will be lost, but that's all), libz and
+# libcrypto are necesasry.
 AC_CHECK_LIB(bz2,BZ2_bzDecompressInit)
-AC_CHECK_LIB(z,inflate)
+AC_CHECK_HEADER(zlib.h,
+	AC_CHECK_LIB(z,inflate, ,
+		AC_MSG_ERROR([*** zlib missing ***])),
+	AC_MSG_ERROR([*** zlib header file missing ***]))
+AC_CHECK_HEADER(openssl/rsa.h,
+	AC_CHECK_LIB(crypto,RSA_private_encrypt, ,
+		AC_MSG_ERROR([*** OpenSSL missing ***])),
+	AC_MSG_ERROR([*** OpenSSL header files missing ***]))
 
 # Check if we're on an operating system with a broken TCP_NOPUSH
 CHECK_BROKEN_TCP_NOPUSH
@@ -142,7 +151,8 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([chflags chown fchdir fchflags fchmod fchown fstat])
+AC_CHECK_FUNCS([chflags chown chroot])
+AC_CHECK_FUNCS([fchdir fchflags fchmod fchown fstat])
 AC_CHECK_FUNCS([ftruncate futimes geteuid getopt_long getpid])
 AC_CHECK_FUNCS([lchflags lchmod lchown])
 AC_CHECK_FUNCS([lutimes memmove memset mkdir mkfifo mknod])
