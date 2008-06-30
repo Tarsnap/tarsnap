@@ -107,6 +107,26 @@ network_connect(int s, const struct sockaddr * addr, socklen_t addrlen,
 	    (errno == ECONNRESET) ||
 	    (errno == ENETDOWN) ||
 	    (errno == ENETUNREACH) ||
+#ifdef FREEBSD_PORTRANGE_BUG
+	/**
+	 * If FreeBSD's net.inet.ip.portrange.randomized sysctl is set to 1
+	 * (the default value) FreeBSD sometimes reuses a source port faster
+	 * than might naively be expected.  This doesn't cause any problems
+	 * except if the pf filewall is running on the source system; said
+	 * firewall detects the packet as belonging to an expired connection
+	 * and drops it.  This would be fine, except that the FreeBSD kernel
+	 * doesn't merely drop the packet when a firewall blocks an outgoing
+	 * packet; instead, it reports EPERM back to the userland process
+	 * which was responsible for the packet being sent.
+	 * In short, things interact in wacky ways which make it possible to
+	 * get EPERM back in response to a connect(2) syscall.  Work around
+	 * this by handling EPERM the same way as transient network glitches;
+	 * the upstream code will handle this appropriately by retrying the
+	 * connection, at which point a new source port number will be chosen
+	 * and everything will (probably) work fine.
+	 */
+	    (errno == EPERM) ||
+#endif
 	    (errno == EHOSTUNREACH)) {
 		/*
 		 * The connection attempt has failed.  Schedule a callback

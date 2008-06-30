@@ -12,3 +12,35 @@ esac
 
 AC_SUBST([BROKEN_TCP_NOPUSH])
 ])# CHECK_BROKEN_TCP_NOPUSH
+
+# CHECK_FREEBSD_PORTRANGE_BUG
+# ---------------------------
+AC_DEFUN([CHECK_FREEBSD_PORTRANGE_BUG],
+[AC_REQUIRE([AC_CANONICAL_TARGET])
+
+case $target_os in
+freebsd*)
+	AC_DEFINE([FREEBSD_PORTRANGE_BUG], [1],
+	    [Define to 1 if the OS has FreeBSD's randomized portrange bug])
+	;;
+esac
+
+AC_SUBST([FREEBSD_PORTRANGE_BUG])
+])# CHECK_FREEBSD_PORTRANGE_BUG
+
+# CHECK_LINUX_EXT2FS
+# ---------------------------
+AC_DEFUN([CHECK_LINUX_EXT2FS],
+[AC_REQUIRE([AC_CANONICAL_TARGET])
+
+case $target_os in
+linux*)
+	AC_CHECK_HEADER(ext2fs/ext2_fs.h,
+		AC_DEFINE([HAVE_EXT2FS_EXT2_FS_H], [1],
+		    [Define to 1 if you have the <ext2fs/ext2_fs.h> header file.]),
+		AC_MSG_ERROR([*** ext2fs/ext2_fs.h missing ***]))
+	;;
+esac
+
+AC_SUBST([HAVE_EXT2FS_EXT2_FS_H])
+])# CHECK_LINUX_EXT2FS

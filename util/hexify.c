@@ -6,7 +6,7 @@
 
 #include "hexify.h"
 
-static char hexchars[16] ="0123456789abcdef";
+static char hexchars[32] ="0123456789abcdef0123456789ABCDEF";
 
 /**
  * hexify(in, out, len):
@@ -41,8 +41,9 @@ unhexify(const char * in, uint8_t * out, size_t len)
 		goto err0;
 
 	for (i = 0; i < len; i++) {
-		out[i] = ((strchr(hexchars, in[2 * i]) - hexchars) << 4) +
-		    (strchr(hexchars, in[2 * i + 1]) - hexchars);
+		out[i] = (strchr(hexchars, in[2 * i]) - hexchars) & 0x0f;
+		out[i] <<= 4;
+		out[i] += (strchr(hexchars, in[2 * i + 1]) - hexchars) & 0x0f;
 	}
 
 	/* Success! */

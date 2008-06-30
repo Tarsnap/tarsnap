@@ -69,8 +69,8 @@ AM_MAINTAINER_MODE
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([bzlib.h errno.h ext2fs/ext2_fs.h fcntl.h  grp.h])
-AC_CHECK_HEADERS([inttypes.h langinfo.h limits.h linux/ext2_fs.h linux/fs.h])
+AC_CHECK_HEADERS([bzlib.h errno.h fcntl.h  grp.h])
+AC_CHECK_HEADERS([inttypes.h langinfo.h limits.h])
 # Include inttypes.h into archive.h only if appropriate.
 # We can't use the HAVE_INTTYPES_H macro here because archive.h
 # gets installed as a system header and then included into client code
@@ -98,8 +98,14 @@ AC_CHECK_HEADER(openssl/rsa.h,
 		AC_MSG_ERROR([*** OpenSSL missing ***])),
 	AC_MSG_ERROR([*** OpenSSL header files missing ***]))
 
+# On Linux, we need ext2fs/ext2_fs.h
+CHECK_LINUX_EXT2FS
+
 # Check if we're on an operating system with a broken TCP_NOPUSH
 CHECK_BROKEN_TCP_NOPUSH
+
+# Check if we have FreeBSD's randomized TCP source port bug
+CHECK_FREEBSD_PORTRANGE_BUG
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
