@@ -80,9 +80,6 @@ int
 network_uncork(int fd)
 {
 
-	/* Set TCP_NODELAY. */
-	setopt(fd, TCP_NODELAY, 1, err0);
-
 	/* Clear TCP_CORK or TCP_NOPUSH as appropriate. */
 #ifdef TCP_CORK
 	setopt(fd, TCP_CORK, 0, err0);
@@ -93,6 +90,13 @@ network_uncork(int fd)
 #endif
 #endif
 #endif
+
+	/* Set TCP_NODELAY. */
+	/*
+	 * For compatibility with Linux 2.4, this must be done after we
+	 * clear TCP_CORK; otherwise it will throw an EINVAL back at us.
+	 */
+	setopt(fd, TCP_NODELAY, 1, err0);
 
 	/* Success! */
 	return (0);

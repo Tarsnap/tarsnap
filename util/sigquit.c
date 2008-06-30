@@ -70,9 +70,12 @@ sigquit_init(void)
 		/*
 		 * If stdin isn't a TTY, or doesn't exist (i.e., the other
 		 * end of the pipe was closed) we're not going to remap ^Q
-		 * to SIGQUIT, and we don't need to unmap it on exit.
+		 * to SIGQUIT, and we don't need to unmap it on exit.  For
+		 * some reason Linux returns EINVAL if stdin is not a
+		 * terminal, so handle this too.
 		 */
-		if ((errno == ENOTTY) || (errno == ENXIO))
+		if ((errno == ENOTTY) || (errno == ENXIO) ||
+		    (errno == EBADF) || (errno == EINVAL))
 			goto done;
 
 		warnp("tcgetattr(stdin)");
