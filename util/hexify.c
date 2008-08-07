@@ -37,8 +37,10 @@ unhexify(const char * in, uint8_t * out, size_t len)
 	size_t i;
 
 	/* Make sure we have at least 2 * ${len} hex characters. */
-	if (strspn(in, hexchars) < 2 * len)
-		goto err0;
+	for (i = 0; i < 2 * len; i++) {
+		if ((in[i] == '\0') || (strchr(hexchars, in[i]) == NULL))
+			goto err0;
+	}
 
 	for (i = 0; i < len; i++) {
 		out[i] = (strchr(hexchars, in[2 * i]) - hexchars) & 0x0f;

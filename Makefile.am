@@ -11,7 +11,7 @@ distclean-local:
 	-rm -f *~
 
 noinst_LIBRARIES=	libarchive.a
-bin_PROGRAMS=	tarsnap tarsnap-keygen
+bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keymgmt
 dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS)
 
 #
@@ -232,6 +232,43 @@ tarsnap_keygen_CFLAGS=				\
 tarsnap_keygen_LDADD= -lcrypto
 
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
+
+#
+#
+# tarsnap-keymgmt source, docs, etc.
+#
+#
+
+tarsnap_keymgmt_SOURCES=			\
+		keymgmt/keymgmt.c		\
+		datastruct/rwhashtab.c		\
+		crypto/sha256.c			\
+		crypto/crypto_entropy.c		\
+		crypto/crypto_hash.c		\
+		crypto/crypto_keys.c		\
+		crypto/crypto_keys_subr.c	\
+		crypto/crypto_session.c		\
+		crypto/crypto_file.c		\
+		crypto/crypto_rsa.c		\
+		crypto/crypto_passwd_to_dh.c	\
+		crypto/crypto_dh.c		\
+		crypto/crypto_verify_bytes.c	\
+		crypto/crypto_keys_server.c	\
+		crypto/crypto_dh_group14.c	\
+		util/entropy.c
+
+tarsnap_keymgmt_CFLAGS=				\
+		-Werror				\
+		-I$(top_builddir)/tar		\
+		-I${top_builddir}/libarchive	\
+		-I$(top_builddir)/datastruct	\
+		-I${top_builddir}/crypto	\
+		-I$(top_builddir)/util		\
+		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
+
+tarsnap_keymgmt_LDADD= -lcrypto
+
+tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
 #  Tarsnap sample configuration file
 sysconf_DATA	=	tar/tarsnap.conf.sample

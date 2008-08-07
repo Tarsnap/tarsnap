@@ -37,6 +37,15 @@
 #define CRYPTO_KEYMASK_HMAC_CHUNK	(1 << CRYPTO_KEY_HMAC_CHUNK)
 #define CRYPTO_KEYMASK_HMAC_NAME	(1 << CRYPTO_KEY_HMAC_NAME)
 #define CRYPTO_KEYMASK_HMAC_CPARAMS	(1 << CRYPTO_KEY_HMAC_CPARAMS)
+#define CRYPTO_KEYMASK_READ					\
+	(CRYPTO_KEYMASK_ENCR_PRIV | CRYPTO_KEYMASK_SIGN_PUB |	\
+	 CRYPTO_KEYMASK_HMAC_FILE | CRYPTO_KEYMASK_HMAC_CHUNK |	\
+	 CRYPTO_KEYMASK_HMAC_NAME | CRYPTO_KEYMASK_AUTH_GET )
+#define CRYPTO_KEYMASK_WRITE					\
+	(CRYPTO_KEYMASK_SIGN_PRIV | CRYPTO_KEYMASK_ENCR_PUB |	\
+	 CRYPTO_KEYMASK_HMAC_FILE | CRYPTO_KEYMASK_HMAC_CHUNK |	\
+	 CRYPTO_KEYMASK_HMAC_NAME | CRYPTO_KEYMASK_HMAC_CPARAMS |	\
+	 CRYPTO_KEYMASK_AUTH_PUT )
 
 #define CRYPTO_KEYMASK_ROOT_PUB		(1 << CRYPTO_KEY_ROOT_PUB)
 #define CRYPTO_KEYMASK_AUTH_PUT		(1 << CRYPTO_KEY_AUTH_PUT)
@@ -89,6 +98,13 @@ int crypto_keys_init(void);
  * Import keys from the provided buffer into the key cache.
  */
 int crypto_keys_import(uint8_t * buf, size_t buflen);
+
+/**
+ * crypto_keys_missing(keys):
+ * Look for the specified keys.  If they are all present, return NULL; if
+ * not, return a pointer to the name of one of the keys.
+ */
+const char * crypto_keys_missing(int);
 
 /**
  * crypto_keys_export(keys, buf, buflen):

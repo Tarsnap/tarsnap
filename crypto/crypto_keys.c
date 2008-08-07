@@ -259,6 +259,79 @@ err0:
 }
 
 /**
+ * crypto_keys_missing(keys):
+ * Look for the specified keys.  If they are all present, return NULL; if
+ * not, return a pointer to the name of one of the keys.
+ */
+const char *
+crypto_keys_missing(int keys)
+{
+	const char * keyname = NULL;
+	int key;
+
+	/*
+	 * Go through all the keys we know about and determine if (a) the key
+	 * is in the provided mask; and (b) if we do not have it.
+	 */
+	for (key = 0; key < (int)(sizeof(int) * 8); key++)
+	    if ((keys >> key) & 1) {
+		switch (key) {
+		case CRYPTO_KEY_SIGN_PRIV:
+			if (keycache.sign_priv == NULL)
+				keyname = "archive signing";
+			break;
+		case CRYPTO_KEY_SIGN_PUB:
+			if (keycache.sign_pub == NULL)
+				keyname = "archive signature verification";
+			break;
+		case CRYPTO_KEY_ENCR_PRIV:
+			if (keycache.encr_priv == NULL)
+				keyname = "archive decryption";
+			break;
+		case CRYPTO_KEY_ENCR_PUB:
+			if (keycache.encr_pub == NULL)
+				keyname = "archive encryption";
+			break;
+		case CRYPTO_KEY_HMAC_FILE:
+			if (keycache.hmac_file == NULL)
+				keyname = "file HMAC";
+			break;
+		case CRYPTO_KEY_HMAC_CHUNK:
+			if (keycache.hmac_chunk == NULL)
+				keyname = "chunk HMAC";
+			break;
+		case CRYPTO_KEY_HMAC_NAME:
+			if (keycache.hmac_name == NULL)
+				keyname = "archive name HMAC";
+			break;
+		case CRYPTO_KEY_HMAC_CPARAMS:
+			if (keycache.hmac_cparams == NULL)
+				keyname = "chunk randomization";
+			break;
+		case CRYPTO_KEY_ROOT_PUB:
+			if (keycache.root_pub == NULL)
+				keyname = "server root";
+			break;
+		case CRYPTO_KEY_AUTH_PUT:
+			if (keycache.auth_put == NULL)
+				keyname = "write authorization";
+			break;
+		case CRYPTO_KEY_AUTH_GET:
+			if (keycache.auth_get == NULL)
+				keyname = "read authorization";
+			break;
+		case CRYPTO_KEY_AUTH_DELETE:
+			if (keycache.auth_delete == NULL)
+				keyname = "delete authorization";
+			break;
+		}
+	}
+
+	/* Return the key name or NULL if we have everything. */
+	return (keyname);
+}
+
+/**
  * crypto_keys_export(keys, buf, buflen):
  * Export the keys specified to a buffer allocated using malloc.
  */

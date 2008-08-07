@@ -245,6 +245,7 @@ main(int argc, char **argv)
 	char			 cachedir[PATH_MAX + 1];
 	char			*homedir;
 	char			*conffile;
+	const char		*missingkey;
 
 	/*
 	 * Use a pointer for consistency, but stack-allocated storage
@@ -698,6 +699,36 @@ main(int argc, char **argv)
 		bsdtar->cachedir = cachedir;
 	}
 
+	/* Make sure we have whatever keys we're going to need. */
+	missingkey = NULL;
+	switch (bsdtar->mode) {
+	case 'c':
+		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
+		break;
+	case 'd':
+	case OPTION_FSCK:
+		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_READ |
+		    CRYPTO_KEYMASK_AUTH_DELETE);
+		break;
+	case OPTION_PRINT_STATS:
+		/* We don't need keys for printing global stats. */
+		if (bsdtar->tapename == NULL)
+			break;
+
+		/* FALLTHROUGH */
+	case OPTION_LIST_ARCHIVES:
+	case 'r':
+	case 't':
+	case 'x':
+		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_READ);
+		break;
+	}
+	if (missingkey != NULL)
+		bsdtar_errc(bsdtar, 1, 0,
+		    "The %s key is required for %s but is not available",
+		    missingkey, bsdtar->modestr);
+
+	/* Perform the requested operation. */
 	switch(bsdtar->mode) {
 	case 'c':
 		tarsnap_mode_c(bsdtar);

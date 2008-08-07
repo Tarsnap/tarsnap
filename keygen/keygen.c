@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	C.passwd = passbuf;
 
 	/* Parse arguments. */
-	while (--argc) {
+	while (--argc > 0) {
 		argv++;
 
 		if (strcmp(argv[0], "--user") == 0) {

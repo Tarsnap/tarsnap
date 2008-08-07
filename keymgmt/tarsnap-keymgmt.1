@@ -1,0 +1,35 @@
+.\" Copyright 2008 Colin Percival
+.\" All rights reserved.
+.\"
+.Dd July 13, 2008
+.Dt TARSNAP-KEYMGMT 1
+.Os
+.Sh NAME
+.Nm tarsnap-keymgmt
+.Nd generate subsets of
+.Xr tarsnap 1
+key files
+.Sh SYNOPSIS
+.Nm
+.Fl -outkeyfile Ar new-key-file
+.Op Fl r
+.Op Fl w
+.Op Fl d
+.Ar key-file ...
+.Sh DESCRIPTION
+.Nm
+reads the provided key files and writes a new key file
+containing only the keys required for the operations
+specified via the
+.Fl r
+(list and extract archives),
+.Fl w
+(write archives), and
+.Fl d
+(delete archives)
+flags.  Note that
+.Fl d
+implies
+.Fl r
+since it is impossible to delete an archive without
+being able to read it.
