@@ -59,7 +59,7 @@ multitape_chunkiter_tmd(STORAGE_R * S, CHUNKS_S * C,
 		rc = -1;
 		goto err2;
 	}
-	ibufpos = ibuflen = 0;
+	ibuflen = 0;
 
 	/* Iterate through the header stream index. */
 	for (hindexpos = 0;
@@ -110,7 +110,6 @@ multitape_chunkiter_tmd(STORAGE_R * S, CHUNKS_S * C,
 		/* Move buffered data to the start of the buffer. */
 		memmove(ibuf, ibuf + ibufpos, ibuflen - ibufpos);
 		ibuflen -= ibufpos;
-		ibufpos -= ibufpos;
 	}
 
 	/* Iterate through the trailer stream index. */
