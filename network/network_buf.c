@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "network_internal.h"
+#include "tarsnap_opt.h"
 #include "warnp.h"
 
 #include "network.h"
@@ -133,11 +134,12 @@ tryagain:
 	return (0);
 
 docallback:
-#if 0
-	/* If status is NETWORK_STATUS_ERR, print a warning from errno. */
-	if (status == NETWORK_STATUS_ERR)
+	/*
+	 * If there was a network error and we're being verbose, print the
+	 * error now in case errno gets mangled later.
+	 */
+	if ((tarsnap_opt_noisy_warnings) && (status == NETWORK_STATUS_ERR))
 		warnp("Network error");
-#endif
 
 	/* Call the user callback. */
 	rc = (C->callback)(C->cookie, status);

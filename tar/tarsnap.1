@@ -194,8 +194,11 @@ specified on the command line.
 (c, d, x, t, r, and print-stats modes only)
 Operate on the archive
 .Ar archive-name .
-In mode c, if archive creation is interrupted by ^Q
-or the SIGQUIT signal, the archive will be stored with
+In mode c, if archive creation is interrupted by ^Q,
+the SIGQUIT signal, or reaching the bandwidth limit
+specified via a
+.Fl -maxbw
+option, the archive will be stored with
 ".part" appended to its name.
 In mode print-stats, if
 .Ar archive-name
@@ -208,6 +211,10 @@ target of the link will be archived, not the link itself.
 (c mode only)
 Synonym for
 .Fl L .
+.It Fl -humanize-numbers
+Use SI prefixes to make numbers printed by
+.Fl -print-stats
+more readable.
 .It Fl I
 Synonym for
 .Fl T .
@@ -264,6 +271,12 @@ number of files being backed up.
 (x mode only)
 Do not extract modification time.
 By default, the modification time is set to the time stored in the archive.
+.It Fl -maxbw Ar numbytes
+(c mode only)
+Interrupt archival if more than
+.Ar numbytes
+bytes of upstream bandwidth is used (see INTERRUPTING ARCHIVAL
+below for details).
 .It Fl n
 (c mode only)
 Do not recursively archive the contents of directories.
@@ -288,6 +301,9 @@ except it compares mtime entries instead of ctime entries.
 .It Fl -nodump ( Fl W Cm nodump )
 (c mode only)
 Honor the nodump file flag by skipping this file.
+.It Fl -noisy-warnings
+Be verbose when warning about network glitches.
+This is probably only useful for debugging purposes.
 .It Fl -null ( Fl W Cm null )
 (use with
 .Fl I ,
@@ -449,6 +465,9 @@ Upon receipt of the
 signal or 
 .ua
 Q,
+or if the bandwidth limit specified via a
+.Fl -maxbw
+option is reached,
 .Nm
 will interrupt the creation of an archive and truncate it
 at the current position.
@@ -671,3 +690,9 @@ formats store hardlink information.)
 .Pp
 There are alternative long options for many of the short options that
 are deliberately not documented.
+.Pp
+The limit specified by a
+.Fl -maxbw
+option is not strictly enforced;
+in particular, due to the need to cleanly terminate an archive, the
+amount of bandwidth used may slightly exceed the limit.

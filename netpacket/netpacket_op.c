@@ -1,5 +1,7 @@
 #include "bsdtar_platform.h"
 
+#include <sys/time.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,6 +9,7 @@
 #include "netpacket_internal.h"
 #include "netproto.h"
 #include "sysendian.h"
+#include "tarsnap_opt.h"
 #include "warnp.h"
 
 #include "netpacket.h"
@@ -24,6 +27,9 @@ static network_callback callback_packetreceived;
 static int reconnect_wait[MAXRECONNECTS + 1] = {
     0, 0, 1, 2, 4, 8, 15, 30, 60, 90, 90
 };
+
+/* Time before which we shouldn't print a "connection lost" warning. */
+static struct timeval next_connlost_warning = { 0, 0};
 
 /**
  * netpacket_open(void):
@@ -52,8 +58,8 @@ netpacket_open(void)
 	/* We're not reading a packet yet. */
 	NPC->reading = 0;
 
-	/* We're using the default getbuf function. */
-	NPC->getbuf = callback_getbuf;
+	/* We haven't used any bandwidth yet. */
+	NPC->bytesin = NPC->bytesout = 0;
 
 	/* The queue is empty. */
 	NPC->pending_head = NPC->pending_tail = NPC->pending_current = NULL;
@@ -119,8 +125,9 @@ netpacket_op(NETPACKET_CONNECTION * NPC,
 	if ((op = malloc(sizeof(struct netpacket_op))) == NULL)
 		goto err0;
 
-	/* Store parameters for request. */
+	/* Store parameters for request, including default getbuf callback. */
 	op->writepacket = writepacket;
+	op->getbuf = callback_getbuf;
 	op->cookie = cookie;
 
 	/* Add operation to queue. */
@@ -167,6 +174,7 @@ static int
 callback_reconnect(void * cookie, int status)
 {
 	struct netpacket_internal * NPC = cookie;
+	uint64_t in, out, queued;
 
 	/* If we're being cancelled, return. */
 	if (status == NETWORK_STATUS_CANCEL)
@@ -177,6 +185,11 @@ callback_reconnect(void * cookie, int status)
 		warn0("Bad status in callback_reconnect: %d", status);
 		goto err0;
 	}
+
+	/* Add the bandwidth used by the connection to our running totals. */
+	netproto_getstats(NPC->NC, &in, &out, &queued);
+	NPC->bytesin += in;
+	NPC->bytesout += out;
 
 	/* Close the (dead) connection. */
 	if (netproto_close(NPC->NC))
@@ -201,6 +214,7 @@ err0:
 static int
 reconnect(NETPACKET_CONNECTION * NPC)
 {
+	struct timeval tp;
 	int nseconds;
 
 	/* Flush any pending activity on the socket. */
@@ -224,10 +238,23 @@ reconnect(NETPACKET_CONNECTION * NPC)
 	/* Figure out how long we ought to wait before reconnecting. */
 	nseconds = reconnect_wait[NPC->ndrops];
 
-	/* Warn the user that we're waiting. */
-	if (nseconds != 0)
+	/*
+	 * Warn the user that we're waiting, if we haven't already printed a
+	 * warning message recently.
+	 */
+	if (gettimeofday(&tp, NULL)) {
+		warnp("gettimeofday");
+		goto err0;
+	}
+	if ((nseconds >= (tarsnap_opt_noisy_warnings ? 1 : 30)) &&
+	    ((tp.tv_sec > next_connlost_warning.tv_sec) ||
+	        ((tp.tv_sec == next_connlost_warning.tv_sec) &&
+		(tp.tv_usec > next_connlost_warning.tv_usec)))) {
 		warn0("Connection lost, "
 		    "waiting %d seconds before reconnecting", nseconds);
+		next_connlost_warning.tv_sec = tp.tv_sec + nseconds;
+		next_connlost_warning.tv_usec = tp.tv_usec;
+	}
 
 	/* Set a callback to reconnect. */
 	if (netproto_sleep(NPC->NC, nseconds, callback_reconnect, NPC))
@@ -260,7 +287,7 @@ netpacket_op_packetsent(void * cookie, int status)
 
 	/* We want to read a response packet if we're not already doing so. */
 	if (NPC->reading == 0) {
-		if (netproto_readpacket(NPC->NC, NPC->getbuf,
+		if (netproto_readpacket(NPC->NC, NPC->pending_head->getbuf,
 		    callback_packetreceived, NPC))
 			goto err0;
 		NPC->reading = 1;
@@ -376,7 +403,7 @@ callback_packetreceived(void * cookie, int status)
 	/* Read another packet if appropriate. */
 	if ((NPC->pending_head != NULL) &&
 	    (NPC->pending_head->handlepacket != NULL)) {
-		if (netproto_readpacket(NPC->NC, NPC->getbuf,
+		if (netproto_readpacket(NPC->NC, NPC->pending_head->getbuf,
 		    callback_packetreceived, NPC))
 			goto err0;
 	} else {
@@ -394,6 +421,27 @@ done:
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * netpacket_getstats(NPC, in, out, queued):
+ * Obtain the number of bytes received and sent via the connection, and the
+ * number of bytes queued to be written.
+ */
+void
+netpacket_getstats(NETPACKET_CONNECTION * NPC, uint64_t * in, uint64_t * out,
+    uint64_t * queued)
+{
+
+	/* Get statistics from the current connection if one exists. */
+	if (NPC->NC != NULL)
+		netproto_getstats(NPC->NC, in, out, queued);
+	else
+		*in = *out = *queued = 0;
+
+	/* Add statistics from past connections. */
+	*in += NPC->bytesin;
+	*out += NPC->bytesout;
 }
 
 /**

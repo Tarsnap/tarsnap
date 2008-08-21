@@ -7,6 +7,7 @@
 
 struct netpacket_op {
 	sendpacket_callback * writepacket;
+	int (* getbuf)(void *, uint8_t, uint8_t **, size_t);
 	handlepacket_callback * handlepacket;
 	void * cookie;
 
@@ -33,8 +34,9 @@ struct netpacket_internal {
 	/* Non-zero if a netproto_readpacket call is pending. */
 	int reading;
 
-	/* Function for getting a buffer. */
-	int (* getbuf)(void *, uint8_t, uint8_t **, size_t);
+	/* Bandwidth totals from dead connections. */
+	uint64_t bytesin;
+	uint64_t bytesout;
 
 	/* Queue of uncompleted operations. */
 	struct netpacket_op * pending_head;

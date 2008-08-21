@@ -3,7 +3,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include "humansize.h"
 #include "storage.h"
+#include "tarsnap_opt.h"
 #include "warnp.h"
 
 #include "chunks_internal.h"
@@ -87,28 +89,57 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
     const char * name, struct chunkstats * stats_extra)
 {
 	struct chunkstats s;
+	char * s_lenstr, * s_zlenstr;
 
 	/* Compute sum of stats and stats_extra. */
 	s.nchunks = stats->nchunks + stats_extra->nchunks;
 	s.s_len = stats->s_len + stats_extra->s_len;
 	s.s_zlen = stats->s_zlen + stats_extra->s_zlen;
 
+	/* Stringify values, */
+	if (tarsnap_opt_humanize_numbers) {
+		if ((s_lenstr = humansize(s.s_len)) == NULL)
+			goto err0;
+		if ((s_zlenstr = humansize(s.s_zlen +
+		    s.nchunks * STORAGE_FILE_OVERHEAD)) == NULL)
+			goto err1;
+	} else {
+		if (asprintf(&s_lenstr, "%15" PRIu64, s.s_len) == -1) {
+			warnp("asprintf");
+			goto err0;
+		}
+		if (asprintf(&s_zlenstr, "%15" PRIu64,
+		    s.s_zlen + s.nchunks * STORAGE_FILE_OVERHEAD) == -1) {
+			warnp("asprintf");
+			goto err1;
+		}
+	}
+
+	/* Print output line. */
 	if (fprintf(stream,
 #ifdef STATS_WITH_CHUNKS
-	    "%-25s  %12" PRIu64 "  %15" PRIu64 "  %15" PRIu64 "\n",
-	    name, s.nchunks, s.s_len,
+	    "%-25s  %12" PRIu64 "  %15s  %15s\n",
+	    name, s.nchunks,
 #else
-	    "%-32s  %15" PRIu64 "  %15" PRIu64 "\n",
-	    name, s.s_len,
+	    "%-32s  %15s  %15s\n",
+	    name,
 #endif
-	    s.s_zlen + s.nchunks * STORAGE_FILE_OVERHEAD) < 0) {
+	    s_lenstr, s_zlenstr) < 0) {
 		warnp("fprintf");
-		goto err0;
+		goto err2;
 	}
+
+	/* Free strings allocated by asprintf or humansize. */
+	free(s_zlenstr);
+	free(s_lenstr);
 
 	/* Success! */
 	return (0);
 
+err2:
+	free(s_zlenstr);
+err1:
+	free(s_lenstr);
 err0:
 	/* Failure! */
 	return (-1);

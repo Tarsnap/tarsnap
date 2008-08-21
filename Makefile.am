@@ -155,6 +155,7 @@ tarsnap_SOURCES=				\
 		util/entropy.c			\
 		util/hexify.c			\
 		util/hexlink.c			\
+		util/humansize.c		\
 		util/sigquit.c
 
 tarsnap_DEPENDENCIES = libarchive.a		\
