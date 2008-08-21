@@ -164,6 +164,14 @@ NETPACKET_CONNECTION * netpacket_open(void);
 int netpacket_op(NETPACKET_CONNECTION *, sendpacket_callback *, void *);
 
 /**
+ * netpacket_getstats(NPC, in, out, queued):
+ * Obtain the number of bytes received and sent via the connection, and the
+ * number of bytes queued to be written.
+ */
+void netpacket_getstats(NETPACKET_CONNECTION *, uint64_t *, uint64_t *,
+    uint64_t *);
+
+/**
  * netpacket_close(NPC):
  * Close a netpacket connection.
  */

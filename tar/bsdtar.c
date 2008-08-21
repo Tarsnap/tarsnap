@@ -83,9 +83,10 @@ struct option {
 
 #include "bsdtar.h"
 #include "crypto.h"
+#include "humansize.h"
 #include "network.h"
-#include "storage.h"
 #include "sysendian.h"
+#include "tarsnap_opt.h"
 
 #if !HAVE_DECL_OPTARG
 extern int optarg;
@@ -94,6 +95,12 @@ extern int optarg;
 #if !HAVE_DECL_OPTIND
 extern int optind;
 #endif
+
+/* Global tarsnap options declared in tarsnap_opt.h. */
+int tarsnap_opt_aggressive_networking = 0;
+int tarsnap_opt_humanize_numbers = 0;
+int tarsnap_opt_noisy_warnings = 0;
+uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
 
 /* External function to parse a date/time string (from getdate.y) */
 time_t get_date(const char *);
@@ -144,10 +151,12 @@ enum {
 	OPTION_FSCK,
 	OPTION_HELP,
 	OPTION_INCLUDE,
+	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
 	OPTION_KEEP_NEWER_FILES,
 	OPTION_LIST_ARCHIVES,
 	OPTION_LOWMEM,
+	OPTION_MAXBW,
 	OPTION_NEWER_CTIME,
 	OPTION_NEWER_CTIME_THAN,
 	OPTION_NEWER_MTIME,
@@ -155,6 +164,7 @@ enum {
 	OPTION_NODUMP,
 	OPTION_NO_SAME_OWNER,
 	OPTION_NO_SAME_PERMISSIONS,
+	OPTION_NOISY_WARNINGS,
 	OPTION_NULL,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PRINT_STATS,
@@ -189,6 +199,7 @@ static const struct option tar_longopts[] = {
 	{ "files-from",         required_argument, NULL, 'T' },
 	{ "fsck",		no_argument,	   NULL, OPTION_FSCK },
 	{ "help",               no_argument,       NULL, OPTION_HELP },
+	{ "humanize-numbers",	no_argument,	   NULL, OPTION_HUMANIZE_NUMBERS },
 	{ "include",            required_argument, NULL, OPTION_INCLUDE },
 	{ "interactive",        no_argument,       NULL, 'w' },
 	{ "insecure",           no_argument,       NULL, 'P' },
@@ -198,6 +209,7 @@ static const struct option tar_longopts[] = {
 	{ "list",               no_argument,       NULL, 't' },
 	{ "list-archives",	no_argument,	   NULL, OPTION_LIST_ARCHIVES },
 	{ "lowmem",		no_argument,	   NULL, OPTION_LOWMEM },
+	{ "maxbw",		required_argument, NULL, OPTION_MAXBW },
 	{ "modification-time",  no_argument,       NULL, 'm' },
 	{ "newer",		required_argument, NULL, OPTION_NEWER_CTIME },
 	{ "newer-ctime",	required_argument, NULL, OPTION_NEWER_CTIME },
@@ -206,6 +218,7 @@ static const struct option tar_longopts[] = {
 	{ "newer-mtime-than",	required_argument, NULL, OPTION_NEWER_MTIME_THAN },
 	{ "newer-than",		required_argument, NULL, OPTION_NEWER_CTIME_THAN },
 	{ "nodump",             no_argument,       NULL, OPTION_NODUMP },
+	{ "noisy-warnings",	no_argument,	   NULL, OPTION_NOISY_WARNINGS },
 	{ "norecurse",          no_argument,       NULL, 'n' },
 	{ "no-recursion",       no_argument,       NULL, 'n' },
 	{ "no-same-owner",	no_argument,	   NULL, OPTION_NO_SAME_OWNER },
@@ -337,7 +350,7 @@ main(int argc, char **argv)
 	while ((opt = bsdtar_getopt(bsdtar, tar_opts, &option)) != -1) {
 		switch (opt) {
 		case OPTION_AGGRESSIVE_NETWORKING: /* tarsnap */
-			storage_aggressive_networking = 1;
+			tarsnap_opt_aggressive_networking = 1;
 			break;
 		case 'B': /* GNU tar */
 			/* libarchive doesn't need this; just ignore it. */
@@ -382,6 +395,9 @@ main(int argc, char **argv)
 		case OPTION_HELP: /* GNU tar, others */
 			long_help(bsdtar);
 			exit(0);
+			break;
+		case OPTION_HUMANIZE_NUMBERS: /* tarsnap */
+			tarsnap_opt_humanize_numbers = 1;
 			break;
 		case 'I': /* GNU tar */
 			/*
@@ -433,6 +449,12 @@ main(int argc, char **argv)
 		case 'm': /* SUSv2 */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_TIME;
 			break;
+		case OPTION_MAXBW: /* tarsnap */
+			if (humansize_parse(optarg, &tarsnap_opt_maxbytesout))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Cannot parse bandwidth limit: %s",
+				    optarg);
+			break;
 		case 'n': /* GNU tar */
 			bsdtar->option_no_subdirs = 1;
 			break;
@@ -473,6 +495,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NODUMP: /* star */
 			bsdtar->option_honor_nodump = 1;
+			break;
+		case OPTION_NOISY_WARNINGS: /* tarsnap */
+			tarsnap_opt_noisy_warnings = 1;
 			break;
 		case OPTION_NO_SAME_OWNER: /* GNU tar */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_OWNER;
@@ -648,9 +673,11 @@ main(int argc, char **argv)
 	if (bsdtar->option_null)
 		only_mode(bsdtar, "--null", "cxt");
 
-	/* Check boolean options only permitted in certain modes. */
-	if (storage_aggressive_networking)
+	/* Check options only permitted in certain modes. */
+	if (tarsnap_opt_aggressive_networking)
 		only_mode(bsdtar, "--aggressive-networking", "c");
+	if (tarsnap_opt_maxbytesout != (uint64_t)(-1))
+		only_mode(bsdtar, "--maxbw", "c");
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
 	if (bsdtar->option_fast_read)
@@ -1071,7 +1098,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		conf_arg = NULL;
 	}
 
-	if (strcmp(conf_opt, "cachedir") == 0) {
+	if (strcmp(conf_opt, "aggressive-networking") == 0) {
+		tarsnap_opt_aggressive_networking = 1;
+	} else if (strcmp(conf_opt, "cachedir") == 0) {
 		if (conf_arg == NULL)
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Argument required for "
@@ -1105,6 +1134,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 			load_keys(bsdtar, conf_arg);
 			bsdtar->have_keys = 1;
 		}
+	} else if (strcmp(conf_opt, "lowmem") == 0) {
+		if ((bsdtar->mode == 'c') && (bsdtar->cachecrunch == 0))
+			bsdtar->cachecrunch = 1;
 	} else if (strcmp(conf_opt, "nodump") == 0) {
 		if (bsdtar->mode == 'c')
 			bsdtar->option_honor_nodump = 1;
@@ -1130,6 +1162,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	} else if (strcmp(conf_opt, "totals") == 0) {
 		if ((bsdtar->mode == 'c') && (bsdtar->option_totals == 0))
 			bsdtar->option_totals++;
+	} else if (strcmp(conf_opt, "verylowmem") == 0) {
+		if ((bsdtar->mode == 'c') && (bsdtar->cachecrunch == 0))
+			bsdtar->cachecrunch = 2;
 	} else {
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Unrecognized configuration file option: \"%s\"",

@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@
 #include "netpacket.h"
 #include "netproto.h"
 #include "storage_internal.h"
+#include "tarsnap_opt.h"
 #include "warnp.h"
 
 #include "storage.h"
@@ -69,16 +71,37 @@ struct write_file_internal {
 	uint8_t * filebuf;
 };
 
+static void maybequit(struct storage_write_internal * S);
 static sendpacket_callback callback_fexist_send;
 static handlepacket_callback callback_fexist_response;
 static sendpacket_callback callback_write_file_send;
 static handlepacket_callback callback_write_file_response;
 
-/*
- * Should the storage code be aggressive in its networking by using multiple
- * TCP connections for writes?
+/**
+ * maybequit(S):
+ * Look at how much bandwidth has been used plus what will be used once all
+ * pending requests are sent, and send a SIGQUIT to ourselves if this exceeds
+ * tarsnap_opt_maxbytesout.
  */
-int storage_aggressive_networking = 0;
+static void
+maybequit(struct storage_write_internal * S)
+{
+	uint64_t in, out, queued;
+	uint64_t totalout = 0;
+	size_t i;
+
+	/* Add up bandwidth from all the connections. */
+	for (i = 0; i < S->numconns; i++) {
+		netpacket_getstats(S->NPC[i], &in, &out, &queued);
+		totalout += out + queued;
+	}
+
+	/* Send a SIGQUIT if appropriate. */
+	if (totalout > tarsnap_opt_maxbytesout) {
+		if (raise(SIGQUIT))
+			warnp("raise(SIGQUIT)");
+	}
+}
 
 /**
  * storage_write_start(machinenum, lastseq, seqnum):
@@ -102,7 +125,7 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 	S->machinenum = machinenum;
 
 	/* Figure out how many connections to use. */
-	S->numconns = storage_aggressive_networking ? AGGRESSIVE_CNUM : 1;
+	S->numconns = tarsnap_opt_aggressive_networking ? AGGRESSIVE_CNUM : 1;
 
 	/* No connections used yet. */
 	S->lastcnum = 0;
@@ -302,6 +325,9 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
 		goto err2;
 
+	/* If we've hit our outgoing bandwidth quota, SIGQUIT. */
+	maybequit(S);
+
 	/* Success! */
 	return (0);
 
@@ -374,6 +400,13 @@ callback_write_file_response(void * cookie,
 	default:
 		goto err2;
 	}
+
+	/*
+	 * If we've hit our outgoing bandwidth quota, SIGQUIT.  We do this
+	 * here in addition to in storage_write_file because a write will
+	 * use more bandwidth than expected if it needs to be retried.
+	 */
+	maybequit(C->S);
 
 	/* Free file buffer. */
 	free(C->filebuf);

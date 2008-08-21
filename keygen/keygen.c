@@ -14,6 +14,7 @@
 #include "netproto.h"
 #include "network.h"
 #include "sysendian.h"
+#include "tarsnap_opt.h"
 #include "warnp.h"
 
 /* Length of buffer for reading password. */
@@ -41,6 +42,9 @@ static sendpacket_callback callback_register_send;
 static handlepacket_callback callback_register_challenge;
 static handlepacket_callback callback_register_response;
 static void usage(void);
+
+/* Be noisy about network errors while registering a machine. */
+int tarsnap_opt_noisy_warnings = 1;
 
 static void
 usage(void)

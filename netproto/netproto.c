@@ -12,11 +12,11 @@
 static network_callback callback_sleep;
 
 /**
- * netproto_printerr(status):
+ * _netproto_printerr(status):
  * Print the error message associated with the given status code.
  */
 void
-netproto_printerr(int status)
+_netproto_printerr(int status)
 {
 
 	switch (status) {

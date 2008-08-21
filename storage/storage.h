@@ -13,12 +13,6 @@ typedef struct storage_read_internal	STORAGE_R;
 typedef struct storage_write_internal	STORAGE_W;
 typedef struct storage_delete_internal	STORAGE_D;
 
-/*
- * Should the storage code be aggressive in its networking by using multiple
- * TCP connections for writes?
- */
-extern int storage_aggressive_networking;
-
 /**
  * storage_read_init(machinenum):
  * Prepare for read operations.  Note that since reads are non-transactional,
