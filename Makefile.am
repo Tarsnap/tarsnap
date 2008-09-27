@@ -82,102 +82,102 @@ libarchive_a_CFLAGS=				\
 #
 #
 
-tarsnap_SOURCES=				\
-		tar/bsdtar.c			\
-		tar/bsdtar.h			\
-		tar/bsdtar_platform.h		\
-		tar/getdate.c			\
-		tar/matching.c			\
-		tar/read.c			\
-		tar/siginfo.c			\
-		tar/tree.c			\
-		tar/tree.h			\
-		tar/util.c			\
-		tar/write.c			\
-		glue/archive_multitape.c	\
-		glue/tape.c			\
-		ccache/ccache_entry.c		\
-		ccache/ccache_read.c		\
-		ccache/ccache_write.c		\
-		multitape/chunkify.c		\
-		multitape/multitape_write.c	\
-		multitape/multitape_read.c	\
-		multitape/multitape_delete.c	\
-		multitape/multitape_stats.c	\
-		multitape/multitape_fsck.c	\
-		multitape/multitape_metadata.c	\
-		multitape/multitape_metaindex.c	\
-		multitape/multitape_chunkiter.c	\
-		multitape/multitape_transaction.c	\
-		chunks/chunks_write.c		\
-		chunks/chunks_read.c		\
-		chunks/chunks_stats.c		\
-		chunks/chunks_delete.c		\
-		chunks/chunks_transaction.c	\
-		chunks/chunks_stats_internal.c	\
-		chunks/chunks_directory.c	\
-		storage/storage_write.c		\
-		storage/storage_read.c		\
-		storage/storage_delete.c	\
-		storage/storage_directory.c	\
-		storage/storage_transaction.c	\
-		netpacket/netpacket_transaction.c	\
-		netpacket/netpacket_write.c	\
-		netpacket/netpacket_read.c	\
-		netpacket/netpacket_delete.c	\
-		netpacket/netpacket_directory.c	\
-		netpacket/netpacket_hmac.c	\
-		netpacket/netpacket_op.c	\
-		netproto/netproto_connect.c	\
-		netproto/netproto.c		\
-		netproto/netproto_keyexchange.c	\
-		netproto/netproto_packet.c	\
-		network/network_select.c	\
-		network/network_connect.c	\
-		network/network_buf.c		\
-		network/network_writeq.c	\
-		network/network_cork.c		\
-		datastruct/patricia.c		\
-		datastruct/rwhashtab.c		\
-		crypto/sha256.c			\
-		crypto/crypto_entropy.c		\
-		crypto/crypto_hash.c		\
-		crypto/crypto_keys.c		\
-		crypto/crypto_keys_subr.c	\
-		crypto/crypto_session.c		\
-		crypto/crypto_file.c		\
-		crypto/crypto_rsa.c		\
-		crypto/crypto_dh.c		\
-		crypto/crypto_verify_bytes.c	\
-		crypto/crypto_keys_server.c	\
-		crypto/crypto_dh_group14.c	\
-		util/dirutil.c			\
-		util/entropy.c			\
-		util/hexify.c			\
-		util/hexlink.c			\
-		util/humansize.c		\
-		util/sigquit.c
+tarsnap_SOURCES=					\
+		tar/bsdtar.c				\
+		tar/bsdtar.h				\
+		tar/bsdtar_platform.h			\
+		tar/getdate.c				\
+		tar/matching.c				\
+		tar/read.c				\
+		tar/siginfo.c				\
+		tar/tree.c				\
+		tar/tree.h				\
+		tar/util.c				\
+		tar/write.c				\
+		tar/glue/archive_multitape.c		\
+		tar/glue/tape.c				\
+		tar/ccache/ccache_entry.c		\
+		tar/ccache/ccache_read.c		\
+		tar/ccache/ccache_write.c		\
+		tar/multitape/chunkify.c		\
+		tar/multitape/multitape_write.c		\
+		tar/multitape/multitape_read.c		\
+		tar/multitape/multitape_delete.c	\
+		tar/multitape/multitape_stats.c		\
+		tar/multitape/multitape_fsck.c		\
+		tar/multitape/multitape_metadata.c	\
+		tar/multitape/multitape_metaindex.c	\
+		tar/multitape/multitape_chunkiter.c	\
+		tar/multitape/multitape_transaction.c	\
+		tar/chunks/chunks_write.c		\
+		tar/chunks/chunks_read.c		\
+		tar/chunks/chunks_stats.c		\
+		tar/chunks/chunks_delete.c		\
+		tar/chunks/chunks_transaction.c		\
+		tar/chunks/chunks_stats_internal.c	\
+		tar/chunks/chunks_directory.c		\
+		tar/storage/storage_write.c		\
+		tar/storage/storage_read.c		\
+		tar/storage/storage_delete.c		\
+		tar/storage/storage_directory.c		\
+		tar/storage/storage_transaction.c	\
+		lib/netpacket/netpacket_transaction.c	\
+		lib/netpacket/netpacket_write.c		\
+		lib/netpacket/netpacket_read.c		\
+		lib/netpacket/netpacket_delete.c	\
+		lib/netpacket/netpacket_directory.c	\
+		lib/netpacket/netpacket_hmac.c		\
+		lib/netpacket/netpacket_op.c		\
+		lib/netproto/netproto_connect.c		\
+		lib/netproto/netproto.c			\
+		lib/netproto/netproto_keyexchange.c	\
+		lib/netproto/netproto_packet.c		\
+		lib/network/network_select.c		\
+		lib/network/network_connect.c		\
+		lib/network/network_buf.c		\
+		lib/network/network_writeq.c		\
+		lib/network/network_cork.c		\
+		lib/datastruct/patricia.c		\
+		lib/datastruct/rwhashtab.c		\
+		lib/crypto/sha256.c			\
+		lib/crypto/crypto_entropy.c		\
+		lib/crypto/crypto_hash.c		\
+		lib/crypto/crypto_keys.c		\
+		lib/crypto/crypto_keys_subr.c		\
+		lib/crypto/crypto_session.c		\
+		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_rsa.c			\
+		lib/crypto/crypto_dh.c			\
+		lib/crypto/crypto_verify_bytes.c	\
+		lib/crypto/crypto_keys_server.c		\
+		lib/crypto/crypto_dh_group14.c		\
+		lib/util/dirutil.c			\
+		lib/util/entropy.c			\
+		lib/util/hexify.c			\
+		lib/util/hexlink.c			\
+		lib/util/humansize.c			\
+		lib/util/sigquit.c
 
 tarsnap_DEPENDENCIES = libarchive.a		\
 		libarchive/archive_entry.h	\
 		libarchive/archive.h
 
 tarsnap_LDADD= -lcrypto libarchive.a
-tarsnap_CFLAGS=					\
-		-Werror				\
-		-I$(top_builddir)/libarchive	\
-		-I$(top_builddir)/tar		\
-		-I$(top_builddir)/glue		\
-		-I$(top_builddir)/ccache	\
-		-I$(top_builddir)/multitape	\
-		-I$(top_builddir)/chunks	\
-		-I$(top_builddir)/storage	\
-		-I$(top_builddir)/netpacket	\
-		-I$(top_builddir)/netproto	\
-		-I$(top_builddir)/network	\
-		-I$(top_builddir)/datastruct	\
-		-I${top_builddir}/crypto	\
-		-I$(top_builddir)/util		\
+tarsnap_CFLAGS=						\
+		-Werror					\
+		-I$(top_builddir)/libarchive		\
+		-I$(top_builddir)/tar			\
+		-I$(top_builddir)/tar/glue		\
+		-I$(top_builddir)/tar/ccache		\
+		-I$(top_builddir)/tar/multitape		\
+		-I$(top_builddir)/tar/chunks		\
+		-I$(top_builddir)/tar/storage		\
+		-I$(top_builddir)/lib/netpacket		\
+		-I$(top_builddir)/lib/netproto		\
+		-I$(top_builddir)/lib/network		\
+		-I$(top_builddir)/lib/datastruct	\
+		-I${top_builddir}/lib/crypto		\
+		-I$(top_builddir)/lib/util		\
 		-DETC_TARSNAP_CONF=\"/usr/local/etc/tarsnap.conf\"	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
 
@@ -189,45 +189,45 @@ tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 #
 #
 
-tarsnap_keygen_SOURCES=				\
-		keygen/keygen.c			\
-		netpacket/netpacket_register.c	\
-		netpacket/netpacket_op.c	\
-		netproto/netproto_connect.c	\
-		netproto/netproto.c		\
-		netproto/netproto_keyexchange.c	\
-		netproto/netproto_packet.c	\
-		network/network_select.c	\
-		network/network_connect.c	\
-		network/network_buf.c		\
-		network/network_writeq.c	\
-		network/network_cork.c		\
-		datastruct/rwhashtab.c		\
-		crypto/sha256.c			\
-		crypto/crypto_entropy.c		\
-		crypto/crypto_hash.c		\
-		crypto/crypto_keys.c		\
-		crypto/crypto_keys_subr.c	\
-		crypto/crypto_session.c		\
-		crypto/crypto_file.c		\
-		crypto/crypto_rsa.c		\
-		crypto/crypto_passwd_to_dh.c	\
-		crypto/crypto_dh.c		\
-		crypto/crypto_verify_bytes.c	\
-		crypto/crypto_keys_server.c	\
-		crypto/crypto_dh_group14.c	\
-		util/entropy.c
+tarsnap_keygen_SOURCES=					\
+		keygen/keygen.c				\
+		lib/netpacket/netpacket_register.c	\
+		lib/netpacket/netpacket_op.c		\
+		lib/netproto/netproto_connect.c		\
+		lib/netproto/netproto.c			\
+		lib/netproto/netproto_keyexchange.c	\
+		lib/netproto/netproto_packet.c		\
+		lib/network/network_select.c		\
+		lib/network/network_connect.c		\
+		lib/network/network_buf.c		\
+		lib/network/network_writeq.c		\
+		lib/network/network_cork.c		\
+		lib/datastruct/rwhashtab.c		\
+		lib/crypto/sha256.c			\
+		lib/crypto/crypto_entropy.c		\
+		lib/crypto/crypto_hash.c		\
+		lib/crypto/crypto_keys.c		\
+		lib/crypto/crypto_keys_subr.c		\
+		lib/crypto/crypto_session.c		\
+		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_rsa.c			\
+		lib/crypto/crypto_passwd_to_dh.c	\
+		lib/crypto/crypto_dh.c			\
+		lib/crypto/crypto_verify_bytes.c	\
+		lib/crypto/crypto_keys_server.c		\
+		lib/crypto/crypto_dh_group14.c		\
+		lib/util/entropy.c
 
 tarsnap_keygen_CFLAGS=				\
 		-Werror				\
 		-I$(top_builddir)/tar		\
 		-I${top_builddir}/libarchive	\
-		-I$(top_builddir)/netpacket	\
-		-I$(top_builddir)/netproto	\
-		-I$(top_builddir)/network	\
-		-I$(top_builddir)/datastruct	\
-		-I${top_builddir}/crypto	\
-		-I$(top_builddir)/util		\
+		-I$(top_builddir)/lib/netpacket		\
+		-I$(top_builddir)/lib/netproto		\
+		-I$(top_builddir)/lib/network		\
+		-I$(top_builddir)/lib/datastruct	\
+		-I${top_builddir}/lib/crypto		\
+		-I$(top_builddir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keygen_LDADD= -lcrypto
@@ -240,31 +240,31 @@ tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 #
 #
 
-tarsnap_keymgmt_SOURCES=			\
-		keymgmt/keymgmt.c		\
-		datastruct/rwhashtab.c		\
-		crypto/sha256.c			\
-		crypto/crypto_entropy.c		\
-		crypto/crypto_hash.c		\
-		crypto/crypto_keys.c		\
-		crypto/crypto_keys_subr.c	\
-		crypto/crypto_session.c		\
-		crypto/crypto_file.c		\
-		crypto/crypto_rsa.c		\
-		crypto/crypto_passwd_to_dh.c	\
-		crypto/crypto_dh.c		\
-		crypto/crypto_verify_bytes.c	\
-		crypto/crypto_keys_server.c	\
-		crypto/crypto_dh_group14.c	\
-		util/entropy.c
+tarsnap_keymgmt_SOURCES=				\
+		keymgmt/keymgmt.c			\
+		lib/datastruct/rwhashtab.c		\
+		lib/crypto/sha256.c			\
+		lib/crypto/crypto_entropy.c		\
+		lib/crypto/crypto_hash.c		\
+		lib/crypto/crypto_keys.c		\
+		lib/crypto/crypto_keys_subr.c		\
+		lib/crypto/crypto_session.c		\
+		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_rsa.c			\
+		lib/crypto/crypto_passwd_to_dh.c	\
+		lib/crypto/crypto_dh.c			\
+		lib/crypto/crypto_verify_bytes.c	\
+		lib/crypto/crypto_keys_server.c		\
+		lib/crypto/crypto_dh_group14.c		\
+		lib/util/entropy.c
 
 tarsnap_keymgmt_CFLAGS=				\
 		-Werror				\
 		-I$(top_builddir)/tar		\
 		-I${top_builddir}/libarchive	\
-		-I$(top_builddir)/datastruct	\
-		-I${top_builddir}/crypto	\
-		-I$(top_builddir)/util		\
+		-I$(top_builddir)/lib/datastruct	\
+		-I${top_builddir}/lib/crypto		\
+		-I$(top_builddir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keymgmt_LDADD= -lcrypto
