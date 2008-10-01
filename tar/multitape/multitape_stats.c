@@ -123,7 +123,7 @@ statstape_printall(TAPE_S * d)
 	size_t file;
 
 	/* Get a list of the metadata files. */
-	if (storage_directory_read(d->machinenum, 'm', &flist, &nfiles))
+	if (storage_directory_read(d->machinenum, 'm', 0, &flist, &nfiles))
 		goto err0;
 
 	/* Iterate through the files. */
@@ -182,7 +182,7 @@ statstape_printlist(TAPE_S * d, int verbose)
 	int arg;
 
 	/* Get a list of the metadata files. */
-	if (storage_directory_read(d->machinenum, 'm', &flist, &nfiles))
+	if (storage_directory_read(d->machinenum, 'm', 0, &flist, &nfiles))
 		goto err0;
 
 	/* Iterate through the files. */

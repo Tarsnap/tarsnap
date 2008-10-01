@@ -165,6 +165,7 @@ enum {
 	OPTION_NO_SAME_OWNER,
 	OPTION_NO_SAME_PERMISSIONS,
 	OPTION_NOISY_WARNINGS,
+	OPTION_NUKE,
 	OPTION_NULL,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PRINT_STATS,
@@ -223,6 +224,7 @@ static const struct option tar_longopts[] = {
 	{ "no-recursion",       no_argument,       NULL, 'n' },
 	{ "no-same-owner",	no_argument,	   NULL, OPTION_NO_SAME_OWNER },
 	{ "no-same-permissions",no_argument,	   NULL, OPTION_NO_SAME_PERMISSIONS },
+	{ "nuke",		no_argument,	   NULL, OPTION_NUKE },
 	{ "null",		no_argument,	   NULL, OPTION_NULL },
 	{ "one-file-system",	no_argument,	   NULL, OPTION_ONE_FILE_SYSTEM },
 	{ "preserve-permissions", no_argument,     NULL, 'p' },
@@ -508,6 +510,9 @@ main(int argc, char **argv)
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_FFLAGS;
 			break;
+		case OPTION_NUKE: /* tarsnap */
+			set_mode(bsdtar, opt, "--nuke");
+			break;
 		case OPTION_NULL: /* GNU tar */
 			bsdtar->option_null++;
 			break;
@@ -640,7 +645,8 @@ main(int argc, char **argv)
 	if ((bsdtar->tapename == NULL) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS &&
 	     bsdtar->mode != OPTION_LIST_ARCHIVES &&
-	     bsdtar->mode != OPTION_FSCK))
+	     bsdtar->mode != OPTION_FSCK &&
+	     bsdtar->mode != OPTION_NUKE))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Archive name must be specified");
 	if ((bsdtar->cachedir == NULL) &&
@@ -654,7 +660,10 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Keys must be provided via --keyfile option");
 
-	/* The -f option doesn't make sense for --list-archives and --fsck. */
+	/*
+	 * The -f option doesn't make sense for --list-archives, --fsck, or
+	 * --nuke.
+	 */
 	if ((bsdtar->tapename != NULL) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS))
 		only_mode(bsdtar, "-f", "cxtdr");
@@ -737,6 +746,9 @@ main(int argc, char **argv)
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_READ |
 		    CRYPTO_KEYMASK_AUTH_DELETE);
 		break;
+	case OPTION_NUKE:
+		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE);
+		break;
 	case OPTION_PRINT_STATS:
 		/* We don't need keys for printing global stats. */
 		if (bsdtar->tapename == NULL)
@@ -771,6 +783,9 @@ main(int argc, char **argv)
 		break;
 	case OPTION_LIST_ARCHIVES:
 		tarsnap_mode_list_archives(bsdtar);
+		break;
+	case OPTION_NUKE:
+		tarsnap_mode_nuke(bsdtar);
 		break;
 	case 'r':
 		tarsnap_mode_r(bsdtar);

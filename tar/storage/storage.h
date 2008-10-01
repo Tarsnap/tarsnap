@@ -151,10 +151,12 @@ int storage_transaction_commit(uint64_t, const uint8_t[32],
     uint8_t whichkey);
 
 /**
- * storage_directory_read(machinenum, class, flist, nfiles):
- * Fetch a sorted list of files in the specified class.  Return the list and
- * the number of files via ${flist} and ${nfiles} respectively.
+ * storage_directory_read(machinenum, class, key, flist, nfiles):
+ * Fetch a sorted list of files in the specified class.  If ${key} is 0, use
+ * NETPACKET_DIRECTORY requests (using the read key); otherwise, use
+ * NETPACKET_DIRECTORY_D requests (using the delete key).  Return the list
+ * and the number of files via ${flist} and ${nfiles} respectively.
  */
-int storage_directory_read(uint64_t, char, uint8_t **, size_t *);
+int storage_directory_read(uint64_t, char, int, uint8_t **, size_t *);
 
 #endif /* !_STORAGE_H_ */

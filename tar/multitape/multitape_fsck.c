@@ -161,7 +161,7 @@ phase1(uint64_t machinenum, STORAGE_D * SD, STORAGE_R * SR,
 	fprintf(stdout, "Phase 1: Verifying metadata validity\n");
 
 	/* Obtain a list of metadata files. */
-	if (storage_directory_read(machinenum, 'm', &flist, &nfiles))
+	if (storage_directory_read(machinenum, 'm', 0, &flist, &nfiles))
 		goto err0;
 
 	/* Allocate space for nfiles tapemetadat structures. */
@@ -249,7 +249,7 @@ phase2(uint64_t machinenum, STORAGE_D * SD,
 	    "Phase 2: Verifying metadata/metaindex consistency\n");
 
 	/* Obtain a list of metaindex files. */
-	if (storage_directory_read(machinenum, 'i', &flist, &nfiles))
+	if (storage_directory_read(machinenum, 'i', 0, &flist, &nfiles))
 		goto err0;
 
 	/*

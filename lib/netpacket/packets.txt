@@ -343,6 +343,12 @@ The value hmac is HMACR(0x50 || [packet minus final hmac]).
 NOTE: The server will respond with one or more NETPACKET_DIRECTORY_RESPONSE
 packets.
 
+NETPACKET_DIRECTORY_D (0x51)
+----------------------------
+
+This is identical to a NETPACKET_DIRECTORY packet, except that hmac is
+HMACD(0x51 || [packet minus final hmac]).
+
 NETPACKET_DIRECTORY_RESPONSE (0xd0)
 -----------------------------------
 
@@ -364,4 +370,5 @@ The files returned are the first nfiles files after start in lexographical
 order.
 
 The value hmac is HMACR(0xd0 || nonce || [packet minus final hmac]), where
-nonce is SHA256(snonce || cnonce).
+nonce is SHA256(snonce || cnonce); or HMACD(...) if the packet is being sent
+in response to a NETPACKET_DIRECTORY_D packet.

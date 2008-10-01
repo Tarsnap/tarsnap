@@ -116,7 +116,7 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 		goto err1;
 
 	/* Get the list of chunk files from the server. */
-	if (storage_directory_read(machinenum, 'c', &flist, &nfiles))
+	if (storage_directory_read(machinenum, 'c', 0, &flist, &nfiles))
 		goto err2;
 
 	/* Construct a chunkdata structure for each file. */

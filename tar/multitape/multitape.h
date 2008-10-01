@@ -168,4 +168,10 @@ int statstape_close(TAPE_S *);
  */
 int fscktape(uint64_t, const char *);
 
+/**
+ * nuketape(machinenum):
+ * Delete all files in the archive set.
+ */
+int nuketape(uint64_t);
+
 #endif /* !_MULTITAPE_H_ */

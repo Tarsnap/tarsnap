@@ -1,6 +1,8 @@
 #include "bsdtar_platform.h"
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "archive.h"
@@ -164,5 +166,37 @@ tarsnap_mode_fsck(struct bsdtar *bsdtar)
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error fscking archives");
+	exit(1);
+}
+
+/*
+ * Nuke all the files belonging to an archive set.
+ */
+void
+tarsnap_mode_nuke(struct bsdtar *bsdtar)
+{
+	char s[100];
+
+	/* Safeguard against being called accidentally. */
+	fprintf(stderr, "Please type 'No Tomorrow' to continue\n");
+	if (fgets(s, 100, stdin) == NULL) {
+		bsdtar_warnc(bsdtar, 0,
+		    "Error reading string from standard input");
+		exit(1);
+	}
+	if (strcmp(s, "No Tomorrow\n")) {
+		bsdtar_warnc(bsdtar, 0, "You didn't type 'No Tomorrow'");
+		exit(1);
+	}
+
+	if (nuketape(bsdtar->machinenum))
+		goto err1;
+
+	/* Success! */
+	return;
+
+err1:
+	/* Failure! */
+	bsdtar_warnc(bsdtar, 0, "Error nuking archives");
 	exit(1);
 }

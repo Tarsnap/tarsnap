@@ -105,6 +105,7 @@ tarsnap_SOURCES=					\
 		tar/multitape/multitape_delete.c	\
 		tar/multitape/multitape_stats.c		\
 		tar/multitape/multitape_fsck.c		\
+		tar/multitape/multitape_nuke.c		\
 		tar/multitape/multitape_metadata.c	\
 		tar/multitape/multitape_metaindex.c	\
 		tar/multitape/multitape_chunkiter.c	\

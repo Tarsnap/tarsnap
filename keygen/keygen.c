@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <fcntl.h>
@@ -8,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <unistd.h>
 
 #include "crypto.h"
 #include "netpacket.h"
@@ -64,6 +66,7 @@ main(int argc, char **argv)
 	struct register_internal C;
 	const char * keyfilename;
 	FILE * keyfile;
+	struct stat sb;
 	struct termios term, term_old;
 	int notatty = 0;
 	char passbuf[IBUFLEN];
@@ -151,8 +154,32 @@ main(int argc, char **argv)
 	 * avoid registering with the server if we won't be able to create
 	 * the key file later.
 	 */
-	if ((keyfile = fopen(keyfilename, "w")) == NULL) {
+	if ((keyfile = fopen(keyfilename, "a")) == NULL) {
 		warnp("Cannot create %s", keyfilename);
+		exit(1);
+	}
+
+	/* Lock the key file to safeguard against simultaneous keygen runs. */
+	while (lockf(fileno(keyfile), F_LOCK, 0)) {
+		/* Retry on EINTR. */
+		if (errno == EINTR)
+			continue;
+
+		warnp("Cannot lock file: %s", keyfilename);
+		exit(1);
+	}
+
+	/*
+	 * Make sure that the file is currently empty, i.e., that we're not
+	 * writing to a preexisting key file.
+	 */
+	if (fstat(fileno(keyfile), &sb)) {
+		warnp("fstat(%s)", keyfilename);
+		exit(1);
+	}
+	if (sb.st_size > 0) {
+		warn0("Key file already exists, not overwriting: %s",
+		    keyfilename);
 		exit(1);
 	}
 

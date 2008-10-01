@@ -15,6 +15,7 @@ key files
 .Op Fl r
 .Op Fl w
 .Op Fl d
+.Op Fl -nuke
 .Ar key-file ...
 .Sh DESCRIPTION
 .Nm
@@ -24,12 +25,17 @@ specified via the
 .Fl r
 (list and extract archives),
 .Fl w
-(write archives), and
+(write archives),
 .Fl d
-(delete archives)
-flags.  Note that
+(delete archives), and
+.Fl -nuke
+flags.
+Note that
 .Fl d
 implies
 .Fl r
-since it is impossible to delete an archive without
-being able to read it.
+since it is impossible to delete an individual archive without
+being able to read it; while a key file generated with
+.Fl -nuke
+can be used to delete all the archives stored, but not individual
+archives.
