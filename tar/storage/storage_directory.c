@@ -21,6 +21,7 @@ struct directory_read_internal {
 
 	/* Parameters used in directory read. */
 	uint8_t class;
+	int key;
 	uint8_t start[32];
 	uint8_t nonce[32];
 	uint8_t * flist;
@@ -33,11 +34,13 @@ static handlepacket_callback callback_getnonce_response;
 static handlepacket_callback callback_directory_response;
 
 /**
- * storage_directory_read(machinenum, class, flist, nfiles):
- * Fetch a sorted list of files in the specified class.  Return the list and
- * the number of files via ${flist} and ${nfiles} respectively.
+ * storage_directory_read(machinenum, class, key, flist, nfiles):
+ * Fetch a sorted list of files in the specified class.  If ${key} is 0, use
+ * NETPACKET_DIRECTORY requests (using the read key); otherwise, use
+ * NETPACKET_DIRECTORY_D requests (using the delete key).  Return the list
+ * and the number of files via ${flist} and ${nfiles} respectively.
  */
-int storage_directory_read(uint64_t machinenum, char class,
+int storage_directory_read(uint64_t machinenum, char class, int key,
     uint8_t ** flist, size_t * nfiles)
 {
 	struct directory_read_internal C;
@@ -50,6 +53,7 @@ int storage_directory_read(uint64_t machinenum, char class,
 	C.machinenum = machinenum;
 	C.done = 0;
 	C.class = class;
+	C.key = key;
 	memset(C.start, 0, 32);
 	C.flist = NULL;
 	C.nfiles = C.nfiles_alloc = 0;
@@ -126,7 +130,7 @@ callback_getnonce_response(void * cookie, NETPACKET_CONNECTION * NPC,
 
 	/* Send a directory read request. */
 	if (netpacket_directory(NPC, C->machinenum, C->class, C->start,
-	    packetbuf, cnonce, callback_directory_response))
+	    packetbuf, cnonce, C->key, callback_directory_response))
 		goto err0;
 
 	/* Success! */
@@ -162,7 +166,8 @@ callback_directory_response(void * cookie, NETPACKET_CONNECTION * NPC,
 
 	/* Verify packet hmac. */
 	switch (netpacket_hmac_verify(packettype, C->nonce,
-	    packetbuf, packetlen - 32, CRYPTO_KEY_AUTH_GET)) {
+	    packetbuf, packetlen - 32,
+	    (C->key == 0) ? CRYPTO_KEY_AUTH_GET : CRYPTO_KEY_AUTH_DELETE)) {
 	case 1:
 		goto err1;
 	case -1:

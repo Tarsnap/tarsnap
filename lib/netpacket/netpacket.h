@@ -36,6 +36,7 @@ typedef int handlepacket_callback(void *, NETPACKET_CONNECTION *,
 #define NETPACKET_READ_FILE			0x40
 #define NETPACKET_READ_FILE_RESPONSE		0xc0
 #define NETPACKET_DIRECTORY			0x50
+#define NETPACKET_DIRECTORY_D			0x51
 #define NETPACKET_DIRECTORY_RESPONSE		0xd0
 
 /* Maximum number of files listed in a NETPACKET_DIRECTORY_RESPONSE packet. */
@@ -134,13 +135,14 @@ int netpacket_read_file(NETPACKET_CONNECTION *, uint64_t, uint8_t,
     const uint8_t[32], uint32_t, handlepacket_callback *);
 
 /**
- * netpacket_directory(NPC, machinenum, class, start, snonce, cnonce,
+ * netpacket_directory(NPC, machinenum, class, start, snonce, cnonce, key,
  *     callback):
- * Construct and send a NETPACKET_DIRECTORY packet asking for a list of files
+ * Construct and send a NETPACKET_DIRECTORY packet (if key == 0) or
+ * NETPACKET_DIRECTORY_D packet (otherwise) asking for a list of files
  * of the specified class starting from the specified position.
  */
 int netpacket_directory(NETPACKET_CONNECTION *, uint64_t, uint8_t,
-    const uint8_t[32], const uint8_t[32], const uint8_t[32],
+    const uint8_t[32], const uint8_t[32], const uint8_t[32], int,
     handlepacket_callback *);
 
 /**

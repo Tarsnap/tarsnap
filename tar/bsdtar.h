@@ -146,6 +146,7 @@ void	tarsnap_mode_t(struct bsdtar *bsdtar);
 void	tarsnap_mode_x(struct bsdtar *bsdtar);
 void	tarsnap_mode_fsck(struct bsdtar *bsdtar);
 void	tarsnap_mode_list_archives(struct bsdtar *bsdtar);
+void	tarsnap_mode_nuke(struct bsdtar *bsdtar);
 int	unmatched_inclusions(struct bsdtar *bsdtar);
 void	usage(struct bsdtar *);
 int	yes(const char *fmt, ...);

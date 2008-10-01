@@ -71,6 +71,9 @@
 .Brq Fl -fsck
 .Fl -keyfile Ar key-file
 .Fl -cachedir Ar cache-dir
+.Nm
+.Brq Fl -nuke
+.Fl -keyfile Ar key-file
 .Sh DESCRIPTION
 .Nm
 creates, reads, deletes, and otherwise manages online backups.
@@ -106,9 +109,16 @@ was invoked to create each archive is als printed.
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
 .It Fl -fsck
-Perform some integrity-checks on the archives stored, and reconstruct the
+Perform some integrity checks on the archives stored, and reconstruct the
 cache directory
 .Ar cache-dir .
+.It Fl -nuke
+Delete all of the archives stored.
+To protect against accidental data loss,
+.Nm
+will ask you to type the text "No Tomorrow" when using the
+.Fl -nuke
+command.
 .El
 .Pp
 In
@@ -589,7 +599,7 @@ cryptographically signs archives in such a manner that it is believed
 to be unfeasible for an attacker to forge an archive without having
 possession of
 .Ar key-file ,
-you may with to examine the contents of archive(s) with
+you may wish to examine the contents of archive(s) with
 .Dl Nm Fl t Fl -keyfile Ar key-file Fl f Ar archive-name
 before extraction.
 Note that the

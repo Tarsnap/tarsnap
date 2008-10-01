@@ -17,8 +17,8 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: tarsnap-keymgmt %s %s %s %s key-file ...\n",
-	    "--outkeyfile new-key-file", "[-r]", "[-w]", "[-d]");
+	fprintf(stderr, "usage: tarsnap-keymgmt %s %s key-file ...\n",
+	    "--outkeyfile new-key-file", "[-r] [-w] [-d] [--nuke]");
 	exit(1);
 
 	/* NOTREACHED */
@@ -72,6 +72,8 @@ main(int argc, char **argv)
 			 * archive.
 			 */
 			keyswanted |= CRYPTO_KEYMASK_READ;
+			keyswanted |= CRYPTO_KEYMASK_AUTH_DELETE;
+		} else if (strcmp(argv[0], "--nuke") == 0) {
 			keyswanted |= CRYPTO_KEYMASK_AUTH_DELETE;
 		} else if (strcmp(argv[0], "--keylist") == 0) {
 			/*
