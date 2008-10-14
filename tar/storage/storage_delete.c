@@ -40,7 +40,6 @@ struct delete_file_internal {
 	uint8_t class;
 	uint8_t name[32];
 	uint8_t nonce[32];
-	uint8_t status;
 };
 
 static sendpacket_callback callback_delete_file_send;

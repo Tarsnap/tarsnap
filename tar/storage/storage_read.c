@@ -22,6 +22,7 @@ struct read_file_internal {
 	/* General state information. */
 	uint64_t machinenum;
 	int done;
+	int status;
 
 	/* Parameters used in read_file. */
 	uint8_t class;
@@ -29,7 +30,6 @@ struct read_file_internal {
 	uint32_t size;
 	uint8_t * buf;
 	size_t buflen;
-	uint8_t status;
 };
 
 static sendpacket_callback callback_read_file_send;
@@ -217,6 +217,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		}
 		break;
 	case 1:
+	case 3:
 		if ((packetlen != 70) || (filelen != 0))
 			goto err1;
 		break;
@@ -248,6 +249,17 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 				free(C->buf);
 			goto err0;
 		}
+	}
+
+	/*
+	 * If the user's tarsnap account balance is negative, print a warning
+	 * message and then pass back a generic error status code.
+	 */
+	if (C->status == 3) {
+		warn0("Cannot read data from tarsnap server: "
+		    "Account balance is not positive.");
+		warn0("Please add more money to your tarsnap account");
+		C->status = -1;
 	}
 
 	/* We're done! */
