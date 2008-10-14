@@ -51,7 +51,7 @@ struct write_fexist_internal {
 	uint8_t class;
 	uint8_t name[32];
 	uint8_t nonce[32];
-	uint8_t status;
+	int status;
 };
 
 struct write_file_internal {
@@ -66,7 +66,6 @@ struct write_file_internal {
 	uint8_t class;
 	uint8_t name[32];
 	uint8_t nonce[32];
-	uint8_t status;
 	size_t flen;
 	uint8_t * filebuf;
 };

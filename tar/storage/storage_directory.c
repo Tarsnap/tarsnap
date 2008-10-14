@@ -178,7 +178,7 @@ callback_directory_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	nfiles = be32dec(&packetbuf[34]);
 
 	/* Sanity-check parameters. */
-	if ((packetbuf[0] > 2) ||
+	if ((packetbuf[0] > 3) ||
 	    (packetbuf[1] != C->class) ||
 	    (memcmp(&packetbuf[2], C->start, 32) != 0) ||
 	    (nfiles > NETPACKET_DIRECTORY_RESPONSE_MAXFILES))
@@ -232,6 +232,12 @@ callback_directory_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		if (netpacket_op(NPC, callback_getnonce_send, C))
 			goto err0;
 		break;
+	case 3:
+		/* Insufficient funds. */
+		warn0("Cannot read list of archive fragments: "
+		    "Account balance is not positive.");
+		warn0("Please add more money to your tarsnap account");
+		goto err0;
 	}
 
 	/* Success! */

@@ -81,15 +81,16 @@ Packet contents:
 	uint8_t hmac[32]
 
 The value status is
-	0	Success, machinenum is the machine number.
+	0	Success; machinenum is the machine number
 	1	No such user
 	2	Incorrect hmac (i.e., password is wrong)
+	3	Account balance is not positive.
 
 The value machinenum is (uint64_t)(-1) if status is non-zero.
 
 The value hmac is HMAC(SHA256(K), 0x81 || [the packet minus the final hmac]),
-where K is as described under NETPACKET_REGISTER_CHALLENGE, if status is 0;
-or zero otherwise.
+where K is as described under NETPACKET_REGISTER_CHALLENGE, if status is 0 or
+3; or zero otherwise.
 
 The server will close the connection after sending this packet.
 
@@ -144,6 +145,10 @@ Packet contents:
 The value status is
 	0	Success
 	1	Bad state (run --fsck)
+	2	Account balance is not positive.
+
+A status value of 2 will only ever be sent in response to an attempt to start
+a write transaction.
 
 The value hmac is HMAC(key, 0x91 || nonce || status) where key is the write
 or delete key as in NETPACKET_TRANSACTION_START and nonce is the transaction
@@ -160,7 +165,7 @@ Packet contents:
 
 The value whichkey is
 	0	key = write access key
-	1	key = delete access key
+	1	key = delete access key.
 
 The value nonce is the transaction nonce for the transaction which the
 client wants to have committed.
@@ -239,9 +244,9 @@ Packet contents:
 	uint8_t name[32]
 	uint8_t hmac[32]
 
-The value status means:
-	0	Success.
-	1	The specified file already exists.
+The value status is
+	0	Success
+	1	The specified file already exists
 	2	Transaction nonce is incorrect.
 
 The value hmac is HMACW(0xa1 || nonce || [packet minus final hmac]), where
@@ -271,9 +276,9 @@ Packet contents:
 	uint8_t name[32]
 	uint8_t hmac[32]
 
-The value status means:
-	0	Success.
-	1	The specified file does not exist.
+The value status is
+	0	Success
+	1	The specified file does not exist
 	2	Transaction nonce is incorrect.
 
 The value hmac is HMACD(0xb0 || nonce || [packet minus final hmac]), where
@@ -306,14 +311,14 @@ Packet contents:
 	uint8_t data[filelen or 0]
 	uint8_t hmac[32]
 
-The value status means:
+The value status is
 	0	Success
 	1	File does not exist
 	2	File size is incorrect
+	3	Account balance is not positive.
 
 The value filelen is the actual size of the file (possibly not equal to the
-size field of the NETPACKET_READ_FILE packet), or 0 if the file does not
-exist.
+size field of the NETPACKET_READ_FILE packet); or 0 if status is 1 or 3.
 
 The field data[] contains the file if status is 0; otherwise, the field is
 omitted.
@@ -360,11 +365,12 @@ Packet contents:
 	uint8_t flist[nfiles * 32]
 	uint8_t hmac[32]
 
-The value status means:
-	0	There are no more files after this.
-	1	More packets to come.
+The value status is
+	0	There are no more files after this
+	1	More packets to come
 	2	There might be more files after this; send another
-		NETPACKET_DIRECTORY packet to request them.
+		NETPACKET_DIRECTORY packet to request them
+	3	Account balance is not positive.
 
 The files returned are the first nfiles files after start in lexographical
 order.

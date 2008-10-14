@@ -264,6 +264,10 @@ main(int argc, char **argv)
 	case 2:
 		warn0("Incorrect password");
 		break;
+	case 3:
+		warn0("Cannot register with server: "
+		    "Account balance for user %s is not positive", C.user);
+		break;
 	default:
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
 		warnp("Error registering with server");
@@ -406,7 +410,7 @@ callback_register_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		goto err1;
 
 	/* Verify packet hmac. */
-	if (packetbuf[0] == 0) {
+	if ((packetbuf[0] == 0) || (packetbuf[0] == 3)) {
 		crypto_hash_data_key_2(C->register_key, 32, &packettype, 1,
 		    packetbuf, 9, hmac_actual);
 	} else {
