@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
-BUILT_SOURCES = libarchive/archive.h
+BUILT_SOURCES = libarchive/archive.h tar/tarsnap.1 tar/tarsnap.conf.5
 
 distclean-local:
 	-rm -f tar/getdate.c tar/getdate.h
@@ -73,7 +73,6 @@ libarchive_a_SOURCES=						\
 
 # archive.h ends up in the build directory, so make sure we can find it.
 libarchive_a_CFLAGS=				\
-		-Werror				\
 		-I$(top_builddir)/libarchive
 
 #
@@ -165,7 +164,6 @@ tarsnap_DEPENDENCIES = libarchive.a		\
 
 tarsnap_LDADD= -lcrypto libarchive.a
 tarsnap_CFLAGS=						\
-		-Werror					\
 		-I$(top_builddir)/libarchive		\
 		-I$(top_builddir)/tar			\
 		-I$(top_builddir)/tar/glue		\
@@ -179,7 +177,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_builddir)/lib/datastruct	\
 		-I${top_builddir}/lib/crypto		\
 		-I$(top_builddir)/lib/util		\
-		-DETC_TARSNAP_CONF=\"/usr/local/etc/tarsnap.conf\"	\
+		-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\"	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
 
 tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
@@ -220,7 +218,6 @@ tarsnap_keygen_SOURCES=					\
 		lib/util/entropy.c
 
 tarsnap_keygen_CFLAGS=				\
-		-Werror				\
 		-I$(top_builddir)/tar		\
 		-I${top_builddir}/libarchive	\
 		-I$(top_builddir)/lib/netpacket		\
@@ -260,7 +257,6 @@ tarsnap_keymgmt_SOURCES=				\
 		lib/util/entropy.c
 
 tarsnap_keymgmt_CFLAGS=				\
-		-Werror				\
 		-I$(top_builddir)/tar		\
 		-I${top_builddir}/libarchive	\
 		-I$(top_builddir)/lib/datastruct	\

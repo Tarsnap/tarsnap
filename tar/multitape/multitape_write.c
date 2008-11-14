@@ -50,6 +50,7 @@ struct multitape_write_internal {
 	char ** argv;		/* Command-line arguments. */
 	int stats_enabled;	/* Stats printed on close. */
 	int eof;		/* Tape is truncated at current position. */
+	int dryrun;		/* A dry run is being performed. */
 
 	/* Lower level cookies. */
 	STORAGE_W * S;		/* Storage layer write cookie. */
@@ -347,13 +348,15 @@ err0:
 }
 
 /**
- * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats):
+ * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
+ *     dryrun):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
-    const char * tapename, int argc, char ** argv, int printstats)
+    const char * tapename, int argc, char ** argv, int printstats,
+    int dryrun)
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -390,6 +393,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Record whether we should print archive statistics on close. */
 	d->stats_enabled = printstats;
 
+	/* Record whether this is a dry run. */
+	d->dryrun = dryrun;
+
 	/* Make sure ${cachedir} exists. */
 	if (dirutil_needdir(cachedir))
 		goto err3;
@@ -398,8 +404,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if ((d->lockfd = multitape_lock(cachedir)) == -1)
 		goto err3;
 
-	/* Finish any pending commit. */
-	if (multitape_cleanstate(cachedir, machinenum, 0))
+	/* If this isn't a dry run, finish any pending commit. */
+	if ((d->dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
 		goto err4;
 
 	/* Get sequence number. */
@@ -408,9 +414,10 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 
 	/* Obtain write cookies from the storage and chunk layers. */
 	if ((d->S = storage_write_start(machinenum, lastseq,
-	    d->seqnum)) == NULL)
+	    d->seqnum, d->dryrun)) == NULL)
 		goto err4;
-	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK)) == NULL)
+	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK,
+	    d->dryrun)) == NULL)
 		goto err5;
 
 	/*
@@ -418,9 +425,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	 * the specified name or that plus ".part" (in case the user decides
 	 * to truncate the archive).
 	 */
-	if (tapepresent(d->S, "%s", tapename))
+	if ((d->dryrun == 0) && tapepresent(d->S, "%s", tapename))
 		goto err6;
-	if (tapepresent(d->S, "%s.part", tapename))
+	if ((d->dryrun == 0) && tapepresent(d->S, "%s.part", tapename))
 		goto err6;
 
 	/* Create chunkifiers. */
@@ -753,8 +760,9 @@ writetape_close(TAPE_W * d)
 	if (storage_write_end(d->S))
 		goto err1;
 
-	/* Commit the transaction. */
-	if (multitape_commit(d->cachedir, d->machinenum, d->seqnum, 0))
+	/* If this wasn't a dry run, commit the transaction. */
+	if ((d->dryrun == 0) &&
+	    multitape_commit(d->cachedir, d->machinenum, d->seqnum, 0))
 		goto err1;
 
 	/* Unlock the cache directory. */
@@ -768,6 +776,7 @@ writetape_close(TAPE_W * d)
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
+
 
 	/* Success! */
 	return (0);

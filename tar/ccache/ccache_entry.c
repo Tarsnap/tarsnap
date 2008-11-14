@@ -26,7 +26,8 @@ static int callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen
 static int
 callback_addchunk(void * cookie, struct chunkheader * ch)
 {
-	struct ccache_record * ccr = cookie;
+	struct ccache_entry * cce = cookie;
+	struct ccache_record * ccr = cce->ccr;
 	struct chunkheader * p;
 	size_t nchalloc_new;
 
@@ -69,6 +70,9 @@ callback_addchunk(void * cookie, struct chunkheader * ch)
 	memcpy(ccr->chp + ccr->nch, ch, sizeof(struct chunkheader));
 	ccr->nch += 1;
 
+	/* Adjust memory usage accounting. */
+	cce->cci->chunksusage += sizeof(struct chunkheader);
+
 	/* Success! */
 	return (0);
 
@@ -81,7 +85,8 @@ err0:
 static int
 callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen)
 {
-	struct ccache_record * ccr = cookie;
+	struct ccache_entry * cce = cookie;
+	struct ccache_record * ccr = cce->ccr;
 	uint8_t * zbuf;
 	uLongf zlen;
 	int rc;
@@ -99,7 +104,20 @@ callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen)
 
 	/* Compress trailer. */
 	if ((rc = compress2(zbuf, &zlen, buf, buflen, 9)) != Z_OK) {
-		warn0("zlib error in compress2: %d", rc);
+		switch (rc) {
+		case Z_MEM_ERROR:
+			errno = ENOMEM;
+			warnp("Error compressing data");
+			break;
+		case Z_BUF_ERROR:
+			warn0("Programmer error: "
+			    "Buffer too small to hold zlib-compressed data");
+			break;
+		default:
+			warn0("Programmer error: "
+			    "Unexpected error code from compress2: %d", rc);
+			break;
+		}
 		goto err1;
 	}
 
@@ -109,6 +127,9 @@ callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen)
 	ccr->tlen = buflen;
 	ccr->tzlen = zlen;
 	ccr->flags = ccr->flags | CCR_ZTRAILER_MALLOC;
+
+	/* Adjust memory usage accounting. */
+	cce->cci->trailerusage += zlen;
 
 	/* Success! */
 	return (0);
@@ -144,6 +165,9 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 	/* Allocate memory. */
 	if ((cce = malloc(sizeof(struct ccache_entry))) == NULL)
 		goto err0;
+
+	/* Record the cache with which this entry is affiliated. */
+	cce->cci = cache;
 
 	/* Record the new inode number, size, and modification time. */
 	cce->ino_new = sb->st_ino;
@@ -191,8 +215,11 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 			if (lenwrit == 0) {
 				/* Remove stale data from the cache entry. */
 				cce->ccr->nch = cnum;
-				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC)
+				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
+					cce->cci->trailerusage -=
+					    cce->ccr->tzlen;
 					free(cce->ccr->ztrailer);
+				}
 				cce->ccr->ztrailer = NULL;
 				cce->ccr->tlen = cce->ccr->tzlen = 0;
 				break;
@@ -217,10 +244,24 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 			    cce->ccr->ztrailer, cce->ccr->tzlen);
 
 			/* Print warnings. */
-			if (rc != Z_OK)
-				warn0("Error decompressing cached trailer: "
-				    "zlib error %d", rc);
-			else if (tbuflen != cce->ccr->tlen)
+			if (rc != Z_OK) {
+				switch (rc) {
+				case Z_MEM_ERROR:
+					errno = ENOMEM;
+					warnp("Error decompressing cache");
+					break;
+				case Z_BUF_ERROR:
+				case Z_DATA_ERROR:
+					warn0("Warning: cached trailer "
+					    "is corrupt");
+					break;
+				default:
+					warn0("Programmer error: "
+					    "Unexpected error code from "
+					    "uncompress: %d", rc);
+					break;
+				}
+			} else if (tbuflen != cce->ccr->tlen)
 				warn0("Cached trailer is corrupt");
 
 			/*
@@ -233,8 +274,11 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 			} else {
 				free(cce->trailer);
 				cce->trailer = NULL;
-				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC)
+				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
+					cce->cci->trailerusage -=
+					    cce->ccr->tzlen;
 					free(cce->ccr->ztrailer);
+				}
 				cce->ccr->ztrailer = NULL;
 				cce->ccr->tlen = cce->ccr->tzlen = 0;
 			}
@@ -258,8 +302,10 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		*fullentry = 0;
 
 		/* The trailer is useless, so we might as well free it now. */
-		if (cce->ccr->flags & CCR_ZTRAILER_MALLOC)
+		if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
+			cce->cci->trailerusage -= cce->ccr->tzlen;
 			free(cce->ccr->ztrailer);
+		}
 		cce->ccr->ztrailer = NULL;
 		cce->ccr->tlen = cce->ccr->tzlen = 0;
 
@@ -448,7 +494,8 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 
 	/* Ask the multitape layer to inform us about later chunks. */
 	writetape_setcallback(cookie, callback_addchunk,
-	    notrailer ? NULL : callback_addtrailer, cce->ccr);
+	    ((cce->cci->trailerusage > cce->cci->chunksusage * 2) ||
+	    (notrailer != 0)) ? NULL : callback_addtrailer, cce);
 
 	/* Success! */
 	return (skiplen);

@@ -32,6 +32,9 @@ struct storage_write_internal {
 	uint64_t machinenum;
 	uint8_t nonce[32];
 
+	/* Is this a dry run? */
+	int dryrun;
+
 	/* Number of connections to use. */
 	size_t numconns;
 
@@ -103,15 +106,15 @@ maybequit(struct storage_write_internal * S)
 }
 
 /**
- * storage_write_start(machinenum, lastseq, seqnum):
+ * storage_write_start(machinenum, lastseq, seqnum, dryrun):
  * Start a write transaction, presuming that ${lastseq} is the the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.
+ * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
  */
 STORAGE_W *
 storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
-    uint8_t seqnum[32])
+    uint8_t seqnum[32], int dryrun)
 {
 	struct storage_write_internal * S;
 	size_t i;
@@ -122,6 +125,9 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 
 	/* Store machine number. */
 	S->machinenum = machinenum;
+
+	/* Record whether this is a dry run. */
+	S->dryrun = dryrun;
 
 	/* Figure out how many connections to use. */
 	S->numconns = tarsnap_opt_aggressive_networking ? AGGRESSIVE_CNUM : 1;
@@ -138,8 +144,9 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 			goto err1;
 	}
 
-	/* Start a write transaction. */
-	if (storage_transaction_start_write(S->NPC[0], machinenum,
+	/* If this isn't a dry run, start a write transaction. */
+	if ((S->dryrun == 0) &&
+	    storage_transaction_start_write(S->NPC[0], machinenum,
 	    lastseq, S->nonce))
 		goto err2;
 
@@ -281,6 +288,10 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
     char class, const uint8_t name[32])
 {
 	struct write_file_internal  * C;
+
+	/* If this is a dry run, return without doing anything. */
+	if (S->dryrun)
+		return (0);
 
 	/* Create write cookie. */
 	if ((C = malloc(sizeof(struct write_file_internal))) == NULL)

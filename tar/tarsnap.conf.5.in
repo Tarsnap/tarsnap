@@ -18,7 +18,7 @@ utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
 Options may be specified in
-.Pa /usr/local/etc/tarsnap.conf
+.Pa @sysconfdir@/tarsnap.conf
 and/or
 .Pa ~/.tarsnaprc ;
 if the two files conflict, the user's local configuration
@@ -56,7 +56,7 @@ see
 for more details.
 .Sh FILES
 .Bl -tag -width indent
-.It Pa /usr/local/etc/tarsnap.conf
+.It Pa @sysconfdir@/tarsnap.conf
 The system global
 .Nm
 configuration file.

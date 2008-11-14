@@ -7,5 +7,5 @@ keyfile /root/tarsnap.key
 # Don't archive files which have the nodump flag set
 nodump
 
-# Print statistics when creating or deleting archievs
+# Print statistics when creating or deleting archives
 print-stats

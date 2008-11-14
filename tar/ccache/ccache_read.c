@@ -244,6 +244,8 @@ ccache_read(const char * path)
 			goto err5;
 		if (patricia_insert(C->tree, R.sbuf, R.slen, ccr))
 			goto err5;
+		C->chunksusage += ccr->nch * sizeof(struct chunkheader);
+		C->trailerusage += ccr->tzlen;
 	}
 
 	/* Obtain page size, since mmapped regions must be page-aligned. */

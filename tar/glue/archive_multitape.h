@@ -10,14 +10,14 @@ void * archive_read_open_multitape(struct archive *, uint64_t, const char *);
 
 /**
  * archive_write_open_multitape(a, machinenum, cachedir, tapename, argc,
- *     argv, printstats):
+ *     argv, printstats, dryrun):
  * Open the multitape tape ${tapename} for writing and associate it with the
  * archive $a$.  If ${printstats} is non-zero, print archive statistics when
- * the tape is closed.  Return a cookie which which can be passed to the
- * multitape layer.
+ * the tape is closed.  If ${dryrun} is non-zero, perform a dry run.  Return
+ * a cookie which which can be passed to the multitape layer.
  */
 void * archive_write_open_multitape(struct archive *, uint64_t, const char *,
-    const char *, int argc, char ** argv, int);
+    const char *, int argc, char ** argv, int, int);
 
 /**
  * archive_write_multitape_setmode(a, cookie, mode):

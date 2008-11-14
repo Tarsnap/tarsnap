@@ -235,7 +235,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	bsdtar->write_cookie = archive_write_open_multitape(a,
 	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapename,
 	    bsdtar->argc_orig, bsdtar->argv_orig,
-	    bsdtar->option_print_stats);
+	    bsdtar->option_print_stats, bsdtar->option_dryrun);
 	if (bsdtar->write_cookie == NULL)
 		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
 
@@ -266,8 +266,11 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	/* Restore old SIGINFO + SIGUSR1 handlers. */
 	siginfo_done(bsdtar);
 
-	/* Write the chunkification cache back to disk. */
-	if (bsdtar->cachecrunch < 2) {
+	/*
+	 * If this isn't a dry run and we're running with the chunkification
+	 * cache enabled, write the cache back to disk.
+	 */
+	if ((bsdtar->option_dryrun == 0) && (bsdtar->cachecrunch < 2)) {
 		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir))
 			bsdtar_errc(bsdtar, 1, errno, "Error writing cache");
 	}

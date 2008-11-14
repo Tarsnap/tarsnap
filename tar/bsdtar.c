@@ -147,6 +147,7 @@ enum {
 	OPTION_CACHEDIR,
 	OPTION_CHECK_LINKS,
 	OPTION_CHROOT,
+	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
 	OPTION_FSCK,
 	OPTION_HELP,
@@ -192,6 +193,7 @@ static const struct option tar_longopts[] = {
 	{ "create",             no_argument,       NULL, 'c' },
 	{ "dereference",	no_argument,	   NULL, 'L' },
 	{ "directory",          required_argument, NULL, 'C' },
+	{ "dry-run",		no_argument,	   NULL, OPTION_DRYRUN },
 	{ "exclude",            required_argument, NULL, OPTION_EXCLUDE },
 	{ "exclude-from",       required_argument, NULL, 'X' },
 	{ "extract",            no_argument,       NULL, 'x' },
@@ -374,6 +376,9 @@ main(int argc, char **argv)
 			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
+			break;
+		case OPTION_DRYRUN: /* tarsnap */
+			bsdtar->option_dryrun = 1;
 			break;
 		case OPTION_EXCLUDE: /* GNU tar */
 			if (exclude(bsdtar, optarg))
@@ -689,6 +694,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--maxbw", "c");
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
+	if (bsdtar->option_dryrun)
+		only_mode(bsdtar, "--dry-run", "c");
 	if (bsdtar->option_fast_read)
 		only_mode(bsdtar, "--fast-read", "xt");
 	if (bsdtar->option_honor_nodump)

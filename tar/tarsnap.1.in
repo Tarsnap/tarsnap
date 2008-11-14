@@ -194,6 +194,30 @@ Issue a warning message unless all links to each file are archived.
 to the current directory after processing any
 .Fl C
 options and before extracting any files.
+.It Fl -dry-run
+(c mode only)
+Don't really create an archive; just simulate doing so.
+The list of paths added to an archive (if the
+.Fl v
+option is used) and statistics printed (if the
+.Fl -print-stats
+option is used) will be identical to if
+.Nm
+is run without the
+.Fl -dry-run
+option.
+.Pp
+Note that the
+.Fl -maxbw
+option does not work in combination with
+.Fl -dry-run ,
+since no bandwidth is actually used, and that since
+.Nm
+does not contact the
+.Nm
+server when performing a dry run, it will not detect an
+attempt to create an archive with the same name as one
+which already exists.
 .It Fl -exclude Ar pattern ( Fl W Cm exclude Ns = Ns Ar pattern )
 (c, x, and t modes only)
 Do not process files or directories that match the
@@ -523,7 +547,7 @@ List the archives:
 .Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -list-archives
 .Pp
 Delete the first backup, leaving the second backup intact:
-.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl d Ar backup-2008-04-24
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl d Fl f Ar backup-2008-04-24
 .Pp
 List the files in the remaining backup:
 .Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl tv Fl f Ar backup-2008-04-25
@@ -612,7 +636,7 @@ an archive while preserving any absolute pathnames,
 components, or symlinks to other directories.
 .Sh FILES
 .Bl -tag -width indent
-.It Pa /usr/local/etc/tarsnap.conf
+.It Pa @sysconfdir@/tarsnap.conf
 The system global
 .Nm
 configuration file.
