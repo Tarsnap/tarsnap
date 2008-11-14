@@ -32,17 +32,18 @@ struct chunkstats {
 };
 
 /**
- * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra):
+ * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra,
+ *     mustexist):
  * Read stats_extra statistics (statistics on non-chunks which are stored)
  * and the chunk directory (if present) from "${cachepath}/directory" into
  * memory allocated and assigned to ${*dir}; and return a hash table
  * populated with struct chunkdata records.  Populate stats_all with
  * statistics for all the chunks listed in the directory (counting
  * multiplicity) and populate stats_unique with statistics reflecting the
- * unique chunks.
+ * unique chunks.  If ${mustexist}, error out if the directory does not exist.
  */
 RWHASHTAB * chunks_directory_read(const char *, struct chunkdata **,
-    struct chunkstats *, struct chunkstats *, struct chunkstats *);
+    struct chunkstats *, struct chunkstats *, struct chunkstats *, int);
 
 /**
  * chunks_directory_write(cachepath, HT, stats_extra):

@@ -372,6 +372,9 @@ The value status is
 		NETPACKET_DIRECTORY packet to request them
 	3	Account balance is not positive.
 
+A status value of 3 will only ever be sent in response to a DIRECTORY
+request, not to a DIRECTORY_D request.
+
 The files returned are the first nfiles files after start in lexographical
 order.
 

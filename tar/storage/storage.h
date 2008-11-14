@@ -47,13 +47,14 @@ int storage_read_file_alloc(STORAGE_R *, uint8_t **, size_t *, char,
 void storage_read_free(STORAGE_R *);
 
 /**
- * storage_write_start(machinenum, lastseq, seqnum):
+ * storage_write_start(machinenum, lastseq, seqnum, dryrun):
  * Start a write transaction, presuming that ${lastseq} is the the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.
+ * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
  */
-STORAGE_W * storage_write_start(uint64_t, const uint8_t[32], uint8_t[32]);
+STORAGE_W * storage_write_start(uint64_t, const uint8_t[32], uint8_t[32],
+    int);
 
 /**
  * storage_write_fexist(S, class, name):

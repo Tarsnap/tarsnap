@@ -116,9 +116,25 @@ chunks_read_chunk(CHUNKS_R * C, const uint8_t * hash, size_t len,
 	/* Decompress the chunk into ${buf}. */
 	buflen = len;
 	if ((rc = uncompress(buf, &buflen, C->zbuf, zlen)) != Z_OK) {
-		if (quiet == 0)
-			warn0("Error decompressing chunk %s: zlib error %d",
-			    hashbuf, rc);
+		if (quiet == 0) {
+			switch (rc) {
+			case Z_MEM_ERROR:
+				errno = ENOMEM;
+				warnp("Error decompressing chunk %s",
+				    hashbuf);
+				break;
+			case Z_BUF_ERROR:
+			case Z_DATA_ERROR:
+				warn0("Error decompressing chunk %s: "
+				    "chunk is corrupt", hashbuf);
+				break;
+			default:
+				warn0("Programmer error: "
+				    "Unexpected error code from "
+				    "uncompress: %d", rc);
+				break;
+			}
+		}
 		goto corrupt;
 	}
 

@@ -91,19 +91,20 @@ callback_free(void * rec, void * cookie)
 }
 
 /**
- * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra):
+ * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra,
+ *     mustexist):
  * Read stats_extra statistics (statistics on non-chunks which are stored)
  * and the chunk directory (if present) from "${cachepath}/directory" into
  * memory allocated and assigned to ${*dir}; and return a hash table
  * populated with struct chunkdata records.  Populate stats_all with
  * statistics for all the chunks listed in the directory (counting
  * multiplicity) and populate stats_unique with statistics reflecting the
- * unique chunks.
+ * unique chunks.  If ${mustexist}, error out if the directory does not exist.
  */
 RWHASHTAB *
 chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
     struct chunkstats * stats_unique, struct chunkstats * stats_all,
-    struct chunkstats * stats_extra)
+    struct chunkstats * stats_extra, int mustexist)
 {
 	struct chunkdata_external che;
 	struct chunkstats_external cse;
@@ -133,6 +134,13 @@ chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
 		/* Could not stat ${cachepath}/directory.  Error? */
 		if (errno != ENOENT) {
 			warnp("stat(%s)", s);
+			goto err2;
+		}
+
+		/* The directory doesn't exist; complain if mustexist != 0. */
+		if (mustexist) {
+			warn0("Error reading cache directory from %s",
+			    cachepath);
 			goto err2;
 		}
 

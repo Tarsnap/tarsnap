@@ -21,10 +21,13 @@ struct ccache_internal {
 	PATRICIA *	tree;	/* Tree of ccache_record structures. */
 	void *		data;	/* Mmapped data. */
 	size_t		datalen;	/* Size of mmapped data. */
+	size_t		chunksusage;	/* Memory used by chunks. */
+	size_t		trailerusage;	/* Memory used by trailers. */
 };
 
 /* A cookie for higher layers to access a cache entry. */
 struct ccache_entry {
+	struct ccache_internal * cci;	/* Cache data structure. */
 	struct ccache_record * ccr;	/* Actual cache entry. */
 	struct ccache_record ** ccrp;	/* Pointer to pointer in tree. */
 	uint8_t *	trailer;	/* Uncompressed trailer. */

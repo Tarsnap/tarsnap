@@ -242,7 +242,7 @@ chunks_stats_init(const char * cachepath)
 
 	/* Read directory. */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra)) == NULL)
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 1)) == NULL)
 		goto err2;
 
 	/* Success! */

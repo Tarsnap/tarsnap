@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@ struct chunks_write_internal {
 	struct chunkdata * dir;		/* On-disk directory entries. */
 	char * path;			/* Path to cache directory. */
 	STORAGE_W * S;			/* Storage layer cookie. */
+	int dryrun;			/* Nonzero if this is a dry run. */
 	struct chunkstats stats_total;	/* All archives, w/ multiplicity. */
 	struct chunkstats stats_unique;	/* All archives, w/o multiplicity. */
 	struct chunkstats stats_extra;	/* Extra (non-chunked) data. */
@@ -30,13 +32,14 @@ struct chunks_write_internal {
 };
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize):
+ * chunks_write_start(cachepath, S, maxchunksize, dryrun):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.
+ * ${maxchunksize}.  If ${dryrun} is non-zero, perform a dry run.
  */
 CHUNKS_W *
-chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize)
+chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
+    int dryrun)
 {
 	struct chunks_write_internal * C;
 
@@ -61,13 +64,16 @@ chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize)
 	/* Record the storage cookie that we're using. */
 	C->S = S;
 
+	/* Record whether we're performing a dry run. */
+	C->dryrun = dryrun;
+
 	/* Create a copy of the path. */
 	if ((C->path = strdup(cachepath)) == NULL)
 		goto err2;
 
 	/* Read the existing chunk directory (if one exists). */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra)) == NULL)
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0)) == NULL)
 		goto err3;
 
 	/* Zero "new chunks" and "this tape" statistics. */
@@ -120,7 +126,20 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 	/* Compress the chunk. */
 	zlen = C->zbuflen;
 	if ((rc = compress2(C->zbuf, &zlen, buf, buflen, 9)) != Z_OK) {
-		warn0("zlib error in compress2: %d", rc);
+		switch (rc) {
+		case Z_MEM_ERROR:
+			errno = ENOMEM;
+			warnp("Error compressing data");
+			break;
+		case Z_BUF_ERROR:
+			warn0("Programmer error: "
+			    "Buffer too small to hold zlib-compressed data");
+			break;
+		default:
+			warn0("Programmer error: "
+			    "Unexpected error code from compress2: %d", rc);
+			break;
+		}
 		goto err0;
 	}
 
@@ -263,8 +282,9 @@ int
 chunks_write_end(CHUNKS_W * C)
 {
 
-	/* Write the new chunk directory. */
-	if (chunks_directory_write(C->path, C->HT, &C->stats_extra))
+	/* If this isn't a dry run, write the new chunk directory. */
+	if ((C->dryrun == 0) &&
+	    chunks_directory_write(C->path, C->HT, &C->stats_extra))
 		goto err1;
 
 	/* Free the chunk hash table. */

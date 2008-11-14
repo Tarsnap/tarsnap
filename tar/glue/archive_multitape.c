@@ -111,21 +111,21 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 
 /**
  * archive_write_open_multitape(a, machinenum, cachedir, tapename, argc,
- *     argv, printstats):
+ *     argv, printstats, dryrun):
  * Open the multitape tape ${tapename} for writing and associate it with the
  * archive $a$.  If ${printstats} is non-zero, print archive statistics when
- * the tape is closed.  Return a cookie which which can be passed to the
- * multitape layer.
+ * the tape is closed.  If ${dryrun} is non-zero, perform a dry run.  Return
+ * a cookie which which can be passed to the multitape layer.
  */
 void *
 archive_write_open_multitape(struct archive * a, uint64_t machinenum,
     const char * cachedir, const char * tapename, int argc,
-    char ** argv, int printstats)
+    char ** argv, int printstats, int dryrun)
 {
 	struct multitape_write_internal * d;
 
 	if ((d = writetape_open(machinenum, cachedir, tapename,
-	    argc, argv, printstats)) == NULL) {
+	    argc, argv, printstats, dryrun)) == NULL) {
 		archive_set_error(a, 0, "Error creating new archive");
 		return (NULL);
 	}

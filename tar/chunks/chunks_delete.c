@@ -46,7 +46,7 @@ chunks_delete_start(const char * cachepath, STORAGE_D * S)
 
 	/* Read the existing chunk directory. */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra)) == NULL)
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0)) == NULL)
 		goto err2;
 
 	/* Zero "new chunks" and "this tape" statistics. */
