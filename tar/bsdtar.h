@@ -81,6 +81,8 @@ struct bsdtar {
 	char		  option_warn_links; /* --check-links */
 	char		  day_first; /* show day before month in -tv output */
 	int		  have_keys; /* --keyfile */
+	double		  bwlimit_rate_up;	/* --maxbw-rate(-up)? */
+	double		  bwlimit_rate_down;	/* --maxbw-rate(-down)? */
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;

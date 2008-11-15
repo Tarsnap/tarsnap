@@ -311,6 +311,18 @@ Interrupt archival if more than
 .Ar numbytes
 bytes of upstream bandwidth is used (see INTERRUPTING ARCHIVAL
 below for details).
+.It Fl -maxbw-rate Ar bytespersecond
+Limit download and upload bandwidth used to
+.Ar bytespersecond
+bytes per second.
+.It Fl -maxbw-rate-down Ar bytespersecond
+Limit download bandwidth used to
+.Ar bytespersecond
+bytes per second.
+.It Fl -maxbw-rate-up Ar bytespersecond
+Limit upload bandwidth used to
+.Ar bytespersecond
+bytes per second.
 .It Fl n
 (c mode only)
 Do not recursively archive the contents of directories.

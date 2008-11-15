@@ -31,6 +31,7 @@ struct network_buf_cookie {
 	uint8_t * buf;
 	size_t buflen;
 	size_t bufpos;
+	size_t * bwlimit;
 	struct timeval timeout;
 	struct timeval timeout_max;
 	ssize_t (* sendrecv)(int, void *, size_t, int);
@@ -42,7 +43,8 @@ static int callback_buf(void * cookie, int timedout);
 static int network_buf(int fd, uint8_t * buf, size_t buflen,
     struct timeval * to0, struct timeval * to1,
     network_callback * callback, void * cookie,
-    ssize_t (* sendrecv)(int, void *, size_t, int), int netop, int flags);
+    ssize_t (* sendrecv)(int, void *, size_t, int), int netop,
+    int flags, size_t * bwlimit);
 
 /**
  * callback_buf(cookie, status):
@@ -54,6 +56,7 @@ callback_buf(void * cookie, int status)
 	struct network_buf_cookie * C = cookie;
 	struct timeval timeo;
 	struct timeval curtime;
+	size_t oplen;
 	ssize_t len;
 	int rc = -1;	/* If not callback or reset, we have an error. */
 #ifndef HAVE_MSG_NOSIGNAL
@@ -76,8 +79,10 @@ callback_buf(void * cookie, int status)
 		goto docallback;
 	}
 #endif
-	len = (C->sendrecv)(C->fd, C->buf + C->bufpos,
-	    C->buflen - C->bufpos, C->flags);
+	oplen = C->buflen - C->bufpos;
+	if (oplen > *(C->bwlimit))
+		oplen = *(C->bwlimit);
+	len = (C->sendrecv)(C->fd, C->buf + C->bufpos, oplen, C->flags);
 #ifndef HAVE_MSG_NOSIGNAL
 	val = 0;
 
@@ -110,6 +115,9 @@ callback_buf(void * cookie, int status)
 			status = NETWORK_STATUS_OK;
 			goto docallback;
 		}
+
+		/* Adjust bandwidth limit. */
+		*(C->bwlimit) -= len;
 
 		/* Fall through to resetting the callback. */
 	}
@@ -152,17 +160,21 @@ docallback:
 }
 
 /**
- * network_buf(fd, buf, buflen, to0, to1, callback, cookie, sendrecv, netop):
+ * network_buf(fd, buf, buflen, to0, to1, callback, cookie, sendrecv, netop,
+ *     flags, bwlimit):
  * Asynchronously read/write the provided buffer from/to ${fd}, and call
  * callback(cookie, status) where status is a NETWORK_STATUS_* value.  Time
  * out if no data can be read/writ for a period of time to0, or if the
- * complete buffer has not been read/writ after time to1.
+ * complete buffer has not been read/writ after time to1.  Never read/write
+ * more bytes than the current value of *bwlimit; and decrease said value
+ * whenever data is read/writ.
  */
 static int
 network_buf(int fd, uint8_t * buf, size_t buflen,
     struct timeval * to0, struct timeval * to1,
     network_callback * callback, void * cookie,
-    ssize_t (* sendrecv)(int, void *, size_t, int), int netop, int flags)
+    ssize_t (* sendrecv)(int, void *, size_t, int), int netop,
+    int flags, size_t * bwlimit)
 {
 	struct network_buf_cookie * C;
 	struct timeval timeo;
@@ -179,6 +191,7 @@ network_buf(int fd, uint8_t * buf, size_t buflen,
 	C->sendrecv = sendrecv;
 	C->netop = netop;
 	C->flags = flags;
+	C->bwlimit = bwlimit;
 
 	/* Figure out when we should give up waiting. */
 	if (gettimeofday(&C->timeout, NULL)) {
@@ -228,7 +241,7 @@ network_read(int fd, uint8_t * buf, size_t buflen,
 	}
 
 	return (network_buf(fd, buf, buflen, to0, to1, callback, cookie,
-	    recv, NETWORK_OP_READ, 0));
+	    recv, NETWORK_OP_READ, 0, &network_bwlimit_read));
 }
 
 /**
@@ -249,5 +262,5 @@ network_write(int fd, const uint8_t * buf, size_t buflen,
 	return (network_buf(fd, (uint8_t *)(uintptr_t)buf, buflen,
 	    to0, to1, callback, cookie,
 	    (ssize_t (*)(int, void *, size_t, int))send, NETWORK_OP_WRITE,
-	    MSG_NOSIGNAL));
+	    MSG_NOSIGNAL, &network_bwlimit_write));
 }

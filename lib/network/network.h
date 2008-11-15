@@ -33,6 +33,14 @@ typedef int network_callback(void *, int);
 int network_init(void);
 
 /**
+ * network_bwlimit(down, up):
+ * Set the bandwidth rate limit to ${down} bytes per second of read bandwidth
+ * and ${up} bytes per second of write bandwidth.  The values ${down} and
+ * ${up} must be between 8000 and 10^9.
+ */
+void network_bwlimit(double, double);
+
+/**
  * network_register(fd, op, timeo, callback, cookie):
  * Register a callback to be performed by network_select when file descriptor
  * ${fd} is ready for operation ${op}, or once the timeout has expired.

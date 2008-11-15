@@ -158,6 +158,9 @@ enum {
 	OPTION_LIST_ARCHIVES,
 	OPTION_LOWMEM,
 	OPTION_MAXBW,
+	OPTION_MAXBW_RATE,
+	OPTION_MAXBW_RATE_DOWN,
+	OPTION_MAXBW_RATE_UP,
 	OPTION_NEWER_CTIME,
 	OPTION_NEWER_CTIME_THAN,
 	OPTION_NEWER_MTIME,
@@ -213,6 +216,9 @@ static const struct option tar_longopts[] = {
 	{ "list-archives",	no_argument,	   NULL, OPTION_LIST_ARCHIVES },
 	{ "lowmem",		no_argument,	   NULL, OPTION_LOWMEM },
 	{ "maxbw",		required_argument, NULL, OPTION_MAXBW },
+	{ "maxbw-rate",		required_argument, NULL, OPTION_MAXBW_RATE },
+	{ "maxbw-rate-down",	required_argument, NULL, OPTION_MAXBW_RATE_DOWN },
+	{ "maxbw-rate-up",	required_argument, NULL, OPTION_MAXBW_RATE_UP },
 	{ "modification-time",  no_argument,       NULL, 'm' },
 	{ "newer",		required_argument, NULL, OPTION_NEWER_CTIME },
 	{ "newer-ctime",	required_argument, NULL, OPTION_NEWER_CTIME },
@@ -263,6 +269,7 @@ main(int argc, char **argv)
 	char			*homedir;
 	char			*conffile;
 	const char		*missingkey;
+	char			*eptr;
 
 	/*
 	 * Use a pointer for consistency, but stack-allocated storage
@@ -460,6 +467,34 @@ main(int argc, char **argv)
 			if (humansize_parse(optarg, &tarsnap_opt_maxbytesout))
 				bsdtar_errc(bsdtar, 1, 0,
 				    "Cannot parse bandwidth limit: %s",
+				    optarg);
+			break;
+		case OPTION_MAXBW_RATE: /* tarsnap */
+			bsdtar->bwlimit_rate_up = bsdtar->bwlimit_rate_down =
+			    strtod(optarg, &eptr);
+			if ((*eptr != '\0') ||
+			    (bsdtar->bwlimit_rate_up < 8000) ||
+			    (bsdtar->bwlimit_rate_up > 1000000000.))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Invalid bandwidth rate limit: %s",
+				    optarg);
+			break;
+		case OPTION_MAXBW_RATE_DOWN: /* tarsnap */
+			bsdtar->bwlimit_rate_down = strtod(optarg, &eptr);
+			if ((*eptr != '\0') ||
+			    (bsdtar->bwlimit_rate_down < 8000) ||
+			    (bsdtar->bwlimit_rate_down > 1000000000.))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Invalid bandwidth rate limit: %s",
+				    optarg);
+			break;
+		case OPTION_MAXBW_RATE_UP: /* tarsnap */
+			bsdtar->bwlimit_rate_up = strtod(optarg, &eptr);
+			if ((*eptr != '\0') ||
+			    (bsdtar->bwlimit_rate_up < 8000) ||
+			    (bsdtar->bwlimit_rate_up > 1000000000.))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Invalid bandwidth rate limit: %s",
 				    optarg);
 			break;
 		case 'n': /* GNU tar */
@@ -773,6 +808,13 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "The %s key is required for %s but is not available",
 		    missingkey, bsdtar->modestr);
+
+	/* Tell the network layer how much bandwidth to use. */
+	if (bsdtar->bwlimit_rate_up == 0)
+		bsdtar->bwlimit_rate_up = 1000000000.;
+	if (bsdtar->bwlimit_rate_down == 0)
+		bsdtar->bwlimit_rate_down = 1000000000.;
+	network_bwlimit(bsdtar->bwlimit_rate_down, bsdtar->bwlimit_rate_up);
 
 	/* Perform the requested operation. */
 	switch(bsdtar->mode) {
@@ -1088,6 +1130,8 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_opt;
 	char * conf_arg;
 	size_t optlen;
+	char * homedir;
+	char * conf_arg_malloced;
 
 	/* Ignore comments and blank lines. */
 	if ((line[0] == '#') || (line[0] == '\0'))
@@ -1118,6 +1162,28 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	} else {
 		/* No argument. */
 		conf_arg = NULL;
+	}
+
+	/*
+	 * If we have an argument which starts with ~, and ${HOME} is
+	 * defined, expand ~ to $HOME.
+	 */
+	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
+	    ((homedir = getenv("HOME")) != NULL)) {
+		/* Allocate space for the expanded argument string. */
+		if ((conf_arg_malloced =
+		    malloc(strlen(conf_arg) + strlen(homedir))) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+		/* Copy $HOME and the argument sans leading ~. */
+		memcpy(conf_arg_malloced, homedir, strlen(homedir));
+		memcpy(conf_arg_malloced + strlen(homedir), &conf_arg[1],
+		    strlen(&conf_arg[1]) + 1);
+
+		/* Use the expanded argument string hereafter. */
+		conf_arg = conf_arg_malloced;
+	} else {
+		conf_arg_malloced = NULL;
 	}
 
 	if (strcmp(conf_opt, "aggressive-networking") == 0) {
@@ -1192,6 +1258,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		    "Unrecognized configuration file option: \"%s\"",
 		    conf_opt);
 	}
+
+	/* Free expanded argument or NULL. */
+	free(conf_arg_malloced);
 
 	/* Free memory allocated by strdup. */
 	free(conf_opt);

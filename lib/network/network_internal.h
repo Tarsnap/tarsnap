@@ -1,6 +1,10 @@
 #ifndef _NETWORK_INTERNAL_H_
 #define _NETWORK_INTERNAL_H_
 
+/* Maximum number of bytes which can be read/writ right now. */
+extern size_t network_bwlimit_read;
+extern size_t network_bwlimit_write;
+
 /* Macros for handling struct timeval values. */
 #define tv_lt(a, b)				\
 	(((a)->tv_sec < (b)->tv_sec) ||		\
