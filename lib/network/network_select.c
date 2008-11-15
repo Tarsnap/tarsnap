@@ -36,6 +36,17 @@ struct network_internal {
 	int maxfd;
 } N;
 
+/* Bandwidth limits, in bytes per second. */
+static double bwlimit_Bps_read;
+static double bwlimit_Bps_write;
+
+/* Current number of tokens in read/write bandwidth limit buckets. */
+size_t network_bwlimit_read;
+size_t network_bwlimit_write;
+
+/* Last time tokens were added to read/write buckets. */
+static struct timeval bwlimit_lastadd;
+
 static int recalloc(void ** ptr, size_t clen, size_t nlen, size_t size);
 static int docallback(struct network_callback_internal * C, int timedout);
 
@@ -124,8 +135,37 @@ network_init(void)
 	/* No file descriptors yet, either. */
 	N.maxfd = -1;
 
+	/*
+	 * Set a default bandwidth limit of 1 GBps until network_bwlimit is
+	 * called to set a lower limit.  The value 1 GBps is chosen so that
+	 * 2 seconds of bandwidth (see network_select) won't overflow size_t
+	 * on a 32-bit system.
+	 */
+	bwlimit_Bps_read = bwlimit_Bps_write = 1000000000.;
+
+	/* We have no tokens in our bandwidth quota buckets yet. */
+	network_bwlimit_read = network_bwlimit_write = 0;
+
+	/* The buckets were empty at the start of the epoch. */
+	bwlimit_lastadd.tv_sec = 0;
+	bwlimit_lastadd.tv_usec = 0;
+
 	/* Success! */
 	return (0);
+}
+
+/**
+ * network_bwlimit(down, up):
+ * Set the bandwidth rate limit to ${down} bytes per second of read bandwidth
+ * and ${up} bytes per second of write bandwidth.  The values ${down} and
+ * ${up} must be between 8000 and 10^9.
+ */
+void
+network_bwlimit(double down, double up)
+{
+
+	bwlimit_Bps_read = down;
+	bwlimit_Bps_write = up;
 }
 
 /**
@@ -340,15 +380,42 @@ network_select(int blocking)
 	int fd;
 	int rc;
 	int ntimeouts = 0;
+	double tokensecs;
+
+	/* Get current time. */
+	if (gettimeofday(&curtime, NULL)) {
+		warnp("gettimeofday()");
+		goto err0;
+	}
+
+	/*
+	 * Figure out how long it has been since we last added tokens to the
+	 * bandwidth limit buckets.
+	 */
+	tokensecs = (curtime.tv_sec - bwlimit_lastadd.tv_sec) +
+	    (curtime.tv_usec - bwlimit_lastadd.tv_usec) * 0.000001;
+	memcpy(&bwlimit_lastadd, &curtime, sizeof(struct timeval));
+
+	/*
+	 * Add tokens to the read bandwidth token bucket, overflowing if we
+	 * hit 2 seconds of bandwidth.  (Why 2 seconds?  Because it's more
+	 * than a network RTT, so as long as we're called at least once every
+	 * 2 seconds, we won't starve the TCP stack; and because it's small
+	 * enough that we won't end up with incredibly bursty network traffic.
+	 */
+	if (network_bwlimit_read / bwlimit_Bps_read + tokensecs > 2)
+		network_bwlimit_read = bwlimit_Bps_read * 2;
+	else
+		network_bwlimit_read += bwlimit_Bps_read * tokensecs;
+
+	/* Do likewise for write bandwidth. */
+	if (network_bwlimit_write / bwlimit_Bps_write + tokensecs > 2)
+		network_bwlimit_write = bwlimit_Bps_write * 2;
+	else
+		network_bwlimit_write += bwlimit_Bps_write * tokensecs;
 
 	/* If we're allowed to block, figure out how long to block for. */
 	if (blocking) {
-		/* Get current time. */
-		if (gettimeofday(&curtime, NULL)) {
-			warnp("gettimeofday()");
-			goto err0;
-		}
-
 		/* Find the earliest timeout time, if prior to now + 1d. */
 		memcpy(&timeout, &curtime, sizeof(struct timeval));
 		timeout.tv_sec += 86400;
@@ -400,6 +467,27 @@ selectagain:
 			FD_SET(fd, &readfds);
 		if (N.writers[fd].callback != NULL)
 			FD_SET(fd, &writefds);
+	}
+
+	/*
+	 * If we have no read bandwidth quota, zero the read set and set the
+	 * blocking duration to a maximum of 1 ms.
+	 */
+	if (network_bwlimit_read == 0) {
+		FD_ZERO(&readfds);
+		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 1000)) {
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 1000;
+		}
+	}
+
+	/* Do likewise for writes. */
+	if (network_bwlimit_write == 0) {
+		FD_ZERO(&writefds);
+		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 1000)) {
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 1000;
+		}
 	}
 
 	/* Call select(2). */

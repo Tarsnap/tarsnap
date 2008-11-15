@@ -32,6 +32,11 @@ Empty lines and lines starting with a
 .Ql #
 character are ignored.
 .Pp
+If a parameter begins with a
+.Ql ~
+character, it will be replaced by the value of the HOME variable (the
+current user's home directory).
+.Pp
 The following options may be specified:
 .Pp
 .Bl -tag -width "store-atime"
