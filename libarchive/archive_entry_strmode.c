@@ -24,7 +24,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_entry_strmode.c,v 1.3 2008/05/23 04:57:28 cperciva Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_entry_strmode.c,v 1.4 2008/06/15 05:14:01 kientzle Exp $");
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -57,6 +57,11 @@ archive_entry_strmode(struct archive_entry *entry)
 	case AE_IFLNK:  bp[0] = 'l'; break;
 	case AE_IFSOCK: bp[0] = 's'; break;
 	case AE_IFIFO:  bp[0] = 'p'; break;
+	default:
+		if (archive_entry_hardlink(entry) != NULL) {
+			bp[0] = 'h';
+			break;
+		}
 	}
 
 	for (i = 0; i < 9; i++)

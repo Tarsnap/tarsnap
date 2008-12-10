@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
-BUILT_SOURCES = libarchive/archive.h tar/tarsnap.1 tar/tarsnap.conf.5
+BUILT_SOURCES = tar/tarsnap.1 tar/tarsnap.conf.5
 
 distclean-local:
 	-rm -f tar/getdate.c tar/getdate.h
@@ -25,6 +25,8 @@ libarchive_a_SOURCES=						\
 	libarchive/archive_entry.c				\
 	libarchive/archive_entry.h				\
 	libarchive/archive_entry_copy_stat.c			\
+	libarchive/archive_entry_link_resolver.c		\
+	libarchive/archive_entry_private.h			\
 	libarchive/archive_entry_stat.c				\
 	libarchive/archive_entry_strmode.c			\
 	libarchive/archive_platform.h				\
@@ -42,6 +44,7 @@ libarchive_a_SOURCES=						\
 	libarchive/archive_read_support_compression_compress.c	\
 	libarchive/archive_read_support_compression_gzip.c	\
 	libarchive/archive_read_support_compression_none.c	\
+	libarchive/archive_read_support_compression_program.c	\
 	libarchive/archive_read_support_format_all.c		\
 	libarchive/archive_read_support_format_ar.c		\
 	libarchive/archive_read_support_format_cpio.c		\
@@ -64,12 +67,23 @@ libarchive_a_SOURCES=						\
 	libarchive/archive_write_open_filename.c		\
 	libarchive/archive_write_open_memory.c			\
 	libarchive/archive_write_private.h			\
+	libarchive/archive_write_set_compression_bzip2.c	\
+	libarchive/archive_write_set_compression_compress.c	\
+	libarchive/archive_write_set_compression_gzip.c		\
 	libarchive/archive_write_set_compression_none.c		\
+	libarchive/archive_write_set_compression_program.c	\
 	libarchive/archive_write_set_format.c			\
+	libarchive/archive_write_set_format_ar.c		\
+	libarchive/archive_write_set_format_by_name.c		\
+	libarchive/archive_write_set_format_cpio.c		\
+	libarchive/archive_write_set_format_cpio_newc.c		\
 	libarchive/archive_write_set_format_pax.c		\
+	libarchive/archive_write_set_format_shar.c		\
 	libarchive/archive_write_set_format_ustar.c		\
 	libarchive/config_freebsd.h				\
-	libarchive/config_windows.h
+	libarchive/config_windows.h				\
+	libarchive/filter_fork.c				\
+	libarchive/filter_fork.h
 
 # archive.h ends up in the build directory, so make sure we can find it.
 libarchive_a_CFLAGS=				\
@@ -85,10 +99,12 @@ tarsnap_SOURCES=					\
 		tar/bsdtar.c				\
 		tar/bsdtar.h				\
 		tar/bsdtar_platform.h			\
+		tar/cmdline.c				\
 		tar/getdate.c				\
 		tar/matching.c				\
 		tar/read.c				\
 		tar/siginfo.c				\
+		tar/subst.c				\
 		tar/tree.c				\
 		tar/tree.h				\
 		tar/util.c				\

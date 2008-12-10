@@ -16,6 +16,7 @@ static struct termios tc_saved;
 
 static void sigquit_handler(int);
 static void termios_restore(void);
+static int tcsetattr_nostop(int, int, const struct termios *);
 
 /**
  * sigquit_handler(sig):
@@ -43,7 +44,31 @@ termios_restore(void)
 	 * that we can do to remedy the situation if the system cannot
 	 * restore the previous terminal settings.
 	 */
-	(void)tcsetattr(STDIN_FILENO, TCSANOW, &tc_saved);
+	(void)tcsetattr_nostop(STDIN_FILENO, TCSANOW, &tc_saved);
+}
+
+/**
+ * Call tcsetattr(3), but block SIGTTOU while doing so in order to avoid
+ * being stopped if backgrounded.
+ */
+static int
+tcsetattr_nostop(int fd, int action, const struct termios *t)
+{
+	sig_t oldsig;
+	int rc;
+
+	if ((oldsig = signal(SIGTTOU, SIG_IGN)) == SIG_ERR)
+		goto err0;
+	rc = tcsetattr(fd, action, t);
+	if (signal(SIGTTOU, oldsig) == SIG_ERR)
+		goto err0;
+
+	/* Return status code from tcsetattr. */
+	return (rc);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /**
@@ -101,7 +126,7 @@ sigquit_init(void)
 	tc_new.c_cc[VQUIT] = 'q' & 0x1f;
 
 	/* Set new terminal settings. */
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &tc_new)) {
+	if (tcsetattr_nostop(STDIN_FILENO, TCSANOW, &tc_new)) {
 		warnp("tcsetattr(stdin)");
 		goto err0;
 	}

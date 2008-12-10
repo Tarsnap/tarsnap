@@ -25,7 +25,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_write_disk.c,v 1.24 2008/03/15 04:20:50 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_write_disk.c,v 1.42 2008/12/06 05:55:46 kientzle Exp $");
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -64,9 +64,6 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_write_disk.c,v 1.24 2008/03/15 04
 #ifdef HAVE_LINUX_FS_H
 #include <linux/fs.h>	/* for Linux file flags */
 #endif
-#ifdef HAVE_LINUX_EXT2_FS_H
-#include <linux/ext2_fs.h>	/* for Linux file flags */
-#endif
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -99,10 +96,12 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_write_disk.c,v 1.24 2008/03/15 04
 struct fixup_entry {
 	struct fixup_entry	*next;
 	mode_t			 mode;
-	int64_t			 mtime;
 	int64_t			 atime;
-	unsigned long		 mtime_nanos;
+	int64_t                  birthtime;
+	int64_t			 mtime;
 	unsigned long		 atime_nanos;
+	unsigned long            birthtime_nanos;
+	unsigned long		 mtime_nanos;
 	unsigned long		 fflags_set;
 	int			 fixup; /* bitmask of what needs fixing */
 	char			*name;
@@ -143,6 +142,7 @@ struct archive_write_disk {
 	uid_t			 user_uid;
 	dev_t			 skip_file_dev;
 	ino_t			 skip_file_ino;
+	time_t			 start_time;
 
 	gid_t (*lookup_gid)(void *private, const char *gname, gid_t gid);
 	void  (*cleanup_gid)(void *private);
@@ -178,7 +178,7 @@ struct archive_write_disk {
 	int			 fd;
 	/* Current offset for writing data to the file. */
 	off_t			 offset;
-	/* Maximum size of file. */
+	/* Maximum size of file, -1 if unknown. */
 	off_t			 filesize;
 	/* Dir we were in before this restore; only for deep paths. */
 	int			 restore_pwd;
@@ -187,6 +187,8 @@ struct archive_write_disk {
 	/* UID/GID to use in restoring this entry. */
 	uid_t			 uid;
 	gid_t			 gid;
+	/* Last offset written to disk. */
+	off_t			 last_offset;
 };
 
 /*
@@ -227,11 +229,13 @@ static int	set_fflags_platform(struct archive_write_disk *, int fd,
 		    unsigned long fflags_set, unsigned long fflags_clear);
 static int	set_ownership(struct archive_write_disk *);
 static int	set_mode(struct archive_write_disk *, int mode);
-static int	set_time(struct archive_write_disk *);
+static int	set_time(int, int, const char *, time_t, long, time_t, long);
+static int	set_times(struct archive_write_disk *);
 static struct fixup_entry *sort_dir_list(struct fixup_entry *p);
 static gid_t	trivial_lookup_gid(void *, const char *, gid_t);
 static uid_t	trivial_lookup_uid(void *, const char *, uid_t);
-
+static ssize_t	write_data_block(struct archive_write_disk *,
+		    const char *, size_t, off_t);
 
 static struct archive_vtable *archive_write_disk_vtable(void);
 
@@ -241,6 +245,31 @@ static int	_archive_write_header(struct archive *, struct archive_entry *);
 static int	_archive_write_finish_entry(struct archive *);
 static ssize_t	_archive_write_data(struct archive *, const void *, size_t);
 static ssize_t	_archive_write_data_block(struct archive *, const void *, size_t, off_t);
+
+static int
+_archive_write_disk_lazy_stat(struct archive_write_disk *a)
+{
+	if (a->pst != NULL) {
+		/* Already have stat() data available. */
+		return (ARCHIVE_OK);
+	}
+#ifdef HAVE_FSTAT
+	if (a->fd >= 0 && fstat(a->fd, &a->st) == 0) {
+		a->pst = &a->st;
+		return (ARCHIVE_OK);
+	}
+#endif
+	/*
+	 * XXX At this point, symlinks should not be hit, otherwise
+	 * XXX a race occured.  Do we want to check explicitly for that?
+	 */
+	if (lstat(a->name, &a->st) == 0) {
+		a->pst = &a->st;
+		return (ARCHIVE_OK);
+	}
+	archive_set_error(&a->archive, errno, "Couldn't stat file");
+	return (ARCHIVE_WARN);
+}
 
 static struct archive_vtable *
 archive_write_disk_vtable(void)
@@ -294,7 +323,7 @@ _archive_write_header(struct archive *_a, struct archive_entry *entry)
 	archive_clear_error(&a->archive);
 	if (a->archive.state & ARCHIVE_STATE_DATA) {
 		r = _archive_write_finish_entry(&a->archive);
-		if (r != ARCHIVE_OK)
+		if (r == ARCHIVE_FATAL)
 			return (r);
 	}
 
@@ -308,10 +337,14 @@ _archive_write_header(struct archive *_a, struct archive_entry *entry)
 	}
 	a->entry = archive_entry_clone(entry);
 	a->fd = -1;
+	a->last_offset = 0;
 	a->offset = 0;
 	a->uid = a->user_uid;
 	a->mode = archive_entry_mode(a->entry);
-	a->filesize = archive_entry_size(a->entry);
+	if (archive_entry_size_is_set(a->entry))
+		a->filesize = archive_entry_size(a->entry);
+	else
+		a->filesize = -1;
 	archive_strcpy(&(a->_name_data), archive_entry_pathname(a->entry));
 	a->name = a->_name_data.s;
 	archive_clear_error(&a->archive);
@@ -413,13 +446,35 @@ _archive_write_header(struct archive *_a, struct archive_entry *entry)
 		fe->mode = a->mode;
 	}
 
-	if (a->deferred & TODO_TIMES) {
+	if ((a->deferred & TODO_TIMES)
+		&& (archive_entry_mtime_is_set(entry)
+		    || archive_entry_atime_is_set(entry))) {
 		fe = current_fixup(a, archive_entry_pathname(entry));
 		fe->fixup |= TODO_TIMES;
-		fe->mtime = archive_entry_mtime(entry);
-		fe->mtime_nanos = archive_entry_mtime_nsec(entry);
-		fe->atime = archive_entry_atime(entry);
-		fe->atime_nanos = archive_entry_atime_nsec(entry);
+		if (archive_entry_atime_is_set(entry)) {
+			fe->atime = archive_entry_atime(entry);
+			fe->atime_nanos = archive_entry_atime_nsec(entry);
+		} else {
+			/* If atime is unset, use start time. */
+			fe->atime = a->start_time;
+			fe->atime_nanos = 0;
+		}
+		if (archive_entry_mtime_is_set(entry)) {
+			fe->mtime = archive_entry_mtime(entry);
+			fe->mtime_nanos = archive_entry_mtime_nsec(entry);
+		} else {
+			/* If mtime is unset, use start time. */
+			fe->mtime = a->start_time;
+			fe->mtime_nanos = 0;
+		}
+		if (archive_entry_birthtime_is_set(entry)) {
+			fe->birthtime = archive_entry_birthtime(entry);
+			fe->birthtime_nanos = archive_entry_birthtime_nsec(entry);
+		} else {
+			/* If birthtime is unset, use mtime. */
+			fe->birthtime = fe->mtime;
+			fe->birthtime_nanos = fe->mtime_nanos;
+		}
 	}
 
 	if (a->deferred & TODO_FFLAGS) {
@@ -458,66 +513,119 @@ archive_write_disk_set_skip_file(struct archive *_a, dev_t d, ino_t i)
 }
 
 static ssize_t
-_archive_write_data_block(struct archive *_a,
-    const void *buff, size_t size, off_t offset)
+write_data_block(struct archive_write_disk *a,
+    const char *buff, size_t size, off_t offset)
 {
-	struct archive_write_disk *a = (struct archive_write_disk *)_a;
 	ssize_t bytes_written = 0;
-	int r = ARCHIVE_OK;
+	ssize_t block_size = 0, bytes_to_write;
 
-	__archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
-	    ARCHIVE_STATE_DATA, "archive_write_disk_block");
-	if (a->fd < 0) {
-		archive_set_error(&a->archive, 0, "File not open");
+	if (a->filesize == 0 || a->fd < 0) {
+		archive_set_error(&a->archive, 0,
+		    "Attempt to write to an empty file");
 		return (ARCHIVE_WARN);
 	}
-	archive_clear_error(&a->archive);
 
-	/* Seek if necessary to the specified offset. */
-	if (offset != a->offset) {
-		if (lseek(a->fd, offset, SEEK_SET) < 0) {
-			archive_set_error(&a->archive, errno, "Seek failed");
-			return (ARCHIVE_WARN);
-		}
-		a->offset = offset;
+	if (a->flags & ARCHIVE_EXTRACT_SPARSE) {
+#if HAVE_STRUCT_STAT_ST_BLKSIZE
+		int r;
+		if ((r = _archive_write_disk_lazy_stat(a)) != ARCHIVE_OK)
+			return (r);
+		block_size = a->pst->st_blksize;
+#else
+		/* XXX TODO XXX Is there a more appropriate choice here ? */
+		/* This needn't match the filesystem allocation size. */
+		block_size = 16*1024;
+#endif
 	}
 
+	if (a->filesize >= 0 && (off_t)(offset + size) > a->filesize)
+		size = (size_t)(a->filesize - offset);
+
 	/* Write the data. */
-	while (size > 0 && a->offset < a->filesize) {
-		if ((off_t)(a->offset + size) > a->filesize) {
-			size = (size_t)(a->filesize - a->offset);
-			archive_set_error(&a->archive, errno,
-			    "Write request too large");
-			r = ARCHIVE_WARN;
+	while (size > 0) {
+		if (block_size == 0) {
+			bytes_to_write = size;
+		} else {
+			/* We're sparsifying the file. */
+			const char *p, *end;
+			off_t block_end;
+
+			/* Skip leading zero bytes. */
+			for (p = buff, end = buff + size; p < end; ++p) {
+				if (*p != '\0')
+					break;
+			}
+			offset += p - buff;
+			size -= p - buff;
+			buff = p;
+			if (size == 0)
+				break;
+
+			/* Calculate next block boundary after offset. */
+			block_end
+			    = (offset / block_size) * block_size + block_size;
+
+			/* If the adjusted write would cross block boundary,
+			 * truncate it to the block boundary. */
+			bytes_to_write = size;
+			if (offset + bytes_to_write > block_end)
+				bytes_to_write = block_end - offset;
 		}
-		bytes_written = write(a->fd, buff, size);
+
+		/* Seek if necessary to the specified offset. */
+		if (offset != a->last_offset) {
+			if (lseek(a->fd, offset, SEEK_SET) < 0) {
+				archive_set_error(&a->archive, errno,
+				    "Seek failed");
+				return (ARCHIVE_FATAL);
+			}
+ 		}
+		bytes_written = write(a->fd, buff, bytes_to_write);
 		if (bytes_written < 0) {
 			archive_set_error(&a->archive, errno, "Write failed");
 			return (ARCHIVE_WARN);
 		}
+		buff += bytes_written;
 		size -= bytes_written;
-		a->offset += bytes_written;
+		offset += bytes_written;
+		a->archive.file_position += bytes_written;
+		a->archive.raw_position += bytes_written;
+		a->last_offset = a->offset = offset;
 	}
-	return (r);
+	return (bytes_written);
+}
+
+static ssize_t
+_archive_write_data_block(struct archive *_a,
+    const void *buff, size_t size, off_t offset)
+{
+	struct archive_write_disk *a = (struct archive_write_disk *)_a;
+	ssize_t r;
+
+	__archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
+	    ARCHIVE_STATE_DATA, "archive_write_disk_block");
+
+	r = write_data_block(a, buff, size, offset);
+
+	if (r < 0)
+		return (r);
+	if ((size_t)r < size) {
+		archive_set_error(&a->archive, 0,
+		    "Write request too large");
+		return (ARCHIVE_WARN);
+	}
+	return (ARCHIVE_OK);
 }
 
 static ssize_t
 _archive_write_data(struct archive *_a, const void *buff, size_t size)
 {
 	struct archive_write_disk *a = (struct archive_write_disk *)_a;
-	off_t offset;
-	int r;
 
 	__archive_check_magic(&a->archive, ARCHIVE_WRITE_DISK_MAGIC,
 	    ARCHIVE_STATE_DATA, "archive_write_data");
-	if (a->fd < 0)
-		return (ARCHIVE_OK);
 
-	offset = a->offset;
-	r = _archive_write_data_block(_a, buff, size, a->offset);
-	if (r < ARCHIVE_OK)
-		return (r);
-	return (a->offset - offset);
+	return (write_data_block(a, buff, size, a->offset));
 }
 
 static int
@@ -533,11 +641,51 @@ _archive_write_finish_entry(struct archive *_a)
 		return (ARCHIVE_OK);
 	archive_clear_error(&a->archive);
 
+	/* Pad or truncate file to the right size. */
+	if (a->fd < 0) {
+		/* There's no file. */
+	} else if (a->filesize < 0) {
+		/* File size is unknown, so we can't set the size. */
+	} else if (a->last_offset == a->filesize) {
+		/* Last write ended at exactly the filesize; we're done. */
+		/* Hopefully, this is the common case. */
+	} else {
+#if HAVE_FTRUNCATE
+		if (ftruncate(a->fd, a->filesize) == -1 &&
+		    a->filesize == 0) {
+			archive_set_error(&a->archive, errno,
+			    "File size could not be restored");
+			return (ARCHIVE_FAILED);
+		}
+#endif
+		/*
+		 * Explicitly stat the file as some platforms might not
+		 * implement the XSI option to extend files via ftruncate.
+		 */
+		a->pst = NULL;
+		if ((ret = _archive_write_disk_lazy_stat(a)) != ARCHIVE_OK)
+			return (ret);
+		if (a->st.st_size != a->filesize) {
+			const char nul = '\0';
+			if (lseek(a->fd, a->st.st_size - 1, SEEK_SET) < 0) {
+				archive_set_error(&a->archive, errno,
+				    "Seek failed");
+				return (ARCHIVE_FATAL);
+			}
+			if (write(a->fd, &nul, 1) < 0) {
+				archive_set_error(&a->archive, errno,
+				    "Write to restore size failed");
+				return (ARCHIVE_FATAL);
+			}
+			a->pst = NULL;
+		}
+	}
+
 	/* Restore metadata. */
 
 	/*
-	 * Look up the "real" UID only if we're going to need it.  We
-	 * need this for TODO_SGID because chown() requires both.
+	 * Look up the "real" UID only if we're going to need it.
+	 * TODO: the TODO_SGID condition can be dropped here, can't it?
 	 */
 	if (a->todo & (TODO_OWNER | TODO_SUID | TODO_SGID)) {
 		a->uid = a->lookup_uid(a->lookup_uid_data,
@@ -545,6 +693,7 @@ _archive_write_finish_entry(struct archive *_a)
 		    archive_entry_uid(a->entry));
 	}
 	/* Look up the "real" GID only if we're going to need it. */
+	/* TODO: the TODO_SUID condition can be dropped here, can't it? */
 	if (a->todo & (TODO_OWNER | TODO_SGID | TODO_SUID)) {
 		a->gid = a->lookup_gid(a->lookup_gid_data,
 		    archive_entry_gname(a->entry),
@@ -561,10 +710,6 @@ _archive_write_finish_entry(struct archive *_a)
 		int r2 = set_mode(a, a->mode);
 		if (r2 < ret) ret = r2;
 	}
-	if (a->todo & TODO_TIMES) {
-		int r2 = set_time(a);
-		if (r2 < ret) ret = r2;
-	}
 	if (a->todo & TODO_ACLS) {
 		int r2 = set_acls(a);
 		if (r2 < ret) ret = r2;
@@ -575,6 +720,10 @@ _archive_write_finish_entry(struct archive *_a)
 	}
 	if (a->todo & TODO_FFLAGS) {
 		int r2 = set_fflags(a);
+		if (r2 < ret) ret = r2;
+	}
+	if (a->todo & TODO_TIMES) {
+		int r2 = set_times(a);
 		if (r2 < ret) ret = r2;
 	}
 
@@ -643,6 +792,7 @@ archive_write_disk_new(void)
 	a->archive.vtable = archive_write_disk_vtable();
 	a->lookup_uid = trivial_lookup_uid;
 	a->lookup_gid = trivial_lookup_gid;
+	a->start_time = time(NULL);
 #ifdef HAVE_GETEUID
 	a->user_uid = geteuid();
 #endif /* HAVE_GETEUID */
@@ -723,11 +873,13 @@ restore_entry(struct archive_write_disk *a)
 		 * object isn't a dir.
 		 */
 		if (unlink(a->name) == 0) {
-			/* We removed it, we're done. */
+			/* We removed it, reset cached stat. */
+			a->pst = NULL;
 		} else if (errno == ENOENT) {
 			/* File didn't exist, that's just as good. */
 		} else if (rmdir(a->name) == 0) {
 			/* It was a dir, but now it's gone. */
+			a->pst = NULL;
 		} else {
 			/* We tried, but couldn't get rid of it. */
 			archive_set_error(&a->archive, errno,
@@ -768,6 +920,7 @@ restore_entry(struct archive_write_disk *a)
 			    "Can't remove already-existing dir");
 			return (ARCHIVE_WARN);
 		}
+		a->pst = NULL;
 		/* Try again. */
 		en = create_filesystem_object(a);
 	} else if (en == EEXIST) {
@@ -775,15 +928,31 @@ restore_entry(struct archive_write_disk *a)
 		 * We know something is in the way, but we don't know what;
 		 * we need to find out before we go any further.
 		 */
-		if (lstat(a->name, &a->st) != 0) {
+		int r = 0;
+		/*
+		 * The SECURE_SYMLINK logic has already removed a
+		 * symlink to a dir if the client wants that.  So
+		 * follow the symlink if we're creating a dir.
+		 */
+		if (S_ISDIR(a->mode))
+			r = stat(a->name, &a->st);
+		/*
+		 * If it's not a dir (or it's a broken symlink),
+		 * then don't follow it.
+		 */
+		if (r != 0 || !S_ISDIR(a->mode))
+			r = lstat(a->name, &a->st);
+		if (r != 0) {
 			archive_set_error(&a->archive, errno,
 			    "Can't stat existing object");
 			return (ARCHIVE_WARN);
 		}
 
-		/* TODO: if it's a symlink... */
-
-		if (a->flags & ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER) {
+		/*
+		 * NO_OVERWRITE_NEWER doesn't apply to directories.
+		 */
+		if ((a->flags & ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER)
+		    &&  !S_ISDIR(a->st.st_mode)) {
 			if (!older(&(a->st), a->entry)) {
 				archive_set_error(&a->archive, 0,
 				    "File on disk is not older; skipping.");
@@ -807,6 +976,7 @@ restore_entry(struct archive_write_disk *a)
 				    "Can't unlink already-existing object");
 				return (ARCHIVE_WARN);
 			}
+			a->pst = NULL;
 			/* Try again. */
 			en = create_filesystem_object(a);
 		} else if (!S_ISDIR(a->mode)) {
@@ -866,8 +1036,18 @@ create_filesystem_object(struct archive_write_disk *a)
 		 * New cpio and pax formats allow hardlink entries
 		 * to carry data, so we may have to open the file
 		 * for hardlink entries.
+		 *
+		 * If the hardlink was successfully created and
+		 * the archive doesn't have carry data for it,
+		 * consider it to be non-authoritive for meta data.
+		 * This is consistent with GNU tar and BSD pax.
+		 * If the hardlink does carry data, let the last
+		 * archive entry decide ownership.
 		 */
-		if (r == 0 && a->filesize > 0) {
+		if (r == 0 && a->filesize <= 0) {
+			a->todo = 0;
+			a->deferred = 0;
+		} if (r == 0 && a->filesize > 0) {
 			a->fd = open(a->name, O_WRONLY | O_TRUNC | O_BINARY);
 			if (a->fd < 0)
 				r = errno;
@@ -932,7 +1112,10 @@ create_filesystem_object(struct archive_write_disk *a)
 			a->deferred |= (a->todo & TODO_TIMES);
 			a->todo &= ~TODO_TIMES;
 			/* Never use an immediate chmod(). */
-			if (mode != final_mode)
+			/* We can't avoid the chmod() entirely if EXTRACT_PERM
+			 * because of SysV SGID inheritance. */
+			if ((mode != final_mode)
+			    || (a->flags & ARCHIVE_EXTRACT_PERM))
 				a->deferred |= (a->todo & TODO_MODE);
 			a->todo &= ~TODO_MODE;
 		}
@@ -1000,10 +1183,19 @@ _archive_write_close(struct archive *_a)
 #ifdef HAVE_UTIMES
 			/* {f,l,}utimes() are preferred, when available. */
 			struct timeval times[2];
-			times[1].tv_sec = p->mtime;
-			times[1].tv_usec = p->mtime_nanos / 1000;
 			times[0].tv_sec = p->atime;
 			times[0].tv_usec = p->atime_nanos / 1000;
+#ifdef HAVE_STRUCT_STAT_ST_BIRTHTIME
+			/* if it's valid and not mtime, push the birthtime first */
+			if (((times[1].tv_sec = p->birthtime) < p->mtime) &&
+			(p->birthtime > 0))
+			{
+				times[1].tv_usec = p->birthtime_nanos / 1000;
+				utimes(p->name, times);
+			}
+#endif
+			times[1].tv_sec = p->mtime;
+			times[1].tv_usec = p->mtime_nanos / 1000;
 #ifdef HAVE_LUTIMES
 			lutimes(p->name, times);
 #else
@@ -1203,6 +1395,7 @@ check_symlinks(struct archive_write_disk *a)
 					pn[0] = c;
 					return (ARCHIVE_WARN);
 				}
+				a->pst = NULL;
 				/*
 				 * Even if we did remove it, a warning
 				 * is in order.  The warning is silly,
@@ -1226,6 +1419,7 @@ check_symlinks(struct archive_write_disk *a)
 					pn[0] = c;
 					return (ARCHIVE_WARN);
 				}
+				a->pst = NULL;
 			} else {
 				archive_set_error(&a->archive, 0,
 				    "Cannot extract through symlink %s",
@@ -1252,13 +1446,12 @@ cleanup_pathname(struct archive_write_disk *a)
 {
 	char *dest, *src;
 	char separator = '\0';
-	int lastdotdot = 0; /* True if last elt copied was '..' */
 
 	dest = src = a->name;
 	if (*src == '\0') {
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 		    "Invalid empty pathname");
-		return (ARCHIVE_WARN);
+		return (ARCHIVE_FAILED);
 	}
 
 	/* Skip leading '/'. */
@@ -1289,11 +1482,9 @@ cleanup_pathname(struct archive_write_disk *a)
 						archive_set_error(&a->archive,
 						    ARCHIVE_ERRNO_MISC,
 						    "Path contains '..'");
-						return (ARCHIVE_WARN);
+						return (ARCHIVE_FAILED);
 					}
-					lastdotdot = 1;
-				} else
-					lastdotdot = 0;
+				}
 				/*
 				 * Note: Under no circumstances do we
 				 * remove '..' elements.  In
@@ -1301,10 +1492,8 @@ cleanup_pathname(struct archive_write_disk *a)
 				 * '/foo/../bar/' should create the
 				 * 'foo' dir as a side-effect.
 				 */
-			} else
-				lastdotdot = 0;
-		} else
-			lastdotdot = 0;
+			}
+		}
 
 		/* Copy current element, including leading '/'. */
 		if (separator)
@@ -1323,13 +1512,6 @@ cleanup_pathname(struct archive_write_disk *a)
 	 * We've just copied zero or more path elements, not including the
 	 * final '/'.
 	 */
-	if (lastdotdot) {
-		/* Trailing '..' is always wrong. */
-		archive_set_error(&a->archive,
-		    ARCHIVE_ERRNO_MISC,
-		    "Path contains trailing '..'");
-		return (ARCHIVE_WARN);
-	}
 	if (dest == a->name) {
 		/*
 		 * Nothing got copied.  The path must have been something
@@ -1472,8 +1654,8 @@ create_dir(struct archive_write_disk *a, char *path)
 /*
  * Note: Although we can skip setting the user id if the desired user
  * id matches the current user, we cannot skip setting the group, as
- * many systems set the gid bit based on the containing directory.  So
- * we have to perform a chown syscall if we want to restore the SGID
+ * many systems set the gid based on the containing directory.  So
+ * we have to perform a chown syscall if we want to set the SGID
  * bit.  (The alternative is to stat() and then possibly chown(); it's
  * more efficient to skip the stat() and just always chown().)  Note
  * that a successful chown() here clears the TODO_SGID_CHECK bit, which
@@ -1527,29 +1709,113 @@ set_ownership(struct archive_write_disk *a)
  * when they're available.
  */
 static int
-set_time(struct archive_write_disk *a)
+set_time(int fd, int mode, const char *name,
+    time_t atime, long atime_nsec,
+    time_t mtime, long mtime_nsec)
 {
 	struct timeval times[2];
 
-	times[1].tv_sec = archive_entry_mtime(a->entry);
-	times[1].tv_usec = archive_entry_mtime_nsec(a->entry) / 1000;
-
-	times[0].tv_sec = archive_entry_atime(a->entry);
-	times[0].tv_usec = archive_entry_atime_nsec(a->entry) / 1000;
+	times[0].tv_sec = atime;
+	times[0].tv_usec = atime_nsec / 1000;
+	times[1].tv_sec = mtime;
+	times[1].tv_usec = mtime_nsec / 1000;
 
 #ifdef HAVE_FUTIMES
-	if (a->fd >= 0 && futimes(a->fd, times) == 0) {
+	if (fd >= 0)
+		return (futimes(fd, times));
+#else
+	(void)fd; /* UNUSED */
+#endif
+#ifdef HAVE_LUTIMES
+	(void)mode; /* UNUSED */
+	return (lutimes(name, times));
+#else
+	if (S_ISLNK(mode))
+		return (0);
+	return (utimes(name, times));
+#endif
+}
+#elif defined(HAVE_UTIME)
+/*
+ * utime() is an older, more standard interface that we'll use
+ * if utimes() isn't available.
+ */
+static int
+set_time(int fd, int mode, const char *name,
+    time_t atime, long atime_nsec,
+    time_t mtime, long mtime_nsec)
+{
+	struct utimbuf times;
+	(void)fd; /* UNUSED */
+	(void)name; /* UNUSED */
+	(void)atime_nsec; /* UNUSED */
+	(void)mtime_nsec; /* UNUSED */
+	times.actime = atime;
+	times.modtime = mtime;
+	if (S_ISLNK(mode))
 		return (ARCHIVE_OK);
-	}
+	return (utime(name, &times));
+}
+#else
+static int
+set_time(int fd, int mode, const char *name,
+    time_t atime, long atime_nsec,
+    time_t mtime, long mtime_nsec)
+{
+	return (ARCHIVE_WARN);
+}
 #endif
 
-#ifdef HAVE_LUTIMES
-	if (lutimes(a->name, times) != 0)
-#else
-	if (!S_ISLNK(a->mode) && utimes(a->name, times) != 0)
+static int
+set_times(struct archive_write_disk *a)
+{
+	time_t atime = a->start_time, mtime = a->start_time;
+	long atime_nsec = 0, mtime_nsec = 0;
+
+	/* If no time was provided, we're done. */
+	if (!archive_entry_atime_is_set(a->entry)
+#if HAVE_STRUCT_STAT_ST_BIRTHTIME
+	    && !archive_entry_birthtime_is_set(a->entry)
 #endif
-	{
-		archive_set_error(&a->archive, errno, "Can't update time for %s",
+	    && !archive_entry_mtime_is_set(a->entry))
+		return (ARCHIVE_OK);
+
+	/* If no atime was specified, use start time instead. */
+	/* In theory, it would be marginally more correct to use
+	 * time(NULL) here, but that would cost us an extra syscall
+	 * for little gain. */
+	if (archive_entry_atime_is_set(a->entry)) {
+		atime = archive_entry_atime(a->entry);
+		atime_nsec = archive_entry_atime_nsec(a->entry);
+	}
+
+	/*
+	 * If you have struct stat.st_birthtime, we assume BSD birthtime
+	 * semantics, in which {f,l,}utimes() updates birthtime to earliest
+	 * mtime.  So we set the time twice, first using the birthtime,
+	 * then using the mtime.
+	 */
+#if HAVE_STRUCT_STAT_ST_BIRTHTIME
+	/* If birthtime is set, flush that through to disk first. */
+	if (archive_entry_birthtime_is_set(a->entry))
+		if (set_time(a->fd, a->mode, a->name, atime, atime_nsec,
+			archive_entry_birthtime(a->entry),
+			archive_entry_birthtime_nsec(a->entry))) {
+			archive_set_error(&a->archive, errno,
+			    "Can't update time for %s",
+			    a->name);
+			return (ARCHIVE_WARN);
+		}
+#endif
+
+	if (archive_entry_mtime_is_set(a->entry)) {
+		mtime = archive_entry_mtime(a->entry);
+		mtime_nsec = archive_entry_mtime_nsec(a->entry);
+	}
+	if (set_time(a->fd, a->mode, a->name,
+		atime, atime_nsec, mtime, mtime_nsec)) {
+		archive_set_error(&a->archive, errno,
+		    "Can't update time for %s",
 		    a->name);
 		return (ARCHIVE_WARN);
 	}
@@ -1560,40 +1826,8 @@ set_time(struct archive_write_disk *a)
 	 * So, any restoration of ctime will necessarily be OS-specific.
 	 */
 
-	/* XXX TODO: Can FreeBSD restore ctime? XXX */
 	return (ARCHIVE_OK);
 }
-#elif defined(HAVE_UTIME)
-/*
- * utime() is an older, more standard interface that we'll use
- * if utimes() isn't available.
- */
-static int
-set_time(struct archive_write_disk *a)
-{
-	struct utimbuf times;
-
-	times.modtime = archive_entry_mtime(a->entry);
-	times.actime = archive_entry_atime(a->entry);
-	if (!S_ISLNK(a->mode) && utime(a->name, &times) != 0) {
-		archive_set_error(&a->archive, errno,
-		    "Can't update time for %s", a->name);
-		return (ARCHIVE_WARN);
-	}
-	return (ARCHIVE_OK);
-}
-#else
-/* This platform doesn't give us a way to restore the time. */
-static int
-set_time(struct archive_write_disk *a)
-{
-	(void)a; /* UNUSED */
-	archive_set_error(&a->archive, errno,
-	    "Can't update time for %s", a->name);
-	return (ARCHIVE_WARN);
-}
-#endif
-
 
 static int
 set_mode(struct archive_write_disk *a, int mode)
@@ -1608,19 +1842,8 @@ set_mode(struct archive_write_disk *a, int mode)
 		 * process, since systems sometimes set GID from
 		 * the enclosing dir or based on ACLs.
 		 */
-		if (a->pst != NULL) {
-			/* Already have stat() data available. */
-#ifdef HAVE_FSTAT
-		} else if (a->fd >= 0 && fstat(a->fd, &a->st) == 0) {
-			a->pst = &a->st;
-#endif
-		} else if (stat(a->name, &a->st) == 0) {
-			a->pst = &a->st;
-		} else {
-			archive_set_error(&a->archive, errno,
-			    "Couldn't stat file");
-			return (ARCHIVE_WARN);
-		}
+		if ((r = _archive_write_disk_lazy_stat(a)) != ARCHIVE_OK)
+			return (r);
 		if (a->pst->st_gid != a->gid) {
 			mode &= ~ S_ISGID;
 			if (a->flags & ARCHIVE_EXTRACT_OWNER) {
@@ -1778,11 +2001,16 @@ set_fflags(struct archive_write_disk *a)
 }
 
 
-#if ( defined(HAVE_LCHFLAGS) || defined(HAVE_CHFLAGS) || defined(HAVE_FCHFLAGS) ) && !defined(__linux)
+#if ( defined(HAVE_LCHFLAGS) || defined(HAVE_CHFLAGS) || defined(HAVE_FCHFLAGS) ) && defined(HAVE_STRUCT_STAT_ST_FLAGS)
+/*
+ * BSD reads flags using stat() and sets them with one of {f,l,}chflags()
+ */
 static int
 set_fflags_platform(struct archive_write_disk *a, int fd, const char *name,
     mode_t mode, unsigned long set, unsigned long clear)
 {
+	int r;
+
 	(void)mode; /* UNUSED */
 	if (set == 0  && clear == 0)
 		return (ARCHIVE_OK);
@@ -1793,15 +2021,8 @@ set_fflags_platform(struct archive_write_disk *a, int fd, const char *name,
 	 * about the correct approach if we're overwriting an existing
 	 * file that already has flags on it. XXX
 	 */
-	if (fd >= 0 && fstat(fd, &a->st) == 0)
-		a->pst = &a->st;
-	else if (lstat(name, &a->st) == 0)
-		a->pst = &a->st;
-	else {
-		archive_set_error(&a->archive, errno,
-		    "Couldn't stat file");
-		return (ARCHIVE_WARN);
-	}
+	if ((r = _archive_write_disk_lazy_stat(a)) != ARCHIVE_OK)
+		return (r);
 
 	a->st.st_flags &= ~clear;
 	a->st.st_flags |= set;
@@ -1832,11 +2053,9 @@ set_fflags_platform(struct archive_write_disk *a, int fd, const char *name,
 	return (ARCHIVE_WARN);
 }
 
-#elif defined(__linux) && defined(EXT2_IOC_GETFLAGS) && defined(EXT2_IOC_SETFLAGS)
-
+#elif defined(EXT2_IOC_GETFLAGS) && defined(EXT2_IOC_SETFLAGS)
 /*
- * Linux has flags too, but uses ioctl() to access them instead of
- * having a separate chflags() system call.
+ * Linux uses ioctl() to read and write file flags.
  */
 static int
 set_fflags_platform(struct archive_write_disk *a, int fd, const char *name,
@@ -1904,7 +2123,7 @@ cleanup:
 	return (ret);
 }
 
-#else /* Not HAVE_CHFLAGS && Not __linux */
+#else
 
 /*
  * Of course, some systems have neither BSD chflags() nor Linux' flags

@@ -24,7 +24,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_util.c,v 1.17 2008/03/14 22:31:57 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_util.c,v 1.19 2008/10/21 12:10:30 des Exp $");
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -77,32 +77,10 @@ archive_version_number(void)
 	return (ARCHIVE_VERSION_NUMBER);
 }
 
-/*
- * Format a version string of the form "libarchive x.y.z", where x, y,
- * z are the correct parts of the version ID from
- * archive_version_number().
- *
- * I used to do all of this at build time in shell scripts but that
- * proved to be a portability headache.
- */
-
 const char *
 archive_version_string(void)
 {
-	static char buff[128];
-	struct archive_string as;
-	int n;
-
-	if (buff[0] == '\0') {
-		n = archive_version_number();
-		memset(&as, 0, sizeof(as));
-		archive_string_sprintf(&as, "libarchive %d.%d.%d",
-		    n / 1000000, (n / 1000) % 1000, n % 1000);
-		strncpy(buff, as.s, sizeof(buff));
-		buff[sizeof(buff) - 1] = '\0';
-		archive_string_free(&as);
-	}
-	return (buff);
+	return (ARCHIVE_VERSION_STRING);
 }
 
 int
@@ -190,6 +168,7 @@ archive_set_error(struct archive *a, int error_number, const char *fmt, ...)
 
 	va_start(ap, fmt);
 	archive_string_vsprintf(&(a->error_string), fmt, ap);
+	va_end(ap);
 	if (error_number > 0) {
 		archive_strcat(&(a->error_string), ": ");
 #ifdef HAVE_STRERROR_R
@@ -206,7 +185,6 @@ archive_set_error(struct archive *a, int error_number, const char *fmt, ...)
 		archive_strcat(&(a->error_string), errp);
 	}
 	a->error = a->error_string.s;
-	va_end(ap);
 }
 
 void

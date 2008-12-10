@@ -1,3 +1,5 @@
+### Recommended options
+
 # Tarsnap cache directory
 cachedir /usr/local/tarsnap-cache
 
@@ -9,3 +11,32 @@ nodump
 
 # Print statistics when creating or deleting archives
 print-stats
+
+### Other options, not applicable to most systems
+
+# Aggressive network behaviour: Use multiple TCP connections when
+# writing archives.  Use of this option is recommended only in
+# cases where TCP congestion control is known to be the limiting
+# factor in upload performance.
+#aggressive-networking
+
+# Exclude files and directories matching specified patterns
+#exclude
+
+# Include only files and directories matching specified patterns
+#include
+
+# Attempt to reduce tarsnap memory consumption.  This option
+# will slow down the process of creating archives, but may help
+# on systems where the average size of files being backed up is
+# less than 1 MB.
+#lowmem
+
+# Try even harder to reduce tarsnap memory consumption.  This can
+# significantly slow down tarsnap, but reduces its memory usage
+# by an additional factor of 2 beyond what the lowmem option does.
+#verylowmem
+
+# Snapshot time.  Use this option if you are backing up files
+# from a filesystem snapshot rather than from a "live" filesystem.
+#snaptime <file>

@@ -24,7 +24,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_iso9660.c,v 1.25 2008/02/19 06:02:01 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_iso9660.c,v 1.30 2008/12/06 06:57:45 kientzle Exp $");
 
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -138,6 +138,15 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_iso9660.c,v 1
 #define PVD_reserved4_size 1
 #define PVD_application_data_offset (PVD_reserved4_offset + PVD_reserved4_size)
 #define PVD_application_data_size 512
+#define PVD_reserved5_offset (PVD_application_data_offset + PVD_application_data_size)
+#define PVD_reserved5_size (2048 - PVD_reserved5_offset)
+
+/* TODO: It would make future maintenance easier to just hardcode the
+ * above values.  In particular, ECMA119 states the offsets as part of
+ * the standard.  That would eliminate the need for the following check.*/
+#if PVD_reserved5_offset != 1395
+#error PVD offset and size definitions are wrong.
+#endif
 
 /* Structure of an on-disk directory record. */
 /* Note:  ISO9660 stores each multi-byte integer twice, once in
@@ -178,17 +187,20 @@ struct file_info {
 	uint64_t	 size;	/* File size in bytes. */
 	uint64_t	 ce_offset; /* Offset of CE */
 	uint64_t	 ce_size; /* Size of CE */
+	time_t		 birthtime; /* File created time. */
 	time_t		 mtime;	/* File last modified time. */
 	time_t		 atime;	/* File last accessed time. */
-	time_t		 ctime;	/* File creation time. */
+	time_t		 ctime;	/* File attribute change time. */
 	uint64_t	 rdev; /* Device number */
 	mode_t		 mode;
 	uid_t		 uid;
 	gid_t		 gid;
 	ino_t		 inode;
 	int		 nlinks;
-	char		*name; /* Null-terminated filename. */
+	struct archive_string name; /* Pathname */
+	char		 name_continues; /* Non-zero if name continues */
 	struct archive_string symlink;
+	char		 symlink_continues; /* Non-zero if link continues */
 };
 
 
@@ -210,6 +222,7 @@ struct iso9660 {
 
 	uint64_t current_position;
 	ssize_t	logical_block_size;
+	uint64_t volume_size; /* Total size of volume in bytes. */
 
 	off_t	entry_sparse_offset;
 	int64_t	entry_bytes_remaining;
@@ -224,7 +237,9 @@ static int	archive_read_format_iso9660_read_data_skip(struct archive_read *);
 static int	archive_read_format_iso9660_read_header(struct archive_read *,
 		    struct archive_entry *);
 static const char *build_pathname(struct archive_string *, struct file_info *);
+#if DEBUG
 static void	dump_isodirrec(FILE *, const unsigned char *isodirrec);
+#endif
 static time_t	time_from_tm(struct tm *);
 static time_t	isodate17(const unsigned char *);
 static time_t	isodate7(const unsigned char *);
@@ -238,6 +253,12 @@ static struct file_info *
 static void	parse_rockridge(struct iso9660 *iso9660,
 		    struct file_info *file, const unsigned char *start,
 		    const unsigned char *end);
+static void	parse_rockridge_NM1(struct file_info *,
+		    const unsigned char *, int);
+static void	parse_rockridge_SL1(struct file_info *,
+		    const unsigned char *, int);
+static void	parse_rockridge_TF1(struct file_info *,
+		    const unsigned char *, int);
 static void	release_file(struct iso9660 *, struct file_info *);
 static unsigned	toi(const void *p, int n);
 
@@ -290,8 +311,8 @@ archive_read_format_iso9660_bid(struct archive_read *a)
 	 * 8 sectors of the volume descriptor table.  Of course,
 	 * if the I/O layer gives us more, we'll take it.
 	 */
-	bytes_read = (a->decompressor->read_ahead)(a, &h, 32768 + 8*2048);
-	if (bytes_read < 32768 + 8*2048)
+	h = __archive_read_ahead(a, 32768 + 8*2048, &bytes_read);
+	if (h == NULL)
 	    return (-1);
 	p = (const unsigned char *)h;
 
@@ -316,13 +337,61 @@ static int
 isPVD(struct iso9660 *iso9660, const unsigned char *h)
 {
 	struct file_info *file;
+	int i;
 
-	if (h[0] != 1)
-		return (0);
-	if (memcmp(h+1, "CD001", 5) != 0)
+	/* Type of the Primary Volume Descriptor must be 1. */
+	if (h[PVD_type_offset] != 1)
 		return (0);
 
+	/* ID must be "CD001" */
+	if (memcmp(h + PVD_id_offset, "CD001", 5) != 0)
+		return (0);
+
+	/* PVD version must be 1. */
+	if (h[PVD_version_offset] != 1)
+		return (0);
+
+	/* Reserved field must be 0. */
+	if (h[PVD_reserved1_offset] != 0)
+		return (0);
+
+	/* Reserved field must be 0. */
+	for (i = 0; i < PVD_reserved2_size; ++i)
+		if (h[PVD_reserved2_offset + i] != 0)
+			return (0);
+
+	/* Reserved field must be 0. */
+	for (i = 0; i < PVD_reserved3_size; ++i)
+		if (h[PVD_reserved3_offset + i] != 0)
+			return (0);
+
+	/* Logical block size must be > 0. */
+	/* I've looked at Ecma 119 and can't find any stronger
+	 * restriction on this field. */
 	iso9660->logical_block_size = toi(h + PVD_logical_block_size_offset, 2);
+	if (iso9660->logical_block_size <= 0)
+		return (0);
+
+	iso9660->volume_size = iso9660->logical_block_size
+	    * (uint64_t)toi(h + PVD_volume_space_size_offset, 4);
+
+	/* File structure version must be 1 for ISO9660/ECMA119. */
+	if (h[PVD_file_structure_version_offset] != 1)
+		return (0);
+
+
+	/* Reserved field must be 0. */
+	for (i = 0; i < PVD_reserved4_size; ++i)
+		if (h[PVD_reserved4_offset + i] != 0)
+			return (0);
+
+	/* Reserved field must be 0. */
+	for (i = 0; i < PVD_reserved5_size; ++i)
+		if (h[PVD_reserved5_offset + i] != 0)
+			return (0);
+
+	/* XXX TODO: Check other values for sanity; reject more
+	 * malformed PVDs. XXX */
 
 	/* Store the root directory in the pending list. */
 	file = parse_file_info(iso9660, NULL, h + PVD_root_directory_record_offset);
@@ -336,7 +405,6 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 {
 	struct iso9660 *iso9660;
 	struct file_info *file;
-	ssize_t bytes_read;
 	int r;
 
 	iso9660 = (struct iso9660 *)(a->format->data);
@@ -354,12 +422,22 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 	iso9660->entry_bytes_remaining = file->size;
 	iso9660->entry_sparse_offset = 0; /* Offset for sparse-file-aware clients. */
 
+	if (file->offset + file->size > iso9660->volume_size) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+		    "File is beyond end-of-media: %s", file->name);
+		iso9660->entry_bytes_remaining = 0;
+		iso9660->entry_sparse_offset = 0;
+		release_file(iso9660, file);
+		return (ARCHIVE_WARN);
+	}
+
 	/* Set up the entry structure with information about this entry. */
 	archive_entry_set_mode(entry, file->mode);
 	archive_entry_set_uid(entry, file->uid);
 	archive_entry_set_gid(entry, file->gid);
 	archive_entry_set_nlink(entry, file->nlinks);
 	archive_entry_set_ino(entry, file->inode);
+	archive_entry_set_birthtime(entry, file->birthtime, 0);
 	archive_entry_set_mtime(entry, file->mtime, 0);
 	archive_entry_set_ctime(entry, file->ctime, 0);
 	archive_entry_set_atime(entry, file->atime, 0);
@@ -409,20 +487,18 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 			ssize_t step = iso9660->logical_block_size;
 			if (step > iso9660->entry_bytes_remaining)
 				step = iso9660->entry_bytes_remaining;
-			bytes_read = (a->decompressor->read_ahead)(a, &block, step);
-			if (bytes_read < step) {
+			block = __archive_read_ahead(a, step, NULL);
+			if (block == NULL) {
 				archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 	    "Failed to read full block when scanning ISO9660 directory list");
 				release_file(iso9660, file);
 				return (ARCHIVE_FATAL);
 			}
-			if (bytes_read > step)
-				bytes_read = step;
-			(a->decompressor->consume)(a, bytes_read);
-			iso9660->current_position += bytes_read;
-			iso9660->entry_bytes_remaining -= bytes_read;
+			__archive_read_consume(a, step);
+			iso9660->current_position += step;
+			iso9660->entry_bytes_remaining -= step;
 			for (p = (const unsigned char *)block;
-			     *p != 0 && p < (const unsigned char *)block + bytes_read;
+			     *p != 0 && p < (const unsigned char *)block + step;
 			     p += *p) {
 				struct file_info *child;
 
@@ -474,11 +550,11 @@ archive_read_format_iso9660_read_data(struct archive_read *a,
 		return (ARCHIVE_EOF);
 	}
 
-	bytes_read = (a->decompressor->read_ahead)(a, buff, 1);
+	*buff = __archive_read_ahead(a, 1, &bytes_read);
 	if (bytes_read == 0)
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 		    "Truncated input file");
-	if (bytes_read <= 0)
+	if (buff == NULL)
 		return (ARCHIVE_FATAL);
 	if (bytes_read > iso9660->entry_bytes_remaining)
 		bytes_read = iso9660->entry_bytes_remaining;
@@ -487,7 +563,7 @@ archive_read_format_iso9660_read_data(struct archive_read *a,
 	iso9660->entry_sparse_offset += bytes_read;
 	iso9660->entry_bytes_remaining -= bytes_read;
 	iso9660->current_position += bytes_read;
-	(a->decompressor->consume)(a, bytes_read);
+	__archive_read_consume(a, bytes_read);
 	return (ARCHIVE_OK);
 }
 
@@ -519,6 +595,8 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 {
 	struct file_info *file;
 	size_t name_len;
+	const unsigned char *rr_start, *rr_end;
+	const char *p;
 	int flags;
 
 	/* TODO: Sanity check that name_len doesn't exceed length, etc. */
@@ -536,14 +614,23 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 	file->size = toi(isodirrec + DR_size_offset, DR_size_size);
 	file->mtime = isodate7(isodirrec + DR_date_offset);
 	file->ctime = file->atime = file->mtime;
+
 	name_len = (size_t)*(const unsigned char *)(isodirrec + DR_name_len_offset);
-	file->name = (char *)malloc(name_len + 1);
-	if (file->name == NULL) {
-		free(file);
-		return (NULL);
-	}
-	memcpy(file->name, isodirrec + DR_name_offset, name_len);
-	file->name[name_len] = '\0';
+	p = isodirrec + DR_name_offset;
+	/* Rockridge extensions (if any) follow name.  Compute this
+	 * before fidgeting the name_len below. */
+	rr_start = p + name_len + (name_len & 1 ? 0 : 1) + iso9660->suspOffset;
+	rr_end = (const unsigned char *)isodirrec
+	    + *(isodirrec + DR_length_offset);
+
+	/* Chop off trailing ';1' from files. */
+	if (name_len > 2 && p[name_len - 1] == '1' && p[name_len - 2] == ';')
+		name_len -= 2;
+	/* Chop off trailing '.' from filenames. */
+	if (name_len > 1 && p[name_len - 1] == '.')
+		--name_len;
+	archive_strncpy(&file->name, p, name_len);
+
 	flags = *(isodirrec + DR_flags_offset);
 	if (flags & 0x02)
 		file->mode = AE_IFDIR | 0700;
@@ -551,18 +638,9 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 		file->mode = AE_IFREG | 0400;
 
 	/* Rockridge extensions overwrite information from above. */
-	{
-		const unsigned char *rr_start, *rr_end;
-		rr_end = (const unsigned char *)isodirrec
-		    + *(isodirrec + DR_length_offset);
-		rr_start = (const unsigned char *)(isodirrec + DR_name_offset
-		    + name_len);
-		if ((name_len & 1) == 0)
-			rr_start++;
-		rr_start += iso9660->suspOffset;
-		parse_rockridge(iso9660, file, rr_start, rr_end);
-	}
+	parse_rockridge(iso9660, file, rr_start, rr_end);
 
+#if DEBUG
 	/* DEBUGGING: Warn about attributes I don't yet fully support. */
 	if ((flags & ~0x02) != 0) {
 		fprintf(stderr, "\n ** Unrecognized flag: ");
@@ -585,7 +663,7 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 		dump_isodirrec(stderr, isodirrec);
 		fprintf(stderr, "\n");
 	}
-
+#endif
 	return (file);
 }
 
@@ -597,8 +675,11 @@ add_entry(struct iso9660 *iso9660, struct file_info *file)
 		struct file_info **new_pending_files;
 		int new_size = iso9660->pending_files_allocated * 2;
 
-		if (new_size < 1024)
+		if (iso9660->pending_files_allocated < 1024)
 			new_size = 1024;
+		/* Overflow might keep us from growing the list. */
+		if (new_size <= iso9660->pending_files_allocated)
+			__archive_errx(1, "Out of memory");
 		new_pending_files = (struct file_info **)malloc(new_size * sizeof(new_pending_files[0]));
 		if (new_pending_files == NULL)
 			__archive_errx(1, "Out of memory");
@@ -618,10 +699,13 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
     const unsigned char *p, const unsigned char *end)
 {
 	(void)iso9660; /* UNUSED */
+	file->name_continues = 0;
+	file->symlink_continues = 0;
 
 	while (p + 4 < end  /* Enough space for another entry. */
 	    && p[0] >= 'A' && p[0] <= 'Z' /* Sanity-check 1st char of name. */
 	    && p[1] >= 'A' && p[1] <= 'Z' /* Sanity-check 2nd char of name. */
+	    && p[2] >= 4 /* Sanity-check length. */
 	    && p + p[2] <= end) { /* Sanity-check length. */
 		const unsigned char *data = p + 4;
 		int data_length = p[2] - 4;
@@ -634,61 +718,54 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 		 */
 		switch(p[0]) {
 		case 'C':
-			if (p[0] == 'C' && p[1] == 'E' && version == 1) {
-				/*
-				 * CE extension comprises:
-				 *   8 byte sector containing extension
-				 *   8 byte offset w/in above sector
-				 *   8 byte length of continuation
-				 */
-				file->ce_offset = toi(data, 4)
-				    * iso9660->logical_block_size
-				    + toi(data + 8, 4);
-				file->ce_size = toi(data + 16, 4);
+			if (p[0] == 'C' && p[1] == 'E') {
+				if (version == 1 && data_length == 24) {
+					/*
+					 * CE extension comprises:
+					 *   8 byte sector containing extension
+					 *   8 byte offset w/in above sector
+					 *   8 byte length of continuation
+					 */
+					file->ce_offset = (uint64_t)toi(data, 4)
+					    * iso9660->logical_block_size
+					    + toi(data + 8, 4);
+					file->ce_size = toi(data + 16, 4);
+					/* If the result is rediculous,
+					 * ignore it. */
+					if (file->ce_offset + file->ce_size
+					    > iso9660->volume_size) {
+						file->ce_offset = 0;
+						file->ce_size = 0;
+					}
+				}
 				break;
 			}
 			/* FALLTHROUGH */
 		case 'N':
-			if (p[0] == 'N' && p[1] == 'M' && version == 1
-				&& *data == 0) {
-				/* NM extension with flag byte == 0 */
-				/*
-				 * NM extension comprises:
-				 *   one byte flag
-				 *   rest is long name
-				 */
-				/* TODO: Obey flags. */
-				char *old_name = file->name;
-
-				data++;  /* Skip flag byte. */
-				data_length--;
-				file->name = (char *)malloc(data_length + 1);
-				if (file->name != NULL) {
-					free(old_name);
-					memcpy(file->name, data, data_length);
-					file->name[data_length] = '\0';
-				} else
-					file->name = old_name;
+			if (p[0] == 'N' && p[1] == 'M') {
+				if (version == 1)
+					parse_rockridge_NM1(file,
+					    data, data_length);
 				break;
 			}
 			/* FALLTHROUGH */
 		case 'P':
-			if (p[0] == 'P' && p[1] == 'D' && version == 1) {
+			if (p[0] == 'P' && p[1] == 'D') {
 				/*
 				 * PD extension is padding;
 				 * contents are always ignored.
 				 */
 				break;
 			}
-			if (p[0] == 'P' && p[1] == 'N' && version == 1) {
-				if (data_length == 16) {
+			if (p[0] == 'P' && p[1] == 'N') {
+				if (version == 1 && data_length == 16) {
 					file->rdev = toi(data,4);
 					file->rdev <<= 32;
 					file->rdev |= toi(data + 8, 4);
 				}
 				break;
 			}
-			if (p[0] == 'P' && p[1] == 'X' && version == 1) {
+			if (p[0] == 'P' && p[1] == 'X') {
 				/*
 				 * PX extension comprises:
 				 *   8 bytes for mode,
@@ -697,12 +774,22 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 				 *   8 bytes for gid,
 				 *   8 bytes for inode.
 				 */
-				if (data_length == 32) {
-					file->mode = toi(data, 4);
-					file->nlinks = toi(data + 8, 4);
-					file->uid = toi(data + 16, 4);
-					file->gid = toi(data + 24, 4);
-					file->inode = toi(data + 32, 4);
+				if (version == 1) {
+					if (data_length >= 8)
+						file->mode
+						    = toi(data, 4);
+					if (data_length >= 16)
+						file->nlinks
+						    = toi(data + 8, 4);
+					if (data_length >= 24)
+						file->uid
+						    = toi(data + 16, 4);
+					if (data_length >= 32)
+						file->gid
+						    = toi(data + 24, 4);
+					if (data_length >= 40)
+						file->inode
+						    = toi(data + 32, 4);
 				}
 				break;
 			}
@@ -719,56 +806,14 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 			}
 			/* FALLTHROUGH */
 		case 'S':
-			if (p[0] == 'S' && p[1] == 'L' && version == 1
-			    && *data == 0) {
-				int cont = 1;
-				/* SL extension with flags == 0 */
-				/* TODO: handle non-zero flag values. */
-				data++;  /* Skip flag byte. */
-				data_length--;
-				while (data_length > 0) {
-					unsigned char flag = *data++;
-					unsigned char nlen = *data++;
-					data_length -= 2;
-
-					if (cont == 0)
-						archive_strcat(&file->symlink, "/");
-					cont = 0;
-
-					switch(flag) {
-					case 0x01: /* Continue */
-						archive_strncat(&file->symlink,
-						    (const char *)data, nlen);
-						cont = 1;
-						break;
-					case 0x02: /* Current */
-						archive_strcat(&file->symlink, ".");
-						break;
-					case 0x04: /* Parent */
-						archive_strcat(&file->symlink, "..");
-						break;
-					case 0x08: /* Root */
-					case 0x10: /* Volume root */
-						archive_string_empty(&file->symlink);
-						break;
-					case 0x20: /* Hostname */
-						archive_strcat(&file->symlink, "hostname");
-						break;
-					case 0:
-						archive_strncat(&file->symlink,
-						    (const char *)data, nlen);
-						break;
-					default:
-						/* TODO: issue a warning ? */
-						break;
-					}
-					data += nlen;
-					data_length -= nlen;
-				}
+			if (p[0] == 'S' && p[1] == 'L') {
+				if (version == 1)
+					parse_rockridge_SL1(file,
+					    data, data_length);
 				break;
 			}
 			if (p[0] == 'S' && p[1] == 'P'
-			    && version == 1 && data_length == 7
+			    && version == 1 && data_length == 3
 			    && data[0] == (unsigned char)'\xbe'
 			    && data[1] == (unsigned char)'\xef') {
 				/*
@@ -804,66 +849,27 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 				return;
 			}
 		case 'T':
-			if (p[0] == 'T' && p[1] == 'F' && version == 1) {
-				char flag = data[0];
-				/*
-				 * TF extension comprises:
-				 *   one byte flag
-				 *   create time (optional)
-				 *   modify time (optional)
-				 *   access time (optional)
-				 *   attribute time (optional)
-				 *  Time format and presence of fields
-				 *  is controlled by flag bits.
-				 */
-				data++;
-				if (flag & 0x80) {
-					/* Use 17-byte time format. */
-					if (flag & 1) /* Create time. */
-						data += 17;
-					if (flag & 2) { /* Modify time. */
-						file->mtime = isodate17(data);
-						data += 17;
-					}
-					if (flag & 4) { /* Access time. */
-						file->atime = isodate17(data);
-						data += 17;
-					}
-					if (flag & 8) { /* Attribute time. */
-						file->ctime = isodate17(data);
-						data += 17;
-					}
-				} else {
-					/* Use 7-byte time format. */
-					if (flag & 1) /* Create time. */
-						data += 7;
-					if (flag & 2) { /* Modify time. */
-						file->mtime = isodate7(data);
-						data += 7;
-					}
-					if (flag & 4) { /* Access time. */
-						file->atime = isodate7(data);
-						data += 7;
-					}
-					if (flag & 8) { /* Attribute time. */
-						file->ctime = isodate7(data);
-						data += 7;
-					}
-				}
+			if (p[0] == 'T' && p[1] == 'F') {
+				if (version == 1)
+					parse_rockridge_TF1(file,
+					    data, data_length);
 				break;
 			}
 			/* FALLTHROUGH */
 		default:
 			/* The FALLTHROUGHs above leave us here for
 			 * any unsupported extension. */
+#if DEBUG
 			{
 				const unsigned char *t;
-				fprintf(stderr, "\nUnsupported RRIP extension for %s\n", file->name);
+				fprintf(stderr, "\nUnsupported RRIP extension for %s\n", file->name.s);
 				fprintf(stderr, " %c%c(%d):", p[0], p[1], data_length);
 				for (t = data; t < data + data_length && t < data + 16; t++)
 					fprintf(stderr, " %02x", *t);
 				fprintf(stderr, "\n");
 			}
+#endif
+			break;
 		}
 
 
@@ -873,14 +879,222 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 }
 
 static void
+parse_rockridge_NM1(struct file_info *file, const unsigned char *data,
+    int data_length)
+{
+	if (!file->name_continues)
+		archive_string_empty(&file->name);
+	file->name_continues = 0;
+	if (data_length < 1)
+		return;
+	/*
+	 * NM version 1 extension comprises:
+	 *   1 byte flag, value is one of:
+	 *     = 0: remainder is name
+	 *     = 1: remainder is name, next NM entry continues name
+	 *     = 2: "."
+	 *     = 4: ".."
+	 *     = 32: Implementation specific
+	 *     All other values are reserved.
+	 */
+	switch(data[0]) {
+	case 0:
+		if (data_length < 2)
+			return;
+		archive_strncat(&file->name, data + 1, data_length - 1);
+		break;
+	case 1:
+		if (data_length < 2)
+			return;
+		archive_strncat(&file->name, data + 1, data_length - 1);
+		file->name_continues = 1;
+		break;
+	case 2:
+		archive_strcat(&file->name, ".");
+		break;
+	case 4:
+		archive_strcat(&file->name, "..");
+		break;
+	default:
+		return;
+	}
+
+}
+
+static void
+parse_rockridge_TF1(struct file_info *file, const unsigned char *data,
+    int data_length)
+{
+	char flag;
+	/*
+	 * TF extension comprises:
+	 *   one byte flag
+	 *   create time (optional)
+	 *   modify time (optional)
+	 *   access time (optional)
+	 *   attribute time (optional)
+	 *  Time format and presence of fields
+	 *  is controlled by flag bits.
+	 */
+	if (data_length < 1)
+		return;
+	flag = data[0];
+	++data;
+	--data_length;
+	if (flag & 0x80) {
+		/* Use 17-byte time format. */
+		if ((flag & 1) && data_length >= 17) {
+			/* Create time. */
+			file->birthtime = isodate17(data);
+			data += 17;
+			data_length -= 17;
+		}
+		if ((flag & 2) && data_length >= 17) {
+			/* Modify time. */
+			file->mtime = isodate17(data);
+			data += 17;
+			data_length -= 17;
+		}
+		if ((flag & 4) && data_length >= 17) {
+			/* Access time. */
+			file->atime = isodate17(data);
+			data += 17;
+			data_length -= 17;
+		}
+		if ((flag & 8) && data_length >= 17) {
+			/* Attribute change time. */
+			file->ctime = isodate17(data);
+			data += 17;
+			data_length -= 17;
+		}
+	} else {
+		/* Use 7-byte time format. */
+		if ((flag & 1) && data_length >= 7) {
+			/* Create time. */
+			file->birthtime = isodate17(data);
+			data += 7;
+			data_length -= 7;
+		}
+		if ((flag & 2) && data_length >= 7) {
+			/* Modify time. */
+			file->mtime = isodate7(data);
+			data += 7;
+			data_length -= 7;
+		}
+		if ((flag & 4) && data_length >= 7) {
+			/* Access time. */
+			file->atime = isodate7(data);
+			data += 7;
+			data_length -= 7;
+		}
+		if ((flag & 8) && data_length >= 7) {
+			/* Attribute change time. */
+			file->ctime = isodate7(data);
+			data += 7;
+			data_length -= 7;
+		}
+	}
+}
+
+static void
+parse_rockridge_SL1(struct file_info *file, const unsigned char *data,
+    int data_length)
+{
+	int component_continues = 1;
+
+	if (!file->symlink_continues)
+		archive_string_empty(&file->symlink);
+	else
+		archive_strcat(&file->symlink, "/");
+	file->symlink_continues = 0;
+
+	/*
+	 * Defined flag values:
+	 *  0: This is the last SL record for this symbolic link
+	 *  1: this symbolic link field continues in next SL entry
+	 *  All other values are reserved.
+	 */
+	if (data_length < 1)
+		return;
+	switch(*data) {
+	case 0:
+		break;
+	case 1:
+		file->symlink_continues = 1;
+		break;
+	default:
+		return;
+	}
+	++data;  /* Skip flag byte. */
+	--data_length;
+
+	/*
+	 * SL extension body stores "components".
+	 * Basically, this is a complicated way of storing
+	 * a POSIX path.  It also interferes with using
+	 * symlinks for storing non-path data. <sigh>
+	 *
+	 * Each component is 2 bytes (flag and length)
+	 * possibly followed by name data.
+	 */
+	while (data_length >= 2) {
+		unsigned char flag = *data++;
+		unsigned char nlen = *data++;
+		data_length -= 2;
+
+		if (!component_continues)
+			archive_strcat(&file->symlink, "/");
+		component_continues = 0;
+
+		switch(flag) {
+		case 0: /* Usual case, this is text. */
+			if (data_length < nlen)
+				return;
+			archive_strncat(&file->symlink,
+			    (const char *)data, nlen);
+			break;
+		case 0x01: /* Text continues in next component. */
+			if (data_length < nlen)
+				return;
+			archive_strncat(&file->symlink,
+			    (const char *)data, nlen);
+			component_continues = 1;
+			break;
+		case 0x02: /* Current dir. */
+			archive_strcat(&file->symlink, ".");
+			break;
+		case 0x04: /* Parent dir. */
+			archive_strcat(&file->symlink, "..");
+			break;
+		case 0x08: /* Root of filesystem. */
+			archive_string_empty(&file->symlink);
+			archive_strcat(&file->symlink, "/");
+			break;
+		case 0x10: /* Undefined (historically "volume root" */
+			archive_string_empty(&file->symlink);
+			archive_strcat(&file->symlink, "ROOT");
+			break;
+		case 0x20: /* Undefined (historically "hostname") */
+			archive_strcat(&file->symlink, "hostname");
+			break;
+		default:
+			/* TODO: issue a warning ? */
+			return;
+		}
+		data += nlen;
+		data_length -= nlen;
+	}
+}
+
+
+static void
 release_file(struct iso9660 *iso9660, struct file_info *file)
 {
 	struct file_info *parent;
 
 	if (file->refcount == 0) {
 		parent = file->parent;
-		if (file->name)
-			free(file->name);
+		archive_string_free(&file->name);
 		archive_string_free(&file->symlink);
 		free(file);
 		if (parent != NULL) {
@@ -905,9 +1119,14 @@ next_entry_seek(struct archive_read *a, struct iso9660 *iso9660,
 
 		/* CE area precedes actual file data? Ignore it. */
 		if (file->ce_offset > file->offset) {
-fprintf(stderr, " *** Discarding CE data.\n");
+			/* fprintf(stderr, " *** Discarding CE data.\n"); */
 			file->ce_offset = 0;
 			file->ce_size = 0;
+		}
+
+		/* Don't waste time seeking for zero-length bodies. */
+		if (file->size == 0) {
+			file->offset = iso9660->current_position;
 		}
 
 		/* If CE exists, find and read it now. */
@@ -920,7 +1139,7 @@ fprintf(stderr, " *** Discarding CE data.\n");
 		if (iso9660->current_position < offset) {
 			off_t step = offset - iso9660->current_position;
 			off_t bytes_read;
-			bytes_read = (a->decompressor->skip)(a, step);
+			bytes_read = __archive_read_skip(a, step);
 			if (bytes_read < 0)
 				return (bytes_read);
 			iso9660->current_position = offset;
@@ -934,19 +1153,18 @@ fprintf(stderr, " *** Discarding CE data.\n");
 		if (offset == file->ce_offset) {
 			const void *p;
 			ssize_t size = file->ce_size;
-			ssize_t bytes_read;
 			const unsigned char *rr_start;
 
 			file->ce_offset = 0;
 			file->ce_size = 0;
-			bytes_read = (a->decompressor->read_ahead)(a, &p, size);
-			if (bytes_read > size)
-				bytes_read = size;
+			p = __archive_read_ahead(a, size, NULL);
+			if (p == NULL)
+				return (ARCHIVE_FATAL);
 			rr_start = (const unsigned char *)p;
 			parse_rockridge(iso9660, file, rr_start,
-			    rr_start + bytes_read);
-			(a->decompressor->consume)(a, bytes_read);
-			iso9660->current_position += bytes_read;
+			    rr_start + size);
+			__archive_read_consume(a, size);
+			iso9660->current_position += size;
 			add_entry(iso9660, file);
 		}
 	}
@@ -1043,68 +1261,40 @@ isodate17(const unsigned char *v)
 	return (time_from_tm(&tm));
 }
 
-/*
- * timegm() converts a struct tm to a time_t, except it isn't standard,
- * so I provide my own function here that (ideally) is just a wrapper
- * for timegm().
- */
 static time_t
 time_from_tm(struct tm *t)
 {
 #if HAVE_TIMEGM
+	/* Use platform timegm() if available. */
 	return (timegm(t));
-#elif HAVE_STRUCT_TM_TM_GMTOFF
-	/*
-	 * Unfortunately, timegm() isn't standard.  The standard
-	 * mktime() function is a close match, except that it uses
-	 * local timezone instead of GMT.  You can compensate for
-	 * this by adding the timezone and DST offsets back in, at
-	 * the cost of two calls to mktime().
-	 */
-	mktime(t); /* Normalize the time and get the TZ offset. */
-	t->tm_sec += t->tm_gmtoff; /* Try to adjust for the timezone and DST.*/
-	if (t->tm_isdst)
-		t->tm_hour -= 1;
-	return (mktime(t)); /* Re-convert. */
-#elif defined(HAVE_SETENV) && defined(HAVE_UNSETENV) && defined(HAVE_TZSET)
-	/* No timegm() and no tm_gmtoff, let's try forcing mktime() to UTC. */
-	time_t ret;
-	char *tz;
-
-	/* Reset the timezone, remember the old one. */
-	tz = getenv("TZ");
-	setenv("TZ", "UTC 0", 1);
-	tzset();
-
-	ret = mktime(t);
-
-	/* Restore the previous timezone. */
-	if (tz)
-	    setenv("TZ", tz, 1);
-	else
-	    unsetenv("TZ");
-	tzset();
-	return ret;
 #else
-	/* <sigh> We have no choice but to use localtime instead of UTC. */
-	return (mktime(t));
+	/* Else use direct calculation using POSIX assumptions. */
+	/* First, fix up tm_yday based on the year/month/day. */
+	mktime(t);
+	/* Then we can compute timegm() from first principles. */
+	return (t->tm_sec + t->tm_min * 60 + t->tm_hour * 3600
+	    + t->tm_yday * 86400 + (t->tm_year - 70) * 31536000
+	    + ((t->tm_year - 69) / 4) * 86400 -
+	    ((t->tm_year - 1) / 100) * 86400
+	    + ((t->tm_year + 299) / 400) * 86400);
 #endif
 }
 
 static const char *
 build_pathname(struct archive_string *as, struct file_info *file)
 {
-	if (file->parent != NULL && file->parent->name[0] != '\0') {
+	if (file->parent != NULL && archive_strlen(&file->parent->name) > 0) {
 		build_pathname(as, file->parent);
 		archive_strcat(as, "/");
 	}
-	if (file->name[0] == '\0')
+	if (archive_strlen(&file->name) == 0)
 		archive_strcat(as, ".");
 	else
-		archive_strcat(as, file->name);
+		archive_string_concat(as, &file->name);
 	return (as->s);
 }
 
+#if DEBUG
 static void
 dump_isodirrec(FILE *out, const unsigned char *isodirrec)
 {
@@ -1129,3 +1319,4 @@ dump_isodirrec(FILE *out, const unsigned char *isodirrec)
 	fprintf(out, " `%.*s'",
 	    toi(isodirrec + DR_name_len_offset, DR_name_len_size), isodirrec + DR_name_offset);
 }
+#endif

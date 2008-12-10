@@ -40,7 +40,7 @@ AC_DEFINE([TSSERVER],"TS_SERVER()",[tarsnap server name])
 # The shell variables here must be the same as the AC_SUBST() variables
 # below, but the shell variable names apparently cannot be the same as
 # the m4 macro names above.  Why?  Ask autoconf.
-LIBARCHIVE_VERSION_STRING=LIBARCHIVE_VERSION_S()
+LIBARCHIVE_VERSION_STRING="LIBARCHIVE_VERSION_S()"
 LIBARCHIVE_VERSION_NUMBER=LIBARCHIVE_VERSION_N()
 
 # Substitute the above version numbers into the various files below.
@@ -51,7 +51,6 @@ AC_SUBST(LIBARCHIVE_VERSION_NUMBER)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([libarchive/archive.h])
 AC_CONFIG_FILES([tar/tarsnap.1])
 AC_CONFIG_FILES([tar/tarsnap.conf.5])
 

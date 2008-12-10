@@ -27,9 +27,9 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.42 2008/05/17 15:55:29 cperciva Exp $
+.\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.45 2008/11/08 04:43:24 kientzle Exp $
 .\"
-.Dd May 22, 2008
+.Dd December 7, 2008
 .Dt TARSNAP 1
 .Os
 .Sh NAME
@@ -185,10 +185,10 @@ If the directory
 .Ar cache-dir
 is lost, it can be reconstructed by running
 .Nm Fl -fsck .
-.It Fl -check-links ( Fl W Cm check-links )
+.It Fl -check-links
 (c mode only)
 Issue a warning message unless all links to each file are archived.
-.It Fl -chroot ( Fl W Cm chroot )
+.It Fl -chroot
 (x mode only)
 .Fn chroot
 to the current directory after processing any
@@ -218,7 +218,7 @@ does not contact the
 server when performing a dry run, it will not detect an
 attempt to create an archive with the same name as one
 which already exists.
-.It Fl -exclude Ar pattern ( Fl W Cm exclude Ns = Ns Ar pattern )
+.It Fl -exclude Ar pattern
 (c, x, and t modes only)
 Do not process files or directories that match the
 specified pattern.
@@ -252,7 +252,7 @@ more readable.
 .It Fl I
 Synonym for
 .Fl T .
-.It Fl -include Ar pattern ( Fl W Cm include Ns = Ns Ar pattern )
+.It Fl -include Ar pattern
 (c, x, and t modes only)
 Process only files or directories that match the specified pattern.
 Note that exclusions specified with
@@ -276,7 +276,7 @@ containing the string
 Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
-.It Fl -keep-newer-files ( Fl W Cm keep-newer-files )
+.It Fl -keep-newer-files
 (x mode only)
 Do not overwrite existing files that are newer than the
 versions appearing in the archive being extracted.
@@ -326,31 +326,31 @@ bytes per second.
 .It Fl n
 (c mode only)
 Do not recursively archive the contents of directories.
-.It Fl -newer Ar date ( Fl W Cm newer Ns = Ns Ar date )
+.It Fl -newer Ar date
 (c mode only)
 Only include files and directories newer than the specified date.
 This compares ctime entries.
-.It Fl -newer-mtime Ar date ( Fl W Cm newer-mtime Ns = Ns Ar date )
+.It Fl -newer-mtime Ar date
 (c mode only)
 Like
 .Fl -newer ,
 except it compares mtime entries instead of ctime entries.
-.It Fl -newer-than Pa file ( Fl W Cm newer-than Ns = Ns Pa file )
+.It Fl -newer-than Pa file
 (c mode only)
 Only include files and directories newer than the specified file.
 This compares ctime entries.
-.It Fl -newer-mtime-than Pa file ( Fl W Cm newer-mtime-than Ns = Ns Pa file )
+.It Fl -newer-mtime-than Pa file
 (c mode only)
 Like
 .Fl -newer-than ,
 except it compares mtime entries instead of ctime entries.
-.It Fl -nodump ( Fl W Cm nodump )
+.It Fl -nodump
 (c mode only)
 Honor the nodump file flag by skipping this file.
 .It Fl -noisy-warnings
 Be verbose when warning about network glitches.
 This is probably only useful for debugging purposes.
-.It Fl -null ( Fl W Cm null )
+.It Fl -null
 (use with
 .Fl I ,
 .Fl T ,
@@ -362,6 +362,10 @@ This is often used to read filenames output by the
 .Fl print0
 option to
 .Xr find 1 .
+.It Fl -numeric-owner
+(x mode only)
+Ignore symbolic user and group names when restoring archives to disk,
+only numeric uid and gid values will be obeyed.
 .It Fl O
 (x and t modes only)
 In extract (-x) mode, files will be written to standard out rather than
@@ -378,7 +382,7 @@ is specified, and the program is being run by the root user.
 In this case, the file modes and flags from
 the archive will be restored, but ACLs or owner information in
 the archive will be discarded.
-.It Fl -one-file-system ( Fl W Cm one-file-system )
+.It Fl -one-file-system
 (c mode only)
 Do not cross mount points.
 .It Fl P
@@ -419,8 +423,30 @@ By default, the archive is always read to the very end, since
 there can be multiple entries with the same name and, by convention,
 later entries overwrite earlier entries.
 This option is provided as a performance optimization.
-.It Fl -strip-components Ar count ( Fl W Cm strip-components Ns = Ns Ar count )
-(x and t mode only)
+.It Fl S
+(x mode only)
+Extract files as sparse files.
+For every block on disk, check first if it contains only NULL bytes and seek
+over it otherwise.
+This works similiar to the conv=sparse option of dd.
+.It Fl s Ar pattern
+Modify file or archive member names according to
+.Pa pattern .
+The pattern has the format /old/new/[gps].
+old is a basic regular expression.
+If it doesn't apply, the pattern is skipped.
+new is the replacement string of the matched part.
+~ is substituted with the match, \1 to \9 with the content of
+the corresponding captured group.
+The optional trailing g specifies that matching should continue
+after the matched part and stopped on the first unmatched pattern.
+The optional trailing s specifies that the pattern applies to the value
+of symbolic links.
+The optional trailing p specifies that after a successful substitution
+the original path name and the new path name should be printed to
+standard error.
+.It Fl -strip-components Ar count
+(x mode only)
 Remove the specified number of leading path elements.
 Pathnames with fewer elements will be silently skipped.
 Note that the pathname is edited after checking inclusion/exclusion patterns
@@ -485,16 +511,12 @@ Reduce memory usage, by approximately a factor of 2 beyond
 the memory usage when
 .Fl -lowmem
 is specified, by not caching anything.
-.It Fl W Ar longopt=value
-Long options (preceded by
-.Fl - )
-are only supported directly on systems that have the
-.Xr getopt_long 3
-function.
-The
-.Fl W
-option can be used to access long options on systems that
-do not support this function.
+.It Fl -version
+Print version of
+.Nm
+and
+.Nm libarchive ,
+and exit.
 .It Fl w
 (c and x modes only)
 Ask for confirmation for every action.

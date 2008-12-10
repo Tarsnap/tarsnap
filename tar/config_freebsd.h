@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $FreeBSD: src/usr.bin/tar/config_freebsd.h,v 1.3 2008/03/15 03:06:46 kientzle Exp $
+ * $FreeBSD: src/usr.bin/tar/config_freebsd.h,v 1.8 2008/11/29 20:06:53 kientzle Exp $
  */
 
 /* A default configuration for FreeBSD, used if there is no config.h. */
@@ -52,7 +52,6 @@
 #define	HAVE_FNMATCH_H 1
 #define	HAVE_FNM_LEADING_DIR 1
 #define	HAVE_FTRUNCATE 1
-#define	HAVE_GETOPT_LONG 1
 #undef	HAVE_GETXATTR
 #define	HAVE_GRP_H 1
 #define	HAVE_INTTYPES_H 1
@@ -78,6 +77,7 @@
 #define	HAVE_PATHS_H 1
 #define	HAVE_PWD_H 1
 #define	HAVE_QSORT_R 1
+#define	HAVE_REGEX_H 1
 #define	HAVE_SETLOCALE 1
 #define	HAVE_STDARG_H 1
 #define	HAVE_STDINT_H 1
@@ -89,9 +89,9 @@
 #define	HAVE_STRINGS_H 1
 #define	HAVE_STRING_H 1
 #define	HAVE_STRRCHR 1
+#define	HAVE_STRUCT_STAT_ST_FLAGS 1
 #undef	HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
 #define	HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
-#define	HAVE_STRUCT_STAT_ST_RDEV 1
 #define	HAVE_SYS_ACL_H 1
 #define	HAVE_SYS_IOCTL_H 1
 #define	HAVE_SYS_PARAM_H 1
@@ -102,6 +102,7 @@
 #define	HAVE_UNISTD_H 1
 #define	HAVE_UNSIGNED_LONG_LONG
 #define	HAVE_VPRINTF 1
+#define	HAVE_WCTYPE_H 1
 #define	HAVE_ZLIB_H 1
 #undef	MAJOR_IN_MKDEV
 #define	STDC_HEADERS 1
