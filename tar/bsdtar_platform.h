@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $FreeBSD: src/usr.bin/tar/bsdtar_platform.h,v 1.25 2008/01/02 00:23:00 kientzle Exp $
+ * $FreeBSD: src/usr.bin/tar/bsdtar_platform.h,v 1.26 2008/12/06 07:37:14 kientzle Exp $
  */
 
 /*
@@ -145,6 +145,16 @@
 #define	ARCHIVE_STAT_CTIME_NANOS(st)	(0)
 #define	ARCHIVE_STAT_MTIME_NANOS(st)	(0)
 #endif
+#endif
+
+/* How to mark functions that don't return. */
+/* This facilitates use of some newer static code analysis tools. */
+#undef __LA_DEAD
+#if defined(__GNUC__) && (__GNUC__ > 2 || \
+			  (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))
+#define	__LA_DEAD	__attribute__((__noreturn__))
+#else
+#define	__LA_DEAD
 #endif
 
 #endif /* !BSDTAR_PLATFORM_H_INCLUDED */

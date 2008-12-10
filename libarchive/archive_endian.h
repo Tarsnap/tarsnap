@@ -23,13 +23,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $FreeBSD: src/lib/libarchive/archive_endian.h,v 1.2 2008/02/26 07:17:47 kientzle Exp $
+ * $FreeBSD: src/lib/libarchive/archive_endian.h,v 1.4 2008/12/06 06:12:24 kientzle Exp $
  *
  * Borrowed from FreeBSD's <sys/endian.h>
  */
 
+/* Note:  This is a purely internal header! */
+/* Do not use this outside of libarchive internal code! */
+
 #ifndef ARCHIVE_ENDIAN_H_INCLUDED
 #define ARCHIVE_ENDIAN_H_INCLUDED
+
+
+/*
+ * Disabling inline keyword for compilers known to choke on it:
+ * - Watcom C++ in C code.  (For any version?)
+ * - SGI MIPSpro
+ * - Microsoft Visual C++ 6.0 (supposedly newer versions too)
+ */
+#if defined(__WATCOMC__) || defined(__sgi) || defined(_MSC_VER)
+#define	inline
+#endif
 
 /* Alignment-agnostic encode/decode bytestream to/from little/big endian. */
 

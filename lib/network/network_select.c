@@ -390,11 +390,16 @@ network_select(int blocking)
 
 	/*
 	 * Figure out how long it has been since we last added tokens to the
-	 * bandwidth limit buckets.
+	 * bandwidth limit buckets.  If less than 10 ms, pretend that it is
+	 * zero; this keeps rounding errors to a minimum.
 	 */
 	tokensecs = (curtime.tv_sec - bwlimit_lastadd.tv_sec) +
 	    (curtime.tv_usec - bwlimit_lastadd.tv_usec) * 0.000001;
-	memcpy(&bwlimit_lastadd, &curtime, sizeof(struct timeval));
+	if (tokensecs < 0.01) {
+		tokensecs = 0;
+	} else {
+		memcpy(&bwlimit_lastadd, &curtime, sizeof(struct timeval));
+	}
 
 	/*
 	 * Add tokens to the read bandwidth token bucket, overflowing if we
@@ -470,23 +475,24 @@ selectagain:
 	}
 
 	/*
-	 * If we have no read bandwidth quota, zero the read set and set the
-	 * blocking duration to a maximum of 1 ms.
+	 * If the read bandwidth quota is less than one normal-sized TCP
+	 * packet, zero the read set and set the blocking duration to a
+	 * maximum of 10 ms.
 	 */
-	if (network_bwlimit_read == 0) {
+	if (network_bwlimit_read < 1460) {
 		FD_ZERO(&readfds);
-		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 1000)) {
+		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 10000)) {
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 1000;
+			timeout.tv_usec = 10000;
 		}
 	}
 
 	/* Do likewise for writes. */
-	if (network_bwlimit_write == 0) {
+	if (network_bwlimit_write < 1460) {
 		FD_ZERO(&writefds);
-		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 1000)) {
+		if ((timeout.tv_sec > 0) || (timeout.tv_usec > 10000)) {
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 1000;
+			timeout.tv_usec = 10000;
 		}
 	}
 

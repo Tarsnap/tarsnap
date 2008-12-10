@@ -24,7 +24,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_check_magic.c,v 1.8 2007/04/02 00:15:45 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_check_magic.c,v 1.9 2008/12/06 05:52:01 kientzle Exp $");
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -46,7 +46,7 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_check_magic.c,v 1.8 2007/04/02 00
 static void
 errmsg(const char *m)
 {
-	write(STDERR_FILENO, m, strlen(m));
+	write(2, m, strlen(m));
 }
 
 static void

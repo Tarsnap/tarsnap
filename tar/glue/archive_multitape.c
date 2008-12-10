@@ -23,7 +23,7 @@ read_read(struct archive * a, void * cookie, const void ** buffer)
 
 	lenread = readtape_read(d, buffer);
 	if (lenread < 0) {
-		archive_set_error(a, 0, "Error reading archive");
+		archive_set_error(a, errno, "Error reading archive");
 		return (ARCHIVE_FATAL);
 	} else
 		return (lenread);
@@ -37,7 +37,7 @@ read_skip(struct archive * a, void * cookie, off_t request)
 
 	skiplen = readtape_skip(d, request);
 	if (skiplen < 0) {
-		archive_set_error(a, 0, "Error reading archive");
+		archive_set_error(a, errno, "Error reading archive");
 		return (ARCHIVE_FATAL);
 	} else
 		return (skiplen);
@@ -49,7 +49,7 @@ read_close(struct archive * a, void * cookie)
 	struct multitape_read_internal * d = cookie;
 
 	if (readtape_close(d)) {
-		archive_set_error(a, 0, "Error closing archive");
+		archive_set_error(a, errno, "Error closing archive");
 		return (ARCHIVE_FATAL);
 	} else
 		return (ARCHIVE_OK);
@@ -64,7 +64,7 @@ write_write(struct archive * a, void * cookie, const void * buffer,
 
 	writelen = writetape_write(d, buffer, nbytes);
 	if (writelen < 0) {
-		archive_set_error(a, 0, "Error writing archive");
+		archive_set_error(a, errno, "Error writing archive");
 		return (ARCHIVE_FATAL);
 	} else if (writelen == 0) {
 		archive_clear_error(a);
@@ -80,7 +80,7 @@ write_close(struct archive * a, void * cookie)
 	struct multitape_write_internal * d = cookie;
 
 	if (writetape_close(d)) {
-		archive_set_error(a, 0, "Error closing archive");
+		archive_set_error(a, errno, "Error closing archive");
 		return (ARCHIVE_FATAL);
 	} else
 		return (ARCHIVE_OK);
@@ -99,7 +99,7 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 	struct multitape_read_internal * d;
 
 	if ((d = readtape_open(machinenum, tapename)) == NULL) {
-		archive_set_error(a, 0, "Error opening archive");
+		archive_set_error(a, errno, "Error opening archive");
 		return (NULL);
 	}
 
@@ -126,7 +126,7 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 
 	if ((d = writetape_open(machinenum, cachedir, tapename,
 	    argc, argv, printstats, dryrun)) == NULL) {
-		archive_set_error(a, 0, "Error creating new archive");
+		archive_set_error(a, errno, "Error creating new archive");
 		return (NULL);
 	}
 
@@ -147,7 +147,7 @@ archive_write_multitape_setmode(struct archive * a, void * cookie, int mode)
 	struct multitape_write_internal * d = cookie;
 
 	if (writetape_setmode(d, mode)) {
-		archive_set_error(a, 0, "Error writing archive");
+		archive_set_error(a, errno, "Error writing archive");
 		return (ARCHIVE_FATAL);
 	} else
 		return (ARCHIVE_OK);

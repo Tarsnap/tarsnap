@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $FreeBSD: src/lib/libarchive/archive_platform.h,v 1.29 2008/02/19 06:06:13 kientzle Exp $
+ * $FreeBSD: src/lib/libarchive/archive_platform.h,v 1.32 2008/12/06 05:53:05 kientzle Exp $
  */
 
 /*
@@ -36,10 +36,10 @@
 #ifndef ARCHIVE_PLATFORM_H_INCLUDED
 #define	ARCHIVE_PLATFORM_H_INCLUDED
 
-#ifdef _WIN32
-#include "config_windows.h"
-#include "archive_windows.h"
-#elif defined(PLATFORM_CONFIG_H)
+/* archive.h and archive_entry.h require this. */
+#define	__LIBARCHIVE_BUILD 1
+
+#if defined(PLATFORM_CONFIG_H)
 /* Use hand-built config.h in environments that need it. */
 #include PLATFORM_CONFIG_H
 #elif defined(HAVE_CONFIG_H)
@@ -74,6 +74,9 @@
 /* Some platforms lack the standard *_MAX definitions. */
 #if !HAVE_DECL_SIZE_MAX
 #define	SIZE_MAX (~(size_t)0)
+#endif
+#if !HAVE_DECL_SSIZE_MAX
+#define	SSIZE_MAX ((ssize_t)(SIZE_MAX >> 1))
 #endif
 #if !HAVE_DECL_UINT32_MAX
 #define	UINT32_MAX (~(uint32_t)0)
