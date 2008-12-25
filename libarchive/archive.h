@@ -366,6 +366,8 @@ __LA_DECL int		 archive_read_data_block(struct archive *a,
 __LA_DECL int		 archive_read_data_block(struct archive *a,
 			    const void **buff, size_t *size,
 			    __LA_INT64_T *offset);
+#endif
+
 /*
  * Return the amount of buffered data (data read from the client which has
  * not yet been passed back via archive_read_data_*), or -1 if unknown.
@@ -380,7 +382,6 @@ __LA_DECL off_t	archive_read_get_entryleft(struct archive *a);
  * Advance the position within the archive entry.
  */
 __LA_DECL int	archive_read_advance(struct archive *a, off_t offset);
-#endif
 
 /*-
  * Some convenience functions that are built on archive_read_data:

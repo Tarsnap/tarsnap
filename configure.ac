@@ -86,6 +86,11 @@ AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/acl.h sys/ioctl.h])
 AC_CHECK_HEADERS([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
 AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h])
 
+# If we're on Solaris, we need to add some extra paths to the Makefile.
+# This needs to be done *before* we look for OpenSSL; otherwise we won't
+# be able to find it...
+CHECK_SOLARIS_PATHS
+
 # Checks for libraries.  While libbz2 is optional (if it is not present,
 # support for @archive.bz2 will be lost, but that's all), libz and
 # libcrypto are necesasry.
@@ -110,6 +115,7 @@ CHECK_FREEBSD_PORTRANGE_BUG
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_C_INLINE
 AC_TYPE_UID_T
 AC_TYPE_MODE_T
 # AC_TYPE_OFF_T defaults to "long", which limits us to 4GB files on
@@ -158,7 +164,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([chflags chown chroot])
+AC_CHECK_FUNCS([asprintf chflags chown chroot])
 AC_CHECK_FUNCS([fchdir fchflags fchmod fchown fstat])
 AC_CHECK_FUNCS([ftruncate futimes geteuid getopt_long getpid])
 AC_CHECK_FUNCS([lchflags lchmod lchown])

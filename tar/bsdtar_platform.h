@@ -157,4 +157,10 @@
 #define	__LA_DEAD
 #endif
 
+/* If asprintf isn't provided by the OS, use our local version. */
+#ifndef HAVE_ASPRINTF
+#define asprintf tarsnap_asprintf
+#include "asprintf.h"
+#endif
+
 #endif /* !BSDTAR_PLATFORM_H_INCLUDED */

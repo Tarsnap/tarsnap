@@ -83,9 +83,13 @@ docallback(struct keyexchange_internal * KC, int status)
  * its choice of 2^y mod p).
  */
 
-/* User-agent name must be at least 1 and at most 255 characters. */
-CTASSERT(strlen(USERAGENT) >= 1);
-CTASSERT(strlen(USERAGENT) <= 255);
+/*
+ * User-agent name must be at least 1 and at most 255 characters, not
+ * counting the final NUL byte.  Some C compilers don't handle strlen of a
+ * constant string as a constant, so we use sizeof here instead.
+ */
+CTASSERT(sizeof(USERAGENT) >= 2);
+CTASSERT(sizeof(USERAGENT) <= 256);
 
 static uint8_t protovers = 0;
 static uint8_t namelen = sizeof(USERAGENT) - 1;
