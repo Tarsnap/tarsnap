@@ -35,6 +35,7 @@
 #define	HAVE_ACL_PERMSET_T 1
 #define	HAVE_ACL_USER 1
 #endif
+#define	HAVE_ASPRINTF 1
 #undef	HAVE_ATTR_XATTR_H
 #define	HAVE_BZLIB_H 1
 #define	HAVE_CHFLAGS 1

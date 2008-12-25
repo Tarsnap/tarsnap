@@ -167,6 +167,7 @@ tarsnap_SOURCES=					\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/util/asprintf.c			\
 		lib/util/dirutil.c			\
 		lib/util/entropy.c			\
 		lib/util/hexify.c			\
@@ -231,11 +232,13 @@ tarsnap_keygen_SOURCES=					\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/util/asprintf.c			\
 		lib/util/entropy.c
 
-tarsnap_keygen_CFLAGS=				\
-		-I$(top_builddir)/tar		\
-		-I${top_builddir}/libarchive	\
+tarsnap_keygen_LDADD= -lcrypto
+tarsnap_keygen_CFLAGS=					\
+		-I$(top_builddir)/tar			\
+		-I${top_builddir}/libarchive		\
 		-I$(top_builddir)/lib/netpacket		\
 		-I$(top_builddir)/lib/netproto		\
 		-I$(top_builddir)/lib/network		\
@@ -243,8 +246,6 @@ tarsnap_keygen_CFLAGS=				\
 		-I${top_builddir}/lib/crypto		\
 		-I$(top_builddir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
-
-tarsnap_keygen_LDADD= -lcrypto
 
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 
@@ -270,17 +271,17 @@ tarsnap_keymgmt_SOURCES=				\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/util/asprintf.c			\
 		lib/util/entropy.c
 
-tarsnap_keymgmt_CFLAGS=				\
-		-I$(top_builddir)/tar		\
-		-I${top_builddir}/libarchive	\
+tarsnap_keymgmt_LDADD= -lcrypto
+tarsnap_keymgmt_CFLAGS=					\
+		-I$(top_builddir)/tar			\
+		-I${top_builddir}/libarchive		\
 		-I$(top_builddir)/lib/datastruct	\
 		-I${top_builddir}/lib/crypto		\
 		-I$(top_builddir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
-
-tarsnap_keymgmt_LDADD= -lcrypto
 
 tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
 

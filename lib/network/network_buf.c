@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,7 +61,11 @@ callback_buf(void * cookie, int status)
 	ssize_t len;
 	int rc = -1;	/* If not callback or reset, we have an error. */
 #ifndef HAVE_MSG_NOSIGNAL
+#ifdef SO_NOSIGPIPE
 	int val;
+#else
+	void (*oldsig)(int);
+#endif
 #endif
 
 	if (status != NETWORK_STATUS_OK) {
@@ -72,24 +77,38 @@ callback_buf(void * cookie, int status)
 
 	/* Try to read/write data to/from the buffer. */
 #ifndef HAVE_MSG_NOSIGNAL
+#ifdef SO_NOSIGPIPE
 	val = 1;
 
 	if (setsockopt(C->fd, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof(int))) {
 		status = NETWORK_STATUS_ERR;
 		goto docallback;
 	}
+#else
+	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		goto docallback;
+	}
+#endif
 #endif
 	oplen = C->buflen - C->bufpos;
 	if (oplen > *(C->bwlimit))
 		oplen = *(C->bwlimit);
 	len = (C->sendrecv)(C->fd, C->buf + C->bufpos, oplen, C->flags);
 #ifndef HAVE_MSG_NOSIGNAL
+#ifdef SO_NOSIGPIPE
 	val = 0;
 
 	if (setsockopt(C->fd, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof(int))) {
 		status = NETWORK_STATUS_ERR;
 		goto docallback;
 	}
+#else
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		goto docallback;
+	}
+#endif
 #endif
 
 	/* Failure, closed, or success? */

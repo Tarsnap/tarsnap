@@ -54,7 +54,7 @@ termios_restore(void)
 static int
 tcsetattr_nostop(int fd, int action, const struct termios *t)
 {
-	sig_t oldsig;
+	void (*oldsig)(int);
 	int rc;
 
 	if ((oldsig = signal(SIGTTOU, SIG_IGN)) == SIG_ERR)

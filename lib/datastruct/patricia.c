@@ -421,7 +421,6 @@ patricia_insert(PATRICIA * P, const uint8_t * key, size_t keylen, void * rec)
  *     *recp = NULL;
  * but this does not reduce the memory used by the tree as one might expect
  * from reducing its size.
-
  */
 void **
 patricia_lookup(PATRICIA * P, const uint8_t * key, size_t keylen)

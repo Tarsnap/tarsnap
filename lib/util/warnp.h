@@ -19,13 +19,13 @@
  * Call warn(3) or warnx(3) depending upon whether errno == 0; and clear
  * errno (so that the standard error message isn't repeated later).
  */
-#define	warnp(format, ...) do {				\
+#define	warnp(...) do {					\
 	warnline;					\
 	if (errno != 0) {				\
-		warn(format, ## __VA_ARGS__);		\
+		warn(__VA_ARGS__);			\
 		errno = 0;				\
 	} else						\
-		warnx(format, ## __VA_ARGS__);		\
+		warnx(__VA_ARGS__);			\
 } while (0)
 
 /*
@@ -33,9 +33,9 @@
  * in cases where we're reporting a problem which we discover ourselves
  * rather than one which is reported to us from a library or the kernel.
  */
-#define warn0(format, ...) do {				\
+#define warn0(...) do {					\
 	warnline;					\
-	warnx(format, ## __VA_ARGS__);			\
+	warnx(__VA_ARGS__);				\
 	errno = 0;					\
 } while (0)
 

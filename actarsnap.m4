@@ -44,3 +44,17 @@ esac
 
 AC_SUBST([HAVE_EXT2FS_EXT2_FS_H])
 ])# CHECK_LINUX_EXT2FS
+
+# CHECK_SOLARIS_PATHS
+# -------------------
+AC_DEFUN([CHECK_SOLARIS_PATHS],
+[AC_REQUIRE([AC_CANONICAL_TARGET])
+
+case $target_os in
+*solaris* | *sunos*)
+	CPPFLAGS="${CPPFLAGS} -I/usr/sfw/include"
+	LDFLAGS="${LDFLAGS} -L/usr/sfw/lib -R/usr/sfw/lib"
+	LIBS="${LIBS} -lsocket"
+	;;
+esac
+])# CHECK_SOLARIS_PATHS
