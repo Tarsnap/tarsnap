@@ -819,8 +819,16 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	if (e == ARCHIVE_FATAL)
 		exit(1);
 
+	/*
+	 * If we opened a file earlier, write it out now.  Note that
+	 * the format handler might have reset the size field to zero
+	 * to inform us that the archive body won't get stored.  In
+	 * that case, just skip the write.
+	 */
+
 	/* If the cache can provide the entire archive entry, do it. */
-	if (e >= ARCHIVE_WARN && filecached) {
+	if (e >= ARCHIVE_WARN && filecached &&
+	    archive_entry_size(entry) > 0) {
 		if (MODE_DATA(bsdtar, a)) {
 			bsdtar_warnc(bsdtar, 0, "%s",
 			    archive_error_string(a));
@@ -839,12 +847,6 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 		}
 	}
 
-	/*
-	 * If we opened a file earlier, write it out now.  Note that
-	 * the format handler might have reset the size field to zero
-	 * to inform us that the archive body won't get stored.  In
-	 * that case, just skip the write.
-	 */
 	/*
 	 * We don't need to write anything now if the file was cached
 	 * and the cache wrote it out earlier.

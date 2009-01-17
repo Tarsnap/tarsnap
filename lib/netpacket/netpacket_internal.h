@@ -28,6 +28,9 @@ struct netpacket_internal {
 	/* Number of lost connections since the last successful operation. */
 	int ndrops;
 
+	/* Has a 'connection lost' message been printed? */
+	int connlostmsgprinted;
+
 	/* Non-zero if we have ever successfully connected. */
 	int serveralive;
 

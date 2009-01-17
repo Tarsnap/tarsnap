@@ -53,6 +53,7 @@
 #define	HAVE_FNMATCH_H 1
 #define	HAVE_FNM_LEADING_DIR 1
 #define	HAVE_FTRUNCATE 1
+#define	HAVE_GETADDRINFO 1
 #undef	HAVE_GETXATTR
 #define	HAVE_GRP_H 1
 #define	HAVE_INTTYPES_H 1
@@ -68,6 +69,7 @@
 #undef	HAVE_LISTXATTR
 #undef	HAVE_LLISTXATTR
 #define	HAVE_LOCALE_H 1
+#define	HAVE_LOCKF 1
 #define	HAVE_MALLOC 1
 #define	HAVE_MEMMOVE 1
 #define	HAVE_MEMORY_H 1

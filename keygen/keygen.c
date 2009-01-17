@@ -1,6 +1,7 @@
 #include "bsdtar_platform.h"
 
 #include <sys/types.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 
 #include <fcntl.h>
@@ -160,7 +161,11 @@ main(int argc, char **argv)
 	}
 
 	/* Lock the key file to safeguard against simultaneous keygen runs. */
+#ifdef HAVE_LOCKF
 	while (lockf(fileno(keyfile), F_LOCK, 0)) {
+#else
+	while (flock(fileno(keyfile), LOCK_EX)) {
+#endif
 		/* Retry on EINTR. */
 		if (errno == EINTR)
 			continue;

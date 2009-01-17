@@ -52,6 +52,9 @@ netpacket_open(void)
 	/* We haven't lost any connections yet. */
 	NPC->ndrops = 0;
 
+	/* We haven't printed a connection lost message yet. */
+	NPC->connlostmsgprinted = 0;
+
 	/* We've never successfully connected to the server. */
 	NPC->serveralive = 0;
 
@@ -254,6 +257,12 @@ reconnect(NETPACKET_CONNECTION * NPC)
 		    "waiting %d seconds before reconnecting", nseconds);
 		next_connlost_warning.tv_sec = tp.tv_sec + nseconds;
 		next_connlost_warning.tv_usec = tp.tv_usec;
+
+		/*
+		 * Record that we printed a 'connection lost' warning for
+		 * this connection.
+		 */
+		NPC->connlostmsgprinted = 1;
 	}
 
 	/* Set a callback to reconnect. */
@@ -398,6 +407,21 @@ callback_packetreceived(void * cookie, int status)
 
 		/* We have successfully performed an operation. */
 		NPC->ndrops = 0;
+
+		/*
+		 * If a 'connection lost' message was printed for this
+		 * connection, tell the user that the connection has been
+		 * re-established.  We don't do this earlier because
+		 * obtaining a TCP connection is useless if we can't actually
+		 * manage to send a request and get a response back through
+		 * it.
+		 */
+		if (NPC->connlostmsgprinted) {
+			warn0("Connection re-established");
+
+			/* Don't print this again. */
+			NPC->connlostmsgprinted = 0;
+		}
 	}
 
 	/* Read another packet if appropriate. */

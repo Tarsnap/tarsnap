@@ -166,8 +166,8 @@ AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([asprintf chflags chown chroot])
 AC_CHECK_FUNCS([fchdir fchflags fchmod fchown fstat])
-AC_CHECK_FUNCS([ftruncate futimes geteuid getopt_long getpid])
-AC_CHECK_FUNCS([lchflags lchmod lchown])
+AC_CHECK_FUNCS([ftruncate futimes getaddrinfo geteuid getopt_long getpid])
+AC_CHECK_FUNCS([lchflags lchmod lchown lockf])
 AC_CHECK_FUNCS([lutimes memmove memset mkdir mkfifo mknod])
 AC_CHECK_FUNCS([nl_langinfo poll qsort_r select setenv setlocale])
 AC_CHECK_FUNCS([strchr strdup strerror strrchr timegm])

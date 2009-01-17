@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <sys/file.h>
 #include <sys/stat.h>
 
 #include <errno.h>
@@ -142,8 +143,8 @@ err0:
 
 /**
  * multitape_lock(cachedir):
- * Lock the given cache directory using lockf(3); return the file descriptor
- * of the lock file, or -1 on error.
+ * Lock the given cache directory using lockf(3) or flock(2); return the file
+ * descriptor of the lock file, or -1 on error.
  */
 int
 multitape_lock(const char * cachedir)
@@ -162,6 +163,7 @@ multitape_lock(const char * cachedir)
 	}
 
 	/* Lock the file. */
+#ifdef HAVE_LOCKF
 	while (lockf(fd, F_TLOCK, 0)) {
 		/* Retry on EINTR. */
 		if (errno == EINTR)
@@ -177,6 +179,20 @@ multitape_lock(const char * cachedir)
 		warnp("lockf(%s)", s);
 		goto err2;
 	}
+#else
+	if (flock(fd, LOCK_EX | LOCK_NB)) {
+		/* Already locked? */
+		if (errno == EWOULDBLOCK) {
+			warn0("Transaction already in progress");
+			goto err2;
+		}
+
+		/* Something went wrong. */
+		warnp("flock(%s)", s);
+warn0("fd = %d", fd);
+		goto err2;
+	}
+#endif
 
 	/* Free string allocated by asprintf. */
 	free(s);

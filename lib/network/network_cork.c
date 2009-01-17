@@ -23,7 +23,9 @@
  * XXX that implementations obey it; BSD and Linux respectively define
  * XXX TCP_NOPUSH and TCP_CORK for purpose #1.  On OS X, TCP_NOPUSH is
  * XXX defined, but seems to be broken; we use autoconf to detect OS X and
- * XXX define BROKEN_TCP_NOPUSH.
+ * XXX define BROKEN_TCP_NOPUSH.  On Cygwin, TCP_NOPUSH is defined, but
+ * XXX using it produces a ENOPROTOOPT error; we define BROKEN_TCP_NOPUSH
+ * XXX in this case, too.
  */
 
 /* Macro to simplify setting options. */

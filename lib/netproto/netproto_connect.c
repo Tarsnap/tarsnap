@@ -69,9 +69,16 @@ netproto_connect(network_callback * callback, void * cookie)
 	struct netproto_connect_cookie * C;
 	int s;
 	NETPROTO_CONNECTION * NC;
+#ifdef HAVE_GETADDRINFO
 	struct addrinfo hints;
 	struct addrinfo * res;
 	int error;
+#else
+	struct hostent * hp;
+	struct sockaddr_in sin;
+#endif
+	struct sockaddr * addr;
+	socklen_t addrlen;
 	struct timeval timeo;
 
 	/* Create a network socket. */
@@ -94,6 +101,7 @@ netproto_connect(network_callback * callback, void * cookie)
 	C->NC = NC;
 
 	/* Look up the server's IP address. */
+#ifdef HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -121,11 +129,26 @@ netproto_connect(network_callback * callback, void * cookie)
 		warn0("Cannot look up " TSSERVER "-server.tarsnap.com");
 		goto err2;
 	}
+	addr = res->ai_addr;
+	addrlen = res->ai_addrlen;
+#else /* !HAVE_GETADDRINFO */
+	if ((hp = gethostbyname(TSSERVER "-server.tarsnap.com")) == NULL) {
+		warn0("Error looking up " TSSERVER "-server.tarsnap.com");
+		goto err2;
+	}
+	bzero(&sin, sizeof(struct sockaddr_in));
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(9279);
+	memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+	addr = (struct sockaddr *)&sin;
+	addrlen = sizeof(struct sockaddr_in);
+#endif /* HAVE_GETADDRINFO */
+
 
 	/* Try to connect to server within 5 seconds. */
 	timeo.tv_sec = 5;
 	timeo.tv_usec = 0;
-	if (network_connect(s, res->ai_addr, res->ai_addrlen,
+	if (network_connect(s, addr, addrlen,
 	    &timeo, callback_connect, C)) {
 		netproto_printerr(NETWORK_STATUS_CONNERR);
 		goto err2;

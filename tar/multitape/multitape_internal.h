@@ -178,8 +178,8 @@ int multitape_metaindex_delete(STORAGE_D *, CHUNKS_D *,
 
 /**
  * multitape_lock(cachedir):
- * Lock the given cache directory using lockf(3); return the file descriptor
- * of the lock file, or -1 on error.
+ * Lock the given cache directory using lockf(3) or flock(2); return the file
+ * descriptor of the lock file, or -1 on error.
  */
 int multitape_lock(const char *);
 
