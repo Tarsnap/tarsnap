@@ -185,6 +185,52 @@ Note that this packet does not indicate that the requested transaction was
 committed; only that IF the requested transaction was the most recent
 non-committed transaction, THEN it has been committed.
 
+NETPACKET_TRANSACTION_CHECKPOINT (0x13)
+---------------------------------------
+
+Mark a "checkpoint" in a write transaction.  When committing a write
+transaction, files are omitted from the transaction if (a) they were uploaded
+after the last checkpoint, or (b) they were uploaded prior to the penultimate
+checkpoint and have class 'i' or 'm'.
+
+Packet contents:
+	uint64_t machinenum
+	uint8_t whichkey
+	uint8_t ckptnonce[32]
+	uint8_t nonce[32]
+	uint8_t hmac[32]
+
+The value whichkey is
+	0	key = write access key
+	1	key = delete access key.
+Note that while checkpoints only exist in write transactions, a checkpoint
+request can be signed with a delete access key in the "log checkpoint
+creation; crash; run tarsnap -d" case.
+
+The value ckptnonce is a random nonce; if a checkpoint request is replayed,
+the ckptnonce value must be identical.
+
+The value nonce is the transaction nonce of the current write transaction.
+
+The value hmac is HMAC(0x13 || [packet minute final hmac]).
+
+NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE (0x93)
+------------------------------------------------
+
+Packet contents:
+	uint8_t status
+	uint8_t ckptnonce[32]
+	uint8_t hmac[32]
+
+The value status means:
+	0	Success
+	1	Transaction nonce is incorrect.
+
+The value hmac is HMAC(key, 0x93 || nonce || [packet minus final hmac]),
+where nonce is the nonce provided by the client (which may not be the nonce
+of the current transaction, if status == 1), and key is the write or delete
+key as in NETPACKET_TRANSACTION_CHECKPOINT.
+
 NETPACKET_WRITE_FEXIST (0x20)
 -----------------------------
 

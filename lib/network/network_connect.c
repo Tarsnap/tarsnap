@@ -14,6 +14,7 @@
 struct network_connect_cookie {
 	int s;
 	int failed;
+	int errnum;
 	network_callback * callback;
 	void * cookie;
 };
@@ -38,10 +39,23 @@ callback_connect(void * cookie, int status)
 	 * second timeout used to postpone handling of a connect() failure.
 	 */
 	if (status == NETWORK_STATUS_TIMEOUT) {
-		if (C->failed)
+		if (C->failed) {
+			/*
+			 * The connect() call returned an error; restore the
+			 * errno value from that point so that when we invoke
+			 * our callback we have the right value there.
+			 */
 			status = NETWORK_STATUS_CONNERR;
-		else
+			errno = C->errnum;
+		} else {
+			/*
+			 * There was a connection timeout; set errno to zero
+			 * here since any value in errno at this point is
+			 * just left over from a previous failed syscall.
+			 */
 			status = NETWORK_STATUS_CTIMEOUT;
+			errno = 0;
+		}
 	}
 
 	if (status != NETWORK_STATUS_OK)
@@ -134,6 +148,7 @@ network_connect(int s, const struct sockaddr * addr, socklen_t addrlen,
 		 * to perform the callback right now.
 		 */
 		C->failed = 1;
+		C->errnum = errno;
 		timeo.tv_sec = timeo.tv_usec = 0;
 		if (network_sleep(&timeo, callback_connect, C))
 			goto err1;

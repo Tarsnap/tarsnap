@@ -52,13 +52,13 @@ err0:
 }
 
 /**
- * multitape_metadata_put(S, C, mdat):
+ * multitape_metadata_put(S, C, mdat, extrastats):
  * Store archive metadata.  Call chunks_write_extrastats on ${C} and the
- * metadata file length.
+ * metadata file length if ${extrastats} != 0.
  */
 int
 multitape_metadata_put(STORAGE_W * S, CHUNKS_W * C,
-    struct tapemetadata * mdat)
+    struct tapemetadata * mdat, int extrastats)
 {
 	uint8_t hbuf[32];	/* HMAC of tape name. */
 	uint8_t * buf;		/* Encoded metadata. */
@@ -122,7 +122,8 @@ multitape_metadata_put(STORAGE_W * S, CHUNKS_W * C,
 	/* Store the archive metadata. */
 	if (storage_write_file(S, buf, buflen, 'm', hbuf))
 		goto err1;
-	chunks_write_extrastats(C, buflen);
+	if (extrastats)
+		chunks_write_extrastats(C, buflen);
 
 	/* Free metadata buffer. */
 	free(buf);

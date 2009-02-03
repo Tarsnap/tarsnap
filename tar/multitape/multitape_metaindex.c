@@ -42,14 +42,14 @@ multitape_metaindex_fragname(const uint8_t namehash[32], uint32_t fragnum,
 }
 
 /**
- * multitape_metaindex_put(S, C, mind, mdat):
+ * multitape_metaindex_put(S, C, mind, mdat, extrastats):
  * Store the provided archive metaindex, and update the archive metadata
  * with the metaindex parameters.  Call chunks_write_extrastats on ${C} and
- * the length(s) of file(s) containing the metaindex.
+ * the length(s) of file(s) containing the metaindex if ${extrastats} != 0.
  */
 int
 multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
-    struct tapemetaindex * mind, struct tapemetadata * mdat)
+    struct tapemetaindex * mind, struct tapemetadata * mdat, int extrastats)
 {
 	uint8_t hbuf[32];	/* HMAC of tape name. */
 	uint8_t * buf;		/* Encoded metaindex. */
@@ -114,7 +114,8 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 		if (storage_write_file(S, buf + fragnum * MAXIFRAG,
 		    fraglen, 'i', fraghash))
 			goto err1;
-		chunks_write_extrastats(C, fraglen);
+		if (extrastats)
+			chunks_write_extrastats(C, fraglen);
 	}
 
 	/* Compute the hash of the metaindex. */

@@ -81,17 +81,15 @@ void chunks_write_extrastats(CHUNKS_W *, size_t);
 int chunks_write_printstats(FILE *, CHUNKS_W *);
 
 /**
- * chunks_write_end(C):
- * Finish the write transaction associated with the cookie ${C}.
+ * chunks_write_checkpoint(C):
+ * Create a checkpoint for the write transaction associated with the cookie
+ * ${C}.
  */
-int chunks_write_end(CHUNKS_W *);
+int chunks_write_checkpoint(CHUNKS_W *);
 
 /**
  * chunks_write_free(C):
- * Terminate the write transaction associated with the cookie ${C}.  For
- * a transaction which is not going to be committed, this is equivalent to
- * chunks_write_end; it should never be used if the transaction is going to
- * be committed.
+ * End the write transaction associated with the cookie ${C}.
  */
 void chunks_write_free(CHUNKS_W *);
 
@@ -195,6 +193,13 @@ int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *);
  * No more calls will be made to chunks_stats* functions.
  */
 void chunks_stats_free(CHUNKS_S *);
+
+/**
+ * chunks_transaction_checkpoint(cachepath):
+ * Mark the pending checkpoint in the cache directory ${cachepath} as being
+ * ready to commit from the perspective of the chunk layer.
+ */
+int chunks_transaction_checkpoint(const char *);
 
 /**
  * chunks_transaction_commit(cachepath):

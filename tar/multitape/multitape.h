@@ -85,11 +85,11 @@ ssize_t writetape_ischunkpresent(TAPE_W *, struct chunkheader *);
 /**
  * writetape_writechunk(d, ch):
  * Attempt to add a (copy of a) pre-existing chunk to the tape being written.
- * Return the length of the chunk if successful; 0 if the chunk has not been
- * stored previously; and -1 if an error occurs.
- * This function MUST NOT be called after a call to writetape_write unless
- * there is an intervening change of the tape mode.  This function MUST NOT
- * be called when the tape is in mode 0 (HEADER).
+ * Return the length of the chunk if successful; 0 if the chunk cannot be
+ * added written via this interface but must instead be written using the
+ * writetape_write interface (e.g., if the chunk does not exist or if the
+ * tape is not in a state where a chunk can be written); or -1 if an error
+ * occurs.
  */
 ssize_t writetape_writechunk(TAPE_W *, struct chunkheader *);
 
@@ -104,6 +104,12 @@ int writetape_setmode(TAPE_W *, int);
  * Record that the archive is being truncated at the current position.
  */
 void writetape_truncate(TAPE_W *);
+
+/**
+ * writetape_checkpoint(d):
+ * Create a checkpoint in the tape associated with ${d}.
+ */
+int writetape_checkpoint(TAPE_W *);
 
 /**
  * writetape_close(d):

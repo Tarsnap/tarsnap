@@ -264,14 +264,14 @@ err0:
 }
 
 /**
- * chunks_directory_write(cachepath, HT, stats_extra):
+ * chunks_directory_write(cachepath, HT, stats_extra, suff):
  * Write stats_extra statistics and the contents of the hash table ${HT} of
  * struct chunkdata records to a new chunk directory in
- * "${cachepath}/directory.tmp".
+ * "${cachepath}/directory${suff}".
  */
 int
 chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
-    struct chunkstats * stats_extra)
+    struct chunkstats * stats_extra, const char * suff)
 {
 	struct chunkstats_external cse;
 	FILE * f;
@@ -279,7 +279,7 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 	int fd;
 
 	/* Construct the path to the new chunk directory. */
-	if (asprintf(&s, "%s/directory.tmp", cachepath) == -1) {
+	if (asprintf(&s, "%s/directory%s", cachepath, suff) == -1) {
 		warnp("asprintf");
 		goto err0;
 	}
@@ -353,12 +353,13 @@ chunks_directory_free(RWHASHTAB * HT, struct chunkdata * dir)
 }
 
 /**
- * chunks_directory_commit(cachepath):
- * If ${cachepath}/directory.tmp exists, move it to ${cachepath}/directory
- * (replacing anything already there).
+ * chunks_directory_commit(cachepath, osuff, nsuff):
+ * If ${cachepath}/directory${osuff} exists, move it to
+ * ${cachepath}/directory${nsuff} (replacing anything already there).
  */
 int
-chunks_directory_commit(const char * cachepath)
+chunks_directory_commit(const char * cachepath, const char * osuff,
+    const char * nsuff)
 {
 	struct stat sbs;
 	struct stat sbt;
@@ -366,11 +367,11 @@ chunks_directory_commit(const char * cachepath)
 	char * t;
 
 	/* Construct file names. */
-	if (asprintf(&s, "%s/directory", cachepath) == -1) {
+	if (asprintf(&s, "%s/directory%s", cachepath, nsuff) == -1) {
 		warnp("asprintf");
 		goto err0;
 	}
-	if (asprintf(&t, "%s/directory.tmp", cachepath) == -1) {
+	if (asprintf(&t, "%s/directory%s", cachepath, osuff) == -1) {
 		warnp("asprintf");
 		goto err1;
 	}
@@ -441,4 +442,3 @@ err0:
 	/* Failure! */
 	return (-1);
 }
-

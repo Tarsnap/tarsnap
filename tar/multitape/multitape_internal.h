@@ -57,11 +57,17 @@ struct tapemetaindex {
 
 /**
  * multitape_cleanstate(cachedir, machinenum, key):
- * Complete any pending commit.  The value ${key} should be 0 if the write
- * access key should be used to sign a commit request, or 1 if the delete
- * access key should be used.
+ * Complete any pending checkpoint or commit.  The value ${key} should be 0
+ * if the write access key should be used to sign a commit request, or 1 if
+ * the delete access key should be used.
  */
 int multitape_cleanstate(const char *, uint64_t, uint8_t);
+
+/**
+ * multitape_checkpoint(cachedir, machinenum, seqnum):
+ * Create a checkpoint in the current write transaction.
+ */
+int multitape_checkpoint(const char *, uint64_t, const uint8_t[32]);
 
 /**
  * multitape_commit(cachedir, machinenum, seqnum, key):
@@ -91,11 +97,12 @@ int multitape_chunkiter_tmd(STORAGE_R *, CHUNKS_S *,
 int multitape_metadata_ispresent(STORAGE_W *, const char *);
 
 /**
- * multitape_metadata_put(S, C, mdat):
+ * multitape_metadata_put(S, C, mdat, extrastats):
  * Store archive metadata.  Call chunks_write_extrastats on ${C} and the
- * metadata file length.
+ * metadata file length if ${extrastats} != 0.
  */
-int multitape_metadata_put(STORAGE_W *, CHUNKS_W *, struct tapemetadata *);
+int multitape_metadata_put(STORAGE_W *, CHUNKS_W *, struct tapemetadata *,
+    int);
 
 /**
  * multitape_metadata_get_byhash(S, C, mdat, tapehash, quiet):
@@ -142,13 +149,13 @@ int multitape_metadata_delete(STORAGE_D *, CHUNKS_D *, struct tapemetadata *);
 void multitape_metaindex_fragname(const uint8_t[32], uint32_t, uint8_t[32]);
 
 /**
- * multitape_metaindex_put(S, C, mind, mdat):
+ * multitape_metaindex_put(S, C, mind, mdat, extrastats):
  * Store the provided archive metaindex, and update the archive metadata
  * with the metaindex parameters.  Call chunks_write_extrastats on ${C} and
- * the length(s) of file(s) containing the metaindex.
+ * the length(s) of file(s) containing the metaindex if ${extrastats} != 0.
  */
 int multitape_metaindex_put(STORAGE_W *, CHUNKS_W *, struct tapemetaindex *,
-    struct tapemetadata *);
+    struct tapemetadata *, int);
 
 /**
  * multitape_metaindex_get(S, C, mind, mdat, quiet):

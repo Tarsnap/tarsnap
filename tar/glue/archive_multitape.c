@@ -154,6 +154,19 @@ archive_write_multitape_setmode(struct archive * a, void * cookie, int mode)
 }
 
 /**
+ * archive_write_multitape_checkpoint(cookie):
+ * Create a checkpoint in the archive associated with the write cookie
+ * ${cookie}.
+ */
+int
+archive_write_multitape_checkpoint(void * cookie)
+{
+	struct multitape_write_internal * d = cookie;
+
+	return (writetape_checkpoint(d));
+}
+
+/**
  * archive_write_multitape_truncate(cookie):
  * Record that the archive associated with the write cookie ${cookie}
  * should be truncated at the current position.
@@ -178,6 +191,7 @@ int archive_multitape_copy(struct archive * ina, void * read_cookie,
 	ssize_t lenread;
 	ssize_t writelen;
 	off_t entrylen;
+	ssize_t backloglen;
 
 	/* Compute the entry size. */
 	if ((entrylen = archive_read_get_entryleft(ina)) < 0) {
@@ -186,73 +200,105 @@ int archive_multitape_copy(struct archive * ina, void * read_cookie,
 		return (-2);
 	}
 
-	/* Make sure there isn't any backlogged data. */
-	if (archive_read_get_backlog(ina)) {
-		warn0("Cannot use @@ fast path: data is backlogged");
-	} else {
-		do {
-			/* Read a chunk. */
-			lenread = readtape_readchunk(read_cookie, &ch);
+	/* Copy data. */
+	while (entrylen > 0) {
+		/* Is there data buffered by libarchive? */
+		if ((backloglen = archive_read_get_backlog(ina)) < 0) {
+			warn0("Error reading libarchive data backlog");
+			return (-2);
+		}
+		if (backloglen > 0) {
+			/* Drain some data from libarchive. */
+			if ((size_t)backloglen > sizeof(buff))
+				lenread = sizeof(buff);
+			else
+				lenread = backloglen;
+			lenread = archive_read_data(ina, buff, lenread);
+			if (lenread == 0) {
+				warn0("libarchive claims data backlog,"
+				    " but no data can be read?");
+				return (-2);
+			}
 			if (lenread < 0)
 				return (-2);
-			if (lenread == 0)
-				break;
-			if (lenread > entrylen) {
-				/* Should never happen. */
-				warn0("readchunk returned chunk beyond end"
-				    " of archive entry?");
-				break;
-			}
 
-			/* Write the chunk. */
-			writelen = writetape_writechunk(write_cookie, ch);
-			if (writelen < 0)
+			/* Write it out to the new archive. */
+			writelen = archive_write_data(a, buff, lenread);
+			if (writelen < lenread)
 				return (-1);
-			if (writelen == 0) {
-				/*
-				 * Shouldn't happen; but we'll let the error
-				 * be reported via archive_read_data later.
-				 */
-				break;
-			}
-			if (writelen != lenread) {
-				/* Should never happen. */
-				warn0("chunk write size != chunk read size?");
-				return (-1);
-			}
 
-			/*
-			 * Advance libarchive pointers.  Do the write pointer
-			 * first since a failure there is fatal.
-			 */
-			if (archive_write_skip(a, writelen))
-				return (-1);
-			if (archive_read_advance(ina, lenread))
-				return (-2);
-
-			/* We don't need to see this chunk again. */
-			if (readtape_skip(read_cookie, lenread) != lenread) {
-				warn0("could not skip read data?");
-				return (-2);
-			}
-
-			/* We've done part of the entry. */
+			/* Adjust the remaining entry length and continue. */
 			entrylen -= lenread;
-		} while (1);
-	}
+			continue;
+		}
 
-	/* Copy any remaining data between archives. */
-	do {
-		lenread = archive_read_data(ina, buff, sizeof(buff));
+		/* Attempt to read a chunk for fast-pathing. */
+		lenread = readtape_readchunk(read_cookie, &ch);
+		if (lenread < 0)
+			return (-2);
+		if (lenread > entrylen) {
+			warn0("readchunk returned chunk beyond end"
+			    " of archive entry?");
+			return (-2);
+		}
+		if (lenread == 0)
+			goto nochunk;
+
+		/* Attempt to write the chunk via the fast path. */
+		writelen = writetape_writechunk(write_cookie, ch);
+		if (writelen < 0)
+			return (-1);
+		if (writelen == 0)
+			goto nochunk;
+		if (writelen != lenread) {
+			warn0("chunk write size != chunk read size?");
+			return (-1);
+		}
+
+		/*
+		 * Advance libarchive pointers.  Do the write pointer
+		 * first since a failure there is fatal.
+		 */
+		if (archive_write_skip(a, writelen))
+			return (-1);
+		if (archive_read_advance(ina, lenread))
+			return (-2);
+
+		/* We don't need to see this chunk again. */
+		if (readtape_skip(read_cookie, lenread) != lenread) {
+			warn0("could not skip read data?");
+			return (-2);
+		}
+
+		/* We've done part of the entry. */
+		entrylen -= lenread;
+		continue;
+
+nochunk:
+		/*
+		 * We have no data buffered in libarchive, and we can't copy
+		 * an intact chunk.  We need to read some data, but we have
+		 * no idea how much the multitape layer wants to provide to
+		 * libarchive next; and we don't want to read too much data
+		 * since we might waste time reading and writing chunked data
+		 * which could be fast-pathed.  Simple solution: Read and
+		 * write one byte.  Libarchive will almost certainly get more
+		 * than one byte from the multitape layer, but when we return
+		 * to the start of this loop and handle backlogged data we
+		 * will pick up the rest of the data.  (Also, this is always
+		 * where we end up when we hit the end of an archive entry,
+		 * in which case archive_read_data returns 0 and we exit the
+		 * loop.)
+		 */
+		lenread = archive_read_data(ina, buff, 1);
 		if (lenread == 0)
 			break;
 		if (lenread < 0)
 			return (-2);
-
-		writelen = archive_write_data(a, buff, lenread);
-		if (writelen < lenread)
+		writelen = archive_write_data(a, buff, 1);
+		if (writelen < 1)
 			return (-1);
-	} while (1);
+	};
 
 	return (0);
 }

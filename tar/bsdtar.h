@@ -1,5 +1,5 @@
 /*-
- * Copyright 2006-2008 Colin Percival
+ * Copyright 2006-2009 Colin Percival
  * All rights reserved.
  *
  * Portions of the file below are covered by the following license:
@@ -129,6 +129,7 @@ enum {
 	OPTION_AGGRESSIVE_NETWORKING=1,
 	OPTION_CACHEDIR,
 	OPTION_CHECK_LINKS,
+	OPTION_CHECKPOINT_BYTES,
 	OPTION_CHROOT,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,

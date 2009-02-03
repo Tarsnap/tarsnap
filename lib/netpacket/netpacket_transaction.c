@@ -154,3 +154,58 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * netpacket_transaction_checkpoint(NPC, machinenum, whichkey, ckptnonce,
+ *     nonce, callback):
+ * Construct and send a NETPACKET_TRANSACTION_CHECKPOINT packet asking to
+ * create a checkpoint in a write transaction.
+ */
+int
+netpacket_transaction_checkpoint(NETPACKET_CONNECTION * NPC,
+    uint64_t machinenum, uint8_t whichkey, const uint8_t ckptnonce[32],
+    const uint8_t nonce[32], handlepacket_callback * callback)
+{
+	uint8_t packetbuf[105];
+	int key;
+
+	/* Look up the key which is used to sign this packet. */
+	switch (whichkey) {
+	case 0:
+		key = CRYPTO_KEY_AUTH_PUT;
+		break;
+	case 1:
+		key = CRYPTO_KEY_AUTH_DELETE;
+		break;
+	default:
+		warn0("Programmer error: "
+		    "Invalid operation in netpacket_transaction_commit");
+		goto err0;
+	}
+
+	/* Construct the packet. */
+	be64enc(&packetbuf[0], machinenum);
+	packetbuf[8] = whichkey;
+	memcpy(&packetbuf[9], ckptnonce, 32);
+	memcpy(&packetbuf[41], nonce, 32);
+
+	/* Append hmac. */
+	if (netpacket_hmac_append(NETPACKET_TRANSACTION_CHECKPOINT,
+	    packetbuf, 73, key))
+		goto err0;
+
+	/* Send the packet. */
+	if (netproto_writepacket(NPC->NC, NETPACKET_TRANSACTION_CHECKPOINT,
+	    packetbuf, 105, netpacket_op_packetsent, NPC))
+		goto err0;
+
+	/* Set callback for handling a response. */
+	NPC->pending_current->handlepacket = callback;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}

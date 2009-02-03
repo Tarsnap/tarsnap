@@ -1,5 +1,5 @@
 /*-
- * Copyright 2006-2008 Colin Percival
+ * Copyright 2006-2009 Colin Percival
  * All rights reserved.
  *
  * Portions of the file below are covered by the following license:
@@ -83,6 +83,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 int tarsnap_opt_aggressive_networking = 0;
 int tarsnap_opt_humanize_numbers = 0;
 int tarsnap_opt_noisy_warnings = 0;
+uint64_t tarsnap_opt_checkpointbytes = (uint64_t)(-1);
 uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
 
 /* External function to parse a date/time string (from getdate.y) */
@@ -223,6 +224,17 @@ main(int argc, char **argv)
 			break;
 		case OPTION_CHECK_LINKS: /* GNU tar */
 			bsdtar->option_warn_links = 1;
+			break;
+		case OPTION_CHECKPOINT_BYTES: /* tarsnap */
+			if (humansize_parse(bsdtar->optarg,
+			    &tarsnap_opt_checkpointbytes))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Cannot parse #bytes per checkpoint: %s",
+				    bsdtar->optarg);
+			if (tarsnap_opt_checkpointbytes < 1000000)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "--checkpoint-bytes value must be at "
+				    "least 1M");
 			break;
 		case OPTION_CHROOT: /* NetBSD */
 			bsdtar->option_chroot = 1;
@@ -609,6 +621,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--aggressive-networking", "c");
 	if (tarsnap_opt_maxbytesout != (uint64_t)(-1))
 		only_mode(bsdtar, "--maxbw", "c");
+	if (tarsnap_opt_checkpointbytes != (uint64_t)(-1))
+		only_mode(bsdtar, "--checkpoint-bytes", "c");
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
 	if (bsdtar->option_dryrun)
@@ -994,6 +1008,23 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 			if ((bsdtar->cachedir = strdup(conf_arg)) == NULL)
 				bsdtar_errc(bsdtar, 1, errno,
 				    "Out of memory");
+	} else if (strcmp(conf_opt, "checkpoint-bytes") == 0) {
+		if (conf_arg == NULL)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Argument required for "
+			    "configuration file option: %s", conf_opt);
+		if ((bsdtar->mode == 'c') &&
+		    (tarsnap_opt_checkpointbytes == (uint64_t)(-1))) {
+			if (humansize_parse(conf_arg,
+			    &tarsnap_opt_checkpointbytes))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Cannot parse #bytes per checkpoint: %s",
+				    bsdtar->optarg);
+			if (tarsnap_opt_checkpointbytes < 1000000)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "checkpoint-bytes value must be at "
+				    "least 1M");
+		}
 	} else if (strcmp(conf_opt, "exclude") == 0) {
 		if (conf_arg == NULL)
 			bsdtar_errc(bsdtar, 1, 0,

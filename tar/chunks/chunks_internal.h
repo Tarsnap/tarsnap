@@ -46,12 +46,13 @@ RWHASHTAB * chunks_directory_read(const char *, struct chunkdata **,
     struct chunkstats *, struct chunkstats *, struct chunkstats *, int);
 
 /**
- * chunks_directory_write(cachepath, HT, stats_extra):
+ * chunks_directory_write(cachepath, HT, stats_extra, suff):
  * Write stats_extra statistics and the contents of the hash table ${HT} of
  * struct chunkdata records to a new chunk directory in
- * "${cachepath}/directory.tmp".
+ * "${cachepath}/directory${suff}".
  */
-int chunks_directory_write(const char *, RWHASHTAB *, struct chunkstats *);
+int chunks_directory_write(const char *, RWHASHTAB *, struct chunkstats *,
+    const char *);
 
 /**
  * chunks_directory_free(HT, dir):
@@ -61,11 +62,11 @@ int chunks_directory_write(const char *, RWHASHTAB *, struct chunkstats *);
 void chunks_directory_free(RWHASHTAB *, struct chunkdata *);
 
 /**
- * chunks_directory_commit(cachepath):
- * If ${cachepath}/directory.tmp exists, move it to ${cachepath}/directory
- * (replacing anything already there).
+ * chunks_directory_commit(cachepath, osuff, nsuff):
+ * If ${cachepath}/directory${osuff} exists, move it to
+ * ${cachepath}/directory${nsuff} (replacing anything already there).
  */
-int chunks_directory_commit(const char *);
+int chunks_directory_commit(const char *, const char *, const char *);
 
 /**
  * chunks_stats_zero(stats):

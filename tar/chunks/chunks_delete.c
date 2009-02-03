@@ -175,7 +175,7 @@ chunks_delete_end(CHUNKS_D * C)
 {
 
 	/* Write the new chunk directory. */
-	if (chunks_directory_write(C->path, C->HT, &C->stats_extra))
+	if (chunks_directory_write(C->path, C->HT, &C->stats_extra, ".tmp"))
 		goto err1;
 
 	/* Free the chunk hash table. */

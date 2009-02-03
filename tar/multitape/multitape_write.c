@@ -63,6 +63,8 @@ struct multitape_write_internal {
 	struct stream c;	/* Chunk index stream. */
 	struct stream t;	/* Trailer stream. */
 	CHUNKIFIER * c_file;	/* Used for chunkifying individual files. */
+	off_t c_file_in;	/* Bytes written into c_file. */
+	off_t c_file_out;	/* Bytes passed out by c_file. */
 	int mode;		/* Tape mode (header, data, end of entry). */
 
 	/* Header buffering. */
@@ -86,6 +88,7 @@ static chunkify_callback callback_t;
 static chunkify_callback callback_c;
 static chunkify_callback callback_file;
 static int endentry(TAPE_W *);
+static int flushtape(TAPE_W *, int, int);
 
 /**
  * tapepresent(S, fmt, s):
@@ -267,6 +270,9 @@ callback_file(void * cookie, uint8_t * buf, size_t buflen)
 	struct multitape_write_internal * d = cookie;
 	struct chunkheader ch;
 
+	/* Data is being passed out by c_file. */
+	d->c_file_out += buflen;
+
 	/* Anything under MINCHUNK bytes belongs in the trailer stream. */
 	if (buflen < MINCHUNK) {
 		/* There shouldn't be any trailer yet. */
@@ -445,6 +451,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	    (void *)d)) == NULL)
 		goto err7;
 
+	/* No data has entered or exited c_file. */
+	d->c_file_in = d->c_file_out = 0;
+
 	/* Success! */
 	return (d);
 
@@ -512,6 +521,7 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 		/* We're in data mode.  Write to the file chunkifier. */
 		if (chunkify_write(d->c_file, buffer, nbytes))
 			goto err0;
+		d->c_file_in += nbytes;
 		break;
 	case 2:
 	case 3:
@@ -579,15 +589,28 @@ writetape_ischunkpresent(TAPE_W * d, struct chunkheader * ch)
 /**
  * writetape_writechunk(d, ch):
  * Attempt to add a (copy of a) pre-existing chunk to the tape being written.
- * Return the length of the chunk if successful; 0 if the chunk has not been
- * stored previously; and -1 if an error occurs.
- * This function MUST NOT be called after a call to writetape_write unless
- * there is an intervening change of the tape mode.  This function MUST NOT
- * be called when the tape is in mode 0 (HEADER).
+ * Return the length of the chunk if successful; 0 if the chunk cannot be
+ * added written via this interface but must instead be written using the
+ * writetape_write interface (e.g., if the chunk does not exist or if the
+ * tape is not in a state where a chunk can be written); or -1 if an error
+ * occurs.
  */
 ssize_t
 writetape_writechunk(TAPE_W * d, struct chunkheader * ch)
 {
+
+	/* Are we in state 1 (archive entry data)? */
+	if (d->mode != 1)
+		goto notpresent;
+
+	/*
+	 * Has all of the data which was written into the file chunkifier
+	 * passed through?  (This check is necessary in order to avoid having
+	 * file data re-ordered if writetape_writechunk is called after a
+	 * call to writetape_write without an intervening mode change).
+	 */
+	if (d->c_file_in != d->c_file_out)
+		goto notpresent;
 
 	/* Attempt to reference the chunk. */
 	switch (chunks_write_chunkref(d->C, ch->hash)) {
@@ -671,52 +694,35 @@ writetape_truncate(TAPE_W * d)
 }
 
 /**
- * writetape_close(d):
- * Close the tape associated with ${d}.
+ * flushtape(d, isapart, extrastats):
+ * Flush the chunkifiers, store metaindex and metadata, and issue a flush at
+ * the storage layer.  If ${extrastats} is non-zero, add the metaindex and
+ * metadata sizes to storage statistics.
  */
-int
-writetape_close(TAPE_W * d)
+static int
+flushtape(TAPE_W * d, int isapart, int extrastats)
 {
 	struct tapemetadata tmd;
 	struct tapemetaindex tmi;
 	char * tapename;
 
-	/* If the archive is truncated, end any current archive entry. */
-	if (d->eof && (d->mode < 2) && writetape_setmode(d, 2))
-		goto err3;
-
-	/* If a file trailer was written, deal with it. */
-	switch (d->mode) {
-	case 3:
-		if (endentry(d))
-			goto err3;
-		break;
-	case 2:
-		break;
-	default:
-		/* We shouldn't be in the middle of an archive entry. */
-		warn0("Programmer error: writetape_close called in mode %d",
-		    d->mode);
-		goto err3;
-	}
-
 	/* Tell the chunkifiers that there will be no more data. */
 	if (chunkify_end(d->c_file))
-		goto err3;
+		goto err0;
 	if (chunkify_end(d->t.c))
-		goto err3;
+		goto err0;
 	if (chunkify_end(d->c.c))
-		goto err3;
+		goto err0;
 	if (chunkify_end(d->h.c))
-		goto err3;
+		goto err0;
 
 	/* Construct tape name. */
-	if (d->eof) {
+	if (isapart) {
 		if (asprintf(&tapename, "%s.part", d->tapename) == -1)
-			goto err3;
+			goto err0;
 	} else {
 		if (asprintf(&tapename, "%s", d->tapename) == -1)
-			goto err3;
+			goto err0;
 	}
 
 	/* Fill in archive metadata & metaindex structures. */
@@ -736,34 +742,144 @@ writetape_close(TAPE_W * d)
 	 * archive metadata is stored, since it fills in fields in the archive
 	 * metadata concerning the index length and hash.
 	 */
-	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd))
-		goto err4;
+	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd, extrastats))
+		goto err1;
 
 	/* Store archive metadata. */
-	if (multitape_metadata_put(d->S, d->C, &tmd))
-		goto err4;
+	if (multitape_metadata_put(d->S, d->C, &tmd, extrastats))
+		goto err1;
 
 	/* Free string allocated by asprintf. */
 	free(tapename);
 
 	/* Ask the storage layer to flush all pending writes. */
 	if (storage_write_flush(d->S))
-		goto err3;
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(tapename);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * writetape_checkpoint(d):
+ * Create a checkpoint in the tape associated with ${d}.
+ */
+int
+writetape_checkpoint(TAPE_W * d)
+{
+	int mode_saved;
+
+	/*
+	 * If we're in the middle of an archive entry, we need to switch to
+	 * mode 2 (end of archive entry) so that data gets flushed through,
+	 * and then switch back to the original mode later (which may result
+	 * in an archive "entry" with no header data -- this is fine).
+	 */
+	mode_saved = d->mode;
+	if (mode_saved < 2) {
+		if (writetape_setmode(d, 2))
+			goto err0;
+	}
+
+	/*
+	 * Deal with any archive trailer, in the unlikely case that we're
+	 * being asked to create a checkpoint when the archive is about to
+	 * be closed.
+	 */
+	if ((d->mode == 3) && endentry(d))
+		goto err0;
+
+	/*
+	 * Flush data through and write the metaindex and metadata;
+	 * checkpoints are partial archives, so mark it as such.
+	 */
+	if (flushtape(d, 1, 0))
+		goto err0;
+
+	/* Ask the chunks layer to prepare for a checkpoint. */
+	if (chunks_write_checkpoint(d->C))
+		goto err0;
+
+	/* If this isn't a dry run, create a checkpoint. */
+	if ((d->dryrun == 0) &&
+	    multitape_checkpoint(d->cachedir, d->machinenum, d->seqnum))
+		goto err0;
+
+	/* If we changed the tape mode, switch back to the original mode. */
+	if (mode_saved < 2) {
+		if (writetape_setmode(d, mode_saved))
+			goto err0;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * writetape_close(d):
+ * Close the tape associated with ${d}.
+ */
+int
+writetape_close(TAPE_W * d)
+{
+
+	/* If the archive is truncated, end any current archive entry. */
+	if (d->eof && (d->mode < 2) && writetape_setmode(d, 2))
+		goto err2;
+
+	/* If a file trailer was written, deal with it. */
+	if ((d->mode == 3) && endentry(d))
+		goto err2;
+
+	/*
+	 * Make sure we're not being called in the middle of an archive
+	 * entry unless we're truncating an archive.
+	 */
+	if ((d->mode < 2) && (d->eof == 0)) {
+		/* We shouldn't be in the middle of an archive entry. */
+		warn0("Programmer error: writetape_close called in mode %d",
+		    d->mode);
+		goto err2;
+	}
+
+	/* Flush data through and write the metaindex and metadata. */
+	if (flushtape(d, d->eof, 1))
+		goto err2;
 
 	/* Print statistics, if we've been asked to do so. */
 	if (d->stats_enabled && chunks_write_printstats(stderr, d->C))
-		goto err3;
+		goto err2;
+
+	/* Ask the chunks layer to prepare for a checkpoint. */
+	if (chunks_write_checkpoint(d->C))
+		goto err2;
 
 	/* Close the chunk layer and storage layer cookies. */
-	if (chunks_write_end(d->C))
-		goto err2;
+	chunks_write_free(d->C);
 	if (storage_write_end(d->S))
 		goto err1;
 
-	/* If this wasn't a dry run, commit the transaction. */
-	if ((d->dryrun == 0) &&
-	    multitape_commit(d->cachedir, d->machinenum, d->seqnum, 0))
-		goto err1;
+	/*
+	 * If this isn't a dry run, create a checkpoint and commit the
+	 * write transaction.
+	 */
+	if (d->dryrun == 0) {
+		if (multitape_checkpoint(d->cachedir, d->machinenum,
+		    d->seqnum))
+			goto err1;
+		if (multitape_cleanstate(d->cachedir, d->machinenum, 0))
+			goto err1;
+	}
 
 	/* Unlock the cache directory. */
 	close(d->lockfd);
@@ -777,15 +893,11 @@ writetape_close(TAPE_W * d)
 	free(d->tapename);
 	free(d);
 
-
 	/* Success! */
 	return (0);
 
-err4:
-	free(tapename);
-err3:
-	chunks_write_free(d->C);
 err2:
+	chunks_write_free(d->C);
 	storage_write_free(d->S);
 err1:
 	close(d->lockfd);

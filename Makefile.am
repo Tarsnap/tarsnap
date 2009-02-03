@@ -12,7 +12,7 @@ distclean-local:
 
 noinst_LIBRARIES=	libarchive.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keymgmt
-dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS)
+dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
 
 #
 # Libarchive headers, source, etc.

@@ -26,6 +26,13 @@ void * archive_write_open_multitape(struct archive *, uint64_t, const char *,
 int archive_write_multitape_setmode(struct archive *, void *, int);
 
 /**
+ * archive_write_multitape_checkpoint(cookie):
+ * Create a checkpoint in the archive associated with the write cookie
+ * ${cookie}.
+ */
+int archive_write_multitape_checkpoint(void *);
+
+/**
  * archive_write_multitape_truncate(cookie):
  * Record that the archive associated with the write cookie ${cookie}
  * should be truncated at the current position.

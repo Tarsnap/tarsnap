@@ -25,17 +25,6 @@ struct ccache_internal {
 	size_t		trailerusage;	/* Memory used by trailers. */
 };
 
-/* A cookie for higher layers to access a cache entry. */
-struct ccache_entry {
-	struct ccache_internal * cci;	/* Cache data structure. */
-	struct ccache_record * ccr;	/* Actual cache entry. */
-	struct ccache_record ** ccrp;	/* Pointer to pointer in tree. */
-	uint8_t *	trailer;	/* Uncompressed trailer. */
-	ino_t	ino_new;		/* New inode number. */
-	off_t	size_new;		/* New file size. */
-	time_t	mtime_new;		/* New modification time. */
-};
-
 /* An entry stored in the cache. */
 struct ccache_record {
 	/* Values stored in ccache_record_external structure. */

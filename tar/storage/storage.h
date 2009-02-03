@@ -142,14 +142,22 @@ int storage_delete_end(STORAGE_D *);
 void storage_delete_free(STORAGE_D *);
 
 /**
+ * storage_transaction_checkpoint(machinenum, seqnum, ckptnonce, whichkey):
+ * Create a checkpoint ${ckptnonce} in the current write transaction, which
+ * has nonce ${seqnum}.  The value ${whichkey} is defined as in
+ * storage_transaction_commit.
+ */
+int storage_transaction_checkpoint(uint64_t, const uint8_t[32],
+    const uint8_t[32], uint8_t);
+
+/**
  * storage_transaction_commit(machinenum, seqnum, whichkey):
  * Commit the transaction ${seqnum} if it is the most recent uncommitted
  * transaction.  The value ${whichkey} specifies a key which should be used
  * to sign the commit request: 0 if the write key should be used, and 1 if
  * the delete key should be used.
  */
-int storage_transaction_commit(uint64_t, const uint8_t[32],
-    uint8_t whichkey);
+int storage_transaction_commit(uint64_t, const uint8_t[32], uint8_t);
 
 /**
  * storage_directory_read(machinenum, class, key, flist, nfiles):
