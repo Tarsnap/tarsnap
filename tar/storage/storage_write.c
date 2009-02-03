@@ -73,21 +73,23 @@ struct write_file_internal {
 	uint8_t * filebuf;
 };
 
-static void maybequit(struct storage_write_internal * S);
+static void raisesigs(struct storage_write_internal * S);
 static sendpacket_callback callback_fexist_send;
 static handlepacket_callback callback_fexist_response;
 static sendpacket_callback callback_write_file_send;
 static handlepacket_callback callback_write_file_response;
 
 /**
- * maybequit(S):
+ * raisesigs(S):
  * Look at how much bandwidth has been used plus what will be used once all
  * pending requests are sent, and send a SIGQUIT to ourselves if this exceeds
- * tarsnap_opt_maxbytesout.
+ * tarsnap_opt_maxbytesout, or a SIGUSR2 if it exceeds
+ * tarsnap_opt_nextcheckpoint.
  */
 static void
-maybequit(struct storage_write_internal * S)
+raisesigs(struct storage_write_internal * S)
 {
+	static uint64_t lastcheckpoint = 0;
 	uint64_t in, out, queued;
 	uint64_t totalout = 0;
 	size_t i;
@@ -102,6 +104,15 @@ maybequit(struct storage_write_internal * S)
 	if (totalout > tarsnap_opt_maxbytesout) {
 		if (raise(SIGQUIT))
 			warnp("raise(SIGQUIT)");
+	}
+
+	/* Send a SIGUSR2 if appropriate. */
+	if (tarsnap_opt_checkpointbytes != (uint64_t)(-1)) {
+		if (totalout > lastcheckpoint + tarsnap_opt_checkpointbytes) {
+			lastcheckpoint = totalout;
+			if (raise(SIGUSR2))
+				warnp("raise(SIGUSR2)");
+		}
 	}
 }
 
@@ -335,8 +346,8 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
 		goto err2;
 
-	/* If we've hit our outgoing bandwidth quota, SIGQUIT. */
-	maybequit(S);
+	/* Send ourself SIGQUIT or SIGUSR2 if necessary. */
+	raisesigs(S);
 
 	/* Success! */
 	return (0);
@@ -412,11 +423,11 @@ callback_write_file_response(void * cookie,
 	}
 
 	/*
-	 * If we've hit our outgoing bandwidth quota, SIGQUIT.  We do this
+	 * Send ourself SIGQUIT or SIGUSR2 if necessary.  We do this
 	 * here in addition to in storage_write_file because a write will
 	 * use more bandwidth than expected if it needs to be retried.
 	 */
-	maybequit(C->S);
+	raisesigs(C->S);
 
 	/* Free file buffer. */
 	free(C->filebuf);

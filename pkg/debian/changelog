@@ -1,0 +1,20 @@
+tarsnap (1.0.20) unstable; urgency=low
+
+  * Fixed typo in sed code for changing default cachedir.
+  * Removed unnecessary dependency on autotools-dev.
+  * Added dependency on libbz2-dev (not required, but tarsnap will take
+    advantage of libbz2 if it is present).
+  * Removed unnecessary CONFIGDIR= from ./configure invocation (the
+    autoconf logic handles this already).
+
+ -- Colin Percival <cperciva@tarsnap.com>  Sat, 31 Jan 2009 22:54:01 +0000
+tarsnap (1.0.19-1) unstable; urgency=low
+
+  * Fixed default config file location and cachedir.
+
+ -- Mads Sulau Joergensen <mads@sulau.dk>  Sun, 18 Jan 2009 19:48:41 +0100
+tarsnap (1.0.19) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Mads Sulau Joergensen <mads@sulau.dk>  Sun, 18 Jan 2009 14:25:54 +0100

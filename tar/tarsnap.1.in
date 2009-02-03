@@ -1,4 +1,4 @@
-.\" Copyright 2007, 2008 Colin Percival
+.\" Copyright 2007-2009 Colin Percival
 .\" All rights reserved.
 .\"
 .\" Portions of the file below are covered by the following license:
@@ -188,6 +188,16 @@ is lost, it can be reconstructed by running
 .It Fl -check-links
 (c mode only)
 Issue a warning message unless all links to each file are archived.
+.It Fl -checkpoint-bytes Ar bytespercheckpoint
+(c mode only)
+Create a checkpoint after every
+.Ar bytespercheckpoint
+bytes of uploaded data.
+The value
+.Ar bytespercheckpoint
+must be at least 1000000, and a higher value is recommended since
+creating a checkpoint in an archive can take a few seconds and several
+hundred kB of bandwidth.
 .It Fl -chroot
 (x mode only)
 .Fn chroot
@@ -701,15 +711,15 @@ public-domain implementation (circa November, 1987)
 was quite influential, and formed the basis of GNU tar.
 GNU tar was included as the standard system tar
 in
-.Fx
+FreeBSD
 beginning with
-.Fx 1.0 ,
+FreeBSD 1.0 ,
 but was replaced by Tim Kientzle's
 .Nm bsdtar
 utility and
 .Xr libarchive 3
 library in
-.Fx 5.3 .
+FreeBSD 5.3 .
 .Pp
 .Nm
 is built around

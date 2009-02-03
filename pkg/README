@@ -1,0 +1,30 @@
+OS-specific packaging bits for tarsnap
+======================================
+
+This directory contains bits to allow tarsnap to fit into operating system
+package management systems.  I don't have access to all of these systems,
+so please email me (at <cperciva@tarsnap.com>) if there are any problems
+with these bits or if you can provide packaging bits for another OS.
+
+Debian
+------
+
+To build a Debian package:
+# ln -s pkg/debian .
+# dpkg-buildpackage
+
+Then to install it:
+# dpkg -i tarsnap-<version>_<arch>.deb
+
+Arch Linux
+----------
+
+There is a PKGBUILD file for an earlier version of tarsnap in pkg/archlinux.
+I can't include a PKGBUILD for the current version of tarsnap because the
+PKGBUILD file contains the hash of the tarball which contains the PKGBUILD
+file.  If you're running Arch Linux, you should know what to do with the
+PKGBUILD file; but you may wish to change the pkgver=, md5sums=, and
+sha256sums= lines so that you get the latest version of tarsnap.
+
+There may be a newer version of the PKGBUILD file at
+  http://aur.archlinux.org/packages.php?ID=22963

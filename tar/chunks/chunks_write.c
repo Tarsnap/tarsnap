@@ -275,45 +275,30 @@ err0:
 }
 
 /**
- * chunks_write_end(C):
- * Finish the write transaction associated with the cookie ${C}.
+ * chunks_write_checkpoint(C):
+ * Create a checkpoint for the write transaction associated with the cookie
+ * ${C}.
  */
 int
-chunks_write_end(CHUNKS_W * C)
+chunks_write_checkpoint(CHUNKS_W * C)
 {
 
 	/* If this isn't a dry run, write the new chunk directory. */
 	if ((C->dryrun == 0) &&
-	    chunks_directory_write(C->path, C->HT, &C->stats_extra))
-		goto err1;
-
-	/* Free the chunk hash table. */
-	chunks_directory_free(C->HT, C->dir);
-
-	/* Free memory. */
-	free(C->zbuf);
-	free(C->path);
-	free(C);
+	    chunks_directory_write(C->path, C->HT, &C->stats_extra, ".ckpt"))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	chunks_directory_free(C->HT, C->dir);
-	free(C->zbuf);
-	free(C->path);
-	free(C);
-
+err0:
 	/* Failure! */
 	return (-1);
 }
 
 /**
  * chunks_write_free(C):
- * Terminate the write transaction associated with the cookie ${C}.  For
- * a transaction which is not going to be committed, this is equivalent to
- * chunks_write_end; it should never be used if the transaction is going to
- * be committed.
+ * End the write transaction associated with the cookie ${C}.
  */
 void
 chunks_write_free(CHUNKS_W * C)
@@ -331,4 +316,3 @@ chunks_write_free(CHUNKS_W * C)
 	free(C->path);
 	free(C);
 }
-

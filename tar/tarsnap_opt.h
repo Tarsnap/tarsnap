@@ -13,4 +13,7 @@ extern int tarsnap_opt_noisy_warnings;
 /* Maximum number of bytes to send over the network before QUITing. */
 extern uint64_t tarsnap_opt_maxbytesout;
 
+/* Number of bytes to send between checkpoints. */
+extern uint64_t tarsnap_opt_checkpointbytes;
+
 #endif /* !_TARSNAP_OPT_H_ */

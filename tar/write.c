@@ -1,5 +1,5 @@
 /*-
- * Copyright 2006-2008 Colin Percival
+ * Copyright 2006-2009 Colin Percival
  * All rights reserved.
  *
  * Portions of the file below are covered by the following license:
@@ -70,6 +70,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
+#include <signal.h>
 #include <stdio.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -198,6 +199,36 @@ truncate_archive(struct bsdtar *bsdtar)
 	return (1);
 }
 
+static volatile sig_atomic_t sigusr2_received = 0;
+static void sigusr2_handler(int sig);
+
+static void
+sigusr2_handler(int sig)
+{
+
+	(void)sig; /* UNUSED */
+
+	/* SIGUSR2 has been received. */
+	sigusr2_received = 1;
+}
+
+/* Create a checkpoint in the archive if necessary. */
+static int
+checkpoint_archive(struct bsdtar *bsdtar)
+{
+
+	if (sigusr2_received == 0)
+		return (0);
+	sigusr2_received = 0;
+
+	/* If the user asked for verbosity, be verbose. */
+	if (bsdtar->verbose)
+		bsdtar_warnc(bsdtar, 0, "Creating checkpoint");
+
+	/* Create the archive. */
+	return (archive_write_multitape_checkpoint(bsdtar->write_cookie));
+}
+
 void
 tarsnap_mode_c(struct bsdtar *bsdtar)
 {
@@ -269,6 +300,10 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 	if (sigquit_init())
 		exit(1);
 
+	/* And SIGUSR2, too. */
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR)
+		bsdtar_errc(bsdtar, 1, 0, "cannot install signal handler");
+
 	/* Allocate a buffer for file data. */
 	if ((bsdtar->buff = malloc(FILEDATABUFLEN)) == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "cannot allocate memory");
@@ -284,6 +319,8 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 	while (*bsdtar->argv) {
 		if (truncate_archive(bsdtar))
 			break;
+		if (checkpoint_archive(bsdtar))
+			exit(1);
 
 		arg = *bsdtar->argv;
 		if (arg[0] == '-' && arg[1] == 'C') {
@@ -471,6 +508,8 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 	while (0 == archive_read_next_header(ina, &in_entry)) {
 		if (truncate_archive(bsdtar))
 			break;
+		if (checkpoint_archive(bsdtar))
+			exit(1);
 		if (network_select(0))
 			exit(1);
 
@@ -573,6 +612,8 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 
 		if (truncate_archive(bsdtar))
 			break;
+		if (checkpoint_archive(bsdtar))
+			return (-1);
 
 		progress += bytes_written;
 		bytes_read = archive_read_data(ina, bsdtar->buff,
@@ -609,6 +650,8 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 
 		if (truncate_archive(bsdtar))
 			break;
+		if (checkpoint_archive(bsdtar))
+			exit(1);
 		if (network_select(0))
 			exit(1);
 
@@ -1074,6 +1117,8 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 
 		if (truncate_archive(bsdtar))
 			break;
+		if (checkpoint_archive(bsdtar))
+			exit(1);
 
 		progress += bytes_written;
 		bytes_read = read(fd, bsdtar->buff, FILEDATABUFLEN);

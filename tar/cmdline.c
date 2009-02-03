@@ -1,5 +1,5 @@
 /*-
- * Copyright 2006-2008 Colin Percival
+ * Copyright 2006-2009 Colin Percival
  * All rights reserved.
  *
  * Portions of the file below are covered by the following license:
@@ -72,6 +72,7 @@ static struct option {
 	{ "cachedir",		  1, OPTION_CACHEDIR },
 	{ "cd",                   1, 'C' },
 	{ "check-links",          0, OPTION_CHECK_LINKS },
+	{ "checkpoint-bytes",	  1, OPTION_CHECKPOINT_BYTES },
 	{ "chroot",               0, OPTION_CHROOT },
 	{ "confirmation",         0, 'w' },
 	{ "create",               0, 'c' },

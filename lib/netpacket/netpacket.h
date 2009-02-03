@@ -27,6 +27,8 @@ typedef int handlepacket_callback(void *, NETPACKET_CONNECTION *,
 #define NETPACKET_TRANSACTION_START_RESPONSE	0x91
 #define NETPACKET_TRANSACTION_COMMIT		0x12
 #define NETPACKET_TRANSACTION_COMMIT_RESPONSE	0x92
+#define NETPACKET_TRANSACTION_CHECKPOINT	0x13
+#define NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE 0x93
 #define NETPACKET_WRITE_FEXIST			0x20
 #define NETPACKET_WRITE_FEXIST_RESPONSE		0xa0
 #define NETPACKET_WRITE_FILE			0x21
@@ -98,6 +100,15 @@ int netpacket_transaction_start(NETPACKET_CONNECTION *, uint64_t,
  */
 int netpacket_transaction_commit(NETPACKET_CONNECTION *, uint64_t,
     uint8_t, const uint8_t[32], handlepacket_callback *);
+
+/**
+ * netpacket_transaction_checkpoint(NPC, machinenum, whichkey, ckptnonce,
+ *     nonce, callback):
+ * Construct and send a NETPACKET_TRANSACTION_CHECKPOINT packet asking to
+ * create a checkpoint in a write transaction.
+ */
+int netpacket_transaction_checkpoint(NETPACKET_CONNECTION *, uint64_t,
+    uint8_t, const uint8_t[32], const uint8_t[32], handlepacket_callback *);
 
 /**
  * netpacket_write_fexist(NPC, machinenum, class, name, nonce, callback):

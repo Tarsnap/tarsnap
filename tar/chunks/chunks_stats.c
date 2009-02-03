@@ -209,7 +209,8 @@ chunks_fsck_end(CHUNKS_S * C)
 	int rc = 0;
 
 	/* Write out the new chunk directory. */
-	if (chunks_directory_write(C->cachepath, C->HT, &C->stats_extra))
+	if (chunks_directory_write(C->cachepath, C->HT, &C->stats_extra,
+	    ".tmp"))
 		rc = -1;
 
 	/* Free the chunk hash table. */

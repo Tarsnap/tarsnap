@@ -218,6 +218,41 @@ err0:
 }
 
 /**
+ * get_entryheader(d):
+ * Read an archive entry header and update the pending header, chunk and
+ * trailer data lengths.  Return -1 on error, 0 on EOF, or 1 on success.
+ */
+static int
+get_entryheader(TAPE_R * d)
+{
+	struct entryheader eh;
+	ssize_t readlen;
+
+	/* Read an archive entry header. */
+	readlen = stream_read(&d->h, (uint8_t *)&eh,
+	    sizeof(struct entryheader), d->C);
+
+	switch(readlen) {
+	case -1:
+		/* Error in stream_read. */
+		return (-1);
+	case 0:
+		/* No more chunks available. */
+		return (0);
+	case sizeof(struct entryheader):
+		/* Successful read of chunk header.  Decode entry header. */
+		d->hlen = le32dec(eh.hlen);
+		d->clen = le64dec(eh.clen);
+		d->tlen = le32dec(eh.tlen);
+		return (1);
+	default:
+		/* Wrong length read. */
+		warnp("Premature EOF of archive index");
+		return (-1);
+	}
+}
+
+/**
  * readtape_open(machinenum, tapename):
  * Open the tape with the given name, and return a cookie which can be used
  * for accessing it.
@@ -304,8 +339,6 @@ ssize_t
 readtape_read(TAPE_R * d, const void ** buffer)
 {
 	const uint8_t ** buf = (const uint8_t **)buffer;
-	struct entryheader eh;
-	ssize_t readlen;
 	struct stream * readstream;
 	off_t * readmaxlen;
 	size_t clen;
@@ -325,30 +358,15 @@ readtape_read(TAPE_R * d, const void ** buffer)
 			readstream = &d->t;
 			readmaxlen = &d->tlen;
 		} else {
-			/* Read an archive entry header. */
-			readlen = stream_read(&d->h, (uint8_t *)&eh,
-			    sizeof(struct entryheader), d->C);
-
-			switch(readlen) {
+			/* Read the next archive entry header. */
+			switch (get_entryheader(d)) {
 			case -1:
-				/* Error in stream_read. */
 				goto err0;
 			case 0:
-				/* No more chunks available. */
 				goto eof;
-			case sizeof(struct entryheader):
-				/* Successful read of chunk header. */
+			case 1:
 				break;
-			default:
-				/* Wrong length read. */
-				warnp("Premature EOF of archive index");
-				goto err0;
 			}
-
-			/* Decode entry header. */
-			d->hlen = le32dec(eh.hlen);
-			d->clen = le64dec(eh.clen);
-			d->tlen = le32dec(eh.tlen);
 
 			continue;
 		}
@@ -392,6 +410,25 @@ ssize_t
 readtape_readchunk(TAPE_R * d, struct chunkheader ** ch)
 {
 	size_t len;
+
+	/*
+	 * If we've hit the end of a multitape archive entry, read the next
+	 * entry header.  If a single file is split between two or more
+	 * multitape entries due to checkpointing, the second and subsequent
+	 * entries will have no header data but will instead go straight into
+	 * chunks.
+	 */
+	if ((d->hlen == 0) && (d->clen == 0) && (d->tlen == 0)) {
+		/* Read the next archive entry header. */
+		switch (get_entryheader(d)) {
+		case -1:
+			goto err0;
+		case 0:
+			goto nochunk;
+		case 1:
+			break;
+		}
+	}
 
 	/*
 	 * We can only return a chunk if we're in the chunk portion of an
@@ -448,8 +485,6 @@ err0:
 off_t
 readtape_skip(TAPE_R * d, off_t request)
 {
-	struct entryheader eh;
-	ssize_t readlen;
 	off_t skipped;
 	off_t skiplen;
 
@@ -483,30 +518,15 @@ readtape_skip(TAPE_R * d, off_t request)
 			d->t.skiplen += skiplen;
 			skipped += skiplen;
 		} else {
-			/* Read an archive entry header. */
-			readlen = stream_read(&d->h, (uint8_t *)&eh,
-			    sizeof(struct entryheader), d->C);
-
-			switch(readlen) {
+			/* Read the next archive entry header. */
+			switch (get_entryheader(d)) {
 			case -1:
-				/* Error in stream_read. */
 				goto err0;
 			case 0:
-				/* No more chunks available. */
 				goto eof;
-			case sizeof(struct entryheader):
-				/* Successful read of chunk header. */
+			case 1:
 				break;
-			default:
-				/* Wrong length read. */
-				warnp("Premature EOF of archive index");
-				goto err0;
 			}
-
-			/* Decode entry header. */
-			d->hlen = le32dec(eh.hlen);
-			d->clen = le64dec(eh.clen);
-			d->tlen = le32dec(eh.tlen);
 		}
 	}
 

@@ -12,6 +12,9 @@ nodump
 # Print statistics when creating or deleting archives
 print-stats
 
+# Create a checkpoint once per GB of uploaded data.
+checkpoint-bytes 1G
+
 ### Other options, not applicable to most systems
 
 # Aggressive network behaviour: Use multiple TCP connections when

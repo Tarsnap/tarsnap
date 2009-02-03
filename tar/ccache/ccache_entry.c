@@ -19,8 +19,22 @@
 
 #include "ccache.h"
 
-static int callback_addchunk(void * cookie, struct chunkheader * ch);
-static int callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen);
+/* A cookie for higher layers to access a cache entry. */
+struct ccache_entry {
+	struct ccache_internal * cci;	/* Cache data structure. */
+	struct ccache_record * ccr;	/* Actual cache entry. */
+	struct ccache_record ** ccrp;	/* Pointer to pointer in tree. */
+	int	hittrailer;		/* Non-zero if the multitape layer */
+					/* has told us about a trailer. */
+	uint8_t *	trailer;	/* Uncompressed trailer. */
+	ino_t	ino_new;		/* New inode number. */
+	off_t	size_new;		/* New file size. */
+	time_t	mtime_new;		/* New modification time. */
+};
+
+static int callback_addchunk(void *, struct chunkheader *);
+static int callback_addtrailer(void *, const uint8_t *, size_t);
+static int callback_faketrailer(void *, const uint8_t *, size_t);
 
 /* Callback to add a chunk header to a cache entry. */
 static int
@@ -30,6 +44,14 @@ callback_addchunk(void * cookie, struct chunkheader * ch)
 	struct ccache_record * ccr = cce->ccr;
 	struct chunkheader * p;
 	size_t nchalloc_new;
+
+	/*
+	 * Has the multitape layer written a "trailer" already for this file?
+	 * If so, return without doing anything.  This can occur if an archive
+	 * checkpoint occurs in the middle of an archive entry's data.
+	 */
+	if (cce->hittrailer)
+		goto done;
 
 	/* Do we need to expand the allocate space? */
 	if (ccr->nch >= ccr->nchalloc) {
@@ -73,6 +95,7 @@ callback_addchunk(void * cookie, struct chunkheader * ch)
 	/* Adjust memory usage accounting. */
 	cce->cci->chunksusage += sizeof(struct chunkheader);
 
+done:
 	/* Success! */
 	return (0);
 
@@ -91,11 +114,16 @@ callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen)
 	uLongf zlen;
 	int rc;
 
-	/* Do we already have a trailer?  We shouldn't. */
-	if (ccr->tlen != 0) {
-		warn0("cache entry has two trailers?");
-		goto err0;
-	}
+	/*
+	 * Has the multitape layer written a "trailer" already for this file?
+	 * If so, return without doing anything.  This can occur if an archive
+	 * checkpoint occurs in the middle of an archive entry's data.
+	 */
+	if (cce->hittrailer)
+		goto done;
+
+	/* We have now been informed about a trailer. */
+	cce->hittrailer = 1;
 
 	/* Allocate space for the trailer. */
 	zlen = buflen + (buflen >> 9) + 13;
@@ -131,6 +159,7 @@ callback_addtrailer(void * cookie, const uint8_t * buf, size_t buflen)
 	/* Adjust memory usage accounting. */
 	cce->cci->trailerusage += zlen;
 
+done:
 	/* Success! */
 	return (0);
 
@@ -139,6 +168,25 @@ err1:
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/*
+ * Callback to record that the multitape code has logged a trailer but not
+ * bother caching the trailer.
+ */
+static int
+callback_faketrailer(void * cookie, const uint8_t * buf, size_t buflen)
+{
+	struct ccache_entry * cce = cookie;
+
+	(void)buf; /* UNUSED */
+	(void)buflen; /* UNUSED */
+
+	/* We have now been informed about a trailer. */
+	cce->hittrailer = 1;
+
+	/* Success! */
+	return (0);
 }
 
 /**
@@ -168,6 +216,15 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 
 	/* Record the cache with which this entry is affiliated. */
 	cce->cci = cache;
+
+	/*
+	 * The multitape layer hasn't written any "trailer" for this file
+	 * yet.  It doesn't matter if we have a trailer in our cache -- if
+	 * we're in a position where we're getting callbacks from the
+	 * multitape code (i.e., if we can't supply the entire file using
+	 * cached data) we'll have thrown away the trailer we have.
+	 */
+	cce->hittrailer = 0;
 
 	/* Record the new inode number, size, and modification time. */
 	cce->ino_new = sb->st_ino;
@@ -355,9 +412,10 @@ ccache_entry_write(CCACHE_ENTRY * cce, TAPE_W * cookie)
 		if (lenwrit < 0)
 			goto err0;
 
-		/* Not present? */
+		/* We should always be able to write chunks at this point. */
 		if (lenwrit == 0) {
-			warn0("Chunk no longer available?");
+			warn0("Programmer error: "
+			    "writetape_writechunk unexpectedly returned 0");
 			goto err0;
 		}
 
@@ -495,7 +553,8 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 	/* Ask the multitape layer to inform us about later chunks. */
 	writetape_setcallback(cookie, callback_addchunk,
 	    ((cce->cci->trailerusage > cce->cci->chunksusage * 2) ||
-	    (notrailer != 0)) ? NULL : callback_addtrailer, cce);
+	    (notrailer != 0)) ? callback_faketrailer : callback_addtrailer,
+	    cce);
 
 	/* Success! */
 	return (skiplen);
