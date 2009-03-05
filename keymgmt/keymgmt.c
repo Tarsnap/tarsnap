@@ -39,6 +39,10 @@ main(int argc, char **argv)
 	uint8_t machinenumvec[8];
 	const char * missingkey;
 
+#ifdef NEED_WARN_PROGNAME
+	warn_progname = "tarsnap-keymgmt";
+#endif
+
 	/* Initialize entropy subsystem. */
 	if (crypto_entropy_init()) {
 		warnp("Entropy subsystem initialization failed");

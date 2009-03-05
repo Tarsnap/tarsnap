@@ -290,6 +290,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 static void
 write_archive(struct archive *a, struct bsdtar *bsdtar)
 {
+	struct sigaction sa;
 	const char *arg;
 	struct archive_entry *entry, *sparse_entry;
 
@@ -301,7 +302,10 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		exit(1);
 
 	/* And SIGUSR2, too. */
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR)
+	sa.sa_handler = sigusr2_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if (sigaction(SIGUSR2, &sa, NULL))
 		bsdtar_errc(bsdtar, 1, 0, "cannot install signal handler");
 
 	/* Allocate a buffer for file data. */

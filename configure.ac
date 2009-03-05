@@ -70,7 +70,7 @@ AM_MAINTAINER_MODE
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([bzlib.h errno.h fcntl.h  grp.h])
+AC_CHECK_HEADERS([bzlib.h err.h errno.h fcntl.h  grp.h])
 AC_CHECK_HEADERS([inttypes.h langinfo.h limits.h])
 # Include inttypes.h into archive.h only if appropriate.
 # We can't use the HAVE_INTTYPES_H macro here because archive.h

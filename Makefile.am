@@ -173,7 +173,8 @@ tarsnap_SOURCES=					\
 		lib/util/hexify.c			\
 		lib/util/hexlink.c			\
 		lib/util/humansize.c			\
-		lib/util/sigquit.c
+		lib/util/sigquit.c			\
+		lib/util/warnp.c
 
 tarsnap_DEPENDENCIES = libarchive.a		\
 		libarchive/archive_entry.h	\
@@ -233,7 +234,8 @@ tarsnap_keygen_SOURCES=					\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
 		lib/util/asprintf.c			\
-		lib/util/entropy.c
+		lib/util/entropy.c			\
+		lib/util/warnp.c
 
 tarsnap_keygen_LDADD= -lcrypto
 tarsnap_keygen_CFLAGS=					\
@@ -272,7 +274,8 @@ tarsnap_keymgmt_SOURCES=				\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
 		lib/util/asprintf.c			\
-		lib/util/entropy.c
+		lib/util/entropy.c			\
+		lib/util/warnp.c
 
 tarsnap_keymgmt_LDADD= -lcrypto
 tarsnap_keymgmt_CFLAGS=					\

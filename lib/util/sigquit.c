@@ -78,6 +78,7 @@ err0:
 int
 sigquit_init(void)
 {
+	struct sigaction sa;
 	struct termios tc_new;
 	size_t i;
 
@@ -85,8 +86,11 @@ sigquit_init(void)
 	sigquit_received = 0;
 
 	/* ... but when it happens, we want to catch it. */
-	if (signal(SIGQUIT, sigquit_handler) == SIG_ERR) {
-		warnp("signal(SIGQUIT)");
+	sa.sa_handler = sigquit_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if (sigaction(SIGQUIT, &sa, NULL)) {
+		warnp("sigaction(SIGQUIT)");
 		goto err0;
 	}
 
@@ -97,10 +101,12 @@ sigquit_init(void)
 		 * end of the pipe was closed) we're not going to remap ^Q
 		 * to SIGQUIT, and we don't need to unmap it on exit.  For
 		 * some reason Linux returns EINVAL if stdin is not a
-		 * terminal, so handle this too.
+		 * terminal, so handle this too.  Some OSes return ENODEV
+		 * here, although this doesn't seem to be documented.
 		 */
 		if ((errno == ENOTTY) || (errno == ENXIO) ||
-		    (errno == EBADF) || (errno == EINVAL))
+		    (errno == EBADF) || (errno == EINVAL) ||
+		    (errno == ENODEV))
 			goto done;
 
 		warnp("tcgetattr(stdin)");
