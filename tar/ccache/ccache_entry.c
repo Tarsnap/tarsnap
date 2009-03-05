@@ -195,7 +195,7 @@ callback_faketrailer(void * cookie, const uint8_t * buf, size_t buflen)
  * ${sb}, to the multitape with write cookie ${cookie}.  Look up the file in
  * the chunkification cache ${cache}, and set ${fullentry} to a non-zero
  * value iff the cache can provide at least sb->st_size bytes of the archive
- * entry.  Return a cookie which can be passed to either ccahe_entry_write
+ * entry.  Return a cookie which can be passed to either ccache_entry_write
  * or ccache_entry_start depending upon whether ${fullentry} is zero or not.
  */
 CCACHE_ENTRY *
@@ -204,11 +204,12 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 {
 	struct ccache_internal * C = cache;
 	struct ccache_entry * cce;
-	size_t cnum;
+	int fresh;
+	size_t cnum = 0;	/* No chunks known to be available yet. */
+	off_t skiplen = 0;	/* No data known to be providable yet. */
 	ssize_t lenwrit;
 	uLongf tbuflen;
 	int rc;
-	off_t skiplen;
 
 	/* Allocate memory. */
 	if ((cce = malloc(sizeof(struct ccache_entry))) == NULL)
@@ -242,9 +243,6 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		/* No decompressed trailer. */
 		cce->trailer = NULL;
 
-		/* We can't supply the full archive entry. */
-		*fullentry = 0;
-
 		/* That's all, folks! */
 		goto done;
 	}
@@ -255,12 +253,15 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 	/* Is the cache entry fresh? */
 	if ((cce->ino_new == cce->ccr->ino) &&
 	    (cce->size_new == cce->ccr->size) &&
-	    (cce->mtime_new == cce->ccr->mtime)) {
-		/* Can't provide any data yet. */
-		skiplen = 0;
+	    (cce->mtime_new == cce->ccr->mtime))
+		fresh = 1;
+	else
+		fresh = 0;
 
+	/* If the cache entry is fresh, check if the chunks are available. */
+	if (fresh) {
 		/* Check if chunks are still available. */
-		for (cnum = 0; cnum < cce->ccr->nch; cnum++) {
+		for (; cnum < cce->ccr->nch; cnum++) {
 			lenwrit = writetape_ischunkpresent(cookie,
 			    cce->ccr->chp + cnum);
 
@@ -269,108 +270,91 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 				goto err1;
 
 			/* Not present? */
-			if (lenwrit == 0) {
-				/* Remove stale data from the cache entry. */
-				cce->ccr->nch = cnum;
-				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
-					cce->cci->trailerusage -=
-					    cce->ccr->tzlen;
-					free(cce->ccr->ztrailer);
-				}
-				cce->ccr->ztrailer = NULL;
-				cce->ccr->tlen = cce->ccr->tzlen = 0;
+			if (lenwrit == 0)
 				break;
-			}
 
 			/* We can supply this data. */
 			skiplen += lenwrit;
 		}
+	}
 
-		/*
-		 * If all the chunks are available and the cache entry
-		 * contains a file trailer, decompress it.
-		 */
-		if (cce->ccr->tlen > 0 && cnum == cce->ccr->nch) {
-			/* Allocate space for trailer. */
-			tbuflen = cce->ccr->tlen;
-			if ((cce->trailer = malloc(tbuflen)) == NULL)
-				goto err1;
+	/*
+	 * If the cache entry is fresh; all of the chunks are available; we
+	 * have a trailer; and the trailer is long enough that having it will
+	 * allow us to provide the entire archive entry out of the cache;
+	 * then try to decompress the trailer.
+	 */
+	if (fresh &&
+	    (cnum == cce->ccr->nch) &&
+	    (cce->ccr->tlen > 0) &&
+	    (skiplen + (off_t)(cce->ccr->tlen) >= sb->st_size)) {
+		/* Allocate space for trailer. */
+		tbuflen = cce->ccr->tlen;
+		if ((cce->trailer = malloc(tbuflen)) == NULL)
+			goto err1;
 
-			/* Decompress trailer. */
-			rc = uncompress(cce->trailer, &tbuflen,
-			    cce->ccr->ztrailer, cce->ccr->tzlen);
+		/* Decompress trailer. */
+		rc = uncompress(cce->trailer, &tbuflen,
+		    cce->ccr->ztrailer, cce->ccr->tzlen);
 
-			/* Print warnings. */
-			if (rc != Z_OK) {
-				switch (rc) {
-				case Z_MEM_ERROR:
-					errno = ENOMEM;
-					warnp("Error decompressing cache");
-					break;
-				case Z_BUF_ERROR:
-				case Z_DATA_ERROR:
-					warn0("Warning: cached trailer "
-					    "is corrupt");
-					break;
-				default:
-					warn0("Programmer error: "
-					    "Unexpected error code from "
-					    "uncompress: %d", rc);
-					break;
-				}
-			} else if (tbuflen != cce->ccr->tlen)
-				warn0("Cached trailer is corrupt");
-
-			/*
-			 * Add the trailer size to the length of the data
-			 * which we can supply, unless something went wrong
-			 * with the trailer; in which case, free it.
-			 */
-			if (rc == Z_OK && tbuflen == cce->ccr->tlen) {
-				skiplen += cce->ccr->tlen;
-			} else {
-				free(cce->trailer);
-				cce->trailer = NULL;
-				if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
-					cce->cci->trailerusage -=
-					    cce->ccr->tzlen;
-					free(cce->ccr->ztrailer);
-				}
-				cce->ccr->ztrailer = NULL;
-				cce->ccr->tlen = cce->ccr->tzlen = 0;
+		/* Print warnings. */
+		if (rc != Z_OK) {
+			switch (rc) {
+			case Z_MEM_ERROR:
+				errno = ENOMEM;
+				warnp("Error decompressing cache");
+				break;
+			case Z_BUF_ERROR:
+			case Z_DATA_ERROR:
+				warn0("Warning: cached trailer is corrupt");
+				break;
+			default:
+				warn0("Programmer error: "
+				    "Unexpected error code from "
+				    "uncompress: %d", rc);
+				break;
 			}
-		} else {
+		} else if (tbuflen != cce->ccr->tlen) {
+			warn0("Cached trailer is corrupt");
+			rc = Z_DATA_ERROR;
+		}
+
+		/* If the trailer didn't decompress properly, clean it up. */
+		if (rc != Z_OK) {
+			free(cce->trailer);
 			cce->trailer = NULL;
 		}
 
-		/*
-		 * Can we supply all the necessary data?  Note that if the
-		 * cached archive entry is shorter than the file (e.g., if
-		 * it was previously stored as a hardlink), we might find
-		 * that everything in the cache is fine, but we still don't
-		 * have all the file data.
-		 */
-		if (skiplen >= sb->st_size)
-			*fullentry = 1;
-		else
-			*fullentry = 0;
+		/* We can supply the trailer data from the cache. */
+		skiplen += cce->ccr->tlen;
 	} else {
-		/* Cache entry is stale; we can't supply the entire file. */
-		*fullentry = 0;
+		cce->trailer = NULL;
+	}
 
-		/* The trailer is useless, so we might as well free it now. */
+	/*
+	 * If there is a compressed trailer but no decompressed trailer, we
+	 * must have decided that the compressed trailer was useless; delete
+	 * it.
+	 */
+	if ((cce->trailer == NULL) && (cce->ccr->tlen > 0)) {
+		/* Free the compressed trailer if appropriate. */
 		if (cce->ccr->flags & CCR_ZTRAILER_MALLOC) {
 			cce->cci->trailerusage -= cce->ccr->tzlen;
 			free(cce->ccr->ztrailer);
 		}
+
+		/* We have no compressed trailer. */
 		cce->ccr->ztrailer = NULL;
 		cce->ccr->tlen = cce->ccr->tzlen = 0;
-
-		/* There is no decompressed trailer, either. */
-		cce->trailer = NULL;
 	}
 
 done:
+	/* Can we supply the entire file worth of data? */
+	if (skiplen >= sb->st_size)
+		*fullentry = 1;
+	else
+		*fullentry = 0;
+
 	/* Success! */
 	return (cce);
 
@@ -460,6 +444,17 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 	size_t cnum;
 	ssize_t lenwrit, lenread;
 	uint8_t hbuf[32];
+
+	/*
+	 * Make sure there is no trailer in this cache entry -- a trailer
+	 * should only exist if we can supply the entire file, in which case
+	 * ccache_entry_write should be called instead.
+	 */
+	if (cce->ccr->tlen > 0) {
+		warn0("Programmer error: "
+		    "ccache_entry_writefile called but trailer exists");
+		goto err0;
+	}
 
 	/* If we have some chunks, allocate a buffer for verification. */
 	if (cce->ccr->nch) {
@@ -613,12 +608,11 @@ ccache_entry_end(CCACHE * cache, CCACHE_ENTRY * cce, TAPE_W * cookie,
 				goto err1;
 		}
 	} else {
-		/*
-		 * Don't need to free ztrailer or chp -- if we got here they
-		 * must both be NULL.
-		 */
-		if (cce->ccrp == NULL)
+		if (cce->ccrp == NULL) {
+			if (cce->ccr->nchalloc)
+				free(cce->ccr->chp);
 			free(cce->ccr);
+		}
 	}
 
 	/* Free the cache entry cookie. */

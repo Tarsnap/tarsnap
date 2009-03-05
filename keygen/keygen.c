@@ -76,6 +76,10 @@ main(int argc, char **argv)
 	uint8_t machinenum[8];
 	NETPACKET_CONNECTION * NPC;
 
+#ifdef NEED_WARN_PROGNAME
+	warn_progname = "tarsnap-keygen";
+#endif
+
 	/* We have no username, machine name, or key filename yet. */
 	C.user = C.name = NULL;
 	keyfilename = NULL;

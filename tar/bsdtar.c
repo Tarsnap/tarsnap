@@ -78,6 +78,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "network.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
+#include "warnp.h"
 
 /* Global tarsnap options declared in tarsnap_opt.h. */
 int tarsnap_opt_aggressive_networking = 0;
@@ -136,6 +137,9 @@ main(int argc, char **argv)
 		else
 			bsdtar->progname = *argv;
 	}
+#ifdef NEED_WARN_PROGNAME
+	warn_progname = bsdtar->progname;
+#endif
 
 	if (setlocale(LC_ALL, "") == NULL)
 		bsdtar_warnc(bsdtar, 0, "Failed to set default locale");
