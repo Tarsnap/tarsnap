@@ -1,5 +1,5 @@
 /*-
- * Copyright 2005,2007 Colin Percival
+ * Copyright 2005,2007,2009 Colin Percival
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "sha256.h"
 #include "sysendian.h"
+
+#include "sha256.h"
 
 /*
  * Encode a length len/4 vector of (uint32_t) into a length len vector of
@@ -351,4 +352,61 @@ HMAC_SHA256_Final(unsigned char digest[32], HMAC_SHA256_CTX * ctx)
 
 	/* Clean the stack. */
 	memset(ihash, 0, 32);
+}
+
+/**
+ * PBKDF2_SHA256(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
+ * Compute PBKDF2(passwd, salt, c, dkLen) using HMAC-SHA256 as the PRF, and
+ * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
+ */
+void
+PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
+    size_t saltlen, uint64_t c, uint8_t * buf, size_t dkLen)
+{
+	HMAC_SHA256_CTX PShctx, hctx;
+	size_t i;
+	uint8_t ivec[4];
+	uint8_t U[32];
+	uint8_t T[32];
+	uint64_t j;
+	int k;
+	size_t clen;
+
+	/* Compute HMAC state after processing P and S. */
+	HMAC_SHA256_Init(&PShctx, passwd, passwdlen);
+	HMAC_SHA256_Update(&PShctx, salt, saltlen);
+
+	/* Iterate through the blocks. */
+	for (i = 0; i * 32 < dkLen; i++) {
+		/* Generate INT(i + 1). */
+		be32enc(ivec, (uint32_t)(i + 1));
+
+		/* Compute U_1 = PRF(P, S || INT(i)). */
+		memcpy(&hctx, &PShctx, sizeof(HMAC_SHA256_CTX));
+		HMAC_SHA256_Update(&hctx, ivec, 4);
+		HMAC_SHA256_Final(U, &hctx);
+
+		/* T_i = U_1 ... */
+		memcpy(T, U, 32);
+
+		for (j = 2; j <= c; j++) {
+			/* Compute U_j. */
+			HMAC_SHA256_Init(&hctx, passwd, passwdlen);
+			HMAC_SHA256_Update(&hctx, U, 32);
+			HMAC_SHA256_Final(U, &hctx);
+
+			/* ... xor U_j ... */
+			for (k = 0; k < 32; k++)
+				T[k] ^= U[k];
+		}
+
+		/* Copy as many bytes as necessary into buf. */
+		clen = dkLen - i * 32;
+		if (clen > 32)
+			clen = 32;
+		memcpy(&buf[i * 32], T, clen);
+	}
+
+	/* Clean PShctx, since we never called _Final on it. */
+	memset(&PShctx, 0, sizeof(HMAC_SHA256_CTX));
 }

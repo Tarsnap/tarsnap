@@ -1,5 +1,5 @@
 /*-
- * Copyright 2005,2007,2009 Colin Percival
+ * Copyright 2009 Colin Percival
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,40 +23,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $FreeBSD: src/lib/libmd/sha256.h,v 1.2 2006/01/17 15:35:56 phk Exp $
+ * This file was originally written by Colin Percival as part of the Tarsnap
+ * online backup system.
  */
-
-#ifndef _SHA256_H_
-#define _SHA256_H_
-
-#include <sys/types.h>
-
-#include <stdint.h>
-
-typedef struct SHA256Context {
-	uint32_t state[8];
-	uint32_t count[2];
-	unsigned char buf[64];
-} SHA256_CTX;
-
-typedef struct HMAC_SHA256Context {
-	SHA256_CTX ictx;
-	SHA256_CTX octx;
-} HMAC_SHA256_CTX;
-
-void	SHA256_Init(SHA256_CTX *);
-void	SHA256_Update(SHA256_CTX *, const void *, size_t);
-void	SHA256_Final(unsigned char [32], SHA256_CTX *);
-void	HMAC_SHA256_Init(HMAC_SHA256_CTX *, const void *, size_t);
-void	HMAC_SHA256_Update(HMAC_SHA256_CTX *, const void *, size_t);
-void	HMAC_SHA256_Final(unsigned char [32], HMAC_SHA256_CTX *);
+#ifndef _READPASS_H_
+#define _READPASS_H_
 
 /**
- * PBKDF2_SHA256(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
- * Compute PBKDF2(passwd, salt, c, dkLen) using HMAC-SHA256 as the PRF, and
- * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
+ * tarsnap_getpass(passwd, prompt, confirmprompt, devtty)
+ * If ${devtty} is non-zero, read a password from /dev/tty if possible; if
+ * not, read from stdin.  If reading from a tty (either /dev/tty or stdin),
+ * disable echo and prompt the user by printing ${prompt} to stderr.  If
+ * ${confirmprompt} is non-NULL, read a second password (prompting if a
+ * terminal is being used) and repeat until the user enters the same password
+ * twice.  Return the password as a malloced NUL-terminated string via
+ * ${passwd}.  The obscure name is to avoid namespace collisions due to the
+ * getpass / readpass / readpassphrase / etc. functions in various libraries.
  */
-void	PBKDF2_SHA256(const uint8_t *, size_t, const uint8_t *, size_t,
-    uint64_t, uint8_t *, size_t);
+int tarsnap_readpass(char **, const char *, const char *, int);
 
-#endif /* !_SHA256_H_ */
+#endif /* !_READPASS_H_ */

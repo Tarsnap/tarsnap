@@ -6,7 +6,7 @@
 
 #include "hexify.h"
 
-static char hexchars[32] ="0123456789abcdef0123456789ABCDEF";
+static char hexchars[] ="0123456789abcdef0123456789ABCDEF";
 
 /**
  * hexify(in, out, len):

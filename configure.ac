@@ -82,9 +82,30 @@ AC_CHECK_HEADER(inttypes.h,
 	 [AC_SUBST(ARCHIVE_H_INCLUDE_INTTYPES_H,['#include <inttypes.h> /* For int64_t */'])],
 	 [AC_SUBST(ARCHIVE_H_INCLUDE_INTTYPES_H,[''])])
 AC_CHECK_HEADERS([locale.h paths.h poll.h pwd.h stdarg.h])
-AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/acl.h sys/endian.h sys/ioctl.h])
+AC_CHECK_HEADERS([stdint.h stdlib.h string.h sys/acl.h sys/ioctl.h])
 AC_CHECK_HEADERS([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
 AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h])
+
+# Look for sys/endian.h and be64enc.  Old versions of NetBSD have
+# sys/endian.h but don't have the (le|be)(32|64)(enc|dec) functions in it.
+AC_CHECK_HEADERS([sys/endian.h])
+AC_CHECK_DECLS([be64enc], [], [], [[#include <sys/endian.h>]])
+
+# Check for clock_gettime.  On some systems, this is provided via librt.
+AC_CHECK_LIB(rt, clock_gettime)
+AC_CHECK_FUNCS([clock_gettime])
+
+# Check for a linuxy sysinfo syscall; and while we're doing that, check if
+# struct sysinfo is the old version (total RAM == totalmem) or the new
+# version (total RAM == totalmem * mem_unit).
+AC_CHECK_HEADERS([sys/sysinfo.h])
+AC_CHECK_FUNCS([sysinfo])
+AC_CHECK_TYPES([struct sysinfo], [], [], [[#include <sys/sysinfo.h>]])
+AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit],
+    [], [], [[#include <sys/sysinfo.h>]])
+
+# Check if we have a hw.usermem sysctl.
+CHECK_SYSCTL_HW_USERMEM
 
 # If we're on Solaris, we need to add some extra paths to the Makefile.
 # This needs to be done *before* we look for OpenSSL; otherwise we won't
@@ -126,9 +147,21 @@ AC_CHECK_TYPE(id_t, [unsigned long])
 AC_CHECK_TYPE(uintptr_t, [unsigned int])
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_CHECK_MEMBERS([struct tm.tm_gmtoff])
+
+# Check for birthtime in struct stat
+AC_CHECK_MEMBERS([struct stat.st_birthtime])
+
 # Check for high-resolution timestamps in struct stat
+AC_CHECK_MEMBERS([struct stat.st_birthtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
+AC_CHECK_MEMBERS([struct stat.st_mtime_n]) # AIX
+AC_CHECK_MEMBERS([struct stat.st_umtime]) # Tru64
+AC_CHECK_MEMBERS([struct stat.st_mtime_usec]) # Hurd
+# Check for block size support in struct stat
+AC_CHECK_MEMBERS([struct stat.st_blksize])
+# Check for st_flags in struct stat (BSD fflags)
+AC_CHECK_MEMBERS([struct stat.st_flags])
 
 # If you have uintmax_t, we assume printf supports %ju
 # If you have unsigned long long, we assume printf supports %llu
@@ -169,7 +202,7 @@ AC_CHECK_FUNCS([fchdir fchflags fchmod fchown fstat])
 AC_CHECK_FUNCS([ftruncate futimes getaddrinfo geteuid getopt_long getpid])
 AC_CHECK_FUNCS([lchflags lchmod lchown lockf])
 AC_CHECK_FUNCS([lutimes memmove memset mkdir mkfifo mknod])
-AC_CHECK_FUNCS([nl_langinfo poll qsort_r select setenv setlocale])
+AC_CHECK_FUNCS([nl_langinfo poll posix_memalign qsort_r select setenv setlocale])
 AC_CHECK_FUNCS([strchr strdup strerror strrchr timegm])
 AC_CHECK_FUNCS([tzset unsetenv utime utimes])
 AC_CHECK_FUNCS([wcscpy wcslen wmemcmp wmemcpy])
@@ -264,6 +297,15 @@ if test "x$enable_acl" != "xno"; then
 		[],
 		[#include <sys/acl.h>])
 fi
+
+# Figure out whether we want to use the SSE version of the scrypt code or not.
+AC_ARG_ENABLE([sse2],
+    [AS_HELP_STRING([--enable-sse2],
+	[use optimized SSE2 code])],
+    [],
+    [enable_sse2=no])
+AS_IF([test "x$enable_sse2" != xno], [SCRYPTVER=sse], [SCRYPTVER=nosse])
+AC_SUBST([SCRYPTVER])
 
 # Additional requirements
 AC_SYS_LARGEFILE

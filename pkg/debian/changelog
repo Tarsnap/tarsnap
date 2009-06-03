@@ -1,10 +1,15 @@
+tarsnap (1.0.22) unstable; urgency=low
+
+  * New version of tarsnap adds support for passphrase-protected key files
+    using the scrypt key derivation function.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Tue, 3 Jun 2009 23:21:44 +0000
 tarsnap (1.0.21) unstable; urgency=critical (low for users of tarsnap 1.0.19 or earlier)
 
   * New version of tarsnap fixes serious bug in the chunk cache when a
     checkpoint is created in the middle of a file.
 
- -- Colin Percival <cperciva@tarsnap.com>  Thu, 5 Mar 2009 01:12:50 
-+0000
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 5 Mar 2009 01:12:50 +0000
 tarsnap (1.0.20) unstable; urgency=low
 
   * Fixed typo in sed code for changing default cachedir.

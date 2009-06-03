@@ -2,6 +2,7 @@
 #define _CRYPTO_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include <unistd.h>
 
 /* Cryptographic keys held by user. */
@@ -284,5 +285,30 @@ int crypto_passwd_to_dh(const char *, const uint8_t[32],
  * identical.  Do not leak any information via timing side channels.
  */
 uint8_t crypto_verify_bytes(const uint8_t *, const uint8_t *, size_t);
+
+/**
+ * crypto_keyfile_read(filename, machinenum):
+ * Read keys from a tarsnap key file; and return the machine # via the
+ * provided pointer.
+ */
+int crypto_keyfile_read(const char *, uint64_t *);
+
+/**
+ * crypto_keyfile_write(filename, machinenum, keys, passphrase, maxmem,
+ *     cputime):
+ * Write a key file for the specified machine containing the specified keys.
+ * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
+ * memory to encrypt the key file.
+ */
+int crypto_keyfile_write(const char *, uint64_t, int, char *, size_t, double);
+
+/**
+ * crypto_keyfile_write_file(f, machinenum, keys, passphrase, maxmem,
+ *     cputime):
+ * Write a key file for the specified machine containing the specified keys.
+ * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
+ * memory to encrypt the key file.
+ */
+int crypto_keyfile_write_file(FILE *, uint64_t, int, char *, size_t, double);
 
 #endif /* !_CRYPTO_H_ */
