@@ -162,17 +162,25 @@ tarsnap_SOURCES=					\
 		lib/crypto/crypto_keys_subr.c		\
 		lib/crypto/crypto_session.c		\
 		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_aesctr.c		\
 		lib/crypto/crypto_rsa.c			\
 		lib/crypto/crypto_dh.c			\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/crypto/crypto_keyfile.c		\
+		lib/crypto/scryptenc.c			\
+		lib/crypto/scrypt_cpuperf.c		\
+		lib/crypto/scrypt-@SCRYPTVER@.c		\
 		lib/util/asprintf.c			\
+		lib/util/b64encode.c			\
 		lib/util/dirutil.c			\
 		lib/util/entropy.c			\
 		lib/util/hexify.c			\
 		lib/util/hexlink.c			\
 		lib/util/humansize.c			\
+		lib/util/memlimit.c			\
+		lib/util/readpass.c			\
 		lib/util/sigquit.c			\
 		lib/util/warnp.c
 
@@ -227,14 +235,23 @@ tarsnap_keygen_SOURCES=					\
 		lib/crypto/crypto_keys_subr.c		\
 		lib/crypto/crypto_session.c		\
 		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_aesctr.c		\
 		lib/crypto/crypto_rsa.c			\
 		lib/crypto/crypto_passwd_to_dh.c	\
 		lib/crypto/crypto_dh.c			\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/crypto/crypto_keyfile.c		\
+		lib/crypto/scryptenc.c			\
+		lib/crypto/scrypt_cpuperf.c		\
+		lib/crypto/scrypt-@SCRYPTVER@.c		\
 		lib/util/asprintf.c			\
+		lib/util/b64encode.c			\
 		lib/util/entropy.c			\
+		lib/util/humansize.c			\
+		lib/util/memlimit.c			\
+		lib/util/readpass.c			\
 		lib/util/warnp.c
 
 tarsnap_keygen_LDADD= -lcrypto
@@ -267,14 +284,23 @@ tarsnap_keymgmt_SOURCES=				\
 		lib/crypto/crypto_keys_subr.c		\
 		lib/crypto/crypto_session.c		\
 		lib/crypto/crypto_file.c		\
+		lib/crypto/crypto_aesctr.c		\
 		lib/crypto/crypto_rsa.c			\
 		lib/crypto/crypto_passwd_to_dh.c	\
 		lib/crypto/crypto_dh.c			\
 		lib/crypto/crypto_verify_bytes.c	\
 		lib/crypto/crypto_keys_server.c		\
 		lib/crypto/crypto_dh_group14.c		\
+		lib/crypto/crypto_keyfile.c		\
+		lib/crypto/scryptenc.c			\
+		lib/crypto/scrypt_cpuperf.c		\
+		lib/crypto/scrypt-@SCRYPTVER@.c		\
 		lib/util/asprintf.c			\
+		lib/util/b64encode.c			\
 		lib/util/entropy.c			\
+		lib/util/humansize.c			\
+		lib/util/memlimit.c			\
+		lib/util/readpass.c			\
 		lib/util/warnp.c
 
 tarsnap_keymgmt_LDADD= -lcrypto

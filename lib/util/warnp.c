@@ -1,3 +1,5 @@
+#include "bsdtar_platform.h"
+
 #ifdef HAVE_ERR_H
 /*
  * Everything is provided through err.h and the associated library, so we
@@ -7,6 +9,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "warnp.h"
 
 const char * warn_progname = "(null)";
 

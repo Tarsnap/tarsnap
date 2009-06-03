@@ -13,20 +13,19 @@
 #include <unistd.h>
 
 #include "crypto.h"
+#include "humansize.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "network.h"
+#include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
 
-/* Length of buffer for reading password. */
-#define IBUFLEN	2048
-
 struct register_internal {
 	/* Parameters provided from main() to network code. */
 	const char * user;
-	const char * passwd;
+	char * passwd;
 	const char * name;
 
 	/* State information. */
@@ -53,9 +52,10 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: tarsnap-keygen %s %s %s\n",
+	fprintf(stderr, "usage: tarsnap-keygen %s %s %s %s %s\n",
 	    "--keyfile key-file", "--user user-name",
-	    "--machine machine-name");
+	    "--machine machine-name",
+	    "[--passphrased]", "[--passphrase-mem maxmem]");
 	exit(1);
 
 	/* NOTREACHED */
@@ -68,13 +68,10 @@ main(int argc, char **argv)
 	const char * keyfilename;
 	FILE * keyfile;
 	struct stat sb;
-	struct termios term, term_old;
-	int notatty = 0;
-	char passbuf[IBUFLEN];
-	uint8_t * keybuf;
-	size_t keybuflen;
-	uint8_t machinenum[8];
 	NETPACKET_CONNECTION * NPC;
+	int passphrased;
+	uint64_t maxmem;
+	char * passphrase;
 
 #ifdef NEED_WARN_PROGNAME
 	warn_progname = "tarsnap-keygen";
@@ -84,8 +81,9 @@ main(int argc, char **argv)
 	C.user = C.name = NULL;
 	keyfilename = NULL;
 
-	/* The password will be stored in passbuf. */
-	C.passwd = passbuf;
+	/* We're not using a passphrase, and have unlimited RAM so far. */
+	passphrased = 0;
+	maxmem = 0;
 
 	/* Parse arguments. */
 	while (--argc > 0) {
@@ -106,6 +104,17 @@ main(int argc, char **argv)
 				usage();
 			keyfilename = argv[1];
 			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrase-mem") == 0) {
+			if ((maxmem != 0) || (argc < 2))
+				usage();
+			if (humansize_parse(argv[1], &maxmem)) {
+				warnp("Cannot parse --passphrase-mem"
+				    " argument: %s", argv[1]);
+				exit(1);
+			}
+			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrased") == 0) {
+			passphrased = 1;
 		} else {
 			usage();
 		}
@@ -113,6 +122,12 @@ main(int argc, char **argv)
 
 	/* We must have a user name, machine name, and key file specified. */
 	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
+		usage();
+
+	/*
+	 * It doesn't make sense to specify --passphrase-mem if we're not
+	 * using a passphrase. */
+	if ((maxmem != 0) && (passphrased == 0))
 		usage();
 
 	/* Sanity-check the user name. */
@@ -126,33 +141,12 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* If stdin is a terminal, try to disable echo. */
-	if (tcgetattr(STDIN_FILENO, &term_old) == 0) {
-		memcpy(&term, &term_old, sizeof(struct termios));
-		term.c_lflag = (term.c_lflag & ~ECHO) | ECHONL;
-		tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
-	} else {
-		notatty = 1;
-	}
-
-	/* If stdin is a terminal, prompt the user to enter the password */
-	if (notatty == 0)
-		fprintf(stderr, "Enter tarsnap account password: ");
-
-	/* Read the password. */
-	if (fgets(passbuf, IBUFLEN, stdin) == NULL) {
-		if (notatty == 0)
-			tcsetattr(STDIN_FILENO, TCSAFLUSH, &term_old);
-		warnp("fgets()");
+	/* Get a password. */
+	if (tarsnap_readpass(&C.passwd, "Enter tarsnap account password",
+	    NULL, 0)) {
+		warnp("Error reading password");
 		exit(1);
 	}
-
-	/* Terminate the string at the first "\r" or "\n" (if any). */
-	passbuf[strcspn(passbuf, "\r\n")] = '\0';
-
-	/* Reset the terminal if appropriate. */
-	if (notatty == 0)
-		tcsetattr(STDIN_FILENO, TCSAFLUSH, &term_old);
 
 	/*
 	 * Create key file -- we do this now rather than later so that we
@@ -290,22 +284,22 @@ main(int argc, char **argv)
 	if (C.machinenum == (uint64_t)(-1))
 		exit(1);
 
-	/* Export keys. */
-	if (crypto_keys_export(CRYPTO_KEYMASK_USER, &keybuf, &keybuflen)) {
-		warnp("Error exporting keys");
-		exit(1);
+	/* If the user wants to passphrase the keyfile, get the passphrase. */
+	if (passphrased != 0) {
+		if (tarsnap_readpass(&passphrase,
+		    "Please enter passphrase for keyfile encryption",
+		    "Please confirm passphrase for keyfile encryption", 1)) {
+			warnp("Error reading password");
+			exit(1);
+		}
+	} else {
+		passphrase = NULL;
 	}
 
-	/* Write keys. */
-	be64enc(machinenum, C.machinenum);
-	if (fwrite(machinenum, 8, 1, keyfile) != 1) {
-		warnp("Error writing keys");
+	/* Write keys to file. */
+	if (crypto_keyfile_write_file(keyfile, C.machinenum,
+	    CRYPTO_KEYMASK_USER, passphrase, maxmem, 1.0))
 		exit(1);
-	}
-	if (fwrite(keybuf, keybuflen, 1, keyfile) != 1) {
-		warnp("Error writing keys");
-		exit(1);
-	}
 
 	/* Close the key file. */
 	if (fclose(keyfile)) {

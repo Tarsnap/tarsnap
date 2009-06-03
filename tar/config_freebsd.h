@@ -40,11 +40,14 @@
 #define	HAVE_BZLIB_H 1
 #define	HAVE_CHFLAGS 1
 #define	HAVE_CHROOT 1
+#define HAVE_CLOCK_GETTIME 1
+#define HAVE_DECL_BE64ENC 1
 #define	HAVE_DECL_OPTARG 1
 #define	HAVE_DECL_OPTIND 1
 #define	HAVE_DIRENT_D_NAMLEN 1
 #define	HAVE_DIRENT_H 1
 #define	HAVE_D_MD_ORDER 1
+#define HAVE_ERR_H 1
 #define	HAVE_ERRNO_H 1
 #undef	HAVE_EXT2FS_EXT2_FS_H
 #define	HAVE_FCHDIR 1
@@ -78,6 +81,7 @@
 #define	HAVE_NL_LANGINFO 1
 #endif
 #define	HAVE_PATHS_H 1
+#define HAVE_POSIX_MEMALIGN 1
 #define	HAVE_PWD_H 1
 #define	HAVE_QSORT_R 1
 #define	HAVE_REGEX_H 1
@@ -100,6 +104,7 @@
 #define	HAVE_SYS_IOCTL_H 1
 #define	HAVE_SYS_PARAM_H 1
 #define	HAVE_SYS_STAT_H 1
+#define HAVE_SYSCTL_HW_USERMEM 1
 #define	HAVE_TIME_H 1
 #define	HAVE_SYS_TYPES_H 1
 #define	HAVE_UINTMAX_T 1

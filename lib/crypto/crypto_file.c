@@ -21,7 +21,6 @@ static struct crypto_aes_key * encr_aes;
 static RWHASHTAB * decr_aes_cache;
 
 static int keygen(void);
-static void aes_ctr(AES_KEY *, uint64_t, const uint8_t *, size_t, uint8_t *);
 
 /**
  * crypto_file_init_keys():
@@ -87,38 +86,6 @@ err0:
 	return (-1);
 }
 
-/*
- * Apply AES to the provided data, using CTR mode with the specified key
- * and nonce.
- */
-static void
-aes_ctr(AES_KEY * key, uint64_t nonce, const uint8_t * buf, size_t len,
-    uint8_t * outbuf)
-{
-	uint8_t pblk[16];
-	uint8_t cblk[16];
-	size_t pos;
-	uint64_t i;
-	size_t j;
-
-	/* Iterate through the buffer. */
-	for (pos = 0; pos < len; pos += 16) {
-		/* The ith block starts at position i * 16. */
-		i = pos / 16;
-
-		/* Generate a counter block. */
-		be64enc(pblk, nonce);
-		be64enc(pblk + 8, i);
-
-		/* Encrypt the counter. */
-		AES_encrypt(pblk, cblk, key);
-
-		/* Mix encrypted counter with plaintext. */
-		for (j = 0; (j < 16) && (pos + j < len); j++)
-			outbuf[pos + j] = buf[pos + j] ^ cblk[j];
-	}
-}
-
 /**
  * crypto_file_enc(buf, len, filebuf):
  * Encrypt the buffer ${buf} of length ${len}, placing the result (including
@@ -127,6 +94,7 @@ aes_ctr(AES_KEY * key, uint64_t nonce, const uint8_t * buf, size_t len,
 int
 crypto_file_enc(const uint8_t * buf, size_t len, uint8_t * filebuf)
 {
+	struct crypto_aesctr * stream;
 
 	/* If we don't have a session AES key yet, generate one. */
 	if ((encr_aes == NULL) && keygen())
@@ -139,8 +107,11 @@ crypto_file_enc(const uint8_t * buf, size_t len, uint8_t * filebuf)
 	be64enc(filebuf + 256, encr_aes->nonce);
 
 	/* Encrypt the data. */
-	aes_ctr(&encr_aes->key, encr_aes->nonce++, buf, len,
-	    filebuf + CRYPTO_FILE_HLEN);
+	if ((stream =
+	    crypto_aesctr_init(&encr_aes->key, encr_aes->nonce)) == NULL)
+		goto err0;
+	crypto_aesctr_stream(stream, buf, filebuf + CRYPTO_FILE_HLEN, len);
+	crypto_aesctr_free(stream);
 
 	/* Compute HMAC. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_FILE, filebuf,
@@ -165,6 +136,7 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 {
 	uint8_t hash[CRYPTO_FILE_TLEN];
 	struct crypto_aes_key * key;
+	struct crypto_aesctr * stream;
 	uint64_t nonce;
 
 	/*
@@ -230,7 +202,10 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 	nonce = be64dec(&filebuf[256]);
 
 	/* Decrypt the data. */
-	aes_ctr(&key->key, nonce, &filebuf[CRYPTO_FILE_HLEN], len, buf);
+	if ((stream = crypto_aesctr_init(&key->key, nonce)) == NULL)
+		goto err0;
+	crypto_aesctr_stream(stream, &filebuf[CRYPTO_FILE_HLEN], buf, len);
+	crypto_aesctr_free(stream);
 
 	/* Success! */
 	return (0);

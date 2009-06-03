@@ -12,52 +12,16 @@
 
 #include "crypto.h"
 
-static void aes_ctr_stream(AES_KEY *, uint64_t *, uint8_t[16],
-    const uint8_t *, uint8_t *, size_t);
-
 struct crypto_session_internal {
+	struct crypto_aesctr * encr_write_stream;
 	AES_KEY encr_write;
-	uint64_t encr_write_bytectr;
-	uint8_t encr_write_buf[16];
 	uint8_t auth_write[32];
 	uint64_t auth_write_nonce;
+	struct crypto_aesctr * encr_read_stream;
 	AES_KEY encr_read;
-	uint64_t encr_read_bytectr;
-	uint8_t encr_read_buf[16];
 	uint8_t auth_read[32];
 	uint64_t auth_read_nonce;
 };
-
-/**
- * aes_ctr_stream(key, bytectr, buf, inbuf, outbuf, buflen):
- * Perform buflen bytes of AES-CTR.
- */
-static void
-aes_ctr_stream(AES_KEY * key, uint64_t * bytectr, uint8_t buf[16],
-    const uint8_t * inbuf, uint8_t * outbuf, size_t buflen)
-{
-	uint8_t pblk[16];
-	size_t pos;
-	int bytemod;
-
-	for (pos = 0; pos < buflen; pos++) {
-		/* How far through the buffer are we? */
-		bytemod = *bytectr % 16;
-
-		/* Generate a block of cipherstream if needed. */
-		if (bytemod == 0) {
-			be64enc(pblk, 0);
-			be64enc(pblk + 8, *bytectr / 16);
-			AES_encrypt(pblk, buf, key);
-		}
-
-		/* Encrypt a byte. */
-		outbuf[pos] = inbuf[pos] ^ buf[bytemod];
-
-		/* Move to the next byte of cipherstream. */
-		*bytectr = *bytectr + 1;
-	}
-}
 
 /**
  * crypto_session_init(pub, priv, nonce, mkey, encr_write, auth_write,
@@ -101,7 +65,7 @@ crypto_session_init(uint8_t pub[CRYPTO_DH_PUBLEN],
 	crypto_hash_data_key(mkey, 48,
 	    (const uint8_t *)auth_read, strlen(auth_read), CS->auth_read);
 
-	/* Expand AES keys. */
+	/* Expand AES keys and set up streams. */
 	if (AES_set_encrypt_key(aes_write, 256, &CS->encr_write)) {
 		warn0("error in AES_set_encrypt_key");
 		goto err1;
@@ -110,14 +74,21 @@ crypto_session_init(uint8_t pub[CRYPTO_DH_PUBLEN],
 		warn0("error in AES_set_encrypt_key");
 		goto err1;
 	}
+	if ((CS->encr_write_stream =
+	    crypto_aesctr_init(&CS->encr_write, 0)) == NULL)
+		goto err1;
+	if ((CS->encr_read_stream =
+	    crypto_aesctr_init(&CS->encr_read, 0)) == NULL)
+		goto err2;
 
 	/* Initialize parameters. */
-	CS->encr_write_bytectr = CS->encr_read_bytectr = 0;
 	CS->auth_write_nonce = CS->auth_read_nonce = 0;
 
 	/* Success! */
 	return (CS);
 
+err2:
+	crypto_aesctr_free(CS->encr_write_stream);
 err1:
 	free(CS);
 err0:
@@ -134,9 +105,7 @@ crypto_session_encrypt(CRYPTO_SESSION * CS, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
 
-	/* Call AES-CTR helper function. */
-	aes_ctr_stream(&CS->encr_write, &CS->encr_write_bytectr,
-	    CS->encr_write_buf, inbuf, outbuf, buflen);
+	crypto_aesctr_stream(CS->encr_write_stream, inbuf, outbuf, buflen);
 }
 
 /**
@@ -148,9 +117,7 @@ crypto_session_decrypt(CRYPTO_SESSION * CS, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
 
-	/* Call AES-CTR helper function. */
-	aes_ctr_stream(&CS->encr_read, &CS->encr_read_bytectr,
-	    CS->encr_read_buf, inbuf, outbuf, buflen);
+	crypto_aesctr_stream(CS->encr_read_stream, inbuf, outbuf, buflen);
 }
 
 /**
@@ -207,5 +174,7 @@ void
 crypto_session_free(CRYPTO_SESSION * CS)
 {
 
+	crypto_aesctr_free(CS->encr_write_stream);
+	crypto_aesctr_free(CS->encr_read_stream);
 	free(CS);
 }

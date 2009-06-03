@@ -76,7 +76,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "crypto.h"
 #include "humansize.h"
 #include "network.h"
-#include "sysendian.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
 
@@ -140,6 +139,9 @@ main(int argc, char **argv)
 #ifdef NEED_WARN_PROGNAME
 	warn_progname = bsdtar->progname;
 #endif
+
+	/* We don't have a machine # yet. */
+	bsdtar->machinenum = (uint64_t)(-1);
 
 	if (setlocale(LC_ALL, "") == NULL)
 		bsdtar_warnc(bsdtar, 0, "Failed to set default locale");
@@ -1104,37 +1106,17 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 static void
 load_keys(struct bsdtar *bsdtar, const char *path)
 {
-	struct stat sb;
-	uint8_t * keybuf;
-	FILE * f;
+	uint64_t machinenum;
 
-	/* Stat the file. */
-	if (stat(path, &sb))
-		bsdtar_errc(bsdtar, 1, errno, "stat(%s)", path);
-
-	/* Allocate memory. */
-	if ((sb.st_size < 8) || (sb.st_size > 1000000))
-		bsdtar_errc(bsdtar, 1, 0,
-		    "Key file has unreasonable size: %s", path);
-	if ((keybuf = malloc(sb.st_size)) == NULL)
-		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
-
-	/* Read the file. */
-	if ((f = fopen(path, "r")) == NULL)
-		bsdtar_errc(bsdtar, 1, errno, "fopen(%s)", path);
-	if (fread(keybuf, sb.st_size, 1, f) != 1)
-		bsdtar_errc(bsdtar, 1, errno, "fread(%s)", path);
-	if (fclose(f))
-		bsdtar_errc(bsdtar, 1, errno, "fclose(%s)", path);
-
-	/* Parse machine number. */
-	bsdtar->machinenum = be64dec(keybuf);
-
-	/* Parse keys. */
-	if (crypto_keys_import(&keybuf[8], sb.st_size - 8))
+	/* Load the key file. */
+	if (crypto_keyfile_read(path, &machinenum))
 		bsdtar_errc(bsdtar, 1, errno,
-		    "Error reading keys: %s", path);
+		    "Cannot read key file: %s", path);
 
-	/* Free memory. */
-	free(keybuf);
+	/* Check the machine number. */
+	if ((bsdtar->machinenum != (uint64_t)(-1)) &&
+	    (machinenum != bsdtar->machinenum))
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Key file belongs to wrong machine: %s", path);
+	bsdtar->machinenum = machinenum;
 }

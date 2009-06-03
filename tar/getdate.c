@@ -1,10 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 #ifndef lint
 #ifdef __unused
 __unused
 #endif
 static char const 
-yyrcsid[] = "$FreeBSD: src/usr.bin/yacc/skeleton.c,v 1.37 2003/02/12 18:03:55 davidc Exp $";
+yyrcsid[] = "$FreeBSD: src/usr.bin/yacc/skeleton.c,v 1.37.22.1.4.1 2009/04/15 03:14:26 kensmith Exp $";
 #endif
 #define YYBYACC 1
 #define YYMAJOR 1
@@ -113,7 +114,7 @@ static time_t	yyRelSeconds;
 typedef union {
     time_t		Number;
 } YYSTYPE;
-#line 117 "getdate.c"
+#line 118 "getdate.c"
 #define YYERRCODE 256
 #define tAGO 257
 #define tDAY 258
@@ -810,7 +811,7 @@ main(int argc, char **argv)
     /* NOTREACHED */
 }
 #endif	/* defined(TEST) */
-#line 814 "getdate.c"
+#line 815 "getdate.c"
 /* allocate initial stack or double stack size, up to YYMAXDEPTH */
 static int yygrowstack()
 {
@@ -1002,7 +1003,10 @@ yyreduce:
                 YYPREFIX, yystate, yyn, yyrule[yyn]);
 #endif
     yym = yylen[yyn];
-    yyval = yyvsp[1-yym];
+    if (yym)
+        yyval = yyvsp[1-yym];
+    else
+        memset(&yyval, 0, sizeof yyval);
     switch (yyn)
     {
 case 3:
@@ -1311,7 +1315,7 @@ case 40:
 		}
 	}
 break;
-#line 1315 "getdate.c"
+#line 1319 "getdate.c"
     }
     yyssp -= yym;
     yystate = *yyssp;

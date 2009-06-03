@@ -8,7 +8,8 @@
 #include <string.h>
 
 #include "crypto.h"
-#include "sysendian.h"
+#include "humansize.h"
+#include "readpass.h"
 #include "warnp.h"
 
 static void usage(void);
@@ -17,8 +18,9 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: tarsnap-keymgmt %s %s key-file ...\n",
-	    "--outkeyfile new-key-file", "[-r] [-w] [-d] [--nuke]");
+	fprintf(stderr, "usage: tarsnap-keymgmt %s %s %s %s key-file ...\n",
+	    "--outkeyfile new-key-file", "[--passphrased]",
+	    "[--passphrase-mem maxmem]", "[-r] [-w] [-d] [--nuke]");
 	exit(1);
 
 	/* NOTREACHED */
@@ -31,13 +33,12 @@ main(int argc, char **argv)
 	int keyswanted = 0;
 	char * tok, * brkb = NULL, * eptr;
 	long keynum;
-	struct stat sb;
-	uint8_t * keybuf;
-	size_t keybuflen;
-	FILE * f;
 	uint64_t machinenum = (uint64_t)(-1);
-	uint8_t machinenumvec[8];
+	uint64_t kfmachinenum;
 	const char * missingkey;
+	int passphrased = 0;
+	uint64_t maxmem = 0;
+	char * passphrase;
 
 #ifdef NEED_WARN_PROGNAME
 	warn_progname = "tarsnap-keymgmt";
@@ -102,6 +103,17 @@ main(int argc, char **argv)
 				keyswanted |= 1 << keynum;
 			}
 			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrase-mem") == 0) {
+			if ((maxmem != 0) || (argc < 2))
+				usage();
+			if (humansize_parse(argv[1], &maxmem)) {
+				warnp("Cannot parse --passphrase-mem"
+				    " argument: %s", argv[1]);
+				exit(1);
+			}
+			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrased") == 0) {
+			passphrased = 1;
 		} else {
 			/* Key files follow. */
 			break;
@@ -112,59 +124,31 @@ main(int argc, char **argv)
 	if (newkeyfile == NULL)
 		usage();
 
+	/*
+	 * It doesn't make sense to specify --passphrase-mem if we're not
+	 * using a passphrase. */
+	if ((maxmem != 0) && (passphrased == 0))
+		usage();
+
 	/* Read the specified key files. */
 	while (argc-- > 0) {
-		/* Stat the key file. */
-		if (stat(argv[0], &sb)) {
-			warnp("stat(%s)", argv[0]);
-			exit(1);
-		}
-
-		/* Allocate memory to hold the keyfile contents. */
-		if ((sb.st_size < 8) || (sb.st_size > 1000000)) {
-			warn0("Key file has unreasonable size: %s", argv[0]);
-			exit(1);
-		}
-		if ((keybuf = malloc(sb.st_size)) == NULL) {
-			warn0("Out of memory");
-			exit(1);
-		}
-
-		/* Read the file. */
-		if ((f = fopen(argv[0], "r")) == NULL) {
-			warnp("fopen(%s)", argv[0]);
-			exit(1);
-		}
-		if (fread(keybuf, sb.st_size, 1, f) != 1) {
-			warnp("fread(%s)", argv[0]);
-			exit(1);
-		}
-		if (fclose(f)) {
-			warnp("fclose(%s)", argv[0]);
+		/* Suck in the key file. */
+		if (crypto_keyfile_read(argv[0], &kfmachinenum)) {
+			warnp("Cannot read key file: %s", argv[0]);
 			exit(1);
 		}
 
 		/*
-		 * Parse the machine number from the key file or check that
-		 * the machine number from the key file matches the number
-		 * we already have.
+		 * Check that we're not using key files which belong to
+		 * different machines.
 		 */
 		if (machinenum == (uint64_t)(-1)) {
-			machinenum = be64dec(keybuf);
-		} else if (machinenum != be64dec(keybuf)) {
+			machinenum = kfmachinenum;
+		} else if (machinenum != kfmachinenum) {
 			warn0("Keys from %s do not belong to the "
 			    "same machine as earlier keys", argv[0]);
 			exit(1);
 		}
-
-		/* Parse keys. */
-		if (crypto_keys_import(&keybuf[8], sb.st_size - 8)) {
-			warn0("Error parsing keys in %s", argv[0]);
-			exit(1);
-		}
-
-		/* Free memory. */
-		free(keybuf);
 
 		/* Move on to the next file. */
 		argv++;
@@ -177,40 +161,22 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Create key file. */
-	if ((f = fopen(newkeyfile, "w")) == NULL) {
-		warnp("Cannot create %s", newkeyfile);
-		exit(1);
+	/* If the user wants to passphrase the keyfile, get the passphrase. */
+	if (passphrased != 0) {
+		if (tarsnap_readpass(&passphrase,
+		    "Please enter passphrase for keyfile encryption",
+		    "Please confirm passphrase for keyfile encryption", 1)) {
+			warnp("Error reading password");
+			exit(1);
+		}
+	} else {
+		passphrase = NULL;
 	}
 
-	/* Set the permissions on the key file to 0600. */
-	if (fchmod(fileno(f), S_IRUSR | S_IWUSR)) {
-		warnp("Cannot set permissions on key file: %s", newkeyfile);
+	/* Write out new key file. */
+	if (crypto_keyfile_write(newkeyfile, machinenum, keyswanted,
+	    passphrase, maxmem, 1.0))
 		exit(1);
-	}
-
-	/* Export keys. */
-	if (crypto_keys_export(keyswanted, &keybuf, &keybuflen)) {
-		warnp("Error exporting keys");
-		exit(1);
-	}
-
-	/* Write keys. */
-	be64enc(machinenumvec, machinenum);
-	if (fwrite(machinenumvec, 8, 1, f) != 1) {
-		warnp("Error writing keys");
-		exit(1);
-	}
-	if (fwrite(keybuf, keybuflen, 1, f) != 1) {
-		warnp("Error writing keys");
-		exit(1);
-	}
-
-	/* Close the key file. */
-	if (fclose(f)) {
-		warnp("Error closing key file");
-		exit(1);
-	}
 
 	/* Success! */
 	return (0);
