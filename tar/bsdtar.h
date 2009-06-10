@@ -84,6 +84,7 @@ struct bsdtar {
 	int		  have_keys; /* --keyfile */
 	double		  bwlimit_rate_up;	/* --maxbw-rate(-up)? */
 	double		  bwlimit_rate_down;	/* --maxbw-rate(-down)? */
+	int		  disk_pause;		/* --disk-pause */
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;
@@ -131,6 +132,7 @@ enum {
 	OPTION_CHECK_LINKS,
 	OPTION_CHECKPOINT_BYTES,
 	OPTION_CHROOT,
+	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
 	OPTION_FSCK,

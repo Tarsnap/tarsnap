@@ -248,6 +248,9 @@ main(int argc, char **argv)
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
 			break;
+		case OPTION_DISK_PAUSE: /* tarsnap */
+			bsdtar->disk_pause = strtol(bsdtar->optarg, NULL, 0);
+			break;
 		case OPTION_DRYRUN: /* tarsnap */
 			bsdtar->option_dryrun = 1;
 			break;
@@ -654,6 +657,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "-U", "x");
 	if (bsdtar->option_warn_links)
 		only_mode(bsdtar, "--check-links", "c");
+	if (bsdtar->disk_pause)
+		only_mode(bsdtar, "--disk-pause", "c");
 
 	/* Check other parameters only permitted in certain modes. */
 	if (bsdtar->symlink_mode != '\0') {

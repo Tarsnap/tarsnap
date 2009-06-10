@@ -78,6 +78,7 @@ static struct option {
 	{ "create",               0, 'c' },
 	{ "dereference",	  0, 'L' },
 	{ "directory",            1, 'C' },
+	{ "disk-pause",		  1, OPTION_DISK_PAUSE },
 	{ "dry-run",		  0, OPTION_DRYRUN },
 	{ "exclude",              1, OPTION_EXCLUDE },
 	{ "exclude-from",         1, 'X' },
