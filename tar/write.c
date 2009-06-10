@@ -78,6 +78,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#include <time.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -199,6 +200,22 @@ truncate_archive(struct bsdtar *bsdtar)
 	return (1);
 }
 
+/* If the --disk-pause option was used, sleep for a while. */
+static void
+disk_pause(struct bsdtar *bsdtar)
+{
+	struct timespec ts;
+
+	/* Do we want to sleep? */
+	if (bsdtar->disk_pause == 0)
+		return;
+
+	/* Sleep. */
+	ts.tv_sec = bsdtar->disk_pause / 1000;
+	ts.tv_nsec = bsdtar->disk_pause * 1000000;
+	nanosleep(&ts, NULL);
+}
+
 static volatile sig_atomic_t sigusr2_received = 0;
 static void sigusr2_handler(int sig);
 
@@ -214,19 +231,34 @@ sigusr2_handler(int sig)
 
 /* Create a checkpoint in the archive if necessary. */
 static int
-checkpoint_archive(struct bsdtar *bsdtar)
+checkpoint_archive(struct bsdtar *bsdtar, int withinline)
 {
+	int rc;
 
 	if (sigusr2_received == 0)
 		return (0);
 	sigusr2_received = 0;
 
 	/* If the user asked for verbosity, be verbose. */
-	if (bsdtar->verbose)
-		bsdtar_warnc(bsdtar, 0, "Creating checkpoint");
+	if (bsdtar->verbose) {
+		if (withinline)
+			fprintf(stderr, "\n");
+		fprintf(stderr, "tarsnap: Creating checkpoint...");
+	}
 
-	/* Create the archive. */
-	return (archive_write_multitape_checkpoint(bsdtar->write_cookie));
+	/* Create the checkpoint. */
+	rc = archive_write_multitape_checkpoint(bsdtar->write_cookie);
+
+	/* If the user asked for verbosity, be verbose. */
+	if (bsdtar->verbose) {
+		if (rc == 0)
+			fprintf(stderr, " done.");
+		if (!withinline)
+			fprintf(stderr, "\n");
+	}
+
+	/* Return status code from checkpoint creation. */
+	return (rc);
 }
 
 void
@@ -323,7 +355,7 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 	while (*bsdtar->argv) {
 		if (truncate_archive(bsdtar))
 			break;
-		if (checkpoint_archive(bsdtar))
+		if (checkpoint_archive(bsdtar, 0))
 			exit(1);
 
 		arg = *bsdtar->argv;
@@ -512,8 +544,10 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 	while (0 == archive_read_next_header(ina, &in_entry)) {
 		if (truncate_archive(bsdtar))
 			break;
-		if (checkpoint_archive(bsdtar))
+		if (checkpoint_archive(bsdtar, 0))
 			exit(1);
+		if (cookie == NULL)
+			disk_pause(bsdtar);
 		if (network_select(0))
 			exit(1);
 
@@ -602,6 +636,7 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 
 	bytes_read = archive_read_data(ina, bsdtar->buff, FILEDATABUFLEN);
 	while (bytes_read > 0) {
+		disk_pause(bsdtar);
 		if (network_select(0))
 			return (-1);
 
@@ -616,7 +651,7 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 
 		if (truncate_archive(bsdtar))
 			break;
-		if (checkpoint_archive(bsdtar))
+		if (checkpoint_archive(bsdtar, 1))
 			return (-1);
 
 		progress += bytes_written;
@@ -654,8 +689,9 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 
 		if (truncate_archive(bsdtar))
 			break;
-		if (checkpoint_archive(bsdtar))
+		if (checkpoint_archive(bsdtar, 0))
 			exit(1);
+		disk_pause(bsdtar);
 		if (network_select(0))
 			exit(1);
 
@@ -1099,6 +1135,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 
 	bytes_read = read(fd, bsdtar->buff, FILEDATABUFLEN);
 	while (bytes_read > 0) {
+		disk_pause(bsdtar);
 		if (network_select(0))
 			return (-1);
 
@@ -1121,7 +1158,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 
 		if (truncate_archive(bsdtar))
 			break;
-		if (checkpoint_archive(bsdtar))
+		if (checkpoint_archive(bsdtar, 1))
 			exit(1);
 
 		progress += bytes_written;

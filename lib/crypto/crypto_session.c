@@ -174,6 +174,10 @@ void
 crypto_session_free(CRYPTO_SESSION * CS)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (CS == NULL)
+		return;
+
 	crypto_aesctr_free(CS->encr_write_stream);
 	crypto_aesctr_free(CS->encr_read_stream);
 	free(CS);

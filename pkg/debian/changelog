@@ -1,3 +1,9 @@
+tarsnap (1.0.23) unstable; urgency=low
+
+  * New version of tarsnap adds new features, improves resilience in the
+    presence of transient network errors, and fixes minor bugs.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Wed, 10 Jun 2009 12:21:56 +0000
 tarsnap (1.0.22) unstable; urgency=low
 
   * New version of tarsnap adds support for passphrase-protected key files

@@ -29,7 +29,7 @@
 .\"
 .\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.45 2008/11/08 04:43:24 kientzle Exp $
 .\"
-.Dd December 7, 2008
+.Dd June 6, 2009
 .Dt TARSNAP 1
 .Os
 .Sh NAME
@@ -204,6 +204,18 @@ hundred kB of bandwidth.
 to the current directory after processing any
 .Fl C
 options and before extracting any files.
+.It Fl -disk-pause Ar X
+(c mode only)
+Pause for
+.Ar X
+ms between storing archive entries and after every 64 kB of file data.
+This will slow down
+.Nm
+and thereby reduce its impact on other applications.
+For archiving files which are stored on an ATA disk and are not in the
+operating system disk cache, a value of
+.Fl -disk-pause Ar 10
+will approximately double the time taken.
 .It Fl -dry-run
 (c mode only)
 Don't really create an archive; just simulate doing so.
@@ -537,6 +549,31 @@ See
 .Fl -exclude
 for more information about the handling of exclusions.
 .El
+.Sh SIGNALS
+.Nm
+provides special treatment of the following signals:
+.Bl -tag -width "SIGUSR2"
+.It SIGUSR1 & SIGINFO
+On receipt of the SIGUSR1 signal or (on platforms where it exists) the
+SIGINFO signal,
+.Nm
+prints the current file or directory being processed, and (for files)
+its progress within the file.
+Note that due to network buffering this position will not align precisely
+with how much data has been sent to or received from the
+.Nm
+server.
+.It SIGUSR2
+On receipt of the SIGUSR2 signal, if
+.Nm
+is creating an archive (mode c), it will create a checkpoint at the
+current position.
+.It SIGQUIT
+On receipt of the SIGQUIT signal, if
+.Nm
+is creating an archive (mode c) it will truncate the archive at the
+current position and exit (see "INTERRUPTING ARCHIVAL" below).
+.El
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
@@ -597,7 +634,7 @@ List the files in the remaining backup:
 .Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl tv Fl f Ar backup-2008-04-25
 .Pp
 Restore two users' home directories from the backup:
-.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl x Fl f Ar backup-2008-04-25 Pa /usr/home/auser Pa /usr/home/anotheruser
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl x Fl f Ar backup-2008-04-25 Pa usr/home/auser Pa usr/home/anotheruser
 .Pp
 Note that the
 .Fl -keyfile
