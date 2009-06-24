@@ -26,7 +26,7 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_ar.c,v 1.11 2008/12/06 06:45:15 kientzle Exp $");
+__FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_format_ar.c,v 1.12 2008/12/17 19:02:42 kientzle Exp $");
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -72,8 +72,6 @@ struct ar {
 #define AR_fmag_offset 58
 #define AR_fmag_size 2
 
-#define isdigit(x)	(x) >= '0' && (x) <= '9'
-
 static int	archive_read_format_ar_bid(struct archive_read *a);
 static int	archive_read_format_ar_cleanup(struct archive_read *a);
 static int	archive_read_format_ar_read_data(struct archive_read *a,
@@ -105,7 +103,9 @@ archive_read_support_format_ar(struct archive *_a)
 
 	r = __archive_read_register_format(a,
 	    ar,
+	    "ar",
 	    archive_read_format_ar_bid,
+	    NULL,
 	    archive_read_format_ar_read_header,
 	    archive_read_format_ar_read_data,
 	    NULL,
@@ -194,7 +194,7 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	/* Verify the magic signature on the file header. */
 	if (strncmp(h + AR_fmag_offset, "`\n", 2) != 0) {
 		archive_set_error(&a->archive, EINVAL,
-		    "Consistency check failed");
+		    "Incorrect file header signature");
 		return (ARCHIVE_WARN);
 	}
 
@@ -309,8 +309,10 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	/*
 	 * GNU variant handles long filenames by storing /<number>
 	 * to indicate a name stored in the filename table.
+	 * XXX TODO: Verify that it's all digits... Don't be fooled
+	 * by "/9xyz" XXX
 	 */
-	if (filename[0] == '/' && isdigit(filename[1])) {
+	if (filename[0] == '/' && filename[1] >= '0' && filename[1] <= '9') {
 		number = ar_atol10(h + AR_name_offset + 1, AR_name_size - 1);
 		/*
 		 * If we can't look up the real name, warn and return
@@ -513,11 +515,10 @@ ar_parse_gnu_filename_table(struct archive_read *a)
 		}
 	}
 	/*
-	 * Sanity check, last two chars must be `/\n' or '\n\n',
-	 * depending on whether the string table is padded by a '\n'
-	 * (string table produced by GNU ar always has a even size).
+	 * GNU ar always pads the table to an even size.
+	 * The pad character is either '\n' or '`'.
 	 */
-	if (p != ar->strtab + size && *p != '\n')
+	if (p != ar->strtab + size && *p != '\n' && *p != '`')
 		goto bad_string_table;
 
 	/* Enforce zero termination. */

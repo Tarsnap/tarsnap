@@ -69,7 +69,7 @@ storage_delete_start(uint64_t machinenum, const uint8_t lastseq[32],
 	S->npending = 0;
 
 	/* Open netpacket connection. */
-	if ((S->NPC = netpacket_open()) == NULL)
+	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
 
 	/* Start a delete transaction. */
@@ -113,7 +113,7 @@ storage_fsck_start(uint64_t machinenum, uint8_t seqnum[32])
 	S->npending = 0;
 
 	/* Open netpacket connection. */
-	if ((S->NPC = netpacket_open()) == NULL)
+	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
 
 	/* Start a delete transaction. */

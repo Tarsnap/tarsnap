@@ -115,7 +115,8 @@ struct bsdtar {
 	 * Data for various subsystems.  Full definitions are located in
 	 * the file where they are used.
 	 */
-	struct archive_entry_linkresolver *resolver;
+	struct archive		*diskreader;	/* for write.c */
+	struct archive_entry_linkresolver *resolver; /* for write.c */
 	struct name_cache	*gname_cache;	/* for write.c */
 	char			*buff;		/* for write.c */
 	struct matching		*matching;	/* for matching.c */
@@ -162,6 +163,7 @@ enum {
 	OPTION_PRINT_STATS,
 	OPTION_SNAPTIME,
 	OPTION_STORE_ATIME,
+	OPTION_SAME_OWNER,
 	OPTION_STRIP_COMPONENTS,
 	OPTION_TOTALS,
 	OPTION_VERSION,

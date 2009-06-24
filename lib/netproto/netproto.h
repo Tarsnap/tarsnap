@@ -23,12 +23,13 @@ void _netproto_printerr(int);
 } while (0)
 
 /**
- * netproto_connect(callback, cookie):
+ * netproto_connect(useragent, callback, cookie):
  * Create a socket, connect to the tarsnap server, and perform the neccesary
  * key exchange.  Return a network protocol connection cookie; note that
  * this cookie must not be used until the callback is called.
  */
-NETPROTO_CONNECTION * netproto_connect(network_callback *, void *);
+NETPROTO_CONNECTION * netproto_connect(const char *,
+    network_callback *, void *);
 
 /**
  * netproto_writepacket(C, type, buf, buflen, callback, cookie):

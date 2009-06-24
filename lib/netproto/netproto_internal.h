@@ -30,13 +30,13 @@ struct netproto_connection_internal {
 struct netproto_connection_internal * netproto_open(int);
 
 /**
- * netproto_keyexchange(C, callback, cookie):
+ * netproto_keyexchange(C, useragent, callback, cookie):
  * Perform protocol negotiation and key exchange with the tarsnap server
  * on the newly opened connection with cookie ${C}.  When the negotiation
  * is complete or has failed, call callback(cookie, status) where status is
  * a NETPROTO_STATUS_* value.
  */
-int netproto_keyexchange(struct netproto_connection_internal *,
+int netproto_keyexchange(struct netproto_connection_internal *, const char *,
     network_callback *, void *);
 
 #endif /* !_NETPROTO_INTERNAL_H_ */

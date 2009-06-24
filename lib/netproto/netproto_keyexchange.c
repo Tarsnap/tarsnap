@@ -13,6 +13,8 @@
 #include "netproto.h"
 
 struct keyexchange_internal {
+	char * useragent;
+	uint8_t useragentlen;
 	network_callback * callback;
 	void * cookie;
 	NETPROTO_CONNECTION * C;
@@ -83,34 +85,36 @@ docallback(struct keyexchange_internal * KC, int status)
  * its choice of 2^y mod p).
  */
 
-/*
- * User-agent name must be at least 1 and at most 255 characters, not
- * counting the final NUL byte.  Some C compilers don't handle strlen of a
- * constant string as a constant, so we use sizeof here instead.
- */
-CTASSERT(sizeof(USERAGENT) >= 2);
-CTASSERT(sizeof(USERAGENT) <= 256);
-
 static uint8_t protovers = 0;
-static uint8_t namelen = sizeof(USERAGENT) - 1;
-static uint8_t name[] = USERAGENT;
 
 /**
- * netproto_keyexchange(C, callback, cookie):
+ * netproto_keyexchange(C, useragent, callback, cookie):
  * Perform protocol negotiation and key exchange with the tarsnap server
  * on the newly opened connection with cookie ${C}.  When the negotiation
  * is complete or has failed, call callback(cookie, status) where status is
  * a NETPROTO_STATUS_* value.
  */
 int
-netproto_keyexchange(NETPROTO_CONNECTION * C,
+netproto_keyexchange(NETPROTO_CONNECTION * C, const char * useragent,
     network_callback * callback, void * cookie)
 {
 	struct keyexchange_internal * KC;
+	size_t useragentlen = strlen(useragent);
+
+	/* Sanity-check user-agent string. */
+	if ((useragentlen < 1) || (useragentlen > 255)) {
+		warn0("Programmer error: "
+		    "User-agent string has invalid length (%zu): %s",
+		    useragentlen, useragent);
+		goto err0;
+	}
 
 	/* Create keyexchange cookie. */
 	if ((KC = malloc(sizeof(struct keyexchange_internal))) == NULL)
 		goto err0;
+	if ((KC->useragent = strdup(useragent)) == NULL)
+		goto err1;
+	KC->useragentlen = useragentlen;
 	KC->callback = callback;
 	KC->cookie = cookie;
 	KC->C = C;
@@ -121,11 +125,13 @@ netproto_keyexchange(NETPROTO_CONNECTION * C,
 	/* Send protocol version. */
 	if (network_writeq_add(KC->C->Q, &protovers, 1, &KC->timeout,
 	    proto_sent, KC))
-		goto err1;
+		goto err2;
 
 	/* Success! */
 	return (0);
 
+err2:
+	free(KC->useragent);
 err1:
 	free(KC);
 err0:
@@ -158,8 +164,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -184,12 +192,12 @@ proto_received(void * cookie, int status)
 	}
 
 	/* Send our identity. */
-	if (network_writeq_add(KC->C->Q, &namelen, 1, &KC->timeout,
+	if (network_writeq_add(KC->C->Q, &KC->useragentlen, 1, &KC->timeout,
 	    namelen_sent, KC))
 		goto err2;
 	KC->refcount++;
-	if (network_writeq_add(KC->C->Q, name, namelen, &KC->timeout,
-	    name_sent, KC))
+	if (network_writeq_add(KC->C->Q, KC->useragent, KC->useragentlen,
+	    &KC->timeout, name_sent, KC))
 		goto err2;
 
 	/* Success! */
@@ -200,8 +208,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -228,8 +238,10 @@ namelen_sent(void * cookie, int status)
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -245,7 +257,7 @@ name_sent(void * cookie, int status)
 		goto err1;
 
 	/* Adjust traffic statistics. */
-	KC->C->bytesout += namelen;
+	KC->C->bytesout += KC->useragentlen;
 
 	/* Data was sent.  Read the server crypto parameters. */
 	if (network_read(KC->C->fd, KC->serverparams,
@@ -261,8 +273,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -317,8 +331,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -379,8 +395,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -411,8 +429,10 @@ err2:
 err1:
 	/* Something went wrong.  Let the callback handle it. */
 	rc = docallback(KC, status);
-	if (KC->refcount-- == 1)
+	if (KC->refcount-- == 1) {
+		free(KC->useragent);
 		free(KC);
+	}
 
 	/* Failure! */
 	return (rc);
@@ -445,6 +465,7 @@ proof_received(void * cookie, int status)
 	rc = docallback(KC, status);
 
 	/* Free the cookie. */
+	free(KC->useragent);
 	free(KC);
 
 	/* Return the value from the callback. */

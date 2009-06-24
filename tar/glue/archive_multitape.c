@@ -98,6 +98,9 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 {
 	struct multitape_read_internal * d;
 
+	/* Clear any error messages from the archive. */
+	archive_clear_error(a);
+
 	if ((d = readtape_open(machinenum, tapename)) == NULL) {
 		archive_set_error(a, errno, "Error opening archive");
 		return (NULL);
@@ -123,6 +126,9 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
     char ** argv, int printstats, int dryrun)
 {
 	struct multitape_write_internal * d;
+
+	/* Clear any error messages from the archive. */
+	archive_clear_error(a);
 
 	if ((d = writetape_open(machinenum, cachedir, tapename,
 	    argc, argv, printstats, dryrun)) == NULL) {

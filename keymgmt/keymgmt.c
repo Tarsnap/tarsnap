@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "keyfile.h"
 #include "humansize.h"
 #include "readpass.h"
 #include "warnp.h"
@@ -133,7 +134,7 @@ main(int argc, char **argv)
 	/* Read the specified key files. */
 	while (argc-- > 0) {
 		/* Suck in the key file. */
-		if (crypto_keyfile_read(argv[0], &kfmachinenum)) {
+		if (keyfile_read(argv[0], &kfmachinenum)) {
 			warnp("Cannot read key file: %s", argv[0]);
 			exit(1);
 		}
@@ -174,7 +175,7 @@ main(int argc, char **argv)
 	}
 
 	/* Write out new key file. */
-	if (crypto_keyfile_write(newkeyfile, machinenum, keyswanted,
+	if (keyfile_write(newkeyfile, machinenum, keyswanted,
 	    passphrase, maxmem, 1.0))
 		exit(1);
 

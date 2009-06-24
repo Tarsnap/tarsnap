@@ -74,6 +74,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 
 #include "bsdtar.h"
 #include "crypto.h"
+#include "keyfile.h"
 #include "humansize.h"
 #include "network.h"
 #include "tarsnap_opt.h"
@@ -87,7 +88,7 @@ uint64_t tarsnap_opt_checkpointbytes = (uint64_t)(-1);
 uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
 
 /* External function to parse a date/time string (from getdate.y) */
-time_t get_date(const char *);
+time_t get_date(time_t, const char *);
 
 static void		 build_dir(struct bsdtar *, const char *dir,
 			     const char *diropt);
@@ -118,6 +119,7 @@ main(int argc, char **argv)
 	char			*conffile;
 	const char		*missingkey;
 	char			*eptr;
+	time_t			 now;
 
 	/*
 	 * Use a pointer for consistency, but stack-allocated storage
@@ -125,12 +127,22 @@ main(int argc, char **argv)
 	 */
 	bsdtar = &bsdtar_storage;
 	memset(bsdtar, 0, sizeof(*bsdtar));
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	/* Make sure open() function will be used with a binary mode. */
+	/* on cygwin, we need something similar, but instead link against */
+	/* a special startup object, binmode.o */
+	_set_fmode(_O_BINARY);
+#endif
 
 	/* Need bsdtar->progname before calling bsdtar_warnc. */
 	if (*argv == NULL)
 		bsdtar->progname = "tarsnap";
 	else {
+#if defined(_WIN32) && !defined(__CYGWIN__)
+		bsdtar->progname = strrchr(*argv, '\\');
+#else
 		bsdtar->progname = strrchr(*argv, '/');
+#endif
 		if (bsdtar->progname != NULL)
 			bsdtar->progname++;
 		else
@@ -142,6 +154,8 @@ main(int argc, char **argv)
 
 	/* We don't have a machine # yet. */
 	bsdtar->machinenum = (uint64_t)(-1);
+
+	time(&now);
 
 	if (setlocale(LC_ALL, "") == NULL)
 		bsdtar_warnc(bsdtar, 0, "Failed to set default locale");
@@ -192,7 +206,7 @@ main(int argc, char **argv)
 	bsdtar->extract_flags |= SECURITY;
 
 	/* Defaults for root user: */
-	if (bsdtar->user_uid == 0) {
+	if (bsdtar_is_privileged(bsdtar)) {
 		/* --same-owner */
 		bsdtar->extract_flags |= ARCHIVE_EXTRACT_OWNER;
 		/* -p */
@@ -378,7 +392,7 @@ main(int argc, char **argv)
 		 * TODO: Add corresponding "older" options to reverse these.
 		 */
 		case OPTION_NEWER_CTIME: /* GNU tar */
-			bsdtar->newer_ctime_sec = get_date(bsdtar->optarg);
+			bsdtar->newer_ctime_sec = get_date(now, bsdtar->optarg);
 			break;
 		case OPTION_NEWER_CTIME_THAN:
 			{
@@ -392,7 +406,7 @@ main(int argc, char **argv)
 			}
 			break;
 		case OPTION_NEWER_MTIME: /* GNU tar */
-			bsdtar->newer_mtime_sec = get_date(bsdtar->optarg);
+			bsdtar->newer_mtime_sec = get_date(now, bsdtar->optarg);
 			break;
 		case OPTION_NEWER_MTIME_THAN:
 			{
@@ -490,6 +504,9 @@ main(int argc, char **argv)
 			    "-s is not supported by this version of bsdtar");
 			usage(bsdtar);
 #endif
+			break;
+		case OPTION_SAME_OWNER: /* GNU tar */
+			bsdtar->extract_flags |= ARCHIVE_EXTRACT_OWNER;
 			break;
 		case OPTION_STRIP_COMPONENTS: /* GNU tar 1.15 */
 			bsdtar->strip_components = atoi(bsdtar->optarg);
@@ -1114,7 +1131,7 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 	uint64_t machinenum;
 
 	/* Load the key file. */
-	if (crypto_keyfile_read(path, &machinenum))
+	if (keyfile_read(path, &machinenum))
 		bsdtar_errc(bsdtar, 1, errno,
 		    "Cannot read key file: %s", path);
 

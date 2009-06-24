@@ -32,17 +32,19 @@ static int reconnect_wait[MAXRECONNECTS + 1] = {
 static struct timeval next_connlost_warning = { 0, 0};
 
 /**
- * netpacket_open(void):
+ * netpacket_open(useragent):
  * Return a netpacket connection cookie.
  */
 NETPACKET_CONNECTION *
-netpacket_open(void)
+netpacket_open(const char * useragent)
 {
 	struct netpacket_internal * NPC;
 
 	/* Construct cookie structure. */
 	if ((NPC = malloc(sizeof(struct netpacket_internal))) == NULL)
 		goto err0;
+	if ((NPC->useragent = strdup(useragent)) == NULL)
+		goto err1;
 	NPC->NC = NULL;
 	NPC->packetbuf = NULL;
 
@@ -70,6 +72,8 @@ netpacket_open(void)
 	/* Success! */
 	return (NPC);
 
+err1:
+	free(NPC);
 err0:
 	/* Failure! */
 	return (NULL);
@@ -146,8 +150,8 @@ netpacket_op(NETPACKET_CONNECTION * NPC,
 	switch (NPC->state) {
 	case 0:
 		/* We need to connect to the server. */
-		if ((NPC->NC = netproto_connect(callback_connect,
-		    NPC)) == NULL)
+		if ((NPC->NC = netproto_connect(NPC->useragent,
+		    callback_connect, NPC)) == NULL)
 			goto err0;
 		NPC->state = 1;
 		break;
@@ -200,7 +204,8 @@ callback_reconnect(void * cookie, int status)
 	NPC->NC = NULL;
 
 	/* Open a new connection. */
-	if ((NPC->NC = netproto_connect(callback_connect, NPC)) == NULL)
+	if ((NPC->NC = netproto_connect(NPC->useragent,
+	    callback_connect, NPC)) == NULL)
 		goto err0;
 
 done:

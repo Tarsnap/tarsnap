@@ -1,3 +1,9 @@
+tarsnap (1.0.24) unstable; urgency=low
+
+  * New version of tarsnap updates underlying libarchive version to 2.7.0
+    and reorganizes the source code and build process.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Sun, 21 Jun 2009 02:52:31 +0000
 tarsnap (1.0.23) unstable; urgency=low
 
   * New version of tarsnap adds new features, improves resilience in the

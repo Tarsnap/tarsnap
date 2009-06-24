@@ -8,12 +8,13 @@
 #include <string.h>
 
 #include "b64encode.h"
+#include "crypto.h"
 #include "readpass.h"
 #include "scryptenc.h"
 #include "sysendian.h"
 #include "warnp.h"
 
-#include "crypto.h"
+#include "keyfile.h"
 
 /**
  * Key file format:
@@ -342,12 +343,12 @@ err0:
 }
 
 /**
- * crypto_keyfile_read(filename, machinenum):
+ * keyfile_read(filename, machinenum):
  * Read keys from a tarsnap key file; and return the machine # via the
  * provided pointer.
  */
 int
-crypto_keyfile_read(const char * filename, uint64_t * machinenum)
+keyfile_read(const char * filename, uint64_t * machinenum)
 {
 	struct stat sb;
 	uint8_t * keybuf;
@@ -415,14 +416,13 @@ err0:
 }
 
 /**
- * crypto_keyfile_write(filename, machinenum, keys, passphrase, maxmem,
- *     cputime):
+ * keyfile_write(filename, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
  * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
  * memory to encrypt the key file.
  */
 int
-crypto_keyfile_write(const char * filename, uint64_t machinenum, int keys,
+keyfile_write(const char * filename, uint64_t machinenum, int keys,
     char * passphrase, size_t maxmem, double cputime)
 {
 	FILE * f;
@@ -440,7 +440,7 @@ crypto_keyfile_write(const char * filename, uint64_t machinenum, int keys,
 	}
 
 	/* Write keys. */
-	if (crypto_keyfile_write_file(f, machinenum, keys, passphrase,
+	if (keyfile_write_file(f, machinenum, keys, passphrase,
 	    maxmem, cputime))
 		goto err2;
 
@@ -463,14 +463,13 @@ err0:
 }
 
 /**
- * crypto_keyfile_write_file(f, machinenum, keys, passphrase, maxmem,
- *     cputime):
+ * keyfile_write_file(f, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
  * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
  * memory to encrypt the key file.
  */
 int
-crypto_keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
+keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
     char * passphrase, size_t maxmem, double cputime)
 {
 	uint8_t * keybuf;

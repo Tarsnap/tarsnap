@@ -50,7 +50,7 @@ storage_read_init(uint64_t machinenum)
 		goto err0;
 
 	/* Open netpacket connection. */
-	if ((S->NPC = netpacket_open()) == NULL)
+	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
 
 	/* Store machine number. */

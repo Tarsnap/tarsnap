@@ -33,7 +33,7 @@
  */
 
 #include "bsdtar_platform.h"
-__FBSDID("$FreeBSD: src/usr.bin/tar/cmdline.c,v 1.1 2008/11/08 04:43:24 kientzle Exp $");
+__FBSDID("$FreeBSD$");
 
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -122,6 +122,7 @@ static struct option {
 	{ "preserve-permissions", 0, 'p' },
 	{ "print-stats",	  0, OPTION_PRINT_STATS },
 	{ "read-full-blocks",	  0, 'B' },
+	{ "same-owner",	          0, OPTION_SAME_OWNER },
 	{ "same-permissions",     0, 'p' },
 	{ "snaptime",		  1, OPTION_SNAPTIME },
 	{ "store-atime",	  0, OPTION_STORE_ATIME },
