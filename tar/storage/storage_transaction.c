@@ -320,7 +320,7 @@ storage_transaction_checkpoint(uint64_t machinenum, const uint8_t seqnum[32],
 	C.done = 0;
 
 	/* Open netpacket connection. */
-	if ((NPC = netpacket_open()) == NULL)
+	if ((NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err0;
 
 	/* Ask the netpacket layer to send a request and get a response. */
@@ -445,7 +445,7 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 	C.done = 0;
 
 	/* Open netpacket connection. */
-	if ((NPC = netpacket_open()) == NULL)
+	if ((NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err0;
 
 	/* Ask the netpacket layer to send a request and get a response. */

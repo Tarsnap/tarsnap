@@ -34,9 +34,9 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "scrypt.h"
+#include "crypto_scrypt.h"
 
-#include "scrypt_cpuperf.h"
+#include "scryptenc_cpuperf.h"
 
 #ifdef HAVE_CLOCK_GETTIME
 
@@ -122,12 +122,12 @@ getclockdiff(struct timespec * st, double * diffd)
 }
 
 /**
- * scrypt_cpuperf(opps):
+ * scryptenc_cpuperf(opps):
  * Estimate the number of salsa20/8 cores which can be executed per second,
  * and return the value via opps.
  */
 int
-scrypt_cpuperf(double * opps)
+scryptenc_cpuperf(double * opps)
 {
 	struct timespec st;
 	double resd, diffd;
@@ -146,7 +146,7 @@ scrypt_cpuperf(double * opps)
 		return (2);
 	do {
 		/* Do an scrypt. */
-		if (scrypt(NULL, 0, NULL, 0, 16, 1, 1, NULL, 0))
+		if (crypto_scrypt(NULL, 0, NULL, 0, 16, 1, 1, NULL, 0))
 			return (3);
 
 		/* Has the clock ticked? */
@@ -161,7 +161,7 @@ scrypt_cpuperf(double * opps)
 		return (2);
 	do {
 		/* Do an scrypt. */
-		if (scrypt(NULL, 0, NULL, 0, 128, 1, 1, NULL, 0))
+		if (crypto_scrypt(NULL, 0, NULL, 0, 128, 1, 1, NULL, 0))
 			return (3);
 
 		/* We invoked the salsa20/8 core 512 times. */

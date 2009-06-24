@@ -1,0 +1,813 @@
+.\" Copyright 2007-2009 Colin Percival
+.\" All rights reserved.
+.\"
+.\" Portions of the file below are covered by the following license:
+.\"
+.\" Copyright (c) 2003-2007 Tim Kientzle
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.46 2008/12/06 07:37:55 kientzle Exp $
+.\"
+.Dd June 6, 2009
+.Dt TARSNAP 1
+.Os
+.Sh NAME
+.Nm tarsnap
+.Nd manipulate remote encrypted backups
+.Sh SYNOPSIS
+.Nm
+.Brq Fl c
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Fl f Ar archive-name
+.Op Ar options
+.Op Ar files | Ar directories
+.Nm
+.Brq Fl d
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Fl f Ar archive-name
+.Op Ar options
+.Nm
+.Brq Fl t | Fl x
+.Fl -keyfile Ar key-file
+.Fl f Ar archive-name
+.Op Ar options
+.Op Ar patterns
+.Nm
+.Brq Fl r
+.Fl -keyfile Ar key-file
+.Fl f Ar archive-name
+.Nm
+.Brq Fl -list-archives
+.Fl -keyfile Ar key-file
+.Nm
+.Brq Fl -print-stats
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Op Fl f Ar archive-name
+.Nm
+.Brq Fl -fsck
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Nm
+.Brq Fl -nuke
+.Fl -keyfile Ar key-file
+.Sh DESCRIPTION
+.Nm
+creates, reads, deletes, and otherwise manages online backups.
+.Pp
+The first option to
+.Nm
+is a mode indicator from the following list:
+.Bl -tag -compact -width indent
+.It Fl c
+Create an archive containing the specified items and name.
+.It Fl d
+Delete the specified archive.
+.It Fl t
+List archive contents to stdout.
+.It Fl x
+Extract to disk from the archive.
+.It Fl r
+Read the specified archive, convert it to a tar stream, and write it
+to stdout.
+.It Fl -list-archives
+Print the names of archives stored.
+If the
+.Fl v
+flag is specified one or more times, the creation
+time of each archive is also printed;
+if the
+.Fl v
+flag is specified two or more times, the command
+line with which
+.Nm
+was invoked to create each archive is als printed.
+.It Fl -print-stats
+Print global statistics concerning the archives stored, and optionally
+information about individual archive(s).
+.It Fl -fsck
+Perform some integrity checks on the archives stored, and reconstruct the
+cache directory
+.Ar cache-dir .
+.It Fl -nuke
+Delete all of the archives stored.
+To protect against accidental data loss,
+.Nm
+will ask you to type the text "No Tomorrow" when using the
+.Fl -nuke
+command.
+.El
+.Pp
+In
+.Fl c
+mode, each specified file or directory is added to the
+archive in the order specified on the command line.
+By default, the contents of each directory are also archived.
+.Pp
+In
+.Fl t
+or
+.Fl x
+mode, the entire command line
+is read and parsed before the archive is opened.
+The pathnames or patterns on the command line indicate
+which items in the archive should be processed.
+Patterns are shell-style globbing patterns as
+documented in
+.Xr tcsh 1 .
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Cm @ Ns Pa archive-file
+(c mode only)
+The specified archive file is read and the entries
+in it will be appended to the current archive.
+As an example,
+.Dl Nm Fl c Fl -keyfile Ar key-file Fl -cachedir Ar cache-dir Fl f Ar mybackup Cm @ Ns Pa backup.tar
+reads the archive file
+.Pa backup.tar
+from disk and stores it using
+.Nm .
+.It Cm @@ Ns Ar archive-name
+(c mode only)
+The specified
+.Nm
+archive is read and the entries in it will be
+appended to the current archive.
+.It Fl -aggressive-networking
+(c mode only)
+Use multiple TCP connections to send data to the
+.Nm
+server.
+If the upload rate is congestion-limited rather than
+being limited by individual bottleneck(s), this may
+allow tarsnap to use a significantly larger fraction
+of the available bandwidth, at the expense of slowing
+down any other network traffic.
+.It Fl C Ar directory
+(c and x modes only)
+In c mode, this changes the directory before adding
+the following files.
+In x mode, change directories after opening the archive
+but before extracting entries from the archive.
+.It Fl -cachedir Ar cache-dir
+(c, d, print-stats, and fsck modes)
+Cache information about the archives stored by
+.Nm
+in the directory
+.Ar cache-dir .
+The contents of this directory will not be backed up by
+.Nm ,
+so it should not be used for any other purpose.
+If the directory
+.Ar cache-dir
+is lost, it can be reconstructed by running
+.Nm Fl -fsck .
+.It Fl -check-links
+(c mode only)
+Issue a warning message unless all links to each file are archived.
+.It Fl -checkpoint-bytes Ar bytespercheckpoint
+(c mode only)
+Create a checkpoint after every
+.Ar bytespercheckpoint
+bytes of uploaded data.
+The value
+.Ar bytespercheckpoint
+must be at least 1000000, and a higher value is recommended since
+creating a checkpoint in an archive can take a few seconds and several
+hundred kB of bandwidth.
+.It Fl -chroot
+(x mode only)
+.Fn chroot
+to the current directory after processing any
+.Fl C
+options and before extracting any files.
+.It Fl -disk-pause Ar X
+(c mode only)
+Pause for
+.Ar X
+ms between storing archive entries and after every 64 kB of file data.
+This will slow down
+.Nm
+and thereby reduce its impact on other applications.
+For archiving files which are stored on an ATA disk and are not in the
+operating system disk cache, a value of
+.Fl -disk-pause Ar 10
+will approximately double the time taken.
+.It Fl -dry-run
+(c mode only)
+Don't really create an archive; just simulate doing so.
+The list of paths added to an archive (if the
+.Fl v
+option is used) and statistics printed (if the
+.Fl -print-stats
+option is used) will be identical to if
+.Nm
+is run without the
+.Fl -dry-run
+option.
+.Pp
+Note that the
+.Fl -maxbw
+option does not work in combination with
+.Fl -dry-run ,
+since no bandwidth is actually used, and that since
+.Nm
+does not contact the
+.Nm
+server when performing a dry run, it will not detect an
+attempt to create an archive with the same name as one
+which already exists.
+.It Fl -exclude Ar pattern
+(c, x, and t modes only)
+Do not process files or directories that match the
+specified pattern.
+Note that exclusions take precedence over patterns or filenames
+specified on the command line.
+.It Fl f Ar archive-name
+(c, d, x, t, r, and print-stats modes only)
+Operate on the archive
+.Ar archive-name .
+In mode c, if archive creation is interrupted by ^Q,
+the SIGQUIT signal, or reaching the bandwidth limit
+specified via a
+.Fl -maxbw
+option, the archive will be stored with
+".part" appended to its name.
+In mode print-stats, if
+.Ar archive-name
+is *, statistics will be printed for every archive.
+.It Fl H
+(c mode only)
+Symbolic links named on the command line will be followed; the
+target of the link will be archived, not the link itself.
+.It Fl h
+(c mode only)
+Synonym for
+.Fl L .
+.It Fl -humanize-numbers
+Use SI prefixes to make numbers printed by
+.Fl -print-stats
+more readable.
+.It Fl I
+Synonym for
+.Fl T .
+.It Fl -include Ar pattern
+(c, x, and t modes only)
+Process only files or directories that match the specified pattern.
+Note that exclusions specified with
+.Fl -exclude
+take precedence over inclusions.
+If no inclusions are explicitly specified, all entries are processed by
+default.
+The
+.Fl -include
+option is especially useful when filtering archives.
+For example, the command
+.Dl Nm Fl c Fl f Ar foo-backup Fl -include='*foo*' Cm @@ Ns Ar all-backup
+creates a new archive
+.Ar foo-backup
+containing only the entries from
+.Ar all-backup
+containing the string
+.Sq foo .
+.It Fl k
+(x mode only)
+Do not overwrite existing files.
+In particular, if a file appears more than once in an archive,
+later copies will not overwrite earlier copies.
+.It Fl -keep-newer-files
+(x mode only)
+Do not overwrite existing files that are newer than the
+versions appearing in the archive being extracted.
+.It Fl -keyfile Pa key-file
+(all modes)
+Obtain encryption, authentication, and access keys from
+.Ar key-file .
+This file should have been generated by
+.Xr tarsnap-keygen 1 .
+.It Fl L
+(c mode only)
+All symbolic links will be followed.
+Normally, symbolic links are archived as such.
+With this option, the target of the link will be archived instead.
+.It Fl l
+This is a synonym for the
+.Fl -check-links
+option.
+.It Fl -lowmem
+(c mode only)
+Reduce memory usage by not caching small files.
+This may be useful when backing up files of average size less
+than 1 MB if the available RAM in kilobytes is less than the
+number of files being backed up.
+.It Fl m
+(x mode only)
+Do not extract modification time.
+By default, the modification time is set to the time stored in the archive.
+.It Fl -maxbw Ar numbytes
+(c mode only)
+Interrupt archival if more than
+.Ar numbytes
+bytes of upstream bandwidth is used (see INTERRUPTING ARCHIVAL
+below for details).
+.It Fl -maxbw-rate Ar bytespersecond
+Limit download and upload bandwidth used to
+.Ar bytespersecond
+bytes per second.
+.It Fl -maxbw-rate-down Ar bytespersecond
+Limit download bandwidth used to
+.Ar bytespersecond
+bytes per second.
+.It Fl -maxbw-rate-up Ar bytespersecond
+Limit upload bandwidth used to
+.Ar bytespersecond
+bytes per second.
+.It Fl n
+(c mode only)
+Do not recursively archive the contents of directories.
+.It Fl -newer Ar date
+(c mode only)
+Only include files and directories newer than the specified date.
+This compares ctime entries.
+.It Fl -newer-mtime Ar date
+(c mode only)
+Like
+.Fl -newer ,
+except it compares mtime entries instead of ctime entries.
+.It Fl -newer-than Pa file
+(c mode only)
+Only include files and directories newer than the specified file.
+This compares ctime entries.
+.It Fl -newer-mtime-than Pa file
+(c mode only)
+Like
+.Fl -newer-than ,
+except it compares mtime entries instead of ctime entries.
+.It Fl -nodump
+(c mode only)
+Honor the nodump file flag by skipping this file.
+.It Fl -noisy-warnings
+Be verbose when warning about network glitches.
+This is probably only useful for debugging purposes.
+.It Fl -null
+(use with
+.Fl I ,
+.Fl T ,
+or
+.Fl X )
+Filenames or patterns are separated by null characters,
+not by newlines.
+This is often used to read filenames output by the
+.Fl print0
+option to
+.Xr find 1 .
+.It Fl -numeric-owner
+(x mode only)
+Ignore symbolic user and group names when restoring archives to disk,
+only numeric uid and gid values will be obeyed.
+.It Fl O
+(x and t modes only)
+In extract (-x) mode, files will be written to standard out rather than
+being extracted to disk.
+In list (-t) mode, the file listing will be written to stderr rather than
+the usual stdout.
+.It Fl o
+(x mode only)
+Use the user and group of the user running the program rather
+than those specified in the archive.
+Note that this has no significance unless
+.Fl p
+is specified, and the program is being run by the root user.
+In this case, the file modes and flags from
+the archive will be restored, but ACLs or owner information in
+the archive will be discarded.
+.It Fl -one-file-system
+(c mode only)
+Do not cross mount points.
+.It Fl P
+(c, x, and t modes only)
+Preserve pathnames.
+By default, absolute pathnames (those that begin with a /
+character) have the leading slash removed both when creating archives
+and extracting from them.
+Also,
+.Nm
+will refuse to extract archive entries whose pathnames contain
+.Pa ..
+or whose target directory would be altered by a symlink.
+This option suppresses these behaviors.
+.It Fl p
+(x mode only)
+Preserve file permissions.
+Attempt to restore the full permissions, including owner, file modes, file
+flags and ACLs, if available, for each item extracted from the archive.
+By default, newly-created files are owned by the user running
+.Nm ,
+the file mode is restored for newly-created regular files, and
+all other types of entries receive default permissions.
+If
+.Nm
+is being run by root, the default is to restore the owner unless the
+.Fl o
+option is also specified.
+.It Fl -print-stats
+(c and d modes only)
+Print statistics for the archive being created (c mode) or delete (d mode).
+.It Fl q ( Fl -fast-read )
+(x and t modes only)
+Extract or list only the first archive entry that matches each pattern
+or filename operand.
+Exit as soon as each specified pattern or filename has been matched.
+By default, the archive is always read to the very end, since
+there can be multiple entries with the same name and, by convention,
+later entries overwrite earlier entries.
+This option is provided as a performance optimization.
+.It Fl S
+(x mode only)
+Extract files as sparse files.
+For every block on disk, check first if it contains only NULL bytes and seek
+over it otherwise.
+This works similiar to the conv=sparse option of dd.
+.It Fl s Ar pattern
+Modify file or archive member names according to
+.Pa pattern .
+The pattern has the format /old/new/[gps].
+old is a basic regular expression.
+If it doesn't apply, the pattern is skipped.
+new is the replacement string of the matched part.
+~ is substituted with the match, \1 to \9 with the content of
+the corresponding captured group.
+The optional trailing g specifies that matching should continue
+after the matched part and stopped on the first unmatched pattern.
+The optional trailing s specifies that the pattern applies to the value
+of symbolic links.
+The optional trailing p specifies that after a successful substitution
+the original path name and the new path name should be printed to
+standard error.
+.It Fl -strip-components Ar count
+(x mode only)
+Remove the specified number of leading path elements.
+Pathnames with fewer elements will be silently skipped.
+Note that the pathname is edited after checking inclusion/exclusion patterns
+but before security checks.
+.It Fl -snaptime Pa file
+(c mode only)
+This option MUST be specified when creating a backup from a filesystem
+snapshot, and
+.Pa file
+must have a modification time prior to when the filesystem snapshot was
+created.
+(This is necessary to prevent races between file modification and snapshot
+creation which could result in
+.Nm
+failing to recognize that a file has been modified.)
+.It Fl T Ar filename
+(c, x, and t modes only)
+In x or t mode,
+.Nm
+will read the list of names to be extracted from
+.Pa filename .
+In c mode,
+.Nm
+will read names to be archived from
+.Pa filename .
+The special name
+.Dq -C
+on a line by itself will cause the current directory to be changed to
+the directory specified on the following line.
+Names are terminated by newlines unless
+.Fl -null
+is specified.
+Note that
+.Fl -null
+also disables the special handling of lines containing
+.Dq -C .
+.It Fl U
+(x mode only)
+Unlink files before creating them.
+Without this option,
+.Nm
+overwrites existing files, which preserves existing hardlinks.
+With this option, existing hardlinks will be broken, as will any
+symlink that would affect the location of an extracted file.
+.It Fl v
+(c, t, x, and list-archives modes only)
+Produce verbose output.
+In create and extract modes,
+.Nm
+will list each file name as it is read from or written to
+the archive.
+In list mode,
+.Nm
+will produce output similar to that of
+.Xr ls 1 .
+Additional
+.Fl v
+options will provide additional detail.
+.It Fl -verylowmem
+(c mode only)
+Reduce memory usage, by approximately a factor of 2 beyond
+the memory usage when
+.Fl -lowmem
+is specified, by not caching anything.
+.It Fl -version
+Print version of
+.Nm
+and
+.Nm libarchive ,
+and exit.
+.It Fl w
+(c and x modes only)
+Ask for confirmation for every action.
+.It Fl X Ar filename
+(c, x, and t modes only)
+Read a list of exclusion patterns from the specified file.
+See
+.Fl -exclude
+for more information about the handling of exclusions.
+.El
+.Sh SIGNALS
+.Nm
+provides special treatment of the following signals:
+.Bl -tag -width "SIGUSR2"
+.It SIGUSR1 & SIGINFO
+On receipt of the SIGUSR1 signal or (on platforms where it exists) the
+SIGINFO signal,
+.Nm
+prints the current file or directory being processed, and (for files)
+its progress within the file.
+Note that due to network buffering this position will not align precisely
+with how much data has been sent to or received from the
+.Nm
+server.
+.It SIGUSR2
+On receipt of the SIGUSR2 signal, if
+.Nm
+is creating an archive (mode c), it will create a checkpoint at the
+current position.
+.It SIGQUIT
+On receipt of the SIGQUIT signal, if
+.Nm
+is creating an archive (mode c) it will truncate the archive at the
+current position and exit (see "INTERRUPTING ARCHIVAL" below).
+.El
+.Sh INTERRUPTING ARCHIVAL
+Upon receipt of the
+.Dv SIGQUIT
+signal or 
+.ua
+Q,
+or if the bandwidth limit specified via a
+.Fl -maxbw
+option is reached,
+.Nm
+will interrupt the creation of an archive and truncate it
+at the current position.
+When an archive is truncated, it will be named according to
+the user-specified name plus ".part" to denote the fact that
+it is incomplete.
+Such a truncated archive may be useful in its own right, but
+also offers the benefit that future attempts to archive the
+same data will be faster and use less bandwidth.
+.Sh ENVIRONMENT
+The following environment variables affect the execution of
+.Nm :
+.Bl -tag -width ".Ev BLOCKSIZE"
+.It Ev LANG
+The locale to use.
+See
+.Xr environ 7
+for more information.
+.It Ev TZ
+The timezone to use when displaying dates.
+See
+.Xr environ 7
+for more information.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Register with the server and generate keys:
+.Dl Nm tarsnap-keygen Fl -keyfile Pa /usr/tarsnap.key Fl -user Ar me@example.com Fl -machine Ar myserver
+.Pp
+Perform a backup of
+.Pa /usr/home
+and
+.Pa /other/stuff/to/backup :
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl c Fl f Ar backup-2008-04-24 Pa /usr/home Pa /other/stuff/to/backup
+.Pp
+Perform another backup, a day later;
+this is much faster since tarsnap will avoid
+storing data which was previously stored:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl c Fl f Ar backup-2008-04-25 Pa /usr/home Pa /other/stuff/to/backup
+.Pp
+List the archives:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -list-archives
+.Pp
+Delete the first backup, leaving the second backup intact:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl d Fl f Ar backup-2008-04-24
+.Pp
+List the files in the remaining backup:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl tv Fl f Ar backup-2008-04-25
+.Pp
+Restore two users' home directories from the backup:
+.Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl x Fl f Ar backup-2008-04-25 Pa usr/home/auser Pa usr/home/anotheruser
+.Pp
+Note that the
+.Fl -keyfile
+and
+.Fl -cachedir
+options can be specified via the
+.Xr tarsnap.conf 5
+configuration file, in which case they may be omitted
+from the command line.
+.Sh SECURITY
+Certain security issues are common to many archiving programs, including
+.Nm .
+In particular, carefully-crafted archives can request that
+.Nm
+extract files to locations outside of the target directory.
+This can potentially be used to cause unwitting users to overwrite
+files they did not intend to overwrite.
+If the archive is being extracted by the superuser, any file
+on the system can potentially be overwritten.
+There are three ways this can happen.
+Although
+.Nm
+has mechanisms to protect against each one,
+savvy users should be aware of the implications:
+.Bl -bullet -width indent
+.It
+Archive entries can have absolute pathnames.
+By default,
+.Nm
+removes the leading
+.Pa /
+character from filenames before restoring them to guard against this problem.
+.It
+Archive entries can have pathnames that include
+.Pa ..
+components.
+By default,
+.Nm
+will not extract files containing
+.Pa ..
+components in their pathname.
+.It
+Archive entries can exploit symbolic links to restore
+files to other directories.
+An archive can restore a symbolic link to another directory,
+then use that link to restore a file into that directory.
+To guard against this,
+.Nm
+checks each extracted path for symlinks.
+If the final path element is a symlink, it will be removed
+and replaced with the archive entry.
+If
+.Fl U
+is specified, any intermediate symlink will also be unconditionally removed.
+If neither
+.Fl U
+nor
+.Fl P
+is specified,
+.Nm
+will refuse to extract the entry.
+.El
+.Pp
+Although
+.Nm
+cryptographically signs archives in such a manner that it is believed
+to be unfeasible for an attacker to forge an archive without having
+possession of
+.Ar key-file ,
+you may wish to examine the contents of archive(s) with
+.Dl Nm Fl t Fl -keyfile Ar key-file Fl f Ar archive-name
+before extraction.
+Note that the
+.Fl P
+option to
+.Nm
+disables the security checks above and allows you to extract
+an archive while preserving any absolute pathnames,
+.Pa ..
+components, or symlinks to other directories.
+.Sh FILES
+.Bl -tag -width indent
+.It Pa @CONFIGDIR@/tarsnap.conf
+The system global
+.Nm
+configuration file.
+Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the command line.
+.It Pa ~/.tarsnaprc
+The
+.Nm
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.El
+.Sh SEE ALSO
+.Xr tarsnap-keygen 1 ,
+.Xr tarsnap.conf 5 ,
+.Xr tar 5
+.Sh HISTORY
+A
+.Nm tar
+command appeared in Seventh Edition Unix, which was
+released in January, 1979.
+There have been numerous other implementations,
+many of which extended the file format.
+John Gilmore's
+.Nm pdtar
+public-domain implementation (circa November, 1987)
+was quite influential, and formed the basis of GNU tar.
+GNU tar was included as the standard system tar
+in
+FreeBSD
+beginning with
+FreeBSD 1.0 ,
+but was replaced by Tim Kientzle's
+.Nm bsdtar
+utility and
+.Xr libarchive 3
+library in
+FreeBSD 5.3 .
+.Pp
+.Nm
+is built around
+.Nm bsdtar
+and
+.Xr libarchive 3 .
+.Sh BUGS
+This program follows
+.St -p1003.1-96
+for the definition of the
+.Fl l
+option to
+.Xr tar 5 .
+Note that GNU tar prior to version 1.15 treated
+.Fl l
+as a synonym for the
+.Fl -one-file-system
+option.
+.Pp
+To archive a file called
+.Pa @foo ,
+.Pa @@foo ,
+or
+.Pa -foo
+you must specify it as
+.Pa ./@foo ,
+.Pa ./@@foo ,
+or
+.Pa ./-foo ,
+respectively.
+.Pp
+In create mode, a leading
+.Pa ./
+is always removed.
+A leading
+.Pa /
+is stripped unless the
+.Fl P
+option is specified.
+.Pp
+Hard link information may be lost if an archive file which is included via the
+.Cm @ Ns Pa archive-file
+option is in a non-"tar" format.
+(This is a consequence of the incompatible ways that different archive
+formats store hardlink information.)
+.Pp
+There are alternative long options for many of the short options that
+are deliberately not documented.
+.Pp
+The limit specified by a
+.Fl -maxbw
+option is not strictly enforced;
+in particular, due to the need to cleanly terminate an archive, the
+amount of bandwidth used may slightly exceed the limit.

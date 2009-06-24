@@ -37,10 +37,11 @@
 
 #include <openssl/aes.h>
 
+#include "crypto.h"
 #include "crypto_internal.h"
+#include "crypto_scrypt.h"
 #include "memlimit.h"
-#include "scrypt.h"
-#include "scrypt_cpuperf.h"
+#include "scryptenc_cpuperf.h"
 #include "sha256.h"
 #include "sysendian.h"
 
@@ -51,7 +52,6 @@
 static int pickparams(size_t, double, double,
     int *, uint32_t *, uint32_t *);
 static int checkparams(size_t, double, double, int, uint32_t, uint32_t);
-static int getsalt(uint8_t[32]);
 
 static int
 pickparams(size_t maxmem, double maxmemfrac, double maxtime,
@@ -68,7 +68,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		return (1);
 
 	/* Figure out how fast the CPU is. */
-	if ((rc = scrypt_cpuperf(&opps)) != 0)
+	if ((rc = scryptenc_cpuperf(&opps)) != 0)
 		return (rc);
 	opslimit = opps * maxtime;
 
@@ -135,7 +135,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		return (1);
 
 	/* Figure out how fast the CPU is. */
-	if ((rc = scrypt_cpuperf(&opps)) != 0)
+	if ((rc = scryptenc_cpuperf(&opps)) != 0)
 		return (rc);
 	opslimit = opps * maxtime;
 
@@ -154,48 +154,6 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 
 	/* Success! */
 	return (0);
-}
-
-static int
-getsalt(uint8_t salt[32])
-{
-	int fd;
-	ssize_t lenread;
-	uint8_t * buf = salt;
-	size_t buflen = 32;
-
-	/* Open /dev/urandom. */
-	if ((fd = open("/dev/urandom", O_RDONLY)) == -1)
-		goto err0;
-
-	/* Read bytes until we have filled the buffer. */
-	while (buflen > 0) {
-		if ((lenread = read(fd, buf, buflen)) == -1)
-			goto err1;
-
-		/* The random device should never EOF. */
-		if (lenread == 0)
-			goto err1;
-
-		/* We're partly done. */
-		buf += lenread;
-		buflen -= lenread;
-	}
-
-	/* Close the device. */
-	while (close(fd) == -1) {
-		if (errno != EINTR)
-			goto err0;
-	}
-
-	/* Success! */
-	return (0);
-
-err1:
-	close(fd);
-err0:
-	/* Failure! */
-	return (4);
 }
 
 static int
@@ -221,11 +179,11 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	N = (uint64_t)(1) << logN;
 
 	/* Get some salt. */
-	if ((rc = getsalt(salt)) != 0)
-		return (rc);
+	if (crypto_entropy_read(salt, 32))
+		return (4);
 
 	/* Generate the derived keys. */
-	if (scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
+	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
 		return (3);
 
 	/* Construct the file header. */
@@ -291,7 +249,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 
 	/* Compute the derived keys. */
 	N = (uint64_t)(1) << logN;
-	if (scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
+	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
 		return (3);
 
 	/* Check header signature (i.e., verify password). */

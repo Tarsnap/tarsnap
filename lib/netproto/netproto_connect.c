@@ -18,13 +18,14 @@
 #include "netproto.h"
 
 struct netproto_connect_cookie {
+	char * useragent;
 	network_callback * callback;
 	void * cookie;
 	NETPROTO_CONNECTION * NC;
 };
 
 static network_callback callback_connect;
-static int dnslookup(struct sockaddr **, socklen_t *);
+static int dnslookup(const char *, struct sockaddr **, socklen_t *);
 
 static int
 callback_connect(void * cookie, int status)
@@ -37,12 +38,14 @@ callback_connect(void * cookie, int status)
 		goto failed;
 
 	/* Perform key exchange. */
-	if (netproto_keyexchange(C->NC, C->callback, C->cookie)) {
+	if (netproto_keyexchange(C->NC, C->useragent,
+	    C->callback, C->cookie)) {
 		status = NETWORK_STATUS_ERR;
 		goto failed;
 	}
 
 	/* Free the cookie. */
+	free(C->useragent);
 	free(C);
 
 	/* Success! */
@@ -53,6 +56,7 @@ failed:
 	rc = (C->callback)(C->cookie, status);
 
 	/* Free the cookie. */
+	free(C->useragent);
 	free(C);
 
 	/* Return value from user callback. */
@@ -61,7 +65,7 @@ failed:
 
 #ifdef HAVE_GETADDRINFO
 static int
-dnslookup(struct sockaddr ** addr, socklen_t * addrlen)
+dnslookup(const char * sname, struct sockaddr ** addr, socklen_t * addrlen)
 {
 	struct addrinfo hints;
 	struct addrinfo * res;
@@ -85,14 +89,13 @@ dnslookup(struct sockaddr ** addr, socklen_t * addrlen)
 	 */
 	hints.ai_flags = AI_NUMERICSERV;
 #endif
-	if ((error = getaddrinfo(TSSERVER "-server.tarsnap.com", "9279",
+	if ((error = getaddrinfo(sname, "9279",
 	    &hints, &res)) != 0) {
-		warn0("Error looking up " TSSERVER "-server.tarsnap.com: %s",
-		    gai_strerror(error));
+		warn0("Error looking up %s: %s", sname, gai_strerror(error));
 		goto err0;
 	}
 	if (res == NULL) {
-		warn0("Cannot look up " TSSERVER "-server.tarsnap.com");
+		warn0("Cannot look up %s", sname);
 		goto err0;
 	}
 
@@ -114,13 +117,13 @@ err0:
 }
 #else
 static int
-dnslookup(struct sockaddr ** addr, socklen_t * addrlen)
+dnslookup(const char * sname, struct sockaddr ** addr, socklen_t * addrlen)
 {
 	struct hostent * hp;
 	struct sockaddr_in sin;
 
-	if ((hp = gethostbyname(TSSERVER "-server.tarsnap.com")) == NULL) {
-		warn0("Error looking up " TSSERVER "-server.tarsnap.com");
+	if ((hp = gethostbyname(sname)) == NULL) {
+		warn0("Error looking up %s", sname);
 		goto err0;
 	}
 
@@ -134,7 +137,7 @@ dnslookup(struct sockaddr ** addr, socklen_t * addrlen)
 	if ((*addr = malloc(sizeof(struct sockaddr_in))) == NULL)
 		goto err0;
 	memcpy(*addr, &sin, sizeof(struct sockaddr_in));
-	*addrlen = res->ai_addrlen;
+	*addrlen = sizeof(struct sockaddr_in);
 
 	/* Success! */
 	return (0);
@@ -161,7 +164,8 @@ getserveraddr(struct sockaddr ** addr, socklen_t * addrlen)
 	 */
 	tmp_time = time(NULL);
 	if ((srv_time == (time_t)(-1)) || (tmp_time > srv_time + 60)) {
-		if (dnslookup(&tmp_addr, &tmp_addrlen)) {
+		if (dnslookup(TSSERVER "-server.tarsnap.com",
+		    &tmp_addr, &tmp_addrlen)) {
 			if (srv_addr != NULL)
 				warn0("Using cached DNS lookup");
 			else
@@ -186,13 +190,14 @@ getserveraddr(struct sockaddr ** addr, socklen_t * addrlen)
 }
 
 /**
- * netproto_connect(callback, cookie):
+ * netproto_connect(useragent, callback, cookie):
  * Create a socket, connect to the tarsnap server, and perform the neccesary
  * key exchange.  Return a network protocol connection cookie; note that
  * this cookie must not be used until the callback is called.
  */
 NETPROTO_CONNECTION *
-netproto_connect(network_callback * callback, void * cookie)
+netproto_connect(const char * useragent,
+    network_callback * callback, void * cookie)
 {
 	struct netproto_connect_cookie * C;
 	int s;
@@ -216,6 +221,8 @@ netproto_connect(network_callback * callback, void * cookie)
 	/* Create a cookie to be passed to callback_connect. */
 	if ((C = malloc(sizeof(struct netproto_connect_cookie))) == NULL)
 		goto err1;
+	if ((C->useragent = strdup(useragent)) == NULL)
+		goto err2;
 	C->callback = callback;
 	C->cookie = cookie;
 	C->NC = NC;
@@ -223,7 +230,7 @@ netproto_connect(network_callback * callback, void * cookie)
 	/* Look up the server's IP address. */
 	getserveraddr(&addr, &addrlen);
 	if (addr == NULL)
-		goto err2;
+		goto err3;
 
 	/* Try to connect to server within 5 seconds. */
 	timeo.tv_sec = 5;
@@ -231,12 +238,14 @@ netproto_connect(network_callback * callback, void * cookie)
 	if (network_connect(s, addr, addrlen,
 	    &timeo, callback_connect, C)) {
 		netproto_printerr(NETWORK_STATUS_CONNERR);
-		goto err2;
+		goto err3;
 	}
 
 	/* Success! */
 	return (NC);
 
+err3:
+	free(C->useragent);
 err2:
 	free(C);
 err1:

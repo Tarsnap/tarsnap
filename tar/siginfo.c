@@ -87,9 +87,11 @@ siginfo_init(struct bsdtar *bsdtar)
 	if (sigaction(SIGINFO, &sa, &bsdtar->siginfo->siginfo_old))
 		bsdtar_errc(bsdtar, 1, errno, "sigaction(SIGINFO) failed");
 #endif
+#ifdef SIGUSR1
 	/* ... and treat SIGUSR1 the same way as SIGINFO. */
 	if (sigaction(SIGUSR1, &sa, &bsdtar->siginfo->sigusr1_old))
 		bsdtar_errc(bsdtar, 1, errno, "sigaction(SIGUSR1) failed");
+#endif
 }
 
 void
@@ -141,8 +143,10 @@ siginfo_done(struct bsdtar *bsdtar)
 	/* Restore old SIGINFO handler. */
 	sigaction(SIGINFO, &bsdtar->siginfo->siginfo_old, NULL);
 #endif
+#ifdef SIGUSR1
 	/* And the old SIGUSR1 handler, too. */
 	sigaction(SIGUSR1, &bsdtar->siginfo->sigusr1_old, NULL);
+#endif
 
 	/* Free strings. */
 	free(bsdtar->siginfo->path);

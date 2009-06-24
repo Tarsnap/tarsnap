@@ -17,6 +17,7 @@ struct netpacket_op {
 
 struct netpacket_internal {
 	/* Network protocol data. */
+	char * useragent;
 	NETPROTO_CONNECTION * NC;
 	uint8_t packettype;
 	size_t packetlen;

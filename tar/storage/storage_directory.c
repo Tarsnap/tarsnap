@@ -46,7 +46,7 @@ int storage_directory_read(uint64_t machinenum, char class, int key,
 	struct directory_read_internal C;
 
 	/* Open netpacket connection. */
-	if ((C.NPC = netpacket_open()) == NULL)
+	if ((C.NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err0;
 
 	/* Initialize structure. */

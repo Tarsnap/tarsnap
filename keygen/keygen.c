@@ -14,6 +14,7 @@
 
 #include "crypto.h"
 #include "humansize.h"
+#include "keyfile.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "network.h"
@@ -225,7 +226,7 @@ main(int argc, char **argv)
 	C.machinenum = (uint64_t)(-1);
 
 	/* Open netpacket connection. */
-	if ((NPC = netpacket_open()) == NULL)
+	if ((NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
 
 	/* Ask the netpacket layer to send a request and get a response. */
@@ -297,7 +298,7 @@ main(int argc, char **argv)
 	}
 
 	/* Write keys to file. */
-	if (crypto_keyfile_write_file(keyfile, C.machinenum,
+	if (keyfile_write_file(keyfile, C.machinenum,
 	    CRYPTO_KEYMASK_USER, passphrase, maxmem, 1.0))
 		exit(1);
 

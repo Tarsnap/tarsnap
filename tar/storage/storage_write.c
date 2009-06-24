@@ -151,7 +151,7 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 
 	/* Open netpacket connections. */
 	for (i = 0; i < S->numconns; i++) {
-		if ((S->NPC[i] = netpacket_open()) == NULL)
+		if ((S->NPC[i] = netpacket_open(USERAGENT)) == NULL)
 			goto err1;
 	}
 

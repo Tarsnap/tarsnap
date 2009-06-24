@@ -164,10 +164,10 @@ int netpacket_directory_readmore(NETPACKET_CONNECTION *,
     handlepacket_callback *);
 
 /**
- * netpacket_open(void):
+ * netpacket_open(useragent):
  * Return a netpacket connection cookie.
  */
-NETPACKET_CONNECTION * netpacket_open(void);
+NETPACKET_CONNECTION * netpacket_open(const char *);
 
 /**
  * netpacket_op(NPC, writepacket, cookie):

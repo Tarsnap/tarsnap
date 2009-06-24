@@ -26,14 +26,14 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#ifndef _SCRYPT_CPUPERF_H_
-#define _SCRYPT_CPUPERF_H_
+#ifndef _SCRYPTENC_CPUPERF_H_
+#define _SCRYPTENC_CPUPERF_H_
 
 /**
- * scrypt_cpuperf(opps):
+ * scryptenc_cpuperf(opps):
  * Estimate the number of salsa20/8 cores which can be executed per second,
  * and return the value via opps.
  */
-int scrypt_cpuperf(double *);
+int scryptenc_cpuperf(double *);
 
-#endif /* !_SCRYPT_CPUPERF_H_ */
+#endif /* !_SCRYPTENC_CPUPERF_H_ */

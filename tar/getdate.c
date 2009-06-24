@@ -1,37 +1,19 @@
-#include <stdlib.h>
-#include <string.h>
-#ifndef lint
-#ifdef __unused
-__unused
-#endif
-static char const 
-yyrcsid[] = "$FreeBSD: src/usr.bin/yacc/skeleton.c,v 1.37.22.1.4.1 2009/04/15 03:14:26 kensmith Exp $";
-#endif
-#define YYBYACC 1
-#define YYMAJOR 1
-#define YYMINOR 9
-#define YYLEX yylex()
-#define YYEMPTY -1
-#define yyclearin (yychar=(YYEMPTY))
-#define yyerrok (yyerrflag=0)
-#define YYRECOVERING() (yyerrflag!=0)
-#if defined(__cplusplus) || __STDC__
-static int yygrowstack(void);
-#else
-static int yygrowstack();
-#endif
-#define YYPREFIX "yy"
-#line 2 "getdate.y"
 /*
- * March 2005: Further modified and simplified by Tim Kientzle:
- * Eliminate minutes-based calculations (just do everything in
- * seconds), have lexer only recognize unsigned integers (handle '+'
- * and '-' characters in grammar), combine tables into one table with
- * explicit abbreviation notes, do am/pm adjustments in the grammar
- * (eliminate some state variables and post-processing).  Among other
- * things, these changes eliminated two shift/reduce conflicts.  (Went
- * from 10 to 8.)
- * All of Tim Kientzle's changes to this file are public domain.
+ * This code is in the public domain and has no copyright.
+ *
+ * This is a plain C recursive-descent translation of an old
+ * public-domain YACC grammar that has been used for parsing dates in
+ * very many open-source projects.
+ *
+ * Since the original authors were generous enough to donate their
+ * work to the public domain, I feel compelled to match their
+ * generosity.
+ *
+ * Tim Kientzle, February 2009.
+ */
+
+/*
+ * Header comment from original getdate.y:
  */
 
 /*
@@ -44,12 +26,10 @@ static int yygrowstack();
 **
 **  This code is in the public domain and has no copyright.
 */
-/* SUPPRESS 287 on yaccpar_sccsid *//* Unused static variable */
-/* SUPPRESS 288 on yyerrlab *//* Label unused */
 
 #ifdef __FreeBSD__
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: src/usr.bin/tar/getdate.y,v 1.9 2007/07/20 01:27:50 kientzle Exp $");
+__FBSDID("$FreeBSD$");
 #endif
 
 #include <ctype.h>
@@ -58,277 +38,483 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/getdate.y,v 1.9 2007/07/20 01:27:50 kientzle
 #include <string.h>
 #include <time.h>
 
-#define yyparse getdate_yyparse
-#define yylex getdate_yylex
-#define yyerror getdate_yyerror
+/* This file defines a single public function. */
+time_t get_date(time_t now, char *);
 
-static int yyparse(void);
-static int yylex(void);
-static int yyerror(const char *);
+/* Basic time units. */
+#define	EPOCH		1970
+#define	MINUTE		(60L)
+#define	HOUR		(60L * MINUTE)
+#define	DAY		(24L * HOUR)
 
-time_t get_date(char *);
-
-#define EPOCH		1970
-#define HOUR(x)		((time_t)(x) * 60)
-#define SECSPERDAY	(24L * 60L * 60L)
-
-/*
-**  Daylight-savings mode:  on, off, or not yet known.
-*/
-typedef enum _DSTMODE {
-    DSTon, DSToff, DSTmaybe
-} DSTMODE;
-
-/*
-**  Meridian:  am or pm.
-*/
+/* Daylight-savings mode:  on, off, or not yet known. */
+enum DSTMODE { DSTon, DSToff, DSTmaybe };
+/* Meridian:  am or pm. */
 enum { tAM, tPM };
+/* Token types returned by nexttoken() */
+enum { tAGO = 260, tDAY, tDAYZONE, tAMPM, tMONTH, tMONTH_UNIT, tSEC_UNIT,
+       tUNUMBER, tZONE, tDST };
+struct token { int token; time_t value; };
 
 /*
-**  Global variables.  We could get rid of most of these by using a good
-**  union as the yacc stack.  (This routine was originally written before
-**  yacc had the %union construct.)  Maybe someday; right now we only use
-**  the %union very rarely.
-*/
-static char	*yyInput;
+ * Parser state.
+ */
+struct gdstate {
+	struct token *tokenp; /* Pointer to next token. */
+	/* HaveXxxx counts how many of this kind of phrase we've seen;
+	 * it's a fatal error to have more than one time, zone, day,
+	 * or date phrase. */
+	int	HaveYear;
+	int	HaveMonth;
+	int	HaveDay;
+	int	HaveWeekDay; /* Day of week */
+	int	HaveTime; /* Hour/minute/second */
+	int	HaveZone; /* timezone and/or DST info */
+	int	HaveRel; /* time offset; we can have more than one */
+	/* Absolute time values. */
+	time_t	Timezone;  /* Seconds offset from GMT */
+	time_t	Day;
+	time_t	Hour;
+	time_t	Minutes;
+	time_t	Month;
+	time_t	Seconds;
+	time_t	Year;
+	/* DST selection */
+	enum DSTMODE	DSTmode;
+	/* Day of week accounting, e.g., "3rd Tuesday" */
+	time_t	DayOrdinal; /* "3" in "3rd Tuesday" */
+	time_t	DayNumber; /* "Tuesday" in "3rd Tuesday" */
+	/* Relative time values: hour/day/week offsets are measured in
+	 * seconds, month/year are counted in months. */
+	time_t	RelMonth;
+	time_t	RelSeconds;
+};
 
-static DSTMODE	yyDSTmode;
-static time_t	yyDayOrdinal;
-static time_t	yyDayNumber;
-static int	yyHaveDate;
-static int	yyHaveDay;
-static int	yyHaveRel;
-static int	yyHaveTime;
-static int	yyHaveZone;
-static time_t	yyTimezone;
-static time_t	yyDay;
-static time_t	yyHour;
-static time_t	yyMinutes;
-static time_t	yyMonth;
-static time_t	yySeconds;
-static time_t	yyYear;
-static time_t	yyRelMonth;
-static time_t	yyRelSeconds;
+/*
+ * A series of functions that recognize certain common time phrases.
+ * Each function returns 1 if it managed to make sense of some of the
+ * tokens, zero otherwise.
+ */
 
-#line 92 "getdate.y"
-typedef union {
-    time_t		Number;
-} YYSTYPE;
-#line 118 "getdate.c"
-#define YYERRCODE 256
-#define tAGO 257
-#define tDAY 258
-#define tDAYZONE 259
-#define tAMPM 260
-#define tMONTH 261
-#define tMONTH_UNIT 262
-#define tSEC_UNIT 263
-#define tUNUMBER 264
-#define tZONE 265
-#define tDST 266
-const short yylhs[] = {                                        -1,
-    0,    0,    1,    1,    1,    1,    1,    1,    2,    2,
-    2,    2,    2,    8,    8,    3,    3,    3,    5,    5,
-    5,    4,    4,    4,    4,    4,    4,    4,    4,    6,
-    6,    9,    9,    9,    9,    9,    9,    9,    9,    7,
-};
-const short yylen[] = {                                         2,
-    0,    2,    1,    1,    1,    1,    1,    1,    2,    1,
-    2,    3,    3,    3,    5,    1,    1,    2,    1,    2,
-    2,    3,    5,    5,    5,    2,    4,    2,    3,    2,
-    1,    3,    3,    2,    1,    3,    3,    2,    1,    1,
-};
-const short yydefred[] = {                                      1,
-    0,    0,   17,    0,   39,   35,    0,    0,    0,    0,
-    2,    3,    4,    5,    6,    7,    8,    0,    0,   20,
-    0,   21,    9,    0,   38,   34,    0,    0,    0,   18,
-    0,    0,   11,    0,    0,   30,    0,   29,    0,    0,
-    0,    0,   37,   33,   36,   32,   12,   13,   27,    0,
-    0,    0,    0,   25,   24,   15,   23,
-};
-const short yydgoto[] = {                                       1,
-   11,   12,   13,   14,   15,   16,   17,   18,   19,
-};
-const short yysindex[] = {                                      0,
-  -43,  -40,    0, -259,    0,    0,  -35, -252, -253, -248,
-    0,    0,    0,    0,    0,    0,    0,  -30, -237,    0,
-  -23,    0,    0, -242,    0,    0, -258, -240, -238,    0,
- -255, -244,    0, -236, -235,    0, -234,    0,  -18,  -14,
-  -26,  -13,    0,    0,    0,    0,    0,    0,    0, -229,
- -228, -227, -226,    0,    0,    0,    0,
-};
-const short yyrindex[] = {                                      0,
-    0,    9,    0,    0,    0,    0,   64,   17,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,   57,   25,    0,
-   33,    0,    0,   49,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    1,   41,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,
-};
-const short yygindex[] = {                                      0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,
-};
-#define YYTABLESIZE 329
-const short yytable[] = {                                       9,
-   14,   10,   39,   20,   21,   40,   43,   44,   19,   27,
-   31,   29,   34,   30,   35,   32,   16,   45,   46,   36,
-   37,   38,   28,   41,   31,   42,   50,   47,   48,   49,
-   51,   52,   26,   53,   54,   55,   56,   57,    0,    0,
-   22,    0,    0,   14,    0,   14,    0,    0,   28,    0,
-    0,   19,    0,   19,    0,    0,   10,    0,    0,   16,
-    0,   16,    0,   40,    0,    0,    0,   31,    0,   31,
-    0,    0,    0,    0,    0,   26,    0,   26,    0,    0,
-    0,    0,    0,   22,    0,   22,    0,    0,    0,    0,
-    0,   28,    0,   28,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,   40,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    2,    3,    0,    4,    5,    6,
-    7,    8,   22,    0,   23,   24,   25,   26,    0,   33,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,   14,   14,
-   14,   14,   14,   14,   14,   14,   19,   19,    0,   19,
-   19,   19,   19,   19,   16,   16,    0,   16,   16,   16,
-   16,   16,   31,   31,    0,   31,   31,   31,   31,   31,
-   26,   26,    0,   26,   26,   26,   26,   26,   22,   22,
-    0,   22,   22,   22,   22,   22,   28,   28,    0,   28,
-   28,   28,    0,   28,   10,   10,    0,   10,   10,   10,
-   10,   10,   40,    0,    0,    0,    0,   40,   40,
-};
-const short yycheck[] = {                                      43,
-    0,   45,  261,   44,  264,  264,  262,  263,    0,   45,
-  264,   47,   43,  266,   45,  264,    0,  262,  263,  257,
-   44,  264,   58,  264,    0,  264,   45,  264,  264,  264,
-   45,   58,    0,   47,  264,  264,  264,  264,   -1,   -1,
-    0,   -1,   -1,   43,   -1,   45,   -1,   -1,    0,   -1,
-   -1,   43,   -1,   45,   -1,   -1,    0,   -1,   -1,   43,
-   -1,   45,   -1,    0,   -1,   -1,   -1,   43,   -1,   45,
-   -1,   -1,   -1,   -1,   -1,   43,   -1,   45,   -1,   -1,
-   -1,   -1,   -1,   43,   -1,   45,   -1,   -1,   -1,   -1,
-   -1,   43,   -1,   45,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   43,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,  258,  259,   -1,  261,  262,  263,
-  264,  265,  258,   -1,  260,  261,  262,  263,   -1,  260,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,  258,  259,
-  260,  261,  262,  263,  264,  265,  258,  259,   -1,  261,
-  262,  263,  264,  265,  258,  259,   -1,  261,  262,  263,
-  264,  265,  258,  259,   -1,  261,  262,  263,  264,  265,
-  258,  259,   -1,  261,  262,  263,  264,  265,  258,  259,
-   -1,  261,  262,  263,  264,  265,  258,  259,   -1,  261,
-  262,  263,   -1,  265,  258,  259,   -1,  261,  262,  263,
-  264,  265,  259,   -1,   -1,   -1,   -1,  264,  265,
-};
-#define YYFINAL 1
-#ifndef YYDEBUG
-#define YYDEBUG 0
-#endif
-#define YYMAXTOKEN 266
-#if YYDEBUG
-const char * const yyname[] = {
-"end-of-file",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,"'+'","','","'-'",0,"'/'",0,0,0,0,0,0,0,0,0,0,"':'",0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,"tAGO","tDAY",
-"tDAYZONE","tAMPM","tMONTH","tMONTH_UNIT","tSEC_UNIT","tUNUMBER","tZONE","tDST",
-};
-const char * const yyrule[] = {
-"$accept : spec",
-"spec :",
-"spec : spec item",
-"item : time",
-"item : zone",
-"item : date",
-"item : day",
-"item : rel",
-"item : number",
-"time : tUNUMBER tAMPM",
-"time : bare_time",
-"time : bare_time tAMPM",
-"time : bare_time '+' tUNUMBER",
-"time : bare_time '-' tUNUMBER",
-"bare_time : tUNUMBER ':' tUNUMBER",
-"bare_time : tUNUMBER ':' tUNUMBER ':' tUNUMBER",
-"zone : tZONE",
-"zone : tDAYZONE",
-"zone : tZONE tDST",
-"day : tDAY",
-"day : tDAY ','",
-"day : tUNUMBER tDAY",
-"date : tUNUMBER '/' tUNUMBER",
-"date : tUNUMBER '/' tUNUMBER '/' tUNUMBER",
-"date : tUNUMBER '-' tUNUMBER '-' tUNUMBER",
-"date : tUNUMBER '-' tMONTH '-' tUNUMBER",
-"date : tMONTH tUNUMBER",
-"date : tMONTH tUNUMBER ',' tUNUMBER",
-"date : tUNUMBER tMONTH",
-"date : tUNUMBER tMONTH tUNUMBER",
-"rel : relunit tAGO",
-"rel : relunit",
-"relunit : '-' tUNUMBER tSEC_UNIT",
-"relunit : '+' tUNUMBER tSEC_UNIT",
-"relunit : tUNUMBER tSEC_UNIT",
-"relunit : tSEC_UNIT",
-"relunit : '-' tUNUMBER tMONTH_UNIT",
-"relunit : '+' tUNUMBER tMONTH_UNIT",
-"relunit : tUNUMBER tMONTH_UNIT",
-"relunit : tMONTH_UNIT",
-"number : tUNUMBER",
-};
-#endif
-#if YYDEBUG
-#include <stdio.h>
-#endif
-#ifdef YYSTACKSIZE
-#undef YYMAXDEPTH
-#define YYMAXDEPTH YYSTACKSIZE
-#else
-#ifdef YYMAXDEPTH
-#define YYSTACKSIZE YYMAXDEPTH
-#else
-#define YYSTACKSIZE 10000
-#define YYMAXDEPTH 10000
-#endif
-#endif
-#define YYINITSTACKSIZE 200
-int yydebug;
-int yynerrs;
-int yyerrflag;
-int yychar;
-short *yyssp;
-YYSTYPE *yyvsp;
-YYSTYPE yyval;
-YYSTYPE yylval;
-short *yyss;
-short *yysslim;
-YYSTYPE *yyvs;
-int yystacksize;
-#line 328 "getdate.y"
+/*
+ *  hour:minute or hour:minute:second with optional AM, PM, or numeric
+ *  timezone offset
+ */
+static int
+timephrase(struct gdstate *gds)
+{
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == ':'
+	    && gds->tokenp[2].token == tUNUMBER
+	    && gds->tokenp[3].token == ':'
+	    && gds->tokenp[4].token == tUNUMBER) {
+		/* "12:14:18" or "22:08:07" */
+		++gds->HaveTime;
+		gds->Hour = gds->tokenp[0].value;
+		gds->Minutes = gds->tokenp[2].value;
+		gds->Seconds = gds->tokenp[4].value;
+		gds->tokenp += 5;
+	}
+	else if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == ':'
+	    && gds->tokenp[2].token == tUNUMBER) {
+		/* "12:14" or "22:08" */
+		++gds->HaveTime;
+		gds->Hour = gds->tokenp[0].value;
+		gds->Minutes = gds->tokenp[2].value;
+		gds->Seconds = 0;
+		gds->tokenp += 3;
+	}
+	else if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == tAMPM) {
+		/* "7" is a time if it's followed by "am" or "pm" */
+		++gds->HaveTime;
+		gds->Hour = gds->tokenp[0].value;
+		gds->Minutes = gds->Seconds = 0;
+		/* We'll handle the AM/PM below. */
+		gds->tokenp += 1;
+	} else {
+		/* We can't handle this. */
+		return 0;
+	}
 
-static struct TABLE {
+	if (gds->tokenp[0].token == tAMPM) {
+		/* "7:12pm", "12:20:13am" */
+		if (gds->Hour == 12)
+			gds->Hour = 0;
+		if (gds->tokenp[0].value == tPM)
+			gds->Hour += 12;
+		gds->tokenp += 1;
+	}
+	if (gds->tokenp[0].token == '+'
+	    && gds->tokenp[1].token == tUNUMBER) {
+		/* "7:14+0700" */
+		gds->HaveZone++;
+		gds->DSTmode = DSToff;
+		gds->Timezone = - ((gds->tokenp[1].value / 100) * HOUR
+		    + (gds->tokenp[1].value % 100) * MINUTE);
+		gds->tokenp += 2;
+	}
+	if (gds->tokenp[0].token == '-'
+	    && gds->tokenp[1].token == tUNUMBER) {
+		/* "19:14:12-0530" */
+		gds->HaveZone++;
+		gds->DSTmode = DSToff;
+		gds->Timezone = + ((gds->tokenp[1].value / 100) * HOUR
+		    + (gds->tokenp[1].value % 100) * MINUTE);
+		gds->tokenp += 2;
+	}
+	return 1;
+}
+
+/*
+ * Timezone name, possibly including DST.
+ */
+static int
+zonephrase(struct gdstate *gds)
+{
+	if (gds->tokenp[0].token == tZONE
+	    && gds->tokenp[1].token == tDST) {
+		gds->HaveZone++;
+		gds->Timezone = gds->tokenp[0].value;
+		gds->DSTmode = DSTon;
+		gds->tokenp += 1;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tZONE) {
+		gds->HaveZone++;
+		gds->Timezone = gds->tokenp[0].value;
+		gds->DSTmode = DSToff;
+		gds->tokenp += 1;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tDAYZONE) {
+		gds->HaveZone++;
+		gds->Timezone = gds->tokenp[0].value;
+		gds->DSTmode = DSTon;
+		gds->tokenp += 1;
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Year/month/day in various combinations.
+ */
+static int
+datephrase(struct gdstate *gds)
+{
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == '/'
+	    && gds->tokenp[2].token == tUNUMBER
+	    && gds->tokenp[3].token == '/'
+	    && gds->tokenp[4].token == tUNUMBER) {
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		if (gds->tokenp[0].value >= 13) {
+			/* First number is big:  2004/01/29, 99/02/17 */
+			gds->Year = gds->tokenp[0].value;
+			gds->Month = gds->tokenp[2].value;
+			gds->Day = gds->tokenp[4].value;
+		} else if ((gds->tokenp[4].value >= 13) || (gds->tokenp[2].value >= 13)) {
+			/* Last number is big:  01/07/98 */
+			/* Middle number is big:  01/29/04 */
+			gds->Month = gds->tokenp[0].value;
+			gds->Day = gds->tokenp[2].value;
+			gds->Year = gds->tokenp[4].value;
+		} else {
+			/* No significant clues: 02/03/04 */
+			gds->Month = gds->tokenp[0].value;
+			gds->Day = gds->tokenp[2].value;
+			gds->Year = gds->tokenp[4].value;
+		}
+		gds->tokenp += 5;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == '/'
+	    && gds->tokenp[2].token == tUNUMBER) {
+		/* "1/15" */
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Month = gds->tokenp[0].value;
+		gds->Day = gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == '-'
+	    && gds->tokenp[2].token == tUNUMBER
+	    && gds->tokenp[3].token == '-'
+	    && gds->tokenp[4].token == tUNUMBER) {
+		/* ISO 8601 format.  yyyy-mm-dd.  */
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Year = gds->tokenp[0].value;
+		gds->Month = gds->tokenp[2].value;
+		gds->Day = gds->tokenp[4].value;
+		gds->tokenp += 5;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == '-'
+	    && gds->tokenp[2].token == tMONTH
+	    && gds->tokenp[3].token == '-'
+	    && gds->tokenp[4].token == tUNUMBER) {
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		if (gds->tokenp[0].value > 31) {
+			/* e.g. 1992-Jun-17 */
+			gds->Year = gds->tokenp[0].value;
+			gds->Month = gds->tokenp[2].value;
+			gds->Day = gds->tokenp[4].value;
+		} else {
+			/* e.g. 17-JUN-1992.  */
+			gds->Day = gds->tokenp[0].value;
+			gds->Month = gds->tokenp[2].value;
+			gds->Year = gds->tokenp[4].value;
+		}
+		gds->tokenp += 5;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tMONTH
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == ','
+	    && gds->tokenp[3].token == tUNUMBER) {
+		/* "June 17, 2001" */
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Month = gds->tokenp[0].value;
+		gds->Day = gds->tokenp[1].value;
+		gds->Year = gds->tokenp[3].value;
+		gds->tokenp += 4;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tMONTH
+	    && gds->tokenp[1].token == tUNUMBER) {
+		/* "May 3" */
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Month = gds->tokenp[0].value;
+		gds->Day = gds->tokenp[1].value;
+		gds->tokenp += 2;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == tMONTH
+	    && gds->tokenp[2].token == tUNUMBER) {
+		/* "12 Sept 1997" */
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Day = gds->tokenp[0].value;
+		gds->Month = gds->tokenp[1].value;
+		gds->Year = gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == tMONTH) {
+		/* "12 Sept" */
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Day = gds->tokenp[0].value;
+		gds->Month = gds->tokenp[1].value;
+		gds->tokenp += 2;
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * Relative time phrase: "tomorrow", "yesterday", "+1 hour", etc.
+ */
+static int
+relunitphrase(struct gdstate *gds)
+{
+	if (gds->tokenp[0].token == '-'
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == tSEC_UNIT) {
+		/* "-3 hours" */
+		gds->HaveRel++;
+		gds->RelSeconds -= gds->tokenp[1].value * gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+	if (gds->tokenp[0].token == '+'
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == tSEC_UNIT) {
+		/* "+1 minute" */
+		gds->HaveRel++;
+		gds->RelSeconds += gds->tokenp[1].value * gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == tSEC_UNIT) {
+		/* "1 day" */
+		gds->HaveRel++;
+		gds->RelSeconds += gds->tokenp[1].value * gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+	if (gds->tokenp[0].token == '-'
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == tMONTH_UNIT) {
+		/* "-3 months" */
+		gds->HaveRel++;
+		gds->RelMonth -= gds->tokenp[1].value * gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+	if (gds->tokenp[0].token == '+'
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == tMONTH_UNIT) {
+		/* "+5 years" */
+		gds->HaveRel++;
+		gds->RelMonth += gds->tokenp[1].value * gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+	if (gds->tokenp[0].token == tUNUMBER
+	    && gds->tokenp[1].token == tMONTH_UNIT) {
+		/* "2 years" */
+		gds->HaveRel++;
+		gds->RelMonth += gds->tokenp[0].value * gds->tokenp[1].value;
+		gds->tokenp += 2;
+		return 1;
+	}
+	if (gds->tokenp[0].token == tSEC_UNIT) {
+		/* "now", "tomorrow" */
+		gds->HaveRel++;
+		gds->RelSeconds += gds->tokenp[0].value;
+		++gds->tokenp;
+		return 1;
+	}
+	if (gds->tokenp[0].token == tMONTH_UNIT) {
+		/* "month" */
+		gds->HaveRel++;
+		gds->RelMonth += gds->tokenp[0].value;
+		gds->tokenp += 1;
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Day of the week specification.
+ */
+static int
+dayphrase(struct gdstate *gds)
+{
+	if (gds->tokenp[0].token == tDAY) {
+		/* "tues", "wednesday," */
+		gds->HaveWeekDay++;
+		gds->DayOrdinal = 1;
+		gds->DayNumber = gds->tokenp[0].value;
+		gds->tokenp += 1;
+		if (gds->tokenp[0].token == ',')
+			gds->tokenp += 1;
+		return 1;
+	}
+	if (gds->tokenp[0].token == tUNUMBER
+		&& gds->tokenp[1].token == tDAY) {
+		/* "second tues" "3 wed" */
+		gds->HaveWeekDay++;
+		gds->DayOrdinal = gds->tokenp[0].value;
+		gds->DayNumber = gds->tokenp[1].value;
+		gds->tokenp += 2;
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Try to match a phrase using one of the above functions.
+ * This layer also deals with a couple of generic issues.
+ */
+static int
+phrase(struct gdstate *gds)
+{
+	if (timephrase(gds))
+		return 1;
+	if (zonephrase(gds))
+		return 1;
+	if (datephrase(gds))
+		return 1;
+	if (dayphrase(gds))
+		return 1;
+	if (relunitphrase(gds)) {
+		if (gds->tokenp[0].token == tAGO) {
+			gds->RelSeconds = -gds->RelSeconds;
+			gds->RelMonth = -gds->RelMonth;
+			gds->tokenp += 1;
+		}
+		return 1;
+	}
+
+	/* Bare numbers sometimes have meaning. */
+	if (gds->tokenp[0].token == tUNUMBER) {
+		if (gds->HaveTime && !gds->HaveYear && !gds->HaveRel) {
+			gds->HaveYear++;
+			gds->Year = gds->tokenp[0].value;
+			gds->tokenp += 1;
+			return 1;
+		}
+
+		if(gds->tokenp[0].value > 10000) {
+			/* "20040301" */
+			gds->HaveYear++;
+			gds->HaveMonth++;
+			gds->HaveDay++;
+			gds->Day= (gds->tokenp[0].value)%100;
+			gds->Month= (gds->tokenp[0].value/100)%100;
+			gds->Year = gds->tokenp[0].value/10000;
+			gds->tokenp += 1;
+			return 1;
+		}
+
+		if (gds->tokenp[0].value < 24) {
+			gds->HaveTime++;
+			gds->Hour = gds->tokenp[0].value;
+			gds->Minutes = 0;
+			gds->Seconds = 0;
+			gds->tokenp += 1;
+			return 1;
+		}
+
+		if ((gds->tokenp[0].value / 100 < 24)
+		    && (gds->tokenp[0].value % 100 < 60)) {
+			/* "513" is same as "5:13" */
+			gds->Hour = gds->tokenp[0].value / 100;
+			gds->Minutes = gds->tokenp[0].value % 100;
+			gds->Seconds = 0;
+			gds->tokenp += 1;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * A dictionary of time words.
+ */
+static struct LEXICON {
 	size_t		abbrev;
 	const char	*name;
 	int		type;
@@ -361,84 +547,84 @@ static struct TABLE {
 	{ 2, "friday",		tDAY, 5 },
 	{ 2, "saturday",	tDAY, 6 },
 
-	/* Timezones: Offsets are in minutes. */
-	{ 0, "gmt",  tZONE,     HOUR( 0) }, /* Greenwich Mean */
-	{ 0, "ut",   tZONE,     HOUR( 0) }, /* Universal (Coordinated) */
-	{ 0, "utc",  tZONE,     HOUR( 0) },
-	{ 0, "wet",  tZONE,     HOUR( 0) }, /* Western European */
-	{ 0, "bst",  tDAYZONE,  HOUR( 0) }, /* British Summer */
-	{ 0, "wat",  tZONE,     HOUR( 1) }, /* West Africa */
-	{ 0, "at",   tZONE,     HOUR( 2) }, /* Azores */
-	/* { 0, "bst", tZONE, HOUR( 3) }, */ /* Brazil Standard: Conflict */
-	/* { 0, "gst", tZONE, HOUR( 3) }, */ /* Greenland Standard: Conflict*/
-	{ 0, "nft",  tZONE,     HOUR(3)+30 }, /* Newfoundland */
-	{ 0, "nst",  tZONE,     HOUR(3)+30 }, /* Newfoundland Standard */
-	{ 0, "ndt",  tDAYZONE,  HOUR(3)+30 }, /* Newfoundland Daylight */
-	{ 0, "ast",  tZONE,     HOUR( 4) }, /* Atlantic Standard */
-	{ 0, "adt",  tDAYZONE,  HOUR( 4) }, /* Atlantic Daylight */
-	{ 0, "est",  tZONE,     HOUR( 5) }, /* Eastern Standard */
-	{ 0, "edt",  tDAYZONE,  HOUR( 5) }, /* Eastern Daylight */
-	{ 0, "cst",  tZONE,     HOUR( 6) }, /* Central Standard */
-	{ 0, "cdt",  tDAYZONE,  HOUR( 6) }, /* Central Daylight */
-	{ 0, "mst",  tZONE,     HOUR( 7) }, /* Mountain Standard */
-	{ 0, "mdt",  tDAYZONE,  HOUR( 7) }, /* Mountain Daylight */
-	{ 0, "pst",  tZONE,     HOUR( 8) }, /* Pacific Standard */
-	{ 0, "pdt",  tDAYZONE,  HOUR( 8) }, /* Pacific Daylight */
-	{ 0, "yst",  tZONE,     HOUR( 9) }, /* Yukon Standard */
-	{ 0, "ydt",  tDAYZONE,  HOUR( 9) }, /* Yukon Daylight */
-	{ 0, "hst",  tZONE,     HOUR(10) }, /* Hawaii Standard */
-	{ 0, "hdt",  tDAYZONE,  HOUR(10) }, /* Hawaii Daylight */
-	{ 0, "cat",  tZONE,     HOUR(10) }, /* Central Alaska */
-	{ 0, "ahst", tZONE,     HOUR(10) }, /* Alaska-Hawaii Standard */
-	{ 0, "nt",   tZONE,     HOUR(11) }, /* Nome */
-	{ 0, "idlw", tZONE,     HOUR(12) }, /* Intl Date Line West */
-	{ 0, "cet",  tZONE,     -HOUR(1) }, /* Central European */
-	{ 0, "met",  tZONE,     -HOUR(1) }, /* Middle European */
-	{ 0, "mewt", tZONE,     -HOUR(1) }, /* Middle European Winter */
-	{ 0, "mest", tDAYZONE,  -HOUR(1) }, /* Middle European Summer */
-	{ 0, "swt",  tZONE,     -HOUR(1) }, /* Swedish Winter */
-	{ 0, "sst",  tDAYZONE,  -HOUR(1) }, /* Swedish Summer */
-	{ 0, "fwt",  tZONE,     -HOUR(1) }, /* French Winter */
-	{ 0, "fst",  tDAYZONE,  -HOUR(1) }, /* French Summer */
-	{ 0, "eet",  tZONE,     -HOUR(2) }, /* Eastern Eur, USSR Zone 1 */
-	{ 0, "bt",   tZONE,     -HOUR(3) }, /* Baghdad, USSR Zone 2 */
-	{ 0, "it",   tZONE,     -HOUR(3)-30 },/* Iran */
-	{ 0, "zp4",  tZONE,     -HOUR(4) }, /* USSR Zone 3 */
-	{ 0, "zp5",  tZONE,     -HOUR(5) }, /* USSR Zone 4 */
-	{ 0, "ist",  tZONE,     -HOUR(5)-30 },/* Indian Standard */
-	{ 0, "zp6",  tZONE,     -HOUR(6) }, /* USSR Zone 5 */
-	/* { 0, "nst",  tZONE, -HOUR(6.5) }, */ /* North Sumatra: Conflict */
-	/* { 0, "sst", tZONE, -HOUR(7) }, */ /* So Sumatra, USSR 6: Conflict */
-	{ 0, "wast", tZONE,     -HOUR(7) }, /* West Australian Standard */
-	{ 0, "wadt", tDAYZONE,  -HOUR(7) }, /* West Australian Daylight */
-	{ 0, "jt",   tZONE,     -HOUR(7)-30 },/* Java (3pm in Cronusland!)*/
-	{ 0, "cct",  tZONE,     -HOUR(8) }, /* China Coast, USSR Zone 7 */
-	{ 0, "jst",  tZONE,     -HOUR(9) }, /* Japan Std, USSR Zone 8 */
-	{ 0, "cast", tZONE,     -HOUR(9)-30 },/* Central Australian Std */
-	{ 0, "cadt", tDAYZONE,  -HOUR(9)-30 },/* Central Australian Daylt */
-	{ 0, "east", tZONE,     -HOUR(10) }, /* Eastern Australian Std */
-	{ 0, "eadt", tDAYZONE,  -HOUR(10) }, /* Eastern Australian Daylt */
-	{ 0, "gst",  tZONE,     -HOUR(10) }, /* Guam Std, USSR Zone 9 */
-	{ 0, "nzt",  tZONE,     -HOUR(12) }, /* New Zealand */
-	{ 0, "nzst", tZONE,     -HOUR(12) }, /* New Zealand Standard */
-	{ 0, "nzdt", tDAYZONE,  -HOUR(12) }, /* New Zealand Daylight */
-	{ 0, "idle", tZONE,     -HOUR(12) }, /* Intl Date Line East */
+	/* Timezones: Offsets are in seconds. */
+	{ 0, "gmt",  tZONE,     0*HOUR }, /* Greenwich Mean */
+	{ 0, "ut",   tZONE,     0*HOUR }, /* Universal (Coordinated) */
+	{ 0, "utc",  tZONE,     0*HOUR },
+	{ 0, "wet",  tZONE,     0*HOUR }, /* Western European */
+	{ 0, "bst",  tDAYZONE,  0*HOUR }, /* British Summer */
+	{ 0, "wat",  tZONE,     1*HOUR }, /* West Africa */
+	{ 0, "at",   tZONE,     2*HOUR }, /* Azores */
+	/* { 0, "bst", tZONE, 3*HOUR }, */ /* Brazil Standard: Conflict */
+	/* { 0, "gst", tZONE, 3*HOUR }, */ /* Greenland Standard: Conflict*/
+	{ 0, "nft",  tZONE,     3*HOUR+30*MINUTE }, /* Newfoundland */
+	{ 0, "nst",  tZONE,     3*HOUR+30*MINUTE }, /* Newfoundland Standard */
+	{ 0, "ndt",  tDAYZONE,  3*HOUR+30*MINUTE }, /* Newfoundland Daylight */
+	{ 0, "ast",  tZONE,     4*HOUR }, /* Atlantic Standard */
+	{ 0, "adt",  tDAYZONE,  4*HOUR }, /* Atlantic Daylight */
+	{ 0, "est",  tZONE,     5*HOUR }, /* Eastern Standard */
+	{ 0, "edt",  tDAYZONE,  5*HOUR }, /* Eastern Daylight */
+	{ 0, "cst",  tZONE,     6*HOUR }, /* Central Standard */
+	{ 0, "cdt",  tDAYZONE,  6*HOUR }, /* Central Daylight */
+	{ 0, "mst",  tZONE,     7*HOUR }, /* Mountain Standard */
+	{ 0, "mdt",  tDAYZONE,  7*HOUR }, /* Mountain Daylight */
+	{ 0, "pst",  tZONE,     8*HOUR }, /* Pacific Standard */
+	{ 0, "pdt",  tDAYZONE,  8*HOUR }, /* Pacific Daylight */
+	{ 0, "yst",  tZONE,     9*HOUR }, /* Yukon Standard */
+	{ 0, "ydt",  tDAYZONE,  9*HOUR }, /* Yukon Daylight */
+	{ 0, "hst",  tZONE,     10*HOUR }, /* Hawaii Standard */
+	{ 0, "hdt",  tDAYZONE,  10*HOUR }, /* Hawaii Daylight */
+	{ 0, "cat",  tZONE,     10*HOUR }, /* Central Alaska */
+	{ 0, "ahst", tZONE,     10*HOUR }, /* Alaska-Hawaii Standard */
+	{ 0, "nt",   tZONE,     11*HOUR }, /* Nome */
+	{ 0, "idlw", tZONE,     12*HOUR }, /* Intl Date Line West */
+	{ 0, "cet",  tZONE,     -1*HOUR }, /* Central European */
+	{ 0, "met",  tZONE,     -1*HOUR }, /* Middle European */
+	{ 0, "mewt", tZONE,     -1*HOUR }, /* Middle European Winter */
+	{ 0, "mest", tDAYZONE,  -1*HOUR }, /* Middle European Summer */
+	{ 0, "swt",  tZONE,     -1*HOUR }, /* Swedish Winter */
+	{ 0, "sst",  tDAYZONE,  -1*HOUR }, /* Swedish Summer */
+	{ 0, "fwt",  tZONE,     -1*HOUR }, /* French Winter */
+	{ 0, "fst",  tDAYZONE,  -1*HOUR }, /* French Summer */
+	{ 0, "eet",  tZONE,     -2*HOUR }, /* Eastern Eur, USSR Zone 1 */
+	{ 0, "bt",   tZONE,     -3*HOUR }, /* Baghdad, USSR Zone 2 */
+	{ 0, "it",   tZONE,     -3*HOUR-30*MINUTE },/* Iran */
+	{ 0, "zp4",  tZONE,     -4*HOUR }, /* USSR Zone 3 */
+	{ 0, "zp5",  tZONE,     -5*HOUR }, /* USSR Zone 4 */
+	{ 0, "ist",  tZONE,     -5*HOUR-30*MINUTE },/* Indian Standard */
+	{ 0, "zp6",  tZONE,     -6*HOUR }, /* USSR Zone 5 */
+	/* { 0, "nst",  tZONE, -6.5*HOUR }, */ /* North Sumatra: Conflict */
+	/* { 0, "sst", tZONE, -7*HOUR }, */ /* So Sumatra, USSR 6: Conflict */
+	{ 0, "wast", tZONE,     -7*HOUR }, /* West Australian Standard */
+	{ 0, "wadt", tDAYZONE,  -7*HOUR }, /* West Australian Daylight */
+	{ 0, "jt",   tZONE,     -7*HOUR-30*MINUTE },/* Java (3pm in Cronusland!)*/
+	{ 0, "cct",  tZONE,     -8*HOUR }, /* China Coast, USSR Zone 7 */
+	{ 0, "jst",  tZONE,     -9*HOUR }, /* Japan Std, USSR Zone 8 */
+	{ 0, "cast", tZONE,     -9*HOUR-30*MINUTE },/* Ctrl Australian Std */
+	{ 0, "cadt", tDAYZONE,  -9*HOUR-30*MINUTE },/* Ctrl Australian Daylt */
+	{ 0, "east", tZONE,     -10*HOUR }, /* Eastern Australian Std */
+	{ 0, "eadt", tDAYZONE,  -10*HOUR }, /* Eastern Australian Daylt */
+	{ 0, "gst",  tZONE,     -10*HOUR }, /* Guam Std, USSR Zone 9 */
+	{ 0, "nzt",  tZONE,     -12*HOUR }, /* New Zealand */
+	{ 0, "nzst", tZONE,     -12*HOUR }, /* New Zealand Standard */
+	{ 0, "nzdt", tDAYZONE,  -12*HOUR }, /* New Zealand Daylight */
+	{ 0, "idle", tZONE,     -12*HOUR }, /* Intl Date Line East */
 
 	{ 0, "dst",  tDST,		0 },
 
 	/* Time units. */
 	{ 4, "years",		tMONTH_UNIT,	12 },
 	{ 5, "months",		tMONTH_UNIT,	1 },
-	{ 9, "fortnights",	tSEC_UNIT,	14 * 24 * 60 * 60 },
-	{ 4, "weeks",		tSEC_UNIT,	7 * 24 * 60 * 60 },
-	{ 3, "days",		tSEC_UNIT,	1 * 24 * 60 * 60 },
-	{ 4, "hours",		tSEC_UNIT,	60 * 60 },
-	{ 3, "minutes",		tSEC_UNIT,	60 },
+	{ 9, "fortnights",	tSEC_UNIT,	14 * DAY },
+	{ 4, "weeks",		tSEC_UNIT,	7 * DAY },
+	{ 3, "days",		tSEC_UNIT,	DAY },
+	{ 4, "hours",		tSEC_UNIT,	HOUR },
+	{ 3, "minutes",		tSEC_UNIT,	MINUTE },
 	{ 3, "seconds",		tSEC_UNIT,	1 },
 
 	/* Relative-time words. */
-	{ 0, "tomorrow",	tSEC_UNIT,	1 * 24 * 60 * 60 },
-	{ 0, "yesterday",	tSEC_UNIT,	-1 * 24 * 60 * 60 },
+	{ 0, "tomorrow",	tSEC_UNIT,	DAY },
+	{ 0, "yesterday",	tSEC_UNIT,	-DAY },
 	{ 0, "today",		tSEC_UNIT,	0 },
 	{ 0, "now",		tSEC_UNIT,	0 },
 	{ 0, "last",		tUNUMBER,	-1 },
@@ -464,47 +650,39 @@ static struct TABLE {
 	{ 0, "ago",		tAGO,		1 },
 
 	/* Military timezones. */
-	{ 0, "a",	tZONE,	HOUR(  1) },
-	{ 0, "b",	tZONE,	HOUR(  2) },
-	{ 0, "c",	tZONE,	HOUR(  3) },
-	{ 0, "d",	tZONE,	HOUR(  4) },
-	{ 0, "e",	tZONE,	HOUR(  5) },
-	{ 0, "f",	tZONE,	HOUR(  6) },
-	{ 0, "g",	tZONE,	HOUR(  7) },
-	{ 0, "h",	tZONE,	HOUR(  8) },
-	{ 0, "i",	tZONE,	HOUR(  9) },
-	{ 0, "k",	tZONE,	HOUR( 10) },
-	{ 0, "l",	tZONE,	HOUR( 11) },
-	{ 0, "m",	tZONE,	HOUR( 12) },
-	{ 0, "n",	tZONE,	HOUR(- 1) },
-	{ 0, "o",	tZONE,	HOUR(- 2) },
-	{ 0, "p",	tZONE,	HOUR(- 3) },
-	{ 0, "q",	tZONE,	HOUR(- 4) },
-	{ 0, "r",	tZONE,	HOUR(- 5) },
-	{ 0, "s",	tZONE,	HOUR(- 6) },
-	{ 0, "t",	tZONE,	HOUR(- 7) },
-	{ 0, "u",	tZONE,	HOUR(- 8) },
-	{ 0, "v",	tZONE,	HOUR(- 9) },
-	{ 0, "w",	tZONE,	HOUR(-10) },
-	{ 0, "x",	tZONE,	HOUR(-11) },
-	{ 0, "y",	tZONE,	HOUR(-12) },
-	{ 0, "z",	tZONE,	HOUR(  0) },
+	{ 0, "a",	tZONE,	1*HOUR },
+	{ 0, "b",	tZONE,	2*HOUR },
+	{ 0, "c",	tZONE,	3*HOUR },
+	{ 0, "d",	tZONE,	4*HOUR },
+	{ 0, "e",	tZONE,	5*HOUR },
+	{ 0, "f",	tZONE,	6*HOUR },
+	{ 0, "g",	tZONE,	7*HOUR },
+	{ 0, "h",	tZONE,	8*HOUR },
+	{ 0, "i",	tZONE,	9*HOUR },
+	{ 0, "k",	tZONE,	10*HOUR },
+	{ 0, "l",	tZONE,	11*HOUR },
+	{ 0, "m",	tZONE,	12*HOUR },
+	{ 0, "n",	tZONE,	-1*HOUR },
+	{ 0, "o",	tZONE,	-2*HOUR },
+	{ 0, "p",	tZONE,	-3*HOUR },
+	{ 0, "q",	tZONE,	-4*HOUR },
+	{ 0, "r",	tZONE,	-5*HOUR },
+	{ 0, "s",	tZONE,	-6*HOUR },
+	{ 0, "t",	tZONE,	-7*HOUR },
+	{ 0, "u",	tZONE,	-8*HOUR },
+	{ 0, "v",	tZONE,	-9*HOUR },
+	{ 0, "w",	tZONE,	-10*HOUR },
+	{ 0, "x",	tZONE,	-11*HOUR },
+	{ 0, "y",	tZONE,	-12*HOUR },
+	{ 0, "z",	tZONE,	0*HOUR },
 
 	/* End of table. */
 	{ 0, NULL,	0,	0 }
 };
 
-
-
-
-/* ARGSUSED */
-static int
-yyerror(const char *s)
-{
-	(void)s;
-	return 0;
-}
-
+/*
+ * Convert hour/minute/second to count of seconds.
+ */
 static time_t
 ToSeconds(time_t Hours, time_t Minutes, time_t Seconds)
 {
@@ -512,16 +690,19 @@ ToSeconds(time_t Hours, time_t Minutes, time_t Seconds)
 		return -1;
 	if (Hours < 0 || Hours > 23)
 		return -1;
-	return (Hours * 60L + Minutes) * 60L + Seconds;
+	return Hours * HOUR + Minutes * MINUTE + Seconds;
 }
 
 
-/* Year is either
- * A number from 0 to 99, which means a year from 1970 to 2069, or
- * The actual year (>=100).  */
+/*
+ * Year is either:
+ *  = A number from 0 to 99, which means a year from 1970 to 2069, or
+ *  = The actual year (>=100).
+ */
 static time_t
 Convert(time_t Month, time_t Day, time_t Year,
-	time_t Hours, time_t Minutes, time_t Seconds, DSTMODE DSTmode)
+	time_t Hours, time_t Minutes, time_t Seconds,
+	time_t Timezone, enum DSTMODE DSTmode)
 {
 	static int DaysInMonth[12] = {
 		31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
@@ -549,14 +730,14 @@ Convert(time_t Month, time_t Day, time_t Year,
 		Julian += DaysInMonth[i];
 	for (i = EPOCH; i < Year; i++)
 		Julian += 365 + (i % 4 == 0);
-	Julian *= SECSPERDAY;
-	Julian += yyTimezone * 60L;
+	Julian *= DAY;
+	Julian += Timezone;
 	if ((tod = ToSeconds(Hours, Minutes, Seconds)) < 0)
 		return -1;
 	Julian += tod;
 	if (DSTmode == DSTon
 	    || (DSTmode == DSTmaybe && localtime(&Julian)->tm_isdst))
-		Julian -= 60 * 60;
+		Julian -= HOUR;
 	return Julian;
 }
 
@@ -569,26 +750,30 @@ DSTcorrect(time_t Start, time_t Future)
 
 	StartDay = (localtime(&Start)->tm_hour + 1) % 24;
 	FutureDay = (localtime(&Future)->tm_hour + 1) % 24;
-	return (Future - Start) + (StartDay - FutureDay) * 60L * 60L;
+	return (Future - Start) + (StartDay - FutureDay) * HOUR;
 }
 
 
 static time_t
-RelativeDate(time_t Start, time_t DayOrdinal, time_t DayNumber)
+RelativeDate(time_t Start, time_t zone, int dstmode,
+    time_t DayOrdinal, time_t DayNumber)
 {
 	struct tm	*tm;
-	time_t	now;
+	time_t	t, now;
 
+	t = Start - zone;
+	tm = gmtime(&t);
 	now = Start;
-	tm = localtime(&now);
-	now += SECSPERDAY * ((DayNumber - tm->tm_wday + 7) % 7);
-	now += 7 * SECSPERDAY * (DayOrdinal <= 0 ? DayOrdinal : DayOrdinal - 1);
-	return DSTcorrect(Start, now);
+	now += DAY * ((DayNumber - tm->tm_wday + 7) % 7);
+	now += 7 * DAY * (DayOrdinal <= 0 ? DayOrdinal : DayOrdinal - 1);
+	if (dstmode == DSTmaybe)
+		return DSTcorrect(Start, now);
+	return now - Start;
 }
 
 
 static time_t
-RelativeMonth(time_t Start, time_t RelMonth)
+RelativeMonth(time_t Start, time_t Timezone, time_t RelMonth)
 {
 	struct tm	*tm;
 	time_t	Month;
@@ -603,24 +788,27 @@ RelativeMonth(time_t Start, time_t RelMonth)
 	return DSTcorrect(Start,
 	    Convert(Month, (time_t)tm->tm_mday, Year,
 		(time_t)tm->tm_hour, (time_t)tm->tm_min, (time_t)tm->tm_sec,
-		DSTmaybe));
+		Timezone, DSTmaybe));
 }
 
+/*
+ * Tokenizer.
+ */
 static int
-yylex(void)
+nexttoken(char **in, time_t *value)
 {
 	char	c;
 	char	buff[64];
 
 	for ( ; ; ) {
-		while (isspace((unsigned char)*yyInput))
-			yyInput++;
+		while (isspace((unsigned char)**in))
+			++*in;
 
 		/* Skip parenthesized comments. */
-		if (*yyInput == '(') {
+		if (**in == '(') {
 			int Count = 0;
 			do {
-				c = *yyInput++;
+				c = *(*in)++;
 				if (c == '\0')
 					return c;
 				if (c == '(')
@@ -634,8 +822,8 @@ yylex(void)
 		/* Try the next token in the word table first. */
 		/* This allows us to match "2nd", for example. */
 		{
-			char *src = yyInput;
-			const struct TABLE *tp;
+			char *src = *in;
+			const struct LEXICON *tp;
 			unsigned i = 0;
 
 			/* Force to lowercase and strip '.' characters. */
@@ -665,9 +853,9 @@ yylex(void)
 				    && strncmp(tp->name, buff, strlen(buff))
 				    	== 0) {
 					/* Skip over token. */
-					yyInput = src;
+					*in = src;
 					/* Return the match. */
-					yylval.Number = tp->value;
+					*value = tp->value;
 					return tp->type;
 				}
 			}
@@ -678,14 +866,14 @@ yylex(void)
 		 * Because '-' and '+' have other special meanings, I
 		 * don't deal with signed numbers here.
 		 */
-		if (isdigit((unsigned char)(c = *yyInput))) {
-			for (yylval.Number = 0; isdigit((unsigned char)(c = *yyInput++)); )
-				yylval.Number = 10 * yylval.Number + c - '0';
-			yyInput--;
+		if (isdigit((unsigned char)(c = **in))) {
+			for (*value = 0; isdigit((unsigned char)(c = *(*in)++)); )
+				*value = 10 * *value + c - '0';
+			(*in)--;
 			return (tUNUMBER);
 		}
 
-		return (*yyInput++);
+		return *(*in)++;
 	}
 }
 
@@ -707,86 +895,135 @@ difftm (struct tm *a, struct tm *b)
 		/* + difference in years * 365 */
 		+  (long)(ay-by) * 365
 		);
-	return (60*(60*(24*days + (a->tm_hour - b->tm_hour))
-	    + (a->tm_min - b->tm_min))
+	return (days * DAY + (a->tm_hour - b->tm_hour) * HOUR
+	    + (a->tm_min - b->tm_min) * MINUTE
 	    + (a->tm_sec - b->tm_sec));
 }
 
+/*
+ *
+ * The public function.
+ *
+ * TODO: tokens[] array should be dynamically sized.
+ */
 time_t
-get_date(char *p)
+get_date(time_t now, char *p)
 {
-	struct tm	*tm;
+	struct token	tokens[256];
+	struct gdstate	_gds;
+	struct token	*lasttoken;
+	struct gdstate	*gds;
+	struct tm	local, *tm;
 	struct tm	gmt, *gmt_ptr;
 	time_t		Start;
 	time_t		tod;
-	time_t		nowtime;
 	long		tzone;
 
+	/* Clear out the parsed token array. */
+	memset(tokens, 0, sizeof(tokens));
+	/* Initialize the parser state. */
+	memset(&_gds, 0, sizeof(_gds));
+	gds = &_gds;
+
+	/* Look up the current time. */
+	memset(&local, 0, sizeof(local));
+	tm = localtime (&now);
+	if (tm == NULL)
+		return -1;
+	local = *tm;
+
+	/* Look up UTC if we can and use that to determine the current
+	 * timezone offset. */
 	memset(&gmt, 0, sizeof(gmt));
-	yyInput = p;
-
-	(void)time (&nowtime);
-
-	gmt_ptr = gmtime (&nowtime);
+	gmt_ptr = gmtime (&now);
 	if (gmt_ptr != NULL) {
 		/* Copy, in case localtime and gmtime use the same buffer. */
 		gmt = *gmt_ptr;
 	}
-
-	if (! (tm = localtime (&nowtime)))
-		return -1;
-
 	if (gmt_ptr != NULL)
-		tzone = difftm (&gmt, tm) / 60;
+		tzone = difftm (&gmt, &local);
 	else
 		/* This system doesn't understand timezones; fake it. */
 		tzone = 0;
-	if(tm->tm_isdst)
-		tzone += 60;
+	if(local.tm_isdst)
+		tzone += HOUR;
 
-	yyYear = tm->tm_year + 1900;
-	yyMonth = tm->tm_mon + 1;
-	yyDay = tm->tm_mday;
-	yyTimezone = tzone;
-	yyDSTmode = DSTmaybe;
-	yyHour = 0;
-	yyMinutes = 0;
-	yySeconds = 0;
-	yyRelSeconds = 0;
-	yyRelMonth = 0;
-	yyHaveDate = 0;
-	yyHaveDay = 0;
-	yyHaveRel = 0;
-	yyHaveTime = 0;
-	yyHaveZone = 0;
+	/* Tokenize the input string. */
+	lasttoken = tokens;
+	while ((lasttoken->token = nexttoken(&p, &lasttoken->value)) != 0) {
+		++lasttoken;
+		if (lasttoken > tokens + 255)
+			return -1;
+	}
+	gds->tokenp = tokens;
 
-	if (yyparse()
-	    || yyHaveTime > 1 || yyHaveZone > 1
-	    || yyHaveDate > 1 || yyHaveDay > 1)
+	/* Match phrases until we run out of input tokens. */
+	while (gds->tokenp < lasttoken) {
+		if (!phrase(gds))
+			return -1;
+	}
+
+	/* Use current local timezone if none was specified. */
+	if (!gds->HaveZone) {
+		gds->Timezone = tzone;
+		gds->DSTmode = DSTmaybe;
+	}
+
+	/* If a timezone was specified, use that for generating the default
+	 * time components instead of the local timezone. */
+	if (gds->HaveZone && gmt_ptr != NULL) {
+		now -= gds->Timezone;
+		gmt_ptr = gmtime (&now);
+		if (gmt_ptr != NULL)
+			local = *gmt_ptr;
+		now += gds->Timezone;
+	}
+
+	if (!gds->HaveYear)
+		gds->Year = local.tm_year + 1900;
+	if (!gds->HaveMonth)
+		gds->Month = local.tm_mon + 1;
+	if (!gds->HaveDay)
+		gds->Day = local.tm_mday;
+	/* Note: No default for hour/min/sec; a specifier that just
+	 * gives date always refers to 00:00 on that date. */
+
+	/* If we saw more than one time, timezone, weekday, year, month,
+	 * or day, then give up. */
+	if (gds->HaveTime > 1 || gds->HaveZone > 1 || gds->HaveWeekDay > 1
+	    || gds->HaveYear > 1 || gds->HaveMonth > 1 || gds->HaveDay > 1)
 		return -1;
 
-	if (yyHaveDate || yyHaveTime || yyHaveDay) {
-		Start = Convert(yyMonth, yyDay, yyYear,
-		    yyHour, yyMinutes, yySeconds, yyDSTmode);
+	/* Compute an absolute time based on whatever absolute information
+	 * we collected. */
+	if (gds->HaveYear || gds->HaveMonth || gds->HaveDay
+	    || gds->HaveTime || gds->HaveWeekDay) {
+		Start = Convert(gds->Month, gds->Day, gds->Year,
+		    gds->Hour, gds->Minutes, gds->Seconds,
+		    gds->Timezone, gds->DSTmode);
 		if (Start < 0)
 			return -1;
 	} else {
-		Start = nowtime;
-		if (!yyHaveRel)
-			Start -= ((tm->tm_hour * 60L + tm->tm_min) * 60L) + tm->tm_sec;
+		Start = now;
+		if (!gds->HaveRel)
+			Start -= local.tm_hour * HOUR + local.tm_min * MINUTE
+			    + local.tm_sec;
 	}
 
-	Start += yyRelSeconds;
-	Start += RelativeMonth(Start, yyRelMonth);
+	/* Add the relative offset. */
+	Start += gds->RelSeconds;
+	Start += RelativeMonth(Start, gds->Timezone, gds->RelMonth);
 
-	if (yyHaveDay && !yyHaveDate) {
-		tod = RelativeDate(Start, yyDayOrdinal, yyDayNumber);
+	/* Adjust for day-of-week offsets. */
+	if (gds->HaveWeekDay
+	    && !(gds->HaveYear || gds->HaveMonth || gds->HaveDay)) {
+		tod = RelativeDate(Start, gds->Timezone,
+		    gds->DSTmode, gds->DayOrdinal, gds->DayNumber);
 		Start += tod;
 	}
 
-	/* Have to do *something* with a legitimate -1 so it's
-	 * distinguishable from the error return value.  (Alternately
-	 * could set errno on error.) */
+	/* -1 is an error indicator, so return 0 instead of -1 if
+	 * that's the actual time. */
 	return Start == -1 ? 0 : Start;
 }
 
@@ -811,564 +1048,3 @@ main(int argc, char **argv)
     /* NOTREACHED */
 }
 #endif	/* defined(TEST) */
-#line 815 "getdate.c"
-/* allocate initial stack or double stack size, up to YYMAXDEPTH */
-static int yygrowstack()
-{
-    int newsize, i;
-    short *newss;
-    YYSTYPE *newvs;
-
-    if ((newsize = yystacksize) == 0)
-        newsize = YYINITSTACKSIZE;
-    else if (newsize >= YYMAXDEPTH)
-        return -1;
-    else if ((newsize *= 2) > YYMAXDEPTH)
-        newsize = YYMAXDEPTH;
-    i = yyssp - yyss;
-    newss = yyss ? (short *)realloc(yyss, newsize * sizeof *newss) :
-      (short *)malloc(newsize * sizeof *newss);
-    if (newss == NULL)
-        return -1;
-    yyss = newss;
-    yyssp = newss + i;
-    newvs = yyvs ? (YYSTYPE *)realloc(yyvs, newsize * sizeof *newvs) :
-      (YYSTYPE *)malloc(newsize * sizeof *newvs);
-    if (newvs == NULL)
-        return -1;
-    yyvs = newvs;
-    yyvsp = newvs + i;
-    yystacksize = newsize;
-    yysslim = yyss + newsize - 1;
-    return 0;
-}
-
-#define YYABORT goto yyabort
-#define YYREJECT goto yyabort
-#define YYACCEPT goto yyaccept
-#define YYERROR goto yyerrlab
-
-#ifndef YYPARSE_PARAM
-#if defined(__cplusplus) || __STDC__
-#define YYPARSE_PARAM_ARG void
-#define YYPARSE_PARAM_DECL
-#else	/* ! ANSI-C/C++ */
-#define YYPARSE_PARAM_ARG
-#define YYPARSE_PARAM_DECL
-#endif	/* ANSI-C/C++ */
-#else	/* YYPARSE_PARAM */
-#ifndef YYPARSE_PARAM_TYPE
-#define YYPARSE_PARAM_TYPE void *
-#endif
-#if defined(__cplusplus) || __STDC__
-#define YYPARSE_PARAM_ARG YYPARSE_PARAM_TYPE YYPARSE_PARAM
-#define YYPARSE_PARAM_DECL
-#else	/* ! ANSI-C/C++ */
-#define YYPARSE_PARAM_ARG YYPARSE_PARAM
-#define YYPARSE_PARAM_DECL YYPARSE_PARAM_TYPE YYPARSE_PARAM;
-#endif	/* ANSI-C/C++ */
-#endif	/* ! YYPARSE_PARAM */
-
-int
-yyparse (YYPARSE_PARAM_ARG)
-    YYPARSE_PARAM_DECL
-{
-    int yym, yyn, yystate;
-#if YYDEBUG
-    const char *yys;
-
-    if ((yys = getenv("YYDEBUG")))
-    {
-        yyn = *yys;
-        if (yyn >= '0' && yyn <= '9')
-            yydebug = yyn - '0';
-    }
-#endif
-
-    yynerrs = 0;
-    yyerrflag = 0;
-    yychar = (-1);
-
-    if (yyss == NULL && yygrowstack()) goto yyoverflow;
-    yyssp = yyss;
-    yyvsp = yyvs;
-    *yyssp = yystate = 0;
-
-yyloop:
-    if ((yyn = yydefred[yystate])) goto yyreduce;
-    if (yychar < 0)
-    {
-        if ((yychar = yylex()) < 0) yychar = 0;
-#if YYDEBUG
-        if (yydebug)
-        {
-            yys = 0;
-            if (yychar <= YYMAXTOKEN) yys = yyname[yychar];
-            if (!yys) yys = "illegal-symbol";
-            printf("%sdebug: state %d, reading %d (%s)\n",
-                    YYPREFIX, yystate, yychar, yys);
-        }
-#endif
-    }
-    if ((yyn = yysindex[yystate]) && (yyn += yychar) >= 0 &&
-            yyn <= YYTABLESIZE && yycheck[yyn] == yychar)
-    {
-#if YYDEBUG
-        if (yydebug)
-            printf("%sdebug: state %d, shifting to state %d\n",
-                    YYPREFIX, yystate, yytable[yyn]);
-#endif
-        if (yyssp >= yysslim && yygrowstack())
-        {
-            goto yyoverflow;
-        }
-        *++yyssp = yystate = yytable[yyn];
-        *++yyvsp = yylval;
-        yychar = (-1);
-        if (yyerrflag > 0)  --yyerrflag;
-        goto yyloop;
-    }
-    if ((yyn = yyrindex[yystate]) && (yyn += yychar) >= 0 &&
-            yyn <= YYTABLESIZE && yycheck[yyn] == yychar)
-    {
-        yyn = yytable[yyn];
-        goto yyreduce;
-    }
-    if (yyerrflag) goto yyinrecovery;
-#if defined(lint) || defined(__GNUC__)
-    goto yynewerror;
-#endif
-yynewerror:
-    yyerror("syntax error");
-#if defined(lint) || defined(__GNUC__)
-    goto yyerrlab;
-#endif
-yyerrlab:
-    ++yynerrs;
-yyinrecovery:
-    if (yyerrflag < 3)
-    {
-        yyerrflag = 3;
-        for (;;)
-        {
-            if ((yyn = yysindex[*yyssp]) && (yyn += YYERRCODE) >= 0 &&
-                    yyn <= YYTABLESIZE && yycheck[yyn] == YYERRCODE)
-            {
-#if YYDEBUG
-                if (yydebug)
-                    printf("%sdebug: state %d, error recovery shifting\
- to state %d\n", YYPREFIX, *yyssp, yytable[yyn]);
-#endif
-                if (yyssp >= yysslim && yygrowstack())
-                {
-                    goto yyoverflow;
-                }
-                *++yyssp = yystate = yytable[yyn];
-                *++yyvsp = yylval;
-                goto yyloop;
-            }
-            else
-            {
-#if YYDEBUG
-                if (yydebug)
-                    printf("%sdebug: error recovery discarding state %d\n",
-                            YYPREFIX, *yyssp);
-#endif
-                if (yyssp <= yyss) goto yyabort;
-                --yyssp;
-                --yyvsp;
-            }
-        }
-    }
-    else
-    {
-        if (yychar == 0) goto yyabort;
-#if YYDEBUG
-        if (yydebug)
-        {
-            yys = 0;
-            if (yychar <= YYMAXTOKEN) yys = yyname[yychar];
-            if (!yys) yys = "illegal-symbol";
-            printf("%sdebug: state %d, error recovery discards token %d (%s)\n",
-                    YYPREFIX, yystate, yychar, yys);
-        }
-#endif
-        yychar = (-1);
-        goto yyloop;
-    }
-yyreduce:
-#if YYDEBUG
-    if (yydebug)
-        printf("%sdebug: state %d, reducing by rule %d (%s)\n",
-                YYPREFIX, yystate, yyn, yyrule[yyn]);
-#endif
-    yym = yylen[yyn];
-    if (yym)
-        yyval = yyvsp[1-yym];
-    else
-        memset(&yyval, 0, sizeof yyval);
-    switch (yyn)
-    {
-case 3:
-#line 108 "getdate.y"
-{ yyHaveTime++; }
-break;
-case 4:
-#line 109 "getdate.y"
-{ yyHaveZone++; }
-break;
-case 5:
-#line 110 "getdate.y"
-{ yyHaveDate++; }
-break;
-case 6:
-#line 111 "getdate.y"
-{ yyHaveDay++; }
-break;
-case 7:
-#line 112 "getdate.y"
-{ yyHaveRel++; }
-break;
-case 9:
-#line 116 "getdate.y"
-{
-		/* "7am" */
-		yyHour = yyvsp[-1].Number;
-		if (yyHour == 12)
-			yyHour = 0;
-		yyMinutes = 0;
-		yySeconds = 0;
-		if (yyvsp[0].Number == tPM)
-			yyHour += 12;
-	}
-break;
-case 10:
-#line 126 "getdate.y"
-{
-		/* "7:12:18" "19:17" */
-	}
-break;
-case 11:
-#line 129 "getdate.y"
-{
-		/* "7:12pm", "12:20:13am" */
-		if (yyHour == 12)
-			yyHour = 0;
-		if (yyvsp[0].Number == tPM)
-			yyHour += 12;
-	}
-break;
-case 12:
-#line 136 "getdate.y"
-{
-		/* "7:14+0700" */
-		yyDSTmode = DSToff;
-		yyTimezone = - (yyvsp[0].Number % 100 + (yyvsp[0].Number / 100) * 60);
-	}
-break;
-case 13:
-#line 141 "getdate.y"
-{
-		/* "19:14:12-0530" */
-		yyDSTmode = DSToff;
-		yyTimezone = + (yyvsp[0].Number % 100 + (yyvsp[0].Number / 100) * 60);
-	}
-break;
-case 14:
-#line 148 "getdate.y"
-{
-		yyHour = yyvsp[-2].Number;
-		yyMinutes = yyvsp[0].Number;
-		yySeconds = 0;
-	}
-break;
-case 15:
-#line 153 "getdate.y"
-{
-		yyHour = yyvsp[-4].Number;
-		yyMinutes = yyvsp[-2].Number;
-		yySeconds = yyvsp[0].Number;
-	}
-break;
-case 16:
-#line 160 "getdate.y"
-{
-		yyTimezone = yyvsp[0].Number;
-		yyDSTmode = DSToff;
-	}
-break;
-case 17:
-#line 164 "getdate.y"
-{
-		yyTimezone = yyvsp[0].Number;
-		yyDSTmode = DSTon;
-	}
-break;
-case 18:
-#line 168 "getdate.y"
-{
-		yyTimezone = yyvsp[-1].Number;
-		yyDSTmode = DSTon;
-	}
-break;
-case 19:
-#line 174 "getdate.y"
-{
-		yyDayOrdinal = 1;
-		yyDayNumber = yyvsp[0].Number;
-	}
-break;
-case 20:
-#line 178 "getdate.y"
-{
-		/* "tue," "wednesday," */
-		yyDayOrdinal = 1;
-		yyDayNumber = yyvsp[-1].Number;
-	}
-break;
-case 21:
-#line 183 "getdate.y"
-{
-		/* "second tues" "3 wed" */
-		yyDayOrdinal = yyvsp[-1].Number;
-		yyDayNumber = yyvsp[0].Number;
-	}
-break;
-case 22:
-#line 190 "getdate.y"
-{
-		/* "1/15" */
-		yyMonth = yyvsp[-2].Number;
-		yyDay = yyvsp[0].Number;
-	}
-break;
-case 23:
-#line 195 "getdate.y"
-{
-		if (yyvsp[-4].Number >= 13) {
-			/* First number is big:  2004/01/29, 99/02/17 */
-			yyYear = yyvsp[-4].Number;
-			yyMonth = yyvsp[-2].Number;
-			yyDay = yyvsp[0].Number;
-		} else if ((yyvsp[0].Number >= 13) || (yyvsp[-2].Number >= 13)) {
-			/* Last number is big:  01/07/98 */
-			/* Middle number is big:  01/29/04 */
-			yyMonth = yyvsp[-4].Number;
-			yyDay = yyvsp[-2].Number;
-			yyYear = yyvsp[0].Number;
-		} else {
-			/* No significant clues: 02/03/04 */
-			yyMonth = yyvsp[-4].Number;
-			yyDay = yyvsp[-2].Number;
-			yyYear = yyvsp[0].Number;
-		}
-	}
-break;
-case 24:
-#line 214 "getdate.y"
-{
-		/* ISO 8601 format.  yyyy-mm-dd.  */
-		yyYear = yyvsp[-4].Number;
-		yyMonth = yyvsp[-2].Number;
-		yyDay = yyvsp[0].Number;
-	}
-break;
-case 25:
-#line 220 "getdate.y"
-{
-		if (yyvsp[-4].Number > 31) {
-			/* e.g. 1992-Jun-17 */
-			yyYear = yyvsp[-4].Number;
-			yyMonth = yyvsp[-2].Number;
-			yyDay = yyvsp[0].Number;
-		} else {
-			/* e.g. 17-JUN-1992.  */
-			yyDay = yyvsp[-4].Number;
-			yyMonth = yyvsp[-2].Number;
-			yyYear = yyvsp[0].Number;
-		}
-	}
-break;
-case 26:
-#line 233 "getdate.y"
-{
-		/* "May 3" */
-		yyMonth = yyvsp[-1].Number;
-		yyDay = yyvsp[0].Number;
-	}
-break;
-case 27:
-#line 238 "getdate.y"
-{
-		/* "June 17, 2001" */
-		yyMonth = yyvsp[-3].Number;
-		yyDay = yyvsp[-2].Number;
-		yyYear = yyvsp[0].Number;
-	}
-break;
-case 28:
-#line 244 "getdate.y"
-{
-		/* "12 Sept" */
-		yyDay = yyvsp[-1].Number;
-		yyMonth = yyvsp[0].Number;
-	}
-break;
-case 29:
-#line 249 "getdate.y"
-{
-		/* "12 Sept 1997" */
-		yyDay = yyvsp[-2].Number;
-		yyMonth = yyvsp[-1].Number;
-		yyYear = yyvsp[0].Number;
-	}
-break;
-case 30:
-#line 257 "getdate.y"
-{
-		yyRelSeconds = -yyRelSeconds;
-		yyRelMonth = -yyRelMonth;
-	}
-break;
-case 32:
-#line 264 "getdate.y"
-{
-		/* "-3 hours" */
-		yyRelSeconds -= yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 33:
-#line 268 "getdate.y"
-{
-		/* "+1 minute" */
-		yyRelSeconds += yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 34:
-#line 272 "getdate.y"
-{
-		/* "1 day" */
-		yyRelSeconds += yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 35:
-#line 276 "getdate.y"
-{
-		/* "hour" */
-		yyRelSeconds += yyvsp[0].Number;
-	}
-break;
-case 36:
-#line 280 "getdate.y"
-{
-		/* "-3 months" */
-		yyRelMonth -= yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 37:
-#line 284 "getdate.y"
-{
-		/* "+5 years" */
-		yyRelMonth += yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 38:
-#line 288 "getdate.y"
-{
-		/* "2 years" */
-		yyRelMonth += yyvsp[-1].Number * yyvsp[0].Number;
-	}
-break;
-case 39:
-#line 292 "getdate.y"
-{
-		/* "6 months" */
-		yyRelMonth += yyvsp[0].Number;
-	}
-break;
-case 40:
-#line 298 "getdate.y"
-{
-		if (yyHaveTime && yyHaveDate && !yyHaveRel)
-			yyYear = yyvsp[0].Number;
-		else {
-			if(yyvsp[0].Number>10000) {
-				/* "20040301" */
-				yyHaveDate++;
-				yyDay= (yyvsp[0].Number)%100;
-				yyMonth= (yyvsp[0].Number/100)%100;
-				yyYear = yyvsp[0].Number/10000;
-			}
-			else {
-				/* "513" is same as "5:13" */
-				yyHaveTime++;
-				if (yyvsp[0].Number < 100) {
-					yyHour = yyvsp[0].Number;
-					yyMinutes = 0;
-				}
-				else {
-					yyHour = yyvsp[0].Number / 100;
-					yyMinutes = yyvsp[0].Number % 100;
-				}
-				yySeconds = 0;
-			}
-		}
-	}
-break;
-#line 1319 "getdate.c"
-    }
-    yyssp -= yym;
-    yystate = *yyssp;
-    yyvsp -= yym;
-    yym = yylhs[yyn];
-    if (yystate == 0 && yym == 0)
-    {
-#if YYDEBUG
-        if (yydebug)
-            printf("%sdebug: after reduction, shifting from state 0 to\
- state %d\n", YYPREFIX, YYFINAL);
-#endif
-        yystate = YYFINAL;
-        *++yyssp = YYFINAL;
-        *++yyvsp = yyval;
-        if (yychar < 0)
-        {
-            if ((yychar = yylex()) < 0) yychar = 0;
-#if YYDEBUG
-            if (yydebug)
-            {
-                yys = 0;
-                if (yychar <= YYMAXTOKEN) yys = yyname[yychar];
-                if (!yys) yys = "illegal-symbol";
-                printf("%sdebug: state %d, reading %d (%s)\n",
-                        YYPREFIX, YYFINAL, yychar, yys);
-            }
-#endif
-        }
-        if (yychar == 0) goto yyaccept;
-        goto yyloop;
-    }
-    if ((yyn = yygindex[yym]) && (yyn += yystate) >= 0 &&
-            yyn <= YYTABLESIZE && yycheck[yyn] == yystate)
-        yystate = yytable[yyn];
-    else
-        yystate = yydgoto[yym];
-#if YYDEBUG
-    if (yydebug)
-        printf("%sdebug: after reduction, shifting from state %d \
-to state %d\n", YYPREFIX, *yyssp, yystate);
-#endif
-    if (yyssp >= yysslim && yygrowstack())
-    {
-        goto yyoverflow;
-    }
-    *++yyssp = yystate;
-    *++yyvsp = yyval;
-    goto yyloop;
-yyoverflow:
-    yyerror("yacc stack overflow");
-yyabort:
-    return (1);
-yyaccept:
-    return (0);
-}
