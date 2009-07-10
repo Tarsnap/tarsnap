@@ -291,10 +291,18 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 	FILE *f;
 	char *buff, *buff_end, *line_start, *line_end, *p;
 	size_t buff_length, new_buff_length, bytes_read, bytes_wanted;
-	int separator;
+	const char * separator;
+	size_t seplen;
+	int lastcharwasr = 0;
 	int ret;
 
-	separator = null ? '\0' : '\n';
+	if (null) {
+		separator = "";
+		seplen = 1;
+	} else {
+		separator = "\012\015";
+		seplen = 2;
+	}
 	ret = 0;
 
 	if (strcmp(pathname, "-") == 0)
@@ -315,7 +323,20 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 		buff_end += bytes_read;
 		/* Process all complete lines in the buffer. */
 		while (line_end < buff_end) {
-			if (*line_end == separator) {
+			if ((lastcharwasr != 0) && (*line_end == '\012')) {
+				/*
+				 * Skip this \n character -- it belongs to
+				 * a \r\n pair.
+				 */
+				line_start++;
+				line_end++;
+				lastcharwasr = 0;
+				continue;
+			}
+			lastcharwasr = 0;
+			if (memchr(separator, *line_end, seplen) != NULL) {
+				if (*line_end == '\015')
+					lastcharwasr = 1;
 				*line_end = '\0';
 				if ((*process)(bsdtar, line_start) != 0)
 					ret = -1;

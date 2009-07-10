@@ -155,6 +155,12 @@ int network_writeq_cancel(NETWORK_WRITEQ *);
 void network_writeq_free(NETWORK_WRITEQ *);
 
 /**
+ * network_getselectstats(N, mu, va, max):
+ * Return statistics on the time between select(2) calls.
+ */
+void network_getselectstats(double *, double *, double *, double *);
+
+/**
  * network_fini():
  * Free resources associated with the network subsystem.
  */

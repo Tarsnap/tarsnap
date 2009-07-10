@@ -1,0 +1,143 @@
+.TH TARSNAP.CONF 5 "July 10, 2009" ""
+.SH NAME
+.ad l
+\fB\%tarsnap.conf\fP
+\- configuration file for
+\fBtarsnap\fP(1)
+.SH DESCRIPTION
+.ad l
+The
+\fB\%tarsnap.conf\fP
+file is read by the
+\fBtarsnap\fP(1)
+utility and specifies default options which will be
+ignored if the options in question are specified at
+the command line.
+Options may be specified in
+\fI@sysconfdir@/tarsnap.conf\fP
+and/or
+\fI~/.tarsnaprc\fP;
+if the two files conflict, the user's local configuration
+takes precedence.
+.PP
+The
+\fB\%tarsnap.conf\fP
+file(s) contain lines consisting of a case-sensitive option name and
+zero or one parameters depending upon the option.
+Empty lines and lines starting with a
+Ql #
+character are ignored.
+.PP
+If a parameter begins with a
+Ql ~
+character, it will be replaced by the value of the HOME variable (the
+current user's home directory).
+.PP
+The following options may be specified:
+.PP
+.RS 5
+.TP
+\fBaggressive-networking\fP
+.TP
+\fBcachedir\fP \fIcache-dir\fP
+.TP
+\fBcheckpoint-bytes\fP \fIbytespercheckpoint\fP
+.TP
+\fBdisk-pause\fP \fIX\fP
+.TP
+\fBexclude\fP \fIpattern\fP
+.TP
+\fBhumanize-numbers\fP
+.TP
+\fBinclude\fP \fIpattern\fP
+.TP
+\fBkeyfile\fP \fIkey-file\fP
+.TP
+\fBlowmem\fP
+.TP
+\fBmaxbw\fP
+.TP
+\fBmaxbw-rate\fP
+.TP
+\fBmaxbw-rate-down\fP
+.TP
+\fBmaxbw-rate-up\fP
+.TP
+\fBnodump\fP
+.TP
+\fBnormalmem\fP
+.TP
+\fBno-aggressive-networking\fP
+.TP
+\fBno-config-exclude\fP
+.TP
+\fBno-config-include\fP
+.TP
+\fBno-disk-pause\fP
+.TP
+\fBno-humanize-numbers\fP
+.TP
+\fBno-maxbw\fP
+.TP
+\fBno-maxbw-rate-down\fP
+.TP
+\fBno-maxbw-rate-up\fP
+.TP
+\fBno-nodump\fP
+.TP
+\fBno-print-stats\fP
+.TP
+\fBno-snaptime\fP
+.TP
+\fBno-store-atime\fP
+.TP
+\fBno-totals\fP
+.TP
+\fBprint-stats\fP
+.TP
+\fBsnaptime\fP \fIfile\fP
+.TP
+\fBstore-atime\fP
+.TP
+\fBtotals\fP
+.TP
+\fBverylowmem\fP
+.RE
+.PP
+Each option is handled the same way as the corresponding
+\fB\--option\fP;
+see
+\fBtarsnap\fP(1)
+for more details.
+Note that the
+\fBnormalmem\fP
+and
+\fBno-*\fP
+options are only useful in the user-specific
+\fI~/.tarsnaprc\fP
+configuration file, at which point they act to override options set in the
+global
+\fI@sysconfdir@/tarsnap.conf\fP
+configuration file.
+.SH FILES
+.ad l
+.RS 5
+.TP
+.B @sysconfdir@/tarsnap.conf
+The system global
+\fB\%tarsnap.conf\fP
+configuration file.
+Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the command line.
+.TP
+.B ~/.tarsnaprc
+The
+\fB\%tarsnap.conf\fP
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.RE
+.SH SEE ALSO
+.ad l
+\fBtarsnap\fP(1)

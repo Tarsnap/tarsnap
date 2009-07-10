@@ -81,7 +81,9 @@
 #define	HAVE_NL_LANGINFO 1
 #endif
 #define	HAVE_PATHS_H 1
+#if __FreeBSD_version >= 700014
 #define HAVE_POSIX_MEMALIGN 1
+#endif
 #define	HAVE_PWD_H 1
 #define	HAVE_QSORT_R 1
 #define	HAVE_REGEX_H 1

@@ -29,7 +29,7 @@
 .\"
 .\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.46 2008/12/06 07:37:55 kientzle Exp $
 .\"
-.Dd June 6, 2009
+.Dd July 10, 2009
 .Dt TARSNAP 1
 .Os
 .Sh NAME
@@ -372,6 +372,86 @@ Honor the nodump file flag by skipping this file.
 .It Fl -noisy-warnings
 Be verbose when warning about network glitches.
 This is probably only useful for debugging purposes.
+.It Fl -normalmem
+Ignore any
+.Cm lowmem
+or
+.Cm verylowmem
+option specified in a configuration file.
+.It Fl -no-aggressive-networking
+Ignore any
+.Cm aggressive-networking
+option specified in a configuration file.
+.It Fl -no-config-exclude
+Ignore any
+.Cm exclude
+option specified in a configuration file.
+Normally
+.Cm exclude
+options specified via configuration files and the command line
+all take effect.
+.It Fl -no-config-include
+Ignore any
+.Cm include
+option specified in a configuration file.
+Normally
+.Cm include
+options specified via configuration files and the command line
+all take effect.
+.It Fl -no-disk-pause
+Ignore any
+.Cm disk-pause
+option specified in a configuration file.
+.It Fl -no-humanize-numbers
+Ignore any
+.Cm humanize-numbers
+option specified in a configuration file.
+.It Fl -no-maxbw
+Ignore any
+.Cm maxbw
+option specified in a configuration file.
+.It Fl -no-maxbw-rate-down
+Ignore any
+.Cm maxbw-rate-down
+option specified in a configuration file.
+If a
+.Cm maxbw-rate
+option is specified in a configuration file, it will
+not affect the download bandwidth used, but may affect
+the upload bandwidth used (unless
+.Fl -no-maxbw-rate-up
+is also specified).
+.It Fl -no-maxbw-rate-up
+Ignore any
+.Cm maxbw-rate-up
+option specified in a configuration file.
+If a
+.Cm maxbw-rate
+option is specified in a configuration file, it will
+not affect the upload bandwidth used, but may affect
+the download bandwidth used (unless
+.Fl -no-maxbw-rate-down
+is also specified).
+.It Fl -no-nodump
+Ignore any
+.Cm nodump
+option specified in a configuration file.
+.It Fl -no-print-stats
+Ignore any
+.Cm print-stats
+option specified in a configuration file.
+.It Fl -no-snaptime
+Ignore any
+.Cm snaptime
+option specified in a configuration file.
+.It Fl -no-store-atime
+Ignore any
+.Cm store-atime
+option specified in a configuration file.
+.It Fl -no-totals
+Ignore any
+.Cm totals
+option specified in a configuration file.
 .It Fl -null
 (use with
 .Fl I ,
@@ -592,6 +672,20 @@ it is incomplete.
 Such a truncated archive may be useful in its own right, but
 also offers the benefit that future attempts to archive the
 same data will be faster and use less bandwidth.
+.Sh FIREWALLS
+.Nm
+communicates with the
+.Nm
+server via a TCP connection to port 9279; in some environments
+it may be necessary to add a firewall rule to allow outgoing
+TCP connections to this port.
+At the present time (July 2009) there is only one IP address in
+use for the
+.Nm
+server, so network administrators may wish to hard-code that IP
+address; however, it is likely that at some point in the future
+that IP address will change and/or other IP addresses will be
+added.
 .Sh ENVIRONMENT
 The following environment variables affect the execution of
 .Nm :
@@ -717,7 +811,7 @@ an archive while preserving any absolute pathnames,
 components, or symlinks to other directories.
 .Sh FILES
 .Bl -tag -width indent
-.It Pa @CONFIGDIR@/tarsnap.conf
+.It Pa @sysconfdir@/tarsnap.conf
 The system global
 .Nm
 configuration file.
@@ -750,7 +844,7 @@ GNU tar was included as the standard system tar
 in
 FreeBSD
 beginning with
-FreeBSD 1.0 ,
+FreeBSD 1.0,
 but was replaced by Tim Kientzle's
 .Nm bsdtar
 utility and

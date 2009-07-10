@@ -33,6 +33,17 @@
 
 #include <stdint.h>
 
+/*
+ * Use #defines in order to avoid namespace collisions with anyone else's
+ * SHA256 code (e.g., the code in OpenSSL).
+ */
+#define SHA256_Init tarsnap_SHA256_Init
+#define SHA256_Update tarsnap_SHA256_Update
+#define SHA256_Final tarsnap_SHA256_Final
+#define HMAC_SHA256_Init tarsnap_HMAC_SHA256_Init
+#define HMAC_SHA256_Update tarsnap_HMAC_SHA256_Update
+#define HMAC_SHA256_Final tarsnap_HMAC_SHA256_Final
+
 typedef struct SHA256Context {
 	uint32_t state[8];
 	uint32_t count[2];

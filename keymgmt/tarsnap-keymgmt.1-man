@@ -1,0 +1,56 @@
+.TH TARSNAP-KEYMGMT 1 "June 3, 2009" ""
+.SH NAME
+.ad l
+\fB\%tarsnap-keymgmt\fP
+\- generate subsets of
+\fBtarsnap\fP(1)
+key files
+.SH SYNOPSIS
+.ad l
+.br
+\fB\%tarsnap-keymgmt\fP
+\fB\--outkeyfile\fP \fInew-key-file\fP
+[\fB\-r\fP]
+[\fB\-w\fP]
+[\fB\-d\fP]
+[\fB\--nuke\fP]
+[\fB\--passphrased\fP]
+[\fB\--passphrase-mem\fP \fImaxmem\fP]
+\fIkey-file\fP ...
+.SH DESCRIPTION
+.ad l
+\fB\%tarsnap-keymgmt\fP
+reads the provided key files and writes a new key file
+containing only the keys required for the operations
+specified via the
+\fB\-r\fP
+(list and extract archives),
+\fB\-w\fP
+(write archives),
+\fB\-d\fP
+(delete archives), and
+\fB\--nuke\fP
+flags.
+Note that
+\fB\-d\fP
+implies
+\fB\-r\fP
+since it is impossible to delete an individual archive without
+being able to read it; while a key file generated with
+\fB\--nuke\fP
+can be used to delete all the archives stored, but not individual
+archives.
+.PP
+If the
+\fB\--passphrased\fP
+option is specified, the user will be prompted to enter a passphrase (twice)
+to be used to encrypt the key file.
+.PP
+If the
+\fB\--passphrase-mem\fP \fImaxmem\fP
+option is specified, a maximum of
+\fImaxmem\fP
+bytes of RAM will be used in the scrypt key derivation function to
+encrypt the key file; it may be necessary to set this option if a key
+file is being created on a system with far more RAM than the system
+on which the key file will be used.

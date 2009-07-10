@@ -2,7 +2,7 @@
 .\" Copyright 2008, 2009 Colin Percival
 .\" All rights reserved
 .\"
-.Dd April 3, 2008
+.Dd July 10, 2009
 .Dt TARSNAP.CONF 5
 .Os
 .Sh NAME
@@ -39,20 +39,40 @@ current user's home directory).
 .Pp
 The following options may be specified:
 .Pp
-.Bl -tag -width "store-atime"
-.It aggressive-networking
-.It cachedir Ar cache-dir
-.It checkpoint-bytes Ar bytespercheckpoint
-.It exclude Ar pattern
-.It include Ar pattern
-.It keyfile Pa key-file
-.It lowmem
-.It nodump
-.It print-stats
-.It snaptime Pa file
-.It store-atime
-.It totals
-.It verylowmem
+.Bl -tag -width "no-aggressive-networking"
+.It Cm aggressive-networking
+.It Cm cachedir Ar cache-dir
+.It Cm checkpoint-bytes Ar bytespercheckpoint
+.It Cm disk-pause Ar X
+.It Cm exclude Ar pattern
+.It Cm humanize-numbers
+.It Cm include Ar pattern
+.It Cm keyfile Pa key-file
+.It Cm lowmem
+.It Cm maxbw
+.It Cm maxbw-rate
+.It Cm maxbw-rate-down
+.It Cm maxbw-rate-up
+.It Cm nodump
+.It Cm normalmem
+.It Cm no-aggressive-networking
+.It Cm no-config-exclude
+.It Cm no-config-include
+.It Cm no-disk-pause
+.It Cm no-humanize-numbers
+.It Cm no-maxbw
+.It Cm no-maxbw-rate-down
+.It Cm no-maxbw-rate-up
+.It Cm no-nodump
+.It Cm no-print-stats
+.It Cm no-snaptime
+.It Cm no-store-atime
+.It Cm no-totals
+.It Cm print-stats
+.It Cm snaptime Pa file
+.It Cm store-atime
+.It Cm totals
+.It Cm verylowmem
 .El
 .Pp
 Each option is handled the same way as the corresponding
@@ -60,6 +80,16 @@ Each option is handled the same way as the corresponding
 see
 .Xr tarsnap 1
 for more details.
+Note that the
+.Cm normalmem
+and
+.Cm no-*
+options are only useful in the user-specific
+.Pa ~/.tarsnaprc
+configuration file, at which point they act to override options set in the
+global
+.Pa @sysconfdir@/tarsnap.conf
+configuration file.
 .Sh FILES
 .Bl -tag -width indent
 .It Pa @sysconfdir@/tarsnap.conf

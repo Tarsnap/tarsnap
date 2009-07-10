@@ -85,6 +85,22 @@ struct bsdtar {
 	double		  bwlimit_rate_up;	/* --maxbw-rate(-up)? */
 	double		  bwlimit_rate_down;	/* --maxbw-rate(-down)? */
 	int		  disk_pause;		/* --disk-pause */
+	int		  option_aggressive_networking_set;
+	int		  option_cachecrunch_set;
+	int		  option_disk_pause_set;
+	int		  option_humanize_numbers_set;
+	int		  option_maxbw_set;
+	int		  option_maxbw_rate_down_set;
+	int		  option_maxbw_rate_up_set;
+	int		  option_nodump_set;
+	int		  option_print_stats_set;
+	int		  option_snaptime_set;
+	int		  option_store_atime_set;
+	int		  option_totals_set;
+	int		  option_no_config_exclude;
+	int		  option_no_config_include;
+	int		  option_no_config_exclude_set;
+	int		  option_no_config_include_set;
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;
@@ -115,6 +131,8 @@ struct bsdtar {
 	 * Data for various subsystems.  Full definitions are located in
 	 * the file where they are used.
 	 */
+	struct delayedopt	*delopt;	/* for bsdtar.c */
+	struct delayedopt	**delopt_tail;	/* for bsdtar.c */
 	struct archive		*diskreader;	/* for write.c */
 	struct archive_entry_linkresolver *resolver; /* for write.c */
 	struct name_cache	*gname_cache;	/* for write.c */
@@ -153,9 +171,23 @@ enum {
 	OPTION_NEWER_MTIME,
 	OPTION_NEWER_MTIME_THAN,
 	OPTION_NODUMP,
+	OPTION_NO_AGGRESSIVE_NETWORKING,
+	OPTION_NO_CONFIG_EXCLUDE,
+	OPTION_NO_CONFIG_INCLUDE,
+	OPTION_NO_DISK_PAUSE,
+	OPTION_NO_HUMANIZE_NUMBERS,
+	OPTION_NO_MAXBW,
+	OPTION_NO_MAXBW_RATE_DOWN,
+	OPTION_NO_MAXBW_RATE_UP,
+	OPTION_NO_NODUMP,
+	OPTION_NO_PRINT_STATS,
 	OPTION_NO_SAME_OWNER,
 	OPTION_NO_SAME_PERMISSIONS,
+	OPTION_NO_SNAPTIME,
+	OPTION_NO_STORE_ATIME,
+	OPTION_NO_TOTALS,
 	OPTION_NOISY_WARNINGS,
+	OPTION_NORMALMEM,
 	OPTION_NUKE,
 	OPTION_NULL,
 	OPTION_NUMERIC_OWNER,

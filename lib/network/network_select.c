@@ -47,8 +47,20 @@ size_t network_bwlimit_write;
 /* Last time tokens were added to read/write buckets. */
 static struct timeval bwlimit_lastadd;
 
+/* Time when last select call returned. */
+static struct timeval select_rettime;
+
+/* Statistics on the time between select calls. */
+static double select_period_N;
+static double select_period_mu;
+static double select_period_M2;
+static double select_period_max;
+
 static int recalloc(void ** ptr, size_t clen, size_t nlen, size_t size);
 static int docallback(struct network_callback_internal * C, int timedout);
+static void selectstats_select(void);
+static void selectstats_startclock(void);
+static void selectstats_stopclock(void);
 
 /**
  * recalloc(ptr, clen, nlen, size):
@@ -121,6 +133,68 @@ docallback(struct network_callback_internal * C, int timedout)
 }
 
 /**
+ * selectstats_select(void):
+ * Update select_period_* statistics in relation to an upcoming select call.
+ */
+static void
+selectstats_select(void)
+{
+	struct timeval tnow;
+	double t;
+	double d;
+
+	/* If the clock isn't running, do nothing. */
+	if ((select_rettime.tv_sec == 0) && (select_rettime.tv_usec == 0))
+		return;
+
+	/* If we can't get the current time, do nothing. */
+	if (gettimeofday(&tnow, NULL))
+		return;
+
+	/* Figure out how long it has been since the clock started. */
+	t = (tnow.tv_sec - select_rettime.tv_sec) +
+	    (tnow.tv_usec - select_rettime.tv_usec) * 0.000001;
+
+	/* Adjust statistics. */
+	select_period_N += 1.0;
+	d = t - select_period_mu;
+	select_period_mu += d / select_period_N;
+	select_period_M2 += d * (t - select_period_mu);
+	if (t > select_period_max)
+		select_period_max = t;
+
+	/* Stop the clock. */
+	selectstats_stopclock();
+}
+
+/**
+ * selectstats_startclock(void):
+ * Start the time-between-selects clock.
+ */
+static void
+selectstats_startclock(void)
+{
+
+	/* Is the clock already running? */
+	if ((select_rettime.tv_sec == 0) &&
+	    (select_rettime.tv_usec == 0)) {
+		gettimeofday(&select_rettime, NULL);
+	}
+}
+
+/**
+ * selectstats_stopclock(void):
+ * Stop the time-between-selects clock.
+ */
+static void
+selectstats_stopclock(void)
+{
+
+	select_rettime.tv_sec = 0;
+	select_rettime.tv_usec = 0;
+}
+
+/**
  * network_init():
  * Initialize the network subsystem and return a cookie.
  */
@@ -149,6 +223,14 @@ network_init(void)
 	/* The buckets were empty at the start of the epoch. */
 	bwlimit_lastadd.tv_sec = 0;
 	bwlimit_lastadd.tv_usec = 0;
+
+	/* We've never called select. */
+	select_rettime.tv_sec = 0;
+	select_rettime.tv_usec = 0;
+	select_period_N = 0.0;
+	select_period_mu = 0.0;
+	select_period_M2 = 0.0;
+	select_period_max = 0.0;
 
 	/* Success! */
 	return (0);
@@ -258,6 +340,12 @@ network_register(int fd, int op, struct timeval * timeo,
 	/* Update the number of the highest used fd if necessary. */
 	if (N.maxfd < fd)
 		N.maxfd = fd;
+
+	/*
+	 * If we're not already timing a window-between-selects, start the
+	 * timer now.
+	 */
+	selectstats_startclock();
 
 	/* Success! */
 	return (0);
@@ -497,6 +585,7 @@ selectagain:
 	}
 
 	/* Call select(2). */
+	selectstats_select();
 	while ((nready = select(N.maxfd + 1, &readfds, &writefds,
 	    NULL, &timeout)) == -1) {
 		/* EINTR is harmless. */
@@ -507,6 +596,7 @@ selectagain:
 		warnp("select()");
 		goto err0;
 	}
+	selectstats_startclock();
 
 	/* Get current time so that we can detect timeouts. */
 	if (gettimeofday(&curtime, NULL)) {
@@ -562,6 +652,13 @@ selectagain:
 	if ((nready > 0) && (blocking == 0))
 		goto selectagain;
 
+	/*
+	 * If we don't have any registered callback any more, stop the
+	 * time-between-select-calls clock.
+	 */
+	if (N.maxfd == -1)
+		selectstats_stopclock();
+
 	/* Success! */
 	return (0);
 
@@ -594,6 +691,30 @@ network_spin(int * done)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * network_getselectstats(N, mu, va, max):
+ * Return and zero statistics on the time between select(2) calls.
+ */
+void
+network_getselectstats(double * NN, double * mu, double * va, double * max)
+{
+
+	/* Copy statistics out. */
+	*NN = select_period_N;
+	*mu = select_period_mu;
+	if (select_period_N > 1.0)
+		*va = select_period_M2 / (select_period_N - 1);
+	else
+		*va = 0.0;
+	*max = select_period_max;
+
+	/* Zero statistics. */
+	select_period_N = 0.0;
+	select_period_mu = 0.0;
+	select_period_M2 = 0.0;
+	select_period_max = 0.0;
 }
 
 /**
