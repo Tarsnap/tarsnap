@@ -291,3 +291,14 @@ tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
 #  Tarsnap sample configuration file
 sysconf_DATA	=	tar/tarsnap.conf.sample
+
+# Use the right version of the man pages depending on whether we have mdoc
+# macros available on this system.
+tar/tarsnap.1:	tar/tarsnap.1-@MANVER@
+	cat tar/tarsnap.1-@MANVER@ > tar/tarsnap.1
+tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@
+	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5
+keygen/tarsnap-keygen.1: keygen/tarsnap-keygen.1-@MANVER@
+	cat keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1
+keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
+	cat keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1

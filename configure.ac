@@ -48,8 +48,10 @@ AC_SUBST(LIBARCHIVE_VERSION_NUMBER)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([tar/tarsnap.1])
-AC_CONFIG_FILES([tar/tarsnap.conf.5])
+AC_CONFIG_FILES([tar/tarsnap.1-mdoc])
+AC_CONFIG_FILES([tar/tarsnap.1-man])
+AC_CONFIG_FILES([tar/tarsnap.conf.5-mdoc])
+AC_CONFIG_FILES([tar/tarsnap.conf.5-man])
 
 dnl Compilation on mingw and Cygwin needs special Makefile rules
 inc_windows_files=no
@@ -126,6 +128,10 @@ CHECK_SYSCTL_HW_USERMEM
 # This needs to be done *before* we look for OpenSSL; otherwise we won't
 # be able to find it...
 CHECK_SOLARIS_PATHS
+
+# Check if we should use mdoc versions of the man pages or versions which
+# are uglier but more portable.
+CHECK_MDOC_OR_MAN
 
 # On Linux, we need ext2fs/ext2_fs.h
 CHECK_LINUX_EXT2FS

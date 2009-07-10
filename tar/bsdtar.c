@@ -87,6 +87,13 @@ int tarsnap_opt_noisy_warnings = 0;
 uint64_t tarsnap_opt_checkpointbytes = (uint64_t)(-1);
 uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
 
+/* Structure for holding a delayed option. */
+struct delayedopt {
+	char * opt_name;
+	char * opt_arg;
+	struct delayedopt * next;
+};
+
 /* External function to parse a date/time string (from getdate.y) */
 time_t get_date(time_t, const char *);
 
@@ -95,10 +102,15 @@ static void		 build_dir(struct bsdtar *, const char *dir,
 static void		 configfile(struct bsdtar *, const char *fname);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
+static void		 dooption(struct bsdtar *, const char *,
+			     const char *, int);
 static void		 load_keys(struct bsdtar *, const char *path);
 static void		 long_help(struct bsdtar *);
 static void		 only_mode(struct bsdtar *, const char *opt,
 			     const char *valid);
+static void		 optq_push(struct bsdtar *, const char *,
+			     const char *);
+static void		 optq_pop(struct bsdtar *);
 static void		 set_mode(struct bsdtar *, int opt, const char *optstr);
 static void		 version(void);
 
@@ -118,7 +130,6 @@ main(int argc, char **argv)
 	char			*homedir;
 	char			*conffile;
 	const char		*missingkey;
-	char			*eptr;
 	time_t			 now;
 
 	/*
@@ -219,6 +230,10 @@ main(int argc, char **argv)
 	bsdtar->argv = argv;
 	bsdtar->argc = argc;
 
+	/* We gather some options in a 'delayed options queue'. */
+	bsdtar->delopt = NULL;
+	bsdtar->delopt_tail = &bsdtar->delopt;
+
 	/*
 	 * Comments following each option indicate where that option
 	 * originated:  SUSv2, POSIX, GNU tar, star, etc.  If there's
@@ -228,7 +243,7 @@ main(int argc, char **argv)
 	while ((opt = bsdtar_getopt(bsdtar)) != -1) {
 		switch (opt) {
 		case OPTION_AGGRESSIVE_NETWORKING: /* tarsnap */
-			tarsnap_opt_aggressive_networking = 1;
+			optq_push(bsdtar, "aggressive-networking", NULL);
 			break;
 		case 'B': /* GNU tar */
 			/* libarchive doesn't need this; just ignore it. */
@@ -240,21 +255,13 @@ main(int argc, char **argv)
 			set_mode(bsdtar, opt, "-c");
 			break;
 		case OPTION_CACHEDIR: /* multitar */
-			bsdtar->cachedir = bsdtar->optarg;
+			optq_push(bsdtar, "cachedir", bsdtar->optarg);
 			break;
 		case OPTION_CHECK_LINKS: /* GNU tar */
 			bsdtar->option_warn_links = 1;
 			break;
 		case OPTION_CHECKPOINT_BYTES: /* tarsnap */
-			if (humansize_parse(bsdtar->optarg,
-			    &tarsnap_opt_checkpointbytes))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Cannot parse #bytes per checkpoint: %s",
-				    bsdtar->optarg);
-			if (tarsnap_opt_checkpointbytes < 1000000)
-				bsdtar_errc(bsdtar, 1, 0,
-				    "--checkpoint-bytes value must be at "
-				    "least 1M");
+			optq_push(bsdtar, "checkpoint-bytes", bsdtar->optarg);
 			break;
 		case OPTION_CHROOT: /* NetBSD */
 			bsdtar->option_chroot = 1;
@@ -263,15 +270,13 @@ main(int argc, char **argv)
 			set_mode(bsdtar, opt, "-d");
 			break;
 		case OPTION_DISK_PAUSE: /* tarsnap */
-			bsdtar->disk_pause = strtol(bsdtar->optarg, NULL, 0);
+			optq_push(bsdtar, "disk-pause", bsdtar->optarg);
 			break;
 		case OPTION_DRYRUN: /* tarsnap */
 			bsdtar->option_dryrun = 1;
 			break;
 		case OPTION_EXCLUDE: /* GNU tar */
-			if (exclude(bsdtar, bsdtar->optarg))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Couldn't exclude %s\n", bsdtar->optarg);
+			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
 			bsdtar->tapename = bsdtar->optarg;
@@ -292,7 +297,7 @@ main(int argc, char **argv)
 			exit(0);
 			break;
 		case OPTION_HUMANIZE_NUMBERS: /* tarsnap */
-			tarsnap_opt_humanize_numbers = 1;
+			optq_push(bsdtar, "humanize-numbers", NULL);
 			break;
 		case 'I': /* GNU tar */
 			/*
@@ -308,15 +313,7 @@ main(int argc, char **argv)
 			bsdtar->names_from_file = bsdtar->optarg;
 			break;
 		case OPTION_INCLUDE:
-			/*
-			 * Noone else has the @archive extension, so
-			 * noone else needs this to filter entries
-			 * when transforming archives.
-			 */
-			if (include(bsdtar, bsdtar->optarg))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Failed to add %s to inclusion list",
-				    bsdtar->optarg);
+			optq_push(bsdtar, "include", bsdtar->optarg);
 			break;
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
@@ -325,8 +322,7 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER;
 			break;
 		case OPTION_KEYFILE: /* tarsnap */
-			load_keys(bsdtar, bsdtar->optarg);
-			bsdtar->have_keys = 1;
+			optq_push(bsdtar, "keyfile", bsdtar->optarg);
 			break;
 		case 'L': /* BSD convention */
 			bsdtar->symlink_mode = 'L';
@@ -339,47 +335,22 @@ main(int argc, char **argv)
 			set_mode(bsdtar, opt, "--list-archives");
 			break;
 		case OPTION_LOWMEM: /* tarsnap */
-			bsdtar->cachecrunch = 1;
+			optq_push(bsdtar, "lowmem", NULL);
 			break;
 		case 'm': /* SUSv2 */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_TIME;
 			break;
 		case OPTION_MAXBW: /* tarsnap */
-			if (humansize_parse(bsdtar->optarg,
-			    &tarsnap_opt_maxbytesout))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Cannot parse bandwidth limit: %s",
-				    bsdtar->optarg);
+			optq_push(bsdtar, "maxbw", bsdtar->optarg);
 			break;
 		case OPTION_MAXBW_RATE: /* tarsnap */
-			bsdtar->bwlimit_rate_up = bsdtar->bwlimit_rate_down =
-			    strtod(bsdtar->optarg, &eptr);
-			if ((*eptr != '\0') ||
-			    (bsdtar->bwlimit_rate_up < 8000) ||
-			    (bsdtar->bwlimit_rate_up > 1000000000.))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Invalid bandwidth rate limit: %s",
-				    bsdtar->optarg);
+			optq_push(bsdtar, "maxbw-rate", bsdtar->optarg);
 			break;
 		case OPTION_MAXBW_RATE_DOWN: /* tarsnap */
-			bsdtar->bwlimit_rate_down =
-			    strtod(bsdtar->optarg, &eptr);
-			if ((*eptr != '\0') ||
-			    (bsdtar->bwlimit_rate_down < 8000) ||
-			    (bsdtar->bwlimit_rate_down > 1000000000.))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Invalid bandwidth rate limit: %s",
-				    bsdtar->optarg);
+			optq_push(bsdtar, "maxbw-rate-down", bsdtar->optarg);
 			break;
 		case OPTION_MAXBW_RATE_UP: /* tarsnap */
-			bsdtar->bwlimit_rate_up =
-			    strtod(bsdtar->optarg, &eptr);
-			if ((*eptr != '\0') ||
-			    (bsdtar->bwlimit_rate_up < 8000) ||
-			    (bsdtar->bwlimit_rate_up > 1000000000.))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Invalid bandwidth rate limit: %s",
-				    bsdtar->optarg);
+			optq_push(bsdtar, "maxbw-rate-up", bsdtar->optarg);
 			break;
 		case 'n': /* GNU tar */
 			bsdtar->option_no_subdirs = 1;
@@ -420,10 +391,43 @@ main(int argc, char **argv)
 			}
 			break;
 		case OPTION_NODUMP: /* star */
-			bsdtar->option_honor_nodump = 1;
+			optq_push(bsdtar, "nodump", NULL);
 			break;
 		case OPTION_NOISY_WARNINGS: /* tarsnap */
 			tarsnap_opt_noisy_warnings = 1;
+			break;
+		case OPTION_NORMALMEM:
+			optq_push(bsdtar, "normalmem", NULL);
+			break;
+		case OPTION_NO_AGGRESSIVE_NETWORKING:
+			optq_push(bsdtar, "no-aggressive-networking", NULL);
+			break;
+		case OPTION_NO_CONFIG_EXCLUDE:
+			optq_push(bsdtar, "no-config-exclude", NULL);
+			break;
+		case OPTION_NO_CONFIG_INCLUDE:
+			optq_push(bsdtar, "no-config-include", NULL);
+			break;
+		case OPTION_NO_DISK_PAUSE:
+			optq_push(bsdtar, "no-disk-pause", NULL);
+			break;
+		case OPTION_NO_HUMANIZE_NUMBERS:
+			optq_push(bsdtar, "no-humanize-numbers", NULL);
+			break;
+		case OPTION_NO_MAXBW:
+			optq_push(bsdtar, "no-maxbw", NULL);
+			break;
+		case OPTION_NO_MAXBW_RATE_DOWN:
+			optq_push(bsdtar, "no-maxbw-rate-down", NULL);
+			break;
+		case OPTION_NO_MAXBW_RATE_UP:
+			optq_push(bsdtar, "no-maxbw-rate-up", NULL);
+			break;
+		case OPTION_NO_NODUMP:
+			optq_push(bsdtar, "no-nodump", NULL);
+			break;
+		case OPTION_NO_PRINT_STATS:
+			optq_push(bsdtar, "no-print-stats", NULL);
 			break;
 		case OPTION_NO_SAME_OWNER: /* GNU tar */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_OWNER;
@@ -433,6 +437,15 @@ main(int argc, char **argv)
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_ACL;
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_FFLAGS;
+			break;
+		case OPTION_NO_SNAPTIME:
+			optq_push(bsdtar, "no-snaptime", NULL);
+			break;
+		case OPTION_NO_STORE_ATIME:
+			optq_push(bsdtar, "no-store-atime", NULL);
+			break;
+		case OPTION_NO_TOTALS:
+			optq_push(bsdtar, "no-totals", NULL);
 			break;
 		case OPTION_NUKE: /* tarsnap */
 			set_mode(bsdtar, opt, "--nuke");
@@ -465,14 +478,6 @@ main(int argc, char **argv)
 			break;
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
-
-			/*
-			 * If we don't already have a mode set, we might be
-			 * trying to print statistics without doing anything
-			 * else.
-			 */
-			if (bsdtar->mode == '\0')
-				bsdtar->mode = OPTION_PRINT_STATS;
 			break;
 		case 'q': /* FreeBSD GNU tar --fast-read, NetBSD -q */
 			bsdtar->option_fast_read = 1;
@@ -481,17 +486,10 @@ main(int argc, char **argv)
 			set_mode(bsdtar, opt, "-r");
 			break;
 		case OPTION_SNAPTIME: /* multitar */
-			{
-				struct stat st;
-				if (stat(bsdtar->optarg, &st) != 0)
-					bsdtar_errc(bsdtar, 1, 0,
-					    "Can't open file %s",
-					    bsdtar->optarg);
-				bsdtar->snaptime = st.st_ctime;
-			}
+			optq_push(bsdtar, "snaptime", bsdtar->optarg);
 			break;
 		case OPTION_STORE_ATIME: /* multitar */
-			bsdtar->option_store_atime = 1;
+			optq_push(bsdtar, "store-atime", NULL);
 			break;
 		case 'S': /* NetBSD pax-as-tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_SPARSE;
@@ -519,7 +517,7 @@ main(int argc, char **argv)
 			bsdtar->verbose++;
 			break;
 		case OPTION_TOTALS: /* GNU tar */
-			bsdtar->option_totals++;
+			optq_push(bsdtar, "totals", NULL);
 			break;
 		case 'U': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_UNLINK;
@@ -532,7 +530,7 @@ main(int argc, char **argv)
 			version();
 			break;
 		case OPTION_VERYLOWMEM: /* tarsnap */
-			bsdtar->cachecrunch = 2;
+			optq_push(bsdtar, "verylowmem", NULL);
 			break;
 #if 0
 		/*
@@ -564,11 +562,11 @@ main(int argc, char **argv)
 	 */
 
 	/*
-	 * Start with basic checks which can be done prior to reading
-	 * configuration files; the configuration file reading might error
-	 * out, and if someone asks for help they should get that rather than
-	 * a configuration file related error message.
+	 * If --print-stats was specified but no mode was set, then
+	 * --print-stats *is* the mode.
 	 */
+	if ((bsdtar->mode == '\0') && (bsdtar->option_print_stats == 1))
+		set_mode(bsdtar, OPTION_PRINT_STATS, "--print-stats");
 
 	/* If no "real" mode was specified, treat -h as --help. */
 	if ((bsdtar->mode == '\0') && possible_help_request) {
@@ -576,12 +574,24 @@ main(int argc, char **argv)
 		exit(0);
 	}
 
+	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Must specify one of -c, -d, -r, -t, -x,"
-		    " --list-archives, or --print-stats");
+		    " --list-archives, --print-stats, --fsck, or --nuke");
 
-	/* Read options from configuration files. */
+	/* Process "delayed" command-line options which we queued earlier. */
+	while (bsdtar->delopt != NULL) {
+		dooption(bsdtar, bsdtar->delopt->opt_name,
+		    bsdtar->delopt->opt_arg, 0);
+		optq_pop(bsdtar);
+	}
+	bsdtar->option_no_config_exclude_set =
+	    bsdtar->option_no_config_exclude;
+	bsdtar->option_no_config_include_set =
+	    bsdtar->option_no_config_include;
+
+	/* Process options from ~/.tarsnaprc. */
 	if ((homedir = getenv("HOME")) != NULL) {
 		if (asprintf(&conffile, "%s/.tarsnaprc", homedir) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "No memory");
@@ -591,6 +601,12 @@ main(int argc, char **argv)
 		/* Free string allocated by asprintf. */
 		free(conffile);
 	}
+	bsdtar->option_no_config_exclude_set =
+	    bsdtar->option_no_config_exclude;
+	bsdtar->option_no_config_include_set =
+	    bsdtar->option_no_config_include;
+
+	/* Process options from system-wide tarsnap.conf. */
 	configfile(bsdtar, ETC_TARSNAP_CONF);
 
 	/* Continue with more sanity-checking. */
@@ -608,9 +624,6 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cache directory must be specified for -c, -d,"
 		    " --fsck, and --print-stats");
-	if (bsdtar->have_keys == 0)
-		bsdtar_errc(bsdtar, 1, 0,
-		    "Keys must be provided via --keyfile option");
 	if (tarsnap_opt_aggressive_networking != 0) {
 		if ((bsdtar->bwlimit_rate_up != 0) ||
 		    (bsdtar->bwlimit_rate_down != 0)) {
@@ -643,39 +656,22 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--null", "cxt");
 
 	/* Check options only permitted in certain modes. */
-	if (tarsnap_opt_aggressive_networking)
-		only_mode(bsdtar, "--aggressive-networking", "c");
-	if (tarsnap_opt_maxbytesout != (uint64_t)(-1))
-		only_mode(bsdtar, "--maxbw", "c");
-	if (tarsnap_opt_checkpointbytes != (uint64_t)(-1))
-		only_mode(bsdtar, "--checkpoint-bytes", "c");
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
-	if (bsdtar->option_dryrun)
-		only_mode(bsdtar, "--dry-run", "c");
 	if (bsdtar->option_fast_read)
 		only_mode(bsdtar, "--fast-read", "xt");
-	if (bsdtar->option_honor_nodump)
-		only_mode(bsdtar, "--nodump", "c");
-	if (bsdtar->option_no_owner)
-		only_mode(bsdtar, "-o", "x");
 	if (bsdtar->option_no_subdirs)
 		only_mode(bsdtar, "-n", "c");
-	if (bsdtar->option_print_stats &&
-	    (bsdtar->mode != OPTION_PRINT_STATS))
-		only_mode(bsdtar, "--print-stats", "cd");
+	if (bsdtar->option_no_owner)
+		only_mode(bsdtar, "-o", "x");
 	if (bsdtar->option_stdout)
 		only_mode(bsdtar, "-O", "xt");
-	if (bsdtar->option_store_atime)
-		only_mode(bsdtar, "--store-atime", "c");
-	if (bsdtar->option_totals)
-		only_mode(bsdtar, "--totals", "c");
 	if (bsdtar->option_unlink_first)
 		only_mode(bsdtar, "-U", "x");
 	if (bsdtar->option_warn_links)
 		only_mode(bsdtar, "--check-links", "c");
-	if (bsdtar->disk_pause)
-		only_mode(bsdtar, "--disk-pause", "c");
+	if (bsdtar->option_dryrun)
+		only_mode(bsdtar, "--dry-run", "c");
 
 	/* Check other parameters only permitted in certain modes. */
 	if (bsdtar->symlink_mode != '\0') {
@@ -699,6 +695,9 @@ main(int argc, char **argv)
 	}
 
 	/* Make sure we have whatever keys we're going to need. */
+	if (bsdtar->have_keys == 0)
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Keys must be provided via --keyfile option");
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':
@@ -773,6 +772,16 @@ main(int argc, char **argv)
 	cleanup_substitution(bsdtar);
 #endif
 
+#ifdef DEBUG_SELECTSTATS
+	double N, mu, va, max;
+
+	network_getselectstats(&N, &mu, &va, &max);
+	fprintf(stderr, "Time-between-select-calls statistics:\n");
+	fprintf(stderr, "N = %6g   mu = %12g ms  "
+	    "va = %12g ms^2  max = %12g ms\n",
+	    N, mu * 1000, va * 1000000, max * 1000);
+#endif
+
 	/* Clean up network layer. */
 	network_fini();
 
@@ -796,9 +805,7 @@ set_mode(struct bsdtar * bsdtar, int opt, const char *optstr)
 {
 
 	/* Make sure we're not asking tarsnap to do two things at once. */
-	if (bsdtar->mode != 0 &&
-	    bsdtar->mode != OPTION_PRINT_STATS &&
-	    strcmp(bsdtar->modestr, optstr))
+	if (bsdtar->mode != 0)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Can't specify both %s and %s", optstr, bsdtar->modestr);
 
@@ -1025,95 +1032,8 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		conf_arg_malloced = NULL;
 	}
 
-	if (strcmp(conf_opt, "aggressive-networking") == 0) {
-		tarsnap_opt_aggressive_networking = 1;
-	} else if (strcmp(conf_opt, "cachedir") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if (bsdtar->cachedir == NULL)
-			if ((bsdtar->cachedir = strdup(conf_arg)) == NULL)
-				bsdtar_errc(bsdtar, 1, errno,
-				    "Out of memory");
-	} else if (strcmp(conf_opt, "checkpoint-bytes") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if ((bsdtar->mode == 'c') &&
-		    (tarsnap_opt_checkpointbytes == (uint64_t)(-1))) {
-			if (humansize_parse(conf_arg,
-			    &tarsnap_opt_checkpointbytes))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Cannot parse #bytes per checkpoint: %s",
-				    bsdtar->optarg);
-			if (tarsnap_opt_checkpointbytes < 1000000)
-				bsdtar_errc(bsdtar, 1, 0,
-				    "checkpoint-bytes value must be at "
-				    "least 1M");
-		}
-	} else if (strcmp(conf_opt, "exclude") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if (exclude(bsdtar, conf_arg))
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Couldn't exclude %s", conf_arg);
-	} else if (strcmp(conf_opt, "include") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if (include(bsdtar, conf_arg))
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Failed to add %s to inclusion list", conf_arg);
-	} else if (strcmp(conf_opt, "keyfile") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if (bsdtar->have_keys == 0) {
-			load_keys(bsdtar, conf_arg);
-			bsdtar->have_keys = 1;
-		}
-	} else if (strcmp(conf_opt, "lowmem") == 0) {
-		if ((bsdtar->mode == 'c') && (bsdtar->cachecrunch == 0))
-			bsdtar->cachecrunch = 1;
-	} else if (strcmp(conf_opt, "nodump") == 0) {
-		if (bsdtar->mode == 'c')
-			bsdtar->option_honor_nodump = 1;
-	} else if (strcmp(conf_opt, "print-stats") == 0) {
-		if ((bsdtar->mode == 'c') || (bsdtar->mode == 'd'))
-			bsdtar->option_print_stats = 1;
-	} else if (strcmp(conf_opt, "snaptime") == 0) {
-		if (conf_arg == NULL)
-			bsdtar_errc(bsdtar, 1, 0,
-			    "Argument required for "
-			    "configuration file option: %s", conf_opt);
-		if ((bsdtar->mode == 'c') && (bsdtar->snaptime == 0)) {
-			struct stat st;
-
-			if (stat(conf_arg, &st) != 0)
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Can't stat file %s", conf_arg);
-			bsdtar->snaptime = st.st_ctime;
-		}
-	} else if (strcmp(conf_opt, "store-atime") == 0) {
-		if (bsdtar->mode == 'c')
-			bsdtar->option_store_atime = 1;
-	} else if (strcmp(conf_opt, "totals") == 0) {
-		if ((bsdtar->mode == 'c') && (bsdtar->option_totals == 0))
-			bsdtar->option_totals++;
-	} else if (strcmp(conf_opt, "verylowmem") == 0) {
-		if ((bsdtar->mode == 'c') && (bsdtar->cachecrunch == 0))
-			bsdtar->cachecrunch = 2;
-	} else {
-		bsdtar_errc(bsdtar, 1, 0,
-		    "Unrecognized configuration file option: \"%s\"",
-		    conf_opt);
-	}
+	/* Process the configuration option. */
+	dooption(bsdtar, conf_opt, conf_arg, 1);
 
 	/* Free expanded argument or NULL. */
 	free(conf_arg_malloced);
@@ -1122,6 +1042,336 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	free(conf_opt);
 
 	return (0);
+}
+
+/* Add a command-line option to the delayed options queue. */
+static void
+optq_push(struct bsdtar *bsdtar, const char * opt_name, const char * opt_arg)
+{
+	struct delayedopt * opt;
+
+	/* Create a delayed option structure. */
+	if ((opt = malloc(sizeof(struct delayedopt))) == NULL)
+		goto enomem;
+	if ((opt->opt_name = strdup(opt_name)) == NULL)
+		goto enomem;
+	if (opt_arg == NULL)
+		opt->opt_arg = NULL;
+	else if ((opt->opt_arg = strdup(opt_arg)) == NULL)
+		goto enomem;
+	opt->next = NULL;
+
+	/* Add to queue. */
+	*(bsdtar->delopt_tail) = opt;
+	bsdtar->delopt_tail = &opt->next;
+
+	/* Success! */
+	return;
+
+enomem:
+	bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+}
+
+/* Remove the first item from the delayed options queue. */
+static void
+optq_pop(struct bsdtar *bsdtar)
+{
+	struct delayedopt * opt = bsdtar->delopt;
+
+	/* Remove from linked list. */
+	bsdtar->delopt = opt->next;
+
+	/* Free item. */
+	free(opt->opt_name);
+	free(opt->opt_arg);
+	free(opt);
+}
+
+/* Process a line of configuration file or a command-line option. */
+static void
+dooption(struct bsdtar *bsdtar, const char * conf_opt,
+    const char * conf_arg, int fromconffile)
+{
+	struct stat st;
+	char *eptr;
+
+	if (strcmp(conf_opt, "aggressive-networking") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_aggressive_networking_set)
+			goto optset;
+
+		tarsnap_opt_aggressive_networking = 1;
+		bsdtar->option_aggressive_networking_set = 1;
+	} else if (strcmp(conf_opt, "cachedir") == 0) {
+		if (bsdtar->cachedir != NULL)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if ((bsdtar->cachedir = strdup(conf_arg)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+	} else if (strcmp(conf_opt, "checkpoint-bytes") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (tarsnap_opt_checkpointbytes != (uint64_t)(-1))
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (humansize_parse(conf_arg, &tarsnap_opt_checkpointbytes))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Cannot parse #bytes per checkpoint: %s",
+			    conf_arg);
+		if (tarsnap_opt_checkpointbytes < 1000000)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "checkpoint-bytes value must be at least 1M");
+	} else if (strcmp(conf_opt, "disk-pause") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_disk_pause_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		bsdtar->disk_pause = strtol(conf_arg, NULL, 0);
+		bsdtar->option_disk_pause_set = 1;
+	} else if (strcmp(conf_opt, "exclude") == 0) {
+		if (bsdtar->option_no_config_exclude_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (exclude(bsdtar, conf_arg))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Couldn't exclude %s", conf_arg);
+	} else if (strcmp(conf_opt, "humanize-numbers") == 0) {
+		if (bsdtar->option_humanize_numbers_set)
+			goto optset;
+
+		tarsnap_opt_humanize_numbers = 1;
+		bsdtar->option_humanize_numbers_set = 1;
+	} else if (strcmp(conf_opt, "include") == 0) {
+		if (bsdtar->option_no_config_include_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (include(bsdtar, conf_arg))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Failed to add %s to inclusion list", conf_arg);
+	} else if (strcmp(conf_opt, "keyfile") == 0) {
+		if (bsdtar->have_keys)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		load_keys(bsdtar, conf_arg);
+		bsdtar->have_keys = 1;
+	} else if (strcmp(conf_opt, "lowmem") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_cachecrunch_set)
+			goto optset;
+
+		bsdtar->cachecrunch = 1;
+		bsdtar->option_cachecrunch_set = 1;
+	} else if (strcmp(conf_opt, "maxbw") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_maxbw_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (humansize_parse(conf_arg, &tarsnap_opt_maxbytesout))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Cannot parse bandwidth limit: %s", conf_arg);
+		bsdtar->option_maxbw_set = 1;
+	} else if (strcmp(conf_opt, "maxbw-rate") == 0) {
+		dooption(bsdtar, "maxbw-rate-down", conf_arg, fromconffile);
+		dooption(bsdtar, "maxbw-rate-up", conf_arg, fromconffile);
+	} else if (strcmp(conf_opt, "maxbw-rate-down") == 0) {
+		if (bsdtar->option_maxbw_rate_down_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		bsdtar->bwlimit_rate_down = strtod(conf_arg, &eptr);
+		if ((*eptr != '\0') ||
+		    (bsdtar->bwlimit_rate_down < 8000) ||
+		    (bsdtar->bwlimit_rate_down > 1000000000.))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Invalid bandwidth rate limit: %s", conf_arg);
+		bsdtar->option_maxbw_rate_down_set = 1;
+	} else if (strcmp(conf_opt, "maxbw-rate-up") == 0) {
+		if (bsdtar->option_maxbw_rate_up_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		bsdtar->bwlimit_rate_up = strtod(conf_arg, &eptr);
+		if ((*eptr != '\0') ||
+		    (bsdtar->bwlimit_rate_up < 8000) ||
+		    (bsdtar->bwlimit_rate_up > 1000000000.))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Invalid bandwidth rate limit: %s", conf_arg);
+		bsdtar->option_maxbw_rate_up_set = 1;
+	} else if (strcmp(conf_opt, "nodump") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_nodump_set)
+			goto optset;
+
+		bsdtar->option_honor_nodump = 1;
+		bsdtar->option_nodump_set = 1;
+	} else if (strcmp(conf_opt, "normalmem") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_cachecrunch_set)
+			goto optset;
+
+		bsdtar->option_cachecrunch_set = 1;
+	} else if (strcmp(conf_opt, "no-aggressive-networking") == 0) {
+		if (bsdtar->option_aggressive_networking_set)
+			goto optset;
+
+		bsdtar->option_aggressive_networking_set = 1;
+	} else if (strcmp(conf_opt, "no-config-exclude") == 0) {
+		if (bsdtar->option_no_config_exclude)
+			goto optset;
+
+		bsdtar->option_no_config_exclude = 1;
+	} else if (strcmp(conf_opt, "no-config-include") == 0) {
+		if (bsdtar->option_no_config_include)
+			goto optset;
+
+		bsdtar->option_no_config_include = 1;
+	} else if (strcmp(conf_opt, "no-disk-pause") == 0) {
+		if (bsdtar->option_disk_pause_set)
+			goto optset;
+
+		bsdtar->option_disk_pause_set = 1;
+	} else if (strcmp(conf_opt, "no-humanize-numbers") == 0) {
+		if (bsdtar->option_humanize_numbers_set)
+			goto optset;
+
+		bsdtar->option_humanize_numbers_set = 1;
+	} else if (strcmp(conf_opt, "no-maxbw") == 0) {
+		if (bsdtar->option_maxbw_set)
+			goto optset;
+
+		bsdtar->option_maxbw_set = 1;
+	} else if (strcmp(conf_opt, "no-maxbw-rate-down") == 0) {
+		if (bsdtar->option_maxbw_rate_down_set)
+			goto optset;
+
+		bsdtar->option_maxbw_rate_down_set = 1;
+	} else if (strcmp(conf_opt, "no-maxbw-rate-up") == 0) {
+		if (bsdtar->option_maxbw_rate_up_set)
+			goto optset;
+
+		bsdtar->option_maxbw_rate_up_set = 1;
+	} else if (strcmp(conf_opt, "no-nodump") == 0) {
+		if (bsdtar->option_nodump_set)
+			goto optset;
+
+		bsdtar->option_nodump_set = 1;
+	} else if (strcmp(conf_opt, "no-print-stats") == 0) {
+		if (bsdtar->option_print_stats_set)
+			goto optset;
+
+		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "no-snaptime") == 0) {
+		if (bsdtar->option_snaptime_set)
+			goto optset;
+
+		bsdtar->option_snaptime_set = 1;
+	} else if (strcmp(conf_opt, "no-store-atime") == 0) {
+		if (bsdtar->option_store_atime_set)
+			goto optset;
+
+		bsdtar->option_store_atime_set = 1;
+	} else if (strcmp(conf_opt, "no-totals") == 0) {
+		if (bsdtar->option_totals_set)
+			goto optset;
+
+		bsdtar->option_totals_set = 1;
+	} else if (strcmp(conf_opt, "print-stats") == 0) {
+		if ((bsdtar->mode != 'c') && (bsdtar->mode != 'd'))
+			goto badmode;
+		if (bsdtar->option_print_stats_set)
+			goto optset;
+
+		bsdtar->option_print_stats = 1;
+		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "snaptime") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_snaptime_set)
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (stat(conf_arg, &st) != 0)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Can't stat file %s", conf_arg);
+		bsdtar->snaptime = st.st_ctime;
+		bsdtar->option_snaptime_set = 1;
+	} else if (strcmp(conf_opt, "store-atime") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_store_atime_set)
+			goto optset;
+
+		bsdtar->option_store_atime = 1;
+		bsdtar->option_store_atime_set = 1;
+	} else if (strcmp(conf_opt, "totals") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_totals_set)
+			goto optset;
+
+		bsdtar->option_totals = 1;
+		bsdtar->option_totals_set = 1;
+	} else if (strcmp(conf_opt, "verylowmem") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_cachecrunch_set)
+			goto optset;
+
+		bsdtar->cachecrunch = 2;
+		bsdtar->option_cachecrunch_set = 1;
+	} else {
+		goto badopt;
+	}
+	return;
+
+badmode:
+	/* Option not relevant in this mode. */
+	if (fromconffile == 0) {
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Option --%s is not permitted in mode %s",
+		    conf_opt, bsdtar->modestr);
+	}
+	return;
+
+optset:
+	/* Option specified multiple times. */
+	if (fromconffile == 0) {
+		usage(bsdtar);
+	}
+	return;
+
+needarg:
+	/* Option needs an argument. */
+	bsdtar_errc(bsdtar, 1, 0,
+	    "Argument requried for configuration file option: %s", conf_opt);
+
+badopt:
+	/* No such option. */
+	bsdtar_errc(bsdtar, 1, 0,
+	    "Unrecognized configuration file option: \"%s\"", conf_opt);
 }
 
 /* Load keys from the specified file. */
