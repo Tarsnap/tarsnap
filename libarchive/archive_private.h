@@ -90,6 +90,8 @@ struct archive {
 	off_t		  file_position;
 	/* Position in COMPRESSED data stream. */
 	off_t		  raw_position;
+	/* Number of file entries processed. */
+	int		  file_count;
 
 	int		  archive_error_number;
 	const char	 *error;

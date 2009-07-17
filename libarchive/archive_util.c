@@ -115,6 +115,11 @@ archive_error_string(struct archive *a)
 		return ("(Empty error message)");
 }
 
+int
+archive_file_count(struct archive *a)
+{
+	return (a->file_count);
+}
 
 int
 archive_format(struct archive *a)
