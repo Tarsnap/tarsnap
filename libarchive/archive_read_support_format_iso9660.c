@@ -1133,8 +1133,6 @@ parse_rockridge_TF1(struct file_info *file, const unsigned char *data,
 		if ((flag & 8) && data_length >= 17) {
 			/* Attribute change time. */
 			file->ctime = isodate17(data);
-			data += 17;
-			data_length -= 17;
 		}
 	} else {
 		/* Use 7-byte time format. */
@@ -1159,8 +1157,6 @@ parse_rockridge_TF1(struct file_info *file, const unsigned char *data,
 		if ((flag & 8) && data_length >= 7) {
 			/* Attribute change time. */
 			file->ctime = isodate7(data);
-			data += 7;
-			data_length -= 7;
 		}
 	}
 }
