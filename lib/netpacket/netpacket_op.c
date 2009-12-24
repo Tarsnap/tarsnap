@@ -338,6 +338,8 @@ callback_getbuf(void * cookie, uint8_t type, uint8_t ** buf,
 			status = NETPROTO_STATUS_PROTERR;
 		break;
 	case NETPACKET_TRANSACTION_START_RESPONSE:
+	case NETPACKET_TRANSACTION_CANCEL_RESPONSE:
+	case NETPACKET_TRANSACTION_TRYCOMMIT_RESPONSE:
 		if (buflen != 33)
 			status = NETPROTO_STATUS_PROTERR;
 		break;

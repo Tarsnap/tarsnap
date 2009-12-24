@@ -1,3 +1,12 @@
+tarsnap (1.0.26) unstable; urgency=low
+
+  * New version of tarsnap changes client-server protocol in order to reduce
+    "connection lost" warnings, fixes a serious bug in the --maxbw-rate
+    options, improves documentation, and fixes a few other minor bugs.
+  * Debian installation rules fixed to create Tarsnap cache directory with
+    the correct (0700) permissions.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 24 Dec 2009 06:56:51 +0000
 tarsnap (1.0.25) unstable; urgency=low
 
   * New version of tarsnap makes it possible for more options to be specified

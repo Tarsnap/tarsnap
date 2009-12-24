@@ -120,14 +120,24 @@ static int
 docallback(struct network_callback_internal * C, int timedout)
 {
 	network_callback * cb;
-	int status = NETWORK_STATUS_OK;
+	int status;
 
 	cb = C->callback;
 	C->callback = NULL;
-	if (timedout == -1)
+	switch (timedout) {
+	case -1:
 		status = NETWORK_STATUS_CANCEL;
-	else if (timedout == 1)
+		break;
+	case 0:
+		status = NETWORK_STATUS_OK;
+		break;
+	case 1:
 		status = NETWORK_STATUS_TIMEOUT;
+		break;
+	default:
+		warn0("Programmer error: Invalid status to docallback");
+		return (-1);
+	}
 
 	return ((cb)(C->cookie, status));
 }

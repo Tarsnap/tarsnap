@@ -1,23 +1,23 @@
 # Contributor: Aaron Schaefer <aaron@elasticdog.com>
 pkgname=tarsnap
-pkgver=1.0.19
+pkgver=1.0.25
 pkgrel=1
-pkgdesc="An online encrypted snapshotted backup service"
+pkgdesc='An online encrypted snapshotted backup service'
 arch=('i686' 'x86_64')
 url='http://www.tarsnap.com/'
 license=('custom')
 depends=('bzip2' 'openssl')
 makedepends=('e2fsprogs')
-source=("https://beta.tarsnap.com/download/$pkgname-autoconf-$pkgver.tgz")
-md5sums=('bf9a3a57ad997462dd71ad9f07ffb66c')
-sha256sums=('7cd94c5238b992a5f2fdbe8e5a555fd745bcd6b47c312632482f4de32d183fd6')
+source=("https://www.tarsnap.com/download/$pkgname-autoconf-$pkgver.tgz")
+md5sums=('862403c3a79db9657d7ff9c898238e81')
+sha256sums=('086787dd9d9985590c17848454e7b4e31327c3a70065c5f2611b1e0a1fddb087')
 
 build() {
   cd "$srcdir/$pkgname-autoconf-$pkgver"
 
   ./configure --prefix=/usr --sysconfdir="/etc/$pkgname"
   make || return 1
-  make DESTDIR="$pkgdir/" install
+  make DESTDIR="$pkgdir/" install || return 1
 
   install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
 }

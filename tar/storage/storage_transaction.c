@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "netpacket.h"
 #include "netproto.h"
@@ -45,12 +46,16 @@ struct transaction_commit_internal {
 	/* Parameters used in committing a transaction. */
 	uint8_t seqnum[32];
 	uint8_t whichkey;
+	int status;
 };
 
 static int key_lookup(int);
 static int storage_transaction_start(NETPACKET_CONNECTION *, uint64_t,
     const uint8_t[32], uint8_t[32], uint8_t);
 
+static sendpacket_callback callback_getnonce_cancel_send;
+static handlepacket_callback callback_getnonce_cancel_response;
+static handlepacket_callback callback_cancel_response;
 static sendpacket_callback callback_getnonce_send;
 static handlepacket_callback callback_getnonce_response;
 static handlepacket_callback callback_start_response;
@@ -102,9 +107,42 @@ storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 	else
 		memset(C.lastseq, 0, 32);
 	C.type = type;
-	C.done = 0;
+
+	/*
+	 * As the server to cancel any in-progress transaction; if it asks us
+	 * to go away and come back later, sleep 1 second and then poke it
+	 * again.  (Normally cancelling a transaction will take no more than
+	 * 1 second; we do this here just to avoid worrying the user with
+	 * error messages in the unlikely event that the server takes long
+	 * enough to cancel the transaction as to make the first few attempts
+	 * to start a new transaction fail.)
+	 */
+	do {
+		/* Send a cancel request and get a response. */
+		C.done = 0;
+		if (netpacket_op(NPC, callback_getnonce_cancel_send, &C))
+			goto err0;
+
+		/* Wait for the response to come back. */
+		if (network_spin(&C.done))
+			goto err0;
+
+		/* If the response was "success", stop looping. */
+		if (C.status == 0)
+			break;
+
+		/* Sanity check status. */
+		if (C.status != 1) {
+			netproto_printerr(NETPROTO_STATUS_PROTERR);
+			goto err0;
+		}
+
+		/* Give the server a chance to perform the cancel. */
+		sleep(1);
+	} while (1);
 
 	/* Ask the netpacket layer to send a request and get a response. */
+	C.done = 0;
 	if (netpacket_op(NPC, callback_getnonce_send, &C))
 		goto err0;
 
@@ -142,6 +180,116 @@ storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 	/* Success! */
 	return (0);
 
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+static int
+callback_getnonce_cancel_send(void * cookie, NETPACKET_CONNECTION * NPC)
+{
+	struct transaction_start_internal * C = cookie;
+
+	/* Ask the server to provide a transaction server nonce. */
+	return (netpacket_transaction_getnonce(NPC, C->machinenum,
+	    callback_getnonce_cancel_response));
+}
+
+static int
+callback_getnonce_cancel_response(void * cookie, NETPACKET_CONNECTION * NPC,
+    int status, uint8_t packettype, const uint8_t * packetbuf,
+    size_t packetlen)
+{
+	struct transaction_start_internal * C = cookie;
+
+	(void)packetlen; /* UNUSED */
+
+	/* Handle read errors. */
+	if (status != NETWORK_STATUS_OK) {
+		netproto_printerr(status);
+		goto err0;
+	}
+
+	/* Make sure we received the right type of packet. */
+	if (packettype != NETPACKET_TRANSACTION_GETNONCE_RESPONSE)
+		goto err1;
+
+	/* Store the provided server nonce. */
+	memcpy(C->snonce, packetbuf, 32);
+
+	/* Generate a random client nonce. */
+	if (crypto_entropy_read(C->cnonce, 32))
+		goto err0;
+
+	/* Send a transaction cancel request. */
+	if (netpacket_transaction_cancel(NPC, C->machinenum,
+	    C->type, C->snonce, C->cnonce, C->lastseq,
+	    callback_cancel_response))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err1:
+	netproto_printerr(NETPROTO_STATUS_PROTERR);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+static int
+callback_cancel_response(void * cookie, NETPACKET_CONNECTION * NPC,
+    int status, uint8_t packettype, const uint8_t * packetbuf,
+    size_t packetlen)
+{
+	struct transaction_start_internal * C = cookie;
+	int key;
+
+	(void)packetlen; /* UNUSED */
+	(void)NPC; /* UNUSED */
+
+	/* Handle read errors. */
+	if (status != NETWORK_STATUS_OK) {
+		netproto_printerr(status);
+		goto err0;
+	}
+
+	/* Make sure we received the right type of packet. */
+	if (packettype != NETPACKET_TRANSACTION_CANCEL_RESPONSE)
+		goto err1;
+
+	/* Compute nonce used for signing response packet. */
+	if (crypto_hash_data_2(CRYPTO_KEY_HMAC_SHA256, C->snonce, 32,
+	    C->cnonce, 32, C->seqnum)) {
+		warn0("Programmer error: "
+		    "SHA256 should never fail");
+		goto err0;
+	}
+
+	/* Look up packet signing key. */
+	if ((key = key_lookup(C->type)) == -1)
+		goto err0;
+
+	/* Verify packet hmac. */
+	switch (netpacket_hmac_verify(packettype, C->seqnum,
+	    packetbuf, 1, key)) {
+	case 1:
+		goto err1;
+	case -1:
+		goto err0;
+	}
+
+	/* Store response code from server. */
+	C->status = packetbuf[0];
+
+	/* We're done! */
+	C->done = 1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	netproto_printerr(NETPROTO_STATUS_PROTERR);
 err0:
 	/* Failure! */
 	return (-1);
@@ -442,19 +590,35 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 	C.machinenum = machinenum;
 	memcpy(C.seqnum, seqnum, 32);
 	C.whichkey = whichkey;
-	C.done = 0;
 
 	/* Open netpacket connection. */
 	if ((NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err0;
 
-	/* Ask the netpacket layer to send a request and get a response. */
-	if (netpacket_op(NPC, callback_commit_send, &C))
-		goto err1;
+	/* Loop until the we error out or we get a "success" response. */
+	do {
+		/* Send a request and get a response. */
+		C.done = 0;
+		if (netpacket_op(NPC, callback_commit_send, &C))
+			goto err1;
 
-	/* Wait until the transaction has been committed or failed. */
-	if (network_spin(&C.done))
-		goto err1;
+		/* Wait until we have a response or an error. */
+		if (network_spin(&C.done))
+			goto err1;
+
+		/* Did we succeed? */
+		if (C.status == 0)
+			break;
+
+		/* Sanity check status. */
+		if (C.status != 1) {
+			netproto_printerr(NETPROTO_STATUS_PROTERR);
+			goto err1;
+		}
+
+		/* Give the server a chance to perform the commit. */
+		sleep(1);
+	} while (1);
 
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
@@ -476,8 +640,8 @@ callback_commit_send(void * cookie, NETPACKET_CONNECTION * NPC)
 	struct transaction_commit_internal * C = cookie;
 
 	/* Ask the server to commit the transaction. */
-	return (netpacket_transaction_commit(NPC, C->machinenum, C->whichkey,
-	    C->seqnum, callback_commit_response));
+	return (netpacket_transaction_trycommit(NPC, C->machinenum,
+	    C->whichkey, C->seqnum, callback_commit_response));
 }
 
 static int
@@ -498,7 +662,7 @@ callback_commit_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	}
 
 	/* Make sure we received the right type of packet. */
-	if (packettype != NETPACKET_TRANSACTION_COMMIT_RESPONSE)
+	if (packettype != NETPACKET_TRANSACTION_TRYCOMMIT_RESPONSE)
 		goto err1;
 
 	/* Look up packet signing key. */
@@ -507,12 +671,15 @@ callback_commit_response(void * cookie, NETPACKET_CONNECTION * NPC,
 
 	/* Verify packet hmac. */
 	switch (netpacket_hmac_verify(packettype, C->seqnum,
-	    packetbuf, 0, key)) {
+	    packetbuf, 1, key)) {
 	case 1:
 		goto err1;
 	case -1:
 		goto err0;
 	}
+
+	/* Record status. */
+	C->status = packetbuf[0];
 
 	/* We're done! */
 	C->done = 1;

@@ -220,6 +220,15 @@ netproto_close(NETPROTO_CONNECTION * C)
 
 	/* Close the socket. */
 	while (close(C->fd)) {
+		if (errno == ECONNRESET) {
+			/*
+			 * You can't dump me!  I'm dumping you!  We don't
+			 * care about the connection dying since we we're
+			 * done with it anyway.
+			 */
+			break;
+		}
+
 		if (errno != EINTR) {
 			warnp("close()");
 			goto err1;

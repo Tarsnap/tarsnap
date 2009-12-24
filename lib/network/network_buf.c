@@ -128,15 +128,15 @@ callback_buf(void * cookie, int status)
 		status = NETWORK_STATUS_CLOSED;
 		goto docallback;
 	} else {
+		/* Adjust bandwidth limit. */
+		*(C->bwlimit) -= len;
+
 		/* Data has been read/written into/from buffer. */
 		C->bufpos += len;
 		if (C->bufpos == C->buflen) {
 			status = NETWORK_STATUS_OK;
 			goto docallback;
 		}
-
-		/* Adjust bandwidth limit. */
-		*(C->bwlimit) -= len;
 
 		/* Fall through to resetting the callback. */
 	}

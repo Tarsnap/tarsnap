@@ -231,6 +231,91 @@ where nonce is the nonce provided by the client (which may not be the nonce
 of the current transaction, if status == 1), and key is the write or delete
 key as in NETPACKET_TRANSACTION_CHECKPOINT.
 
+NETPACKET_TRANSACTION_CANCEL (0x14)
+-----------------------------------
+
+The client wants to cancel any pending transaction as with TRANSACTION_START,
+but not actually start a transaction (yet).
+
+Packet contents:
+	uint64_t machinenum
+	uint8_t whichkey
+	uint8_t snonce[32]
+	uint8_t cnonce[32]
+	uint8_t state[32]
+	uint8_t hmac[32]
+
+The value whichkey is
+	0	key = write access key
+	1	key = delete access key
+	2	key = delete access key and state = 0.
+
+The value snonce is as provided by the server in response to a
+NETPACKET_TRANSACTION_GETNONCE request; the value cnonce is a random client
+nonce; the value state is the transaction nonce of the last committed
+transaction.
+
+The value hmac is HMAC(key, 0x14 || [packet minus final hmac]).
+
+NETPACKET_TRANSACTION_CANCEL_RESPONSE (0x94)
+-------------------------------------------
+
+Packet contents:
+	uint8_t status
+	uint8_t hmac[32]
+
+The value status is
+	0	Success
+	1	Try again later
+
+A "success" here means that *if* the client's state value was correct *then*
+there is currently no transaction in progress.  A "try again later" does not
+guarantee anything except that the server is alive and responsive; in
+particular, the server may cancel the currently in-progress transaction but
+still respond "try again later".
+
+The value hmac is HMAC(key, 0x94 || nonce || status) where key is the write
+or delete key as in NETPACKET_TRANSACTION_CANCEL and nonce is SHA256(snonce
+|| cnonce).
+
+NETPACKET_TRANSACTION_TRYCOMMIT (0x15)
+--------------------------------------
+
+Packet contents:
+	uint64_t machinenum
+	uint8_t whichkey
+	uint8_t nonce[32]
+	uint8_t hmac[32]
+
+The value whichkey is
+	0	key = write access key
+	1	key = delete access key.
+
+The value nonce is the transaction nonce for the transaction which the
+client wants to have committed.
+
+The value hmac is HMAC(key, 0x15 || [packet minus final hmac]).
+
+NETPACKET_TRANSACTION_TRYCOMMIT_RESPONSE (0x95)
+-----------------------------------------------
+
+Packet contents:
+	uint8_t status
+	uint8_t hmac[32]
+
+The value status is
+	0	Success
+	1	Try again later
+
+A "success" here means that *if* the specified transaction was the most
+recent non-committed transaction, *then* it has been committed.  A "try again
+later" guarantees nothing except that the server is alive and responsive;
+in particular, the server may commit the transaction in question but still
+respond "try again later".
+
+The value hmac is HMAC(key, 0x95 || nonce || status) where key is the write
+or delete key as in NETPACKET_TRANSACTION_TRYCOMMIT.
+
 NETPACKET_WRITE_FEXIST (0x20)
 -----------------------------
 

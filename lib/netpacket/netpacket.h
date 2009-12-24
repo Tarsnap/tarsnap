@@ -29,6 +29,10 @@ typedef int handlepacket_callback(void *, NETPACKET_CONNECTION *,
 #define NETPACKET_TRANSACTION_COMMIT_RESPONSE	0x92
 #define NETPACKET_TRANSACTION_CHECKPOINT	0x13
 #define NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE 0x93
+#define NETPACKET_TRANSACTION_CANCEL		0x14
+#define NETPACKET_TRANSACTION_CANCEL_RESPONSE	0x94
+#define NETPACKET_TRANSACTION_TRYCOMMIT		0x15
+#define NETPACKET_TRANSACTION_TRYCOMMIT_RESPONSE 0x95
 #define NETPACKET_WRITE_FEXIST			0x20
 #define NETPACKET_WRITE_FEXIST_RESPONSE		0xa0
 #define NETPACKET_WRITE_FILE			0x21
@@ -109,6 +113,26 @@ int netpacket_transaction_commit(NETPACKET_CONNECTION *, uint64_t,
  */
 int netpacket_transaction_checkpoint(NETPACKET_CONNECTION *, uint64_t,
     uint8_t, const uint8_t[32], const uint8_t[32], handlepacket_callback *);
+
+/**
+ * netpacket_transaction_cancel(NPC, machinenum, whichkey, snonce, cnonce,
+ *     state, callback):
+ * Construct and send a NETPACKET_TRANSACTION_CANCEL packet asking to cancel
+ * a pending transaction if the state is correct.
+ */
+int netpacket_transaction_cancel(NETPACKET_CONNECTION *, uint64_t,
+    uint8_t, const uint8_t[32], const uint8_t[32], const uint8_t[32],
+    handlepacket_callback *);
+
+/**
+ * netpacket_transaction_trycommit(NPC, machinenum, whichkey, nonce,
+ *     callback):
+ * Construct and send a NETPACKET_TRANSACTION_TRYCOMMIT packet asking to
+ * commit a transaction; the packet is signed with the write access key if
+ * ${whichkey} is 0, and with the delete access key if ${whichkey} is 1.
+ */
+int netpacket_transaction_trycommit(NETPACKET_CONNECTION *, uint64_t,
+    uint8_t, const uint8_t[32], handlepacket_callback *);
 
 /**
  * netpacket_write_fexist(NPC, machinenum, class, name, nonce, callback):
