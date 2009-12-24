@@ -69,6 +69,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
+	chmod 0700 $(CURDIR)/debian/tarsnap/var/lib/tarsnap/cache
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol

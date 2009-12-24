@@ -93,6 +93,7 @@ was invoked to create each archive is als printed.
 \fB\--print-stats\fP
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
+See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .TP
 \fB\--fsck\fP
 Perform some integrity checks on the archives stored, and reconstruct the
@@ -261,6 +262,11 @@ option, the archive will be stored with
 In mode print-stats, if
 \fIarchive-name\fP
 is *, statistics will be printed for every archive.
+.PP
+Note that each archive created must have a different name; consequently
+many users find it useful to include timestamps in archive names when
+repeatedly creating archives from the same files/directories (e.g.,
+daily backups).
 .TP
 \fB\-H\fP
 (c mode only)
@@ -565,6 +571,7 @@ option is also specified.
 \fB\--print-stats\fP
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
+See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .TP
 \fB\-q\fP (\fB\--fast-read\fP)
 (x and t modes only)
@@ -619,6 +626,17 @@ creation which could result in
 \fB\%tarsnap\fP
 failing to recognize that a file has been modified.)
 .TP
+\fB\--store-atime\fP
+(c mode only)
+Enable the storing of file access times.
+The default behaviour of
+\fB\%tarsnap\fP
+is to not store file access times, since this can cause a significant amount
+of bandwidth and storage to be wasted when the same set of files are archived
+several times (e.g., if daily backup archives are created) due to
+\fB\%tarsnap\fP
+itself accessing files and thereby causing their access times to be changed.
+.TP
 \fB\-T\fP \fIfilename\fP
 (c, x, and t modes only)
 In x or t mode,
@@ -640,6 +658,13 @@ Note that
 \fB\--null\fP
 also disables the special handling of lines containing
 ``-C''.
+.TP
+\fB\--totals\fP
+(c mode only)
+Print the size of the archive after creating it.  This option is provided
+mainly for compatibility with GNU tar; in most situations the
+\fB\--print-stats\fP
+option will be far more useful.
 .TP
 \fB\-U\fP
 (x mode only)
@@ -674,9 +699,7 @@ is specified, by not caching anything.
 .TP
 \fB\--version\fP
 Print version of
-\fB\%tarsnap\fP
-and
-\fB\%libarchive\fP,
+\fB\%tarsnap\fP,
 and exit.
 .TP
 \fB\-w\fP
@@ -719,6 +742,37 @@ On receipt of the SIGQUIT signal, if
 is creating an archive (mode c) it will truncate the archive at the
 current position and exit (see "INTERRUPTING ARCHIVAL" below).
 .RE
+.SH PRINTING ARCHIVE STATISTICS
+.ad l
+Statistics on archives can be printed by running
+\fB\%tarsnap\fP
+\fB\--print-stats\fP
+and during archive creation or deletion statistics on the created or
+deleted archive can be printed using the
+\fB\--print-stats\fP
+option.
+In either case,
+\fB\%tarsnap\fP
+will print to the standard output a table in the following format:
+.RS 4
+.nf
+                                       Total size  Compressed size
+All archives                         104491640436      51510524844
+  (unique data)                       14830618089       7733620463
+This archive                            808723344        289077325
+New data                                 17858641          5658308
+.RE
+.PP
+In this example, the combined size of all archives stored by
+\fB\%tarsnap\fP
+using the same keys is 104 GB, and the combined size post-compression
+would be 51 GB; but after removing duplicate blocks, there is only 14.8 GB
+which is compressed down to 7.7 GB.
+(It is this 7.7 GB which is stored via the Tarsnap service and must
+thus be paid for.)
+The newly created archive is 808 MB in size (compressible to 289 MB), but
+only 17.8 MB of the data is new, and after compression only 5.6 MB is
+uploaded to the Tarsnap server.
 .SH INTERRUPTING ARCHIVAL
 .ad l
 Upon receipt of the
@@ -814,6 +868,13 @@ List the files in the remaining backup:
 Restore two users' home directories from the backup:
 .RS 4
 \fB\%tarsnap\fP \fB\--keyfile\fP \fI/usr/tarsnap.key\fP \fB\-x\fP \fB\-f\fP \fIbackup-2008-04-25\fP \fIusr/home/auser\fP \fIusr/home/anotheruser\fP
+.RE
+.PP
+In
+\fI/etc/crontab\fP
+to create a backup of the entire system at 10:32 each day:
+.RS 4
+32 10 * * * root \fB\%tarsnap\fP \fB\--keyfile\fP \fI/usr/tarsnap.key\fP \fB\--cachedir\fP \fI/usr/tarsnap-cache\fP \fB\-c\fP \fB\-f\fP \fIbackup-`date\fP +\e%Y\e%m\e%d` \fI/\fP
 .RE
 .PP
 Note that the

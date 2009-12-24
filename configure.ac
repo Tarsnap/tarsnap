@@ -151,6 +151,23 @@ AC_ARG_ENABLE([sse2],
 AS_IF([test "x$enable_sse2" != xno], [SCRYPTVER=sse], [SCRYPTVER=nosse])
 AC_SUBST([SCRYPTVER])
 
+# Check if the compiler supports -msse2.
+save_CFLAGS=$CFLAGS
+CFLAGS="-msse2"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM()],
+    [MSSE2_SUPPORTED=yes],
+    [MSSE2_SUPPORTED=no])
+CFLAGS=$save_CFLAGS
+
+# If the compiler supports -msse2 and we have --enable-sse2, add -msse2
+# to CFLAGS.  If we're running a compiler which doesn't support -msse2, the
+# compile will probably fail; but letting it fail is a more sensible way of
+# erroring out than throwing a "we might support SSE2 but we're not sure"
+# message here.
+AS_IF([test "x$MSSE2_SUPPORTED" != xno && test "x$enable_sse2" != xno],
+    [CFLAGS="$CFLAGS -msse2"],
+    [])
+
 # Checks for required libraries.
 AC_CHECK_HEADER(zlib.h,
 	AC_CHECK_LIB(z,inflate, ,

@@ -279,6 +279,8 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
+			if (bsdtar->tapename != NULL)
+				usage(bsdtar);
 			bsdtar->tapename = bsdtar->optarg;
 			break;
 		case OPTION_FSCK: /* multitar */
@@ -835,12 +837,14 @@ usage(struct bsdtar *bsdtar)
 	p = bsdtar->progname;
 
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "  List:       %s [options...] -tf <archive>\n", p);
-	fprintf(stderr, "  Extract:    %s [options...] -xf <archive>\n", p);
-	fprintf(stderr, "  Create:     %s [options...] -cf <archive>"
+	fprintf(stderr, "  List:          %s [options...] -tf <archive>\n", p);
+	fprintf(stderr, "  Extract:       %s [options...] -xf <archive>\n", p);
+	fprintf(stderr, "  Create:        %s [options...] -cf <archive>"
 	     " [filenames...]\n", p);
-	fprintf(stderr, "  Delete:     %s [options...] -df <archive>\n", p);
-	fprintf(stderr, "  Tar output: %s [options...] -rf <archive>\n", p);
+	fprintf(stderr, "  Delete:        %s [options...] -df <archive>\n", p);
+	fprintf(stderr, "  Tar output:    %s [options...] -rf <archive>\n", p);
+	fprintf(stderr, "  List archives: %s [options...] --list-archives\n", p);
+	fprintf(stderr, "  Print stats:   %s [options...] --print-stats\n", p);
 	fprintf(stderr, "  Help:    %s --help\n", p);
 	exit(1);
 }
@@ -855,6 +859,7 @@ version(void)
 static const char *long_help_msg =
 	"First option must be a mode specifier:\n"
 	"  -c Create  -d Delete  -r Output as tar file  -t List  -x Extract\n"
+	"  --list-archives List archives  --print-stats Print archive statistics\n"
 	"Common Options:\n"
 	"  -f <archive>  Archive name\n"
 	"  --keyfile <file>        Key file\n"
@@ -939,6 +944,17 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 nextdir:
 		free(s);
 	}
+
+	/* Make sure permissions on the directory are correct. */
+	if (stat(dir, &sb))
+		bsdtar_errc(bsdtar, 1, errno, "stat(%s)", dir);
+	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
+		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
+			bsdtar_errc(bsdtar, 1, errno,
+			    "Cannot sanitize permissions on directory: %s",
+			    dir);
+		}
+	}
 }
 
 /* Process options from the specified file, if it exists. */
@@ -978,6 +994,10 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	size_t optlen;
 	char * homedir;
 	char * conf_arg_malloced;
+
+	/* Skip any leading whitespace. */
+	while ((line[0] == ' ') || (line[0] == '\t'))
+		line++;
 
 	/* Ignore comments and blank lines. */
 	if ((line[0] == '#') || (line[0] == '\0'))

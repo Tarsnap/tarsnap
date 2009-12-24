@@ -108,6 +108,7 @@ was invoked to create each archive is als printed.
 .It Fl -print-stats
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
+See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .It Fl -fsck
 Perform some integrity checks on the archives stored, and reconstruct the
 cache directory
@@ -259,6 +260,11 @@ option, the archive will be stored with
 In mode print-stats, if
 .Ar archive-name
 is *, statistics will be printed for every archive.
+.Pp
+Note that each archive created must have a different name; consequently
+many users find it useful to include timestamps in archive names when
+repeatedly creating archives from the same files/directories (e.g.,
+daily backups).
 .It Fl H
 (c mode only)
 Symbolic links named on the command line will be followed; the
@@ -516,6 +522,7 @@ option is also specified.
 .It Fl -print-stats
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
+See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .It Fl q ( Fl -fast-read )
 (x and t modes only)
 Extract or list only the first archive entry that matches each pattern
@@ -564,6 +571,16 @@ created.
 creation which could result in
 .Nm
 failing to recognize that a file has been modified.)
+.It Fl -store-atime
+(c mode only)
+Enable the storing of file access times.
+The default behaviour of
+.Nm
+is to not store file access times, since this can cause a significant amount
+of bandwidth and storage to be wasted when the same set of files are archived
+several times (e.g., if daily backup archives are created) due to
+.Nm
+itself accessing files and thereby causing their access times to be changed.
 .It Fl T Ar filename
 (c, x, and t modes only)
 In x or t mode,
@@ -585,6 +602,12 @@ Note that
 .Fl -null
 also disables the special handling of lines containing
 .Dq -C .
+.It Fl -totals
+(c mode only)
+Print the size of the archive after creating it.  This option is provided
+mainly for compatibility with GNU tar; in most situations the
+.Fl -print-stats
+option will be far more useful.
 .It Fl U
 (x mode only)
 Unlink files before creating them.
@@ -615,9 +638,7 @@ the memory usage when
 is specified, by not caching anything.
 .It Fl -version
 Print version of
-.Nm
-and
-.Nm libarchive ,
+.Nm ,
 and exit.
 .It Fl w
 (c and x modes only)
@@ -654,6 +675,35 @@ On receipt of the SIGQUIT signal, if
 is creating an archive (mode c) it will truncate the archive at the
 current position and exit (see "INTERRUPTING ARCHIVAL" below).
 .El
+.Sh PRINTING ARCHIVE STATISTICS
+Statistics on archives can be printed by running
+.Nm
+.Fl -print-stats
+and during archive creation or deletion statistics on the created or
+deleted archive can be printed using the
+.Fl -print-stats
+option.
+In either case,
+.Nm
+will print to the standard output a table in the following format:
+.Bd -literal
+                                       Total size  Compressed size
+All archives                         104491640436      51510524844
+  (unique data)                       14830618089       7733620463
+This archive                            808723344        289077325
+New data                                 17858641          5658308
+.Ed
+.Pp
+In this example, the combined size of all archives stored by
+.Nm
+using the same keys is 104 GB, and the combined size post-compression
+would be 51 GB; but after removing duplicate blocks, there is only 14.8 GB
+which is compressed down to 7.7 GB.
+(It is this 7.7 GB which is stored via the Tarsnap service and must
+thus be paid for.)
+The newly created archive is 808 MB in size (compressible to 289 MB), but
+only 17.8 MB of the data is new, and after compression only 5.6 MB is
+uploaded to the Tarsnap server.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
@@ -729,6 +779,11 @@ List the files in the remaining backup:
 .Pp
 Restore two users' home directories from the backup:
 .Dl Nm Fl -keyfile Pa /usr/tarsnap.key Fl x Fl f Ar backup-2008-04-25 Pa usr/home/auser Pa usr/home/anotheruser
+.Pp
+In
+.Pa /etc/crontab
+to create a backup of the entire system at 10:32 each day:
+.Dl 32 10 * * * root Nm Fl -keyfile Pa /usr/tarsnap.key Fl -cachedir Pa /usr/tarsnap-cache Fl c Fl f Ar backup-`date +\e%Y\e%m\e%d` Pa /
 .Pp
 Note that the
 .Fl -keyfile

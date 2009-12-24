@@ -149,17 +149,17 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/sigquit.c			\
 		lib/util/warnp.c
 
-lib_libtarsnap_a_CFLAGS=					\
-		-I$(top_builddir)/tar			\
-		-I$(top_builddir)/libarchive		\
-		-I${top_builddir}/lib/crypto		\
-		-I$(top_builddir)/lib/datastruct	\
-		-I$(top_builddir)/lib/keyfile		\
-		-I$(top_builddir)/lib/netpacket		\
-		-I$(top_builddir)/lib/netproto		\
-		-I$(top_builddir)/lib/network		\
-		-I$(top_builddir)/lib/scryptenc		\
-		-I$(top_builddir)/lib/util
+lib_libtarsnap_a_CFLAGS=				\
+		-I${top_srcdir}/tar			\
+		-I$(top_srcdir)/libarchive		\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I$(top_srcdir)/lib/keyfile		\
+		-I$(top_srcdir)/lib/netpacket		\
+		-I$(top_srcdir)/lib/netproto		\
+		-I$(top_srcdir)/lib/network		\
+		-I$(top_srcdir)/lib/scryptenc		\
+		-I$(top_srcdir)/lib/util
 
 #
 #
@@ -228,21 +228,21 @@ tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
 
 tarsnap_LDADD= -lcrypto libarchive/libarchive.a lib/libtarsnap.a
 tarsnap_CFLAGS=						\
-		-I$(top_builddir)/libarchive		\
+		-I$(top_srcdir)/libarchive		\
 		-DLIBARCHIVE_STATIC			\
-		-I$(top_builddir)/tar			\
-		-I$(top_builddir)/tar/ccache		\
-		-I$(top_builddir)/tar/chunks		\
-		-I$(top_builddir)/tar/glue		\
-		-I$(top_builddir)/tar/multitape		\
-		-I$(top_builddir)/tar/storage		\
-		-I${top_builddir}/lib/crypto		\
-		-I$(top_builddir)/lib/datastruct	\
-		-I$(top_builddir)/lib/keyfile		\
-		-I$(top_builddir)/lib/netpacket		\
-		-I$(top_builddir)/lib/netproto		\
-		-I$(top_builddir)/lib/network		\
-		-I$(top_builddir)/lib/util		\
+		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/tar/ccache		\
+		-I$(top_srcdir)/tar/chunks		\
+		-I$(top_srcdir)/tar/glue		\
+		-I$(top_srcdir)/tar/multitape		\
+		-I$(top_srcdir)/tar/storage		\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I$(top_srcdir)/lib/keyfile		\
+		-I$(top_srcdir)/lib/netpacket		\
+		-I$(top_srcdir)/lib/netproto		\
+		-I$(top_srcdir)/lib/network		\
+		-I$(top_srcdir)/lib/util		\
 		-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\"	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
 tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
@@ -256,15 +256,15 @@ tarsnap_keygen_SOURCES=	keygen/keygen.c
 
 tarsnap_keygen_LDADD= -lcrypto lib/libtarsnap.a
 tarsnap_keygen_CFLAGS=					\
-		-I${top_builddir}/libarchive		\
-		-I$(top_builddir)/tar			\
-		-I${top_builddir}/lib/crypto		\
-		-I$(top_builddir)/lib/datastruct	\
-		-I$(top_builddir)/lib/keyfile		\
-		-I$(top_builddir)/lib/netpacket		\
-		-I$(top_builddir)/lib/netproto		\
-		-I$(top_builddir)/lib/network		\
-		-I$(top_builddir)/lib/util		\
+		-I${top_srcdir}/libarchive		\
+		-I$(top_srcdir)/tar			\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I$(top_srcdir)/lib/keyfile		\
+		-I$(top_srcdir)/lib/netpacket		\
+		-I$(top_srcdir)/lib/netproto		\
+		-I$(top_srcdir)/lib/network		\
+		-I$(top_srcdir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
@@ -279,12 +279,12 @@ tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 
 tarsnap_keymgmt_LDADD= -lcrypto lib/libtarsnap.a
 tarsnap_keymgmt_CFLAGS=					\
-		-I$(top_builddir)/tar			\
-		-I${top_builddir}/libarchive		\
-		-I${top_builddir}/lib/crypto		\
-		-I$(top_builddir)/lib/datastruct	\
-		-I${top_builddir}/lib/keyfile		\
-		-I$(top_builddir)/lib/util		\
+		-I$(top_srcdir)/tar			\
+		-I${top_srcdir}/libarchive		\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I${top_srcdir}/lib/keyfile		\
+		-I$(top_srcdir)/lib/util		\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
@@ -299,6 +299,6 @@ tar/tarsnap.1:	tar/tarsnap.1-@MANVER@
 tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@
 	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5
 keygen/tarsnap-keygen.1: keygen/tarsnap-keygen.1-@MANVER@
-	cat keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1
+	cat ${top_srcdir}/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
-	cat keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1
+	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1

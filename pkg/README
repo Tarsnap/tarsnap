@@ -28,3 +28,14 @@ sha256sums= lines so that you get the latest version of tarsnap.
 
 There may be a newer version of the PKGBUILD file at
   http://aur.archlinux.org/packages.php?ID=22963
+
+Slackware
+---------
+
+There is a SlackBuild for tarsnap (possibly an earlier version) at
+  http://slackbuilds.org/repository/12.2/system/tarsnap/
+
+FreeBSD
+-------
+
+Tarsnap is in the FreeBSD ports tree as sysutils/tarsnap.
