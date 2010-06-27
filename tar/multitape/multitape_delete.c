@@ -27,12 +27,14 @@ callback_delete(void * cookie, struct chunkheader * ch)
 }
 
 /**
- * deletetape(machinenum, cachedir, tapename, printstats):
+ * deletetape(machinenum, cachedir, tapename, printstats, withname):
  * Delete the specified tape, and print statistics to stderr if requested.
+ * If ${withname} is non-zero, print statistics with the archive name, not
+ * just as "This archive".
  */
 int
 deletetape(uint64_t machinenum, const char * cachedir,
-    const char * tapename, int printstats)
+    const char * tapename, int printstats, int withname)
 {
 	struct tapemetadata tmd;
 	CHUNKS_D * C;		/* Chunk layer delete cookie. */
@@ -87,7 +89,7 @@ deletetape(uint64_t machinenum, const char * cachedir,
 
 	/* Print statistics if they were requested. */
 	if ((printstats != 0) &&
-	    chunks_delete_printstats(stderr, C))
+	    chunks_delete_printstats(stderr, C, withname ? tapename : NULL))
 		goto err4;
 
 	/* Close storage and chunk layer cookies. */

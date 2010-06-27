@@ -18,11 +18,11 @@ int storage_transaction_start_delete(NETPACKET_CONNECTION *, uint64_t,
     const uint8_t[32], uint8_t[32]);
 
 /**
- * storage_transaction_start_fsck(NPC, machinenum, seqnum):
+ * storage_transaction_start_fsck(NPC, machinenum, seqnum, whichkey):
  * Start a fsck transaction, and return the sequence number of the new
- * transaction in ${seqnum}.
+ * transaction in ${seqnum}.  Use the key specified by whichkey.
  */
 int storage_transaction_start_fsck(NETPACKET_CONNECTION *, uint64_t,
-    uint8_t[32]);
+    uint8_t[32], int);
 
 #endif /* !_STORAGE_INTERNAL_H_ */

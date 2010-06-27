@@ -24,6 +24,9 @@ struct storage_delete_internal {
 	uint64_t machinenum;
 	uint8_t nonce[32];
 
+	/* Are we not allowed to delete files? */
+	int readonly;
+
 	/* Number of pending deletes. */
 	size_t npending;
 };
@@ -68,6 +71,9 @@ storage_delete_start(uint64_t machinenum, const uint8_t lastseq[32],
 	/* No pending deletes so far. */
 	S->npending = 0;
 
+	/* This is not readonly. */
+	S->readonly = 0;
+
 	/* Open netpacket connection. */
 	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
@@ -93,12 +99,14 @@ err0:
 }
 
 /**
- * storage_fsck_start(machinenum, seqnum):
+ * storage_fsck_start(machinenum, seqnum, readonly, whichkey):
  * Start a fsck transaction, and store the sequence number of said
- * transaction into ${seqnum}.
+ * transaction into ${seqnum}.  If ${whichkey} is zero, use the write key
+ * (in which case the transaction must be readonly).
  */
 STORAGE_D *
-storage_fsck_start(uint64_t machinenum, uint8_t seqnum[32])
+storage_fsck_start(uint64_t machinenum, uint8_t seqnum[32],
+    int readonly, int whichkey)
 {
 	struct storage_delete_internal * S;
 
@@ -112,12 +120,16 @@ storage_fsck_start(uint64_t machinenum, uint8_t seqnum[32])
 	/* No pending deletes so far. */
 	S->npending = 0;
 
+	/* This is not readonly. */
+	S->readonly = readonly;
+
 	/* Open netpacket connection. */
 	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err1;
 
 	/* Start a delete transaction. */
-	if (storage_transaction_start_fsck(S->NPC, machinenum, S->nonce))
+	if (storage_transaction_start_fsck(S->NPC, machinenum, S->nonce,
+	    whichkey))
 		goto err2;
 
 	/* Copy the transaction nonce out. */
@@ -144,6 +156,11 @@ int
 storage_delete_file(STORAGE_D * S, char class, const uint8_t name[32])
 {
 	struct delete_file_internal * C;
+
+	if (S->readonly) {
+		warn0("Not pruning corrupted data; please run --fsck-prune");
+		goto err0;
+	}
 
 	/* Create delete cookie. */
 	if ((C = malloc(sizeof(struct delete_file_internal))) == NULL)

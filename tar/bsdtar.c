@@ -55,6 +55,9 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
 #include <stdio.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -127,10 +130,11 @@ main(int argc, char **argv)
 	char			 possible_help_request;
 	char			 buff[16];
 	char			 cachedir[PATH_MAX + 1];
-	char			*homedir;
+	struct passwd		*pws;
 	char			*conffile;
 	const char		*missingkey;
 	time_t			 now;
+	size_t 			 i;
 
 	/*
 	 * Use a pointer for consistency, but stack-allocated storage
@@ -165,6 +169,16 @@ main(int argc, char **argv)
 
 	/* We don't have a machine # yet. */
 	bsdtar->machinenum = (uint64_t)(-1);
+
+	/* Allocate space for archive names; at most argc of them. */
+	if ((bsdtar->tapenames = malloc(argc * sizeof(const char *))) == NULL)
+		bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
+	bsdtar->ntapes = 0;
+
+	/* Allocate space for config file names; at most argc of them. */
+	if ((bsdtar->configfiles = malloc(argc * sizeof(const char *))) == NULL)
+		bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
+	bsdtar->nconfigfiles = 0;
 
 	time(&now);
 
@@ -206,6 +220,10 @@ main(int argc, char **argv)
 	/* Store original argument vector. */
 	bsdtar->argc_orig = argc;
 	bsdtar->argv_orig = argv;
+
+	/* Look up the current user and his home directory. */
+	if ((pws = getpwuid(geteuid())) != NULL)
+		bsdtar->homedir = strdup(pws->pw_dir);
 
 	/* Look up uid of current user for future reference */
 	bsdtar->user_uid = geteuid();
@@ -266,6 +284,10 @@ main(int argc, char **argv)
 		case OPTION_CHROOT: /* NetBSD */
 			bsdtar->option_chroot = 1;
 			break;
+		case OPTION_CONFIGFILE:
+			bsdtar->configfiles[bsdtar->nconfigfiles++] =
+			    bsdtar->optarg;
+			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
 			break;
@@ -279,12 +301,13 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
-			if (bsdtar->tapename != NULL)
-				usage(bsdtar);
-			bsdtar->tapename = bsdtar->optarg;
+			bsdtar->tapenames[bsdtar->ntapes++] = bsdtar->optarg;
 			break;
 		case OPTION_FSCK: /* multitar */
 			set_mode(bsdtar, opt, "--fsck");
+			break;
+		case OPTION_FSCK_PRUNE: /* multitar */
+			set_mode(bsdtar, opt, "--fsck-prune");
 			break;
 		case 'H': /* BSD convention */
 			bsdtar->symlink_mode = 'H';
@@ -316,6 +339,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_INCLUDE:
 			optq_push(bsdtar, "include", bsdtar->optarg);
+			break;
+		case OPTION_INSANE_FILESYSTEMS:
+			optq_push(bsdtar, "insane-filesystems", NULL);
 			break;
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
@@ -410,11 +436,17 @@ main(int argc, char **argv)
 		case OPTION_NO_CONFIG_INCLUDE:
 			optq_push(bsdtar, "no-config-include", NULL);
 			break;
+		case OPTION_NO_DEFAULT_CONFIG:
+			bsdtar->option_no_default_config = 1;
+			break;
 		case OPTION_NO_DISK_PAUSE:
 			optq_push(bsdtar, "no-disk-pause", NULL);
 			break;
 		case OPTION_NO_HUMANIZE_NUMBERS:
 			optq_push(bsdtar, "no-humanize-numbers", NULL);
+			break;
+		case OPTION_NO_INSANE_FILESYSTEMS:
+			optq_push(bsdtar, "no-insane-filesystems", NULL);
 			break;
 		case OPTION_NO_MAXBW:
 			optq_push(bsdtar, "no-maxbw", NULL);
@@ -430,6 +462,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NO_PRINT_STATS:
 			optq_push(bsdtar, "no-print-stats", NULL);
+			break;
+		case OPTION_NO_QUIET:
+			optq_push(bsdtar, "no-quiet", NULL);
 			break;
 		case OPTION_NO_SAME_OWNER: /* GNU tar */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_OWNER;
@@ -484,8 +519,14 @@ main(int argc, char **argv)
 		case 'q': /* FreeBSD GNU tar --fast-read, NetBSD -q */
 			bsdtar->option_fast_read = 1;
 			break;
+		case OPTION_QUIET:
+			optq_push(bsdtar, "quiet", NULL);
+			break;
 		case 'r': /* multitar */
 			set_mode(bsdtar, opt, "-r");
+			break;
+		case OPTION_RECOVER:
+			set_mode(bsdtar, opt, "--recover");
 			break;
 		case OPTION_SNAPTIME: /* multitar */
 			optq_push(bsdtar, "snaptime", bsdtar->optarg);
@@ -576,11 +617,23 @@ main(int argc, char **argv)
 		exit(0);
 	}
 
+	/*
+	 * If we're doing a dry run and the user hasn't specified an archive
+	 * name via -f, use a fake name.  This will result in the statistics
+	 * printed by --print-stats being a few bytes off, since the archive
+	 * name is included in the metadata block... but we're going to be a
+	 * few bytes off anyway since the command line, including "--dry-run"
+	 * is included in the metadata.
+	 */
+	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0))
+		bsdtar->tapenames[bsdtar->ntapes++] = "";
+
 	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Must specify one of -c, -d, -r, -t, -x,"
-		    " --list-archives, --print-stats, --fsck, or --nuke");
+		    " --list-archives, --print-stats,"
+		    " --fsck, --fsck-prune, or --nuke");
 
 	/* Process "delayed" command-line options which we queued earlier. */
 	while (bsdtar->delopt != NULL) {
@@ -588,44 +641,58 @@ main(int argc, char **argv)
 		    bsdtar->delopt->opt_arg, 0);
 		optq_pop(bsdtar);
 	}
-	bsdtar->option_no_config_exclude_set =
-	    bsdtar->option_no_config_exclude;
-	bsdtar->option_no_config_include_set =
-	    bsdtar->option_no_config_include;
 
-	/* Process options from ~/.tarsnaprc. */
-	if ((homedir = getenv("HOME")) != NULL) {
-		if (asprintf(&conffile, "%s/.tarsnaprc", homedir) == -1)
-			bsdtar_errc(bsdtar, 1, errno, "No memory");
+	/* Process config files passed on the command line. */
+	for (i = 0; i < bsdtar->nconfigfiles; i++)
+		configfile(bsdtar, bsdtar->configfiles[i]);
 
-		configfile(bsdtar, conffile);
+	/* If we do not have --no-default-config, process default configs. */
+	if (bsdtar->option_no_default_config == 0) {
+		/* Process options from ~/.tarsnaprc. */
+		if (bsdtar->homedir != NULL) {
+			if (asprintf(&conffile, "%s/.tarsnaprc",
+			    bsdtar->homedir) == -1)
+				bsdtar_errc(bsdtar, 1, errno, "No memory");
 
-		/* Free string allocated by asprintf. */
-		free(conffile);
+			configfile(bsdtar, conffile);
+
+			/* Free string allocated by asprintf. */
+			free(conffile);
+		}
+
+		/* Process options from system-wide tarsnap.conf. */
+		configfile(bsdtar, ETC_TARSNAP_CONF);
 	}
-	bsdtar->option_no_config_exclude_set =
-	    bsdtar->option_no_config_exclude;
-	bsdtar->option_no_config_include_set =
-	    bsdtar->option_no_config_include;
-
-	/* Process options from system-wide tarsnap.conf. */
-	configfile(bsdtar, ETC_TARSNAP_CONF);
 
 	/* Continue with more sanity-checking. */
-	if ((bsdtar->tapename == NULL) &&
+	if ((bsdtar->ntapes == 0) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS &&
 	     bsdtar->mode != OPTION_LIST_ARCHIVES &&
+	     bsdtar->mode != OPTION_RECOVER &&
 	     bsdtar->mode != OPTION_FSCK &&
+	     bsdtar->mode != OPTION_FSCK_PRUNE &&
 	     bsdtar->mode != OPTION_NUKE))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Archive name must be specified");
+	if ((bsdtar->ntapes > 1) &&
+	    (bsdtar->mode != OPTION_PRINT_STATS &&
+	     bsdtar->mode != 'd'))
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Option -f may only be specified once in mode %s",
+		    bsdtar->modestr);
+	if ((bsdtar->mode == 'c') &&
+	    (strlen(bsdtar->tapenames[0]) > 1023))
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Cannot create an archive with a name > 1023 characters");
 	if ((bsdtar->cachedir == NULL) &&
 	    (bsdtar->mode == 'c' || bsdtar->mode == 'd' ||
+	     bsdtar->mode == OPTION_RECOVER ||
 	     bsdtar->mode == OPTION_FSCK ||
+	     bsdtar->mode == OPTION_FSCK_PRUNE ||
 	     bsdtar->mode == OPTION_PRINT_STATS))
 		bsdtar_errc(bsdtar, 1, 0,
-		    "Cache directory must be specified for -c, -d,"
-		    " --fsck, and --print-stats");
+		    "Cache directory must be specified for %s",
+		    bsdtar->modestr);
 	if (tarsnap_opt_aggressive_networking != 0) {
 		if ((bsdtar->bwlimit_rate_up != 0) ||
 		    (bsdtar->bwlimit_rate_down != 0)) {
@@ -636,10 +703,10 @@ main(int argc, char **argv)
 	}
 
 	/*
-	 * The -f option doesn't make sense for --list-archives, --fsck, or
-	 * --nuke.
+	 * The -f option doesn't make sense for --list-archives, --fsck,
+	 * --fsck-prune, or --nuke.
 	 */
-	if ((bsdtar->tapename != NULL) &&
+	if ((bsdtar->ntapes > 0) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS))
 		only_mode(bsdtar, "-f", "cxtdr");
 
@@ -696,6 +763,30 @@ main(int argc, char **argv)
 		bsdtar->cachedir = cachedir;
 	}
 
+	/* If we're running --fsck, figure out which key to use. */
+	if (bsdtar->mode == OPTION_FSCK) {
+		if (crypto_keys_missing(CRYPTO_KEYMASK_AUTH_PUT) == NULL)
+			bsdtar->mode = OPTION_FSCK_WRITE;
+		else if (crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE) == NULL)
+			bsdtar->mode = OPTION_FSCK_DELETE;
+		else
+			bsdtar_errc(bsdtar, 1, 0,
+			    "The write or delete authorization key is"
+			    " required for --fsck but is not available");
+	}
+
+	/* If we're running --recover, figure out which key to use. */
+	if (bsdtar->mode == OPTION_RECOVER) {
+		if (crypto_keys_missing(CRYPTO_KEYMASK_AUTH_PUT) == NULL)
+			bsdtar->mode = OPTION_RECOVER_WRITE;
+		else if (crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE) == NULL)
+			bsdtar->mode = OPTION_RECOVER_DELETE;
+		else
+			bsdtar_errc(bsdtar, 1, 0,
+			    "The write or delete authorization key is"
+			    " required for --recover but is not available");
+	}
+
 	/* Make sure we have whatever keys we're going to need. */
 	if (bsdtar->have_keys == 0)
 		bsdtar_errc(bsdtar, 1, 0,
@@ -703,19 +794,26 @@ main(int argc, char **argv)
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':
+	case OPTION_RECOVER_WRITE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
 		break;
 	case 'd':
-	case OPTION_FSCK:
+	case OPTION_FSCK_PRUNE:
+	case OPTION_FSCK_DELETE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_READ |
 		    CRYPTO_KEYMASK_AUTH_DELETE);
 		break;
+	case OPTION_FSCK_WRITE:
+		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_READ |
+		    CRYPTO_KEYMASK_AUTH_PUT);
+		break;
 	case OPTION_NUKE:
+	case OPTION_RECOVER_DELETE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE);
 		break;
 	case OPTION_PRINT_STATS:
 		/* We don't need keys for printing global stats. */
-		if (bsdtar->tapename == NULL)
+		if (bsdtar->ntapes == 0)
 			break;
 
 		/* FALLTHROUGH */
@@ -746,11 +844,23 @@ main(int argc, char **argv)
 	case 'd':
 		tarsnap_mode_d(bsdtar);
 		break;
-	case OPTION_FSCK:
-		tarsnap_mode_fsck(bsdtar);
+	case OPTION_FSCK_DELETE:
+		tarsnap_mode_fsck(bsdtar, 0, 1);
+		break;
+	case OPTION_FSCK_PRUNE:
+		tarsnap_mode_fsck(bsdtar, 1, 1);
+		break;
+	case OPTION_FSCK_WRITE:
+		tarsnap_mode_fsck(bsdtar, 0, 0);
 		break;
 	case OPTION_PRINT_STATS:
 		tarsnap_mode_print_stats(bsdtar);
+		break;
+	case OPTION_RECOVER_DELETE:
+		tarsnap_mode_recover(bsdtar, 1);
+		break;
+	case OPTION_RECOVER_WRITE:
+		tarsnap_mode_recover(bsdtar, 0);
 		break;
 	case OPTION_LIST_ARCHIVES:
 		tarsnap_mode_list_archives(bsdtar);
@@ -963,6 +1073,16 @@ configfile(struct bsdtar *bsdtar, const char *fname)
 {
 	struct stat sb;
 
+	/*
+	 * If we had --no-config-exclude (or --no-config-include) earlier,
+	 * we do not want to process any --exclude (or --include) options
+	 * from now onwards.
+	 */
+	bsdtar->option_no_config_exclude_set =
+	    bsdtar->option_no_config_exclude;
+	bsdtar->option_no_config_include_set =
+	    bsdtar->option_no_config_include;
+
 	/* If the file doesn't exist, do nothing. */
 	if (stat(fname, &sb)) {
 		if (errno == ENOENT)
@@ -992,7 +1112,6 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_opt;
 	char * conf_arg;
 	size_t optlen;
-	char * homedir;
 	char * conf_arg_malloced;
 
 	/* Skip any leading whitespace. */
@@ -1035,16 +1154,11 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	 * defined, expand ~ to $HOME.
 	 */
 	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
-	    ((homedir = getenv("HOME")) != NULL)) {
-		/* Allocate space for the expanded argument string. */
-		if ((conf_arg_malloced =
-		    malloc(strlen(conf_arg) + strlen(homedir))) == NULL)
+	    (bsdtar->homedir != NULL)) {
+		/* Construct expanded argument string. */
+		if (asprintf(&conf_arg_malloced, "%s%s",
+		    bsdtar->homedir, &conf_arg[1]) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
-
-		/* Copy $HOME and the argument sans leading ~. */
-		memcpy(conf_arg_malloced, homedir, strlen(homedir));
-		memcpy(conf_arg_malloced + strlen(homedir), &conf_arg[1],
-		    strlen(&conf_arg[1]) + 1);
 
 		/* Use the expanded argument string hereafter. */
 		conf_arg = conf_arg_malloced;
@@ -1180,6 +1294,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (include(bsdtar, conf_arg))
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Failed to add %s to inclusion list", conf_arg);
+	} else if (strcmp(conf_opt, "insane-filesystems") == 0) {
+		if (bsdtar->option_insane_filesystems_set)
+			goto optset;
+
+		bsdtar->option_insane_filesystems = 1;
+		bsdtar->option_insane_filesystems_set = 1;
 	} else if (strcmp(conf_opt, "keyfile") == 0) {
 		if (bsdtar->have_keys)
 			goto optset;
@@ -1277,6 +1397,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_humanize_numbers_set = 1;
+	} else if (strcmp(conf_opt, "no-insane-filesystems") == 0) {
+		if (bsdtar->option_insane_filesystems_set)
+			goto optset;
+
+		bsdtar->option_insane_filesystems_set = 1;
 	} else if (strcmp(conf_opt, "no-maxbw") == 0) {
 		if (bsdtar->option_maxbw_set)
 			goto optset;
@@ -1302,6 +1427,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "no-quiet") == 0) {
+		if (bsdtar->option_quiet_set)
+			goto optset;
+
+		bsdtar->option_quiet_set = 1;
 	} else if (strcmp(conf_opt, "no-snaptime") == 0) {
 		if (bsdtar->option_snaptime_set)
 			goto optset;
@@ -1325,6 +1455,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_print_stats = 1;
 		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "quiet") == 0) {
+		if (bsdtar->option_quiet_set)
+			goto optset;
+
+		bsdtar->option_quiet = 1;
+		bsdtar->option_quiet_set = 1;
 	} else if (strcmp(conf_opt, "snaptime") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;

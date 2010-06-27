@@ -44,7 +44,17 @@
 [\fB\-f\fP \fIarchive-name\fP]
 .br
 \fB\%tarsnap\fP
+{\fB\--recover\fP}
+\fB\--keyfile\fP \fIkey-file\fP
+\fB\--cachedir\fP \fIcache-dir\fP
+.br
+\fB\%tarsnap\fP
 {\fB\--fsck\fP}
+\fB\--keyfile\fP \fIkey-file\fP
+\fB\--cachedir\fP \fIcache-dir\fP
+.br
+\fB\%tarsnap\fP
+{\fB\--fsck-prune\fP}
 \fB\--keyfile\fP \fIkey-file\fP
 \fB\--cachedir\fP \fIcache-dir\fP
 .br
@@ -95,10 +105,25 @@ Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .TP
+\fB\--recover\fP
+Recover a partial archive from a checkpoint if such an archive exists.
+This is also done automatically the next time an archive is created
+or deleted.
+.TP
 \fB\--fsck\fP
 Perform some integrity checks on the archives stored, and reconstruct the
 cache directory
 \fIcache-dir\fP.
+In the unlikely event that there are corrupted archives,
+\fB\%tarsnap\fP
+will exit and request that it be run with the
+\fB\--fsck-prune\fP
+option.
+.TP
+\fB\--fsck-prune\fP
+Run as
+\fB\--fsck\fP,
+but if corrupt archives are detected, prune the broken data.
 .TP
 \fB\--nuke\fP
 Delete all of the archives stored.
@@ -204,6 +229,15 @@ to the current directory after processing any
 \fB\-C\fP
 options and before extracting any files.
 .TP
+\fB\--configfile\fP \fIfile\fP
+Add
+\fIfile\fP
+to the list of configuration files to be read; options set via these take
+priority over the default configuration files.
+This option can be specified multiple times, in which case all the files
+will be read; where settings conflict, the earlier configuration file will
+take priority.
+.TP
 \fB\--disk-pause\fP \fIX\fP
 (c mode only)
 Pause for
@@ -308,6 +342,12 @@ containing only the entries from
 \fIall-backup\fP
 containing the string
 Sq foo.
+.TP
+\fB\---insane-filesystems\fP
+(c mode only)
+Allow archival of entries from synthetic filesystems such as procfs.
+Normally archiving of such filesystems is a silly thing to do, hence the
+name of the option.
 .TP
 \fB\-k\fP
 (x mode only)
@@ -436,6 +476,12 @@ Normally
 options specified via configuration files and the command line
 all take effect.
 .TP
+\fB\--no-default-config\fP
+Do not read the default configuration files
+\fI@sysconfdir@/tarsnap.conf\fP
+and
+\fI~/.tarsnaprc\fP
+.TP
 \fB\--no-disk-pause\fP
 Ignore any
 \fBdisk-pause\fP
@@ -444,6 +490,11 @@ option specified in a configuration file.
 \fB\--no-humanize-numbers\fP
 Ignore any
 \fBhumanize-numbers\fP
+option specified in a configuration file.
+.TP
+\fB\--no-insane-filesystems\fP
+Ignore any
+\fBinsane-filesystems\fP
 option specified in a configuration file.
 .TP
 \fB\--no-maxbw\fP
@@ -483,6 +534,11 @@ option specified in a configuration file.
 \fB\--no-print-stats\fP
 Ignore any
 \fBprint-stats\fP
+option specified in a configuration file.
+.TP
+\fB\--no-quiet\fP
+Ignore any
+\fBquiet\fP
 option specified in a configuration file.
 .TP
 \fB\--no-snaptime\fP
@@ -582,6 +638,18 @@ By default, the archive is always read to the very end, since
 there can be multiple entries with the same name and, by convention,
 later entries overwrite earlier entries.
 This option is provided as a performance optimization.
+.TP
+\fB\--quiet\fP
+Avoid printing some warnings.
+Currently the warnings which are silenced by this option are
+"Removing leading '/' ...",
+"Not adding cache directory to archive",
+"... file may have grown while being archived",
+and
+"Skipping entry on filesystem of type ...",
+but it is likely that other
+warnings will be silenced by this option in future versions of
+\fB\%tarsnap\fP.
 .TP
 \fB\-S\fP
 (x mode only)

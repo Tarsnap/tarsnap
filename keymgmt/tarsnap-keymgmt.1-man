@@ -41,6 +41,30 @@ being able to read it; while a key file generated with
 can be used to delete all the archives stored, but not individual
 archives.
 .PP
+The
+\fB\--recover\fP
+command requires either
+\fB\-d\fP
+(archive deleting),
+\fB\-w\fP
+(archive creating), or
+\fB\--nuke\fP
+keys.
+The
+\fB\--fsck\fP
+command requires either
+\fB\-d\fP
+(archive deleting) keys or
+\fB\-r\fP
+(archive reading) and
+\fB\-w\fP
+(archive writing) keys; while the
+\fB\--fsck-prune\fP
+command requires
+\fB\-d\fP
+(archive deleting) keys, since it needs to be able to delete
+corrupted archives.
+.PP
 If the
 \fB\--passphrased\fP
 option is specified, the user will be prompted to enter a passphrase (twice)

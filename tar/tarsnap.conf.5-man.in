@@ -51,6 +51,8 @@ The following options may be specified:
 .TP
 \fBinclude\fP \fIpattern\fP
 .TP
+\fBinsane-filesystems\fP
+.TP
 \fBkeyfile\fP \fIkey-file\fP
 .TP
 \fBlowmem\fP
@@ -77,6 +79,8 @@ The following options may be specified:
 .TP
 \fBno-humanize-numbers\fP
 .TP
+\fBno-insane-filesystems\fP
+.TP
 \fBno-maxbw\fP
 .TP
 \fBno-maxbw-rate-down\fP
@@ -87,6 +91,8 @@ The following options may be specified:
 .TP
 \fBno-print-stats\fP
 .TP
+\fBno-quiet\fP
+.TP
 \fBno-snaptime\fP
 .TP
 \fBno-store-atime\fP
@@ -94,6 +100,8 @@ The following options may be specified:
 \fBno-totals\fP
 .TP
 \fBprint-stats\fP
+.TP
+\fBquiet\fP
 .TP
 \fBsnaptime\fP \fIfile\fP
 .TP

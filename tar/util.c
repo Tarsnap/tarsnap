@@ -583,7 +583,8 @@ edit_pathname(struct bsdtar *bsdtar, struct archive_entry *entry)
 			}
 		} while (rp != p);
 
-		if (p != name && !bsdtar->warned_lead_slash) {
+		if (p != name && !bsdtar->warned_lead_slash &&
+		    !bsdtar->option_quiet) {
 			/* Generate a warning the first time this happens. */
 			if (slashonly)
 				bsdtar_warnc(bsdtar, 0,

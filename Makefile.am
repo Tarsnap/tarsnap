@@ -141,12 +141,14 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/b64encode.c			\
 		lib/util/dirutil.c			\
 		lib/util/entropy.c			\
+		lib/util/getfstype.c			\
 		lib/util/hexify.c			\
 		lib/util/hexlink.c			\
 		lib/util/humansize.c			\
 		lib/util/memlimit.c			\
 		lib/util/readpass.c			\
 		lib/util/sigquit.c			\
+		lib/util/tvmath.c			\
 		lib/util/warnp.c
 
 lib_libtarsnap_a_CFLAGS=				\
@@ -191,6 +193,7 @@ tarsnap_SOURCES=			\
 		tar/multitape/multitape_read.c		\
 		tar/multitape/multitape_delete.c	\
 		tar/multitape/multitape_stats.c		\
+		tar/multitape/multitape_recover.c	\
 		tar/multitape/multitape_fsck.c		\
 		tar/multitape/multitape_nuke.c		\
 		tar/multitape/multitape_metadata.c	\
@@ -294,6 +297,9 @@ sysconf_DATA	=	tar/tarsnap.conf.sample
 
 # Use the right version of the man pages depending on whether we have mdoc
 # macros available on this system.
+tar/tarsnap.1-man tar/tarsnap.1-mdoc \
+tar/tarsnap.conf.5-man tar/tarsnap.conf.5-mdoc:
+	sed -e 's|@sysconfdir[@]|${sysconfdir}|g' $${srcdir}$@.in > $@
 tar/tarsnap.1:	tar/tarsnap.1-@MANVER@
 	cat tar/tarsnap.1-@MANVER@ > tar/tarsnap.1
 tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@

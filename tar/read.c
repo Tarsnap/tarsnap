@@ -132,7 +132,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	archive_read_support_compression_all(a);
 	archive_read_support_format_all(a);
 	if (archive_read_open_multitape(a, bsdtar->machinenum,
-	    bsdtar->tapename) == NULL)
+	    bsdtar->tapenames[0]) == NULL)
 		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
 
 	do_chdir(bsdtar);

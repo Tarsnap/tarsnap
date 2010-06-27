@@ -1,9 +1,8 @@
 #ifndef _STORAGE_H_
 #define _STORAGE_H_
 
-#include <sys/types.h>	/* Linux is broken and requires this for off_t. */
 #include <stdint.h>	/* uint8_t, uint64_t */
-#include <unistd.h>	/* off_t, size_t */
+#include <unistd.h>	/* size_t */
 
 #include "crypto.h"
 
@@ -104,11 +103,12 @@ void storage_write_free(STORAGE_W *);
 STORAGE_D * storage_delete_start(uint64_t, const uint8_t[32], uint8_t[32]);
 
 /**
- * storage_fsck_start(machinenum, seqnum):
+ * storage_fsck_start(machinenum, seqnum, readonly, whichkey):
  * Start a fsck transaction, and store the sequence number of said
- * transaction into ${seqnum}.
+ * transaction into ${seqnum}.  If ${whichkey} is zero, use the write key
+ * (in which case the transaction must be readonly).
  */
-STORAGE_D * storage_fsck_start(uint64_t, uint8_t[32]);
+STORAGE_D * storage_fsck_start(uint64_t, uint8_t[32], int, int);
 
 /**
  * storage_delete_file(S, class, name):
@@ -158,6 +158,15 @@ int storage_transaction_checkpoint(uint64_t, const uint8_t[32],
  * the delete key should be used.
  */
 int storage_transaction_commit(uint64_t, const uint8_t[32], uint8_t);
+
+/**
+ * storage_transaction_commitfromcheckpoint(machinenum, whichkey):
+ * If a write transaction is currently in progress and has a checkpoint,
+ * commit it.  The value ${whichkey} specifies a key which should be used
+ * to sign the commit request: 0 if the write key should be used, and 1 if
+ * the delete key should be used.
+ */
+int storage_transaction_commitfromcheckpoint(uint64_t, uint8_t);
 
 /**
  * storage_directory_read(machinenum, class, key, flist, nfiles):

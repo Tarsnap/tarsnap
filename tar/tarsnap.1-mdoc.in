@@ -68,7 +68,15 @@
 .Fl -cachedir Ar cache-dir
 .Op Fl f Ar archive-name
 .Nm
+.Brq Fl -recover
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Nm
 .Brq Fl -fsck
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Nm
+.Brq Fl -fsck-prune
 .Fl -keyfile Ar key-file
 .Fl -cachedir Ar cache-dir
 .Nm
@@ -109,10 +117,23 @@ was invoked to create each archive is als printed.
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
+.It Fl -recover
+Recover a partial archive from a checkpoint if such an archive exists.
+This is also done automatically the next time an archive is created
+or deleted.
 .It Fl -fsck
 Perform some integrity checks on the archives stored, and reconstruct the
 cache directory
 .Ar cache-dir .
+In the unlikely event that there are corrupted archives,
+.Nm
+will exit and request that it be run with the
+.Fl -fsck-prune
+option.
+.It Fl -fsck-prune
+Run as
+.Fl -fsck ,
+but if corrupt archives are detected, prune the broken data.
 .It Fl -nuke
 Delete all of the archives stored.
 To protect against accidental data loss,
@@ -205,6 +226,14 @@ hundred kB of bandwidth.
 to the current directory after processing any
 .Fl C
 options and before extracting any files.
+.It Fl -configfile Ar file
+Add
+.Ar file
+to the list of configuration files to be read; options set via these take
+priority over the default configuration files.
+This option can be specified multiple times, in which case all the files
+will be read; where settings conflict, the earlier configuration file will
+take priority.
 .It Fl -disk-pause Ar X
 (c mode only)
 Pause for
@@ -299,6 +328,11 @@ containing only the entries from
 .Ar all-backup
 containing the string
 .Sq foo .
+.It Fl --insane-filesystems
+(c mode only)
+Allow archival of entries from synthetic filesystems such as procfs.
+Normally archiving of such filesystems is a silly thing to do, hence the
+name of the option.
 .It Fl k
 (x mode only)
 Do not overwrite existing files.
@@ -404,6 +438,11 @@ Normally
 .Cm include
 options specified via configuration files and the command line
 all take effect.
+.It Fl -no-default-config
+Do not read the default configuration files
+.Pa @sysconfdir@/tarsnap.conf
+and
+.Pa ~/.tarsnaprc
 .It Fl -no-disk-pause
 Ignore any
 .Cm disk-pause
@@ -411,6 +450,10 @@ option specified in a configuration file.
 .It Fl -no-humanize-numbers
 Ignore any
 .Cm humanize-numbers
+option specified in a configuration file.
+.It Fl -no-insane-filesystems
+Ignore any
+.Cm insane-filesystems
 option specified in a configuration file.
 .It Fl -no-maxbw
 Ignore any
@@ -445,6 +488,10 @@ option specified in a configuration file.
 .It Fl -no-print-stats
 Ignore any
 .Cm print-stats
+option specified in a configuration file.
+.It Fl -no-quiet
+Ignore any
+.Cm quiet
 option specified in a configuration file.
 .It Fl -no-snaptime
 Ignore any
@@ -532,6 +579,17 @@ By default, the archive is always read to the very end, since
 there can be multiple entries with the same name and, by convention,
 later entries overwrite earlier entries.
 This option is provided as a performance optimization.
+.It Fl -quiet
+Avoid printing some warnings.
+Currently the warnings which are silenced by this option are
+"Removing leading '/' ...",
+"Not adding cache directory to archive",
+"... file may have grown while being archived",
+and
+"Skipping entry on filesystem of type ...",
+but it is likely that other
+warnings will be silenced by this option in future versions of
+.Nm .
 .It Fl S
 (x mode only)
 Extract files as sparse files.

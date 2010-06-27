@@ -366,6 +366,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
+	size_t argvlen;
 
 	/* Allocate memory. */
 	if ((d = malloc(sizeof(struct multitape_write_internal))) == NULL)
@@ -385,8 +386,17 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err2;
 
 	/* Record a pointer to the argument vector. */
-	d->argc = argc;
 	d->argv = argv;
+
+	/* Take as many arguments as we can fit into 128 kB. */
+	for (argvlen = 0, d->argc = 0; d->argc < argc; d->argc++) {
+		argvlen += strlen(argv[d->argc]) + 1;
+		if (argvlen > 128000) {
+			warn0("Argument vector exceeds 128 kB in length;"
+			    " vector stored in archive is being truncated.");
+			break;
+		}
+	}
 
 	/* Record the archive creation time. */
 	/*-

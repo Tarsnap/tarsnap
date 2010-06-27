@@ -349,6 +349,7 @@ callback_getbuf(void * cookie, uint8_t type, uint8_t ** buf,
 			status = NETPROTO_STATUS_PROTERR;
 		break;
 	case NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE:
+	case NETPACKET_TRANSACTION_ISCHECKPOINTED_RESPONSE:
 		if (buflen != 65)
 			status = NETPROTO_STATUS_PROTERR;
 		break;

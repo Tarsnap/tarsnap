@@ -45,7 +45,9 @@
  */
 struct bsdtar {
 	/* Options */
-	const char	 *tapename; /* -f tapename */
+	const char	**tapenames; /* -f tapename */
+	size_t		  ntapes;
+	const char	 *homedir;
 	const char	 *cachedir; /* --cachedir */
 	dev_t		  cachedir_dev;
 	ino_t		  cachedir_ino;
@@ -101,6 +103,13 @@ struct bsdtar {
 	int		  option_no_config_include;
 	int		  option_no_config_exclude_set;
 	int		  option_no_config_include_set;
+	int		  option_quiet;
+	int		  option_quiet_set;
+	int		  option_insane_filesystems;
+	int		  option_insane_filesystems_set;
+	const char	**configfiles;		/* --configfile */
+	size_t 		  nconfigfiles;
+	int		  option_no_default_config; /* --no-default-config */
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;
@@ -117,6 +126,7 @@ struct bsdtar {
 
 	/* Used for communicating with multitape code. */
 	void		 *write_cookie;
+
 	/* Chunkification cache. */
 	void		 *chunk_cache;
 
@@ -146,17 +156,22 @@ struct bsdtar {
 
 /* Fake short equivalents for long options that otherwise lack them. */
 enum {
-	OPTION_AGGRESSIVE_NETWORKING=1,
+	OPTION_AGGRESSIVE_NETWORKING=256,
 	OPTION_CACHEDIR,
 	OPTION_CHECK_LINKS,
 	OPTION_CHECKPOINT_BYTES,
 	OPTION_CHROOT,
+	OPTION_CONFIGFILE,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
 	OPTION_FSCK,
+	OPTION_FSCK_DELETE,	/* Operation mode, not a real option */
+	OPTION_FSCK_PRUNE,
+	OPTION_FSCK_WRITE,	/* Operation mode, not a real option */
 	OPTION_HELP,
 	OPTION_INCLUDE,
+	OPTION_INSANE_FILESYSTEMS,
 	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
 	OPTION_KEEP_NEWER_FILES,
@@ -174,13 +189,16 @@ enum {
 	OPTION_NO_AGGRESSIVE_NETWORKING,
 	OPTION_NO_CONFIG_EXCLUDE,
 	OPTION_NO_CONFIG_INCLUDE,
+	OPTION_NO_DEFAULT_CONFIG,
 	OPTION_NO_DISK_PAUSE,
 	OPTION_NO_HUMANIZE_NUMBERS,
+	OPTION_NO_INSANE_FILESYSTEMS,
 	OPTION_NO_MAXBW,
 	OPTION_NO_MAXBW_RATE_DOWN,
 	OPTION_NO_MAXBW_RATE_UP,
 	OPTION_NO_NODUMP,
 	OPTION_NO_PRINT_STATS,
+	OPTION_NO_QUIET,
 	OPTION_NO_SAME_OWNER,
 	OPTION_NO_SAME_PERMISSIONS,
 	OPTION_NO_SNAPTIME,
@@ -193,6 +211,10 @@ enum {
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PRINT_STATS,
+	OPTION_RECOVER,
+	OPTION_RECOVER_DELETE,	/* Operation mode, not a real option */
+	OPTION_RECOVER_WRITE,	/* Operation mode, not a real option */
+	OPTION_QUIET,
 	OPTION_SNAPTIME,
 	OPTION_STORE_ATIME,
 	OPTION_SAME_OWNER,
@@ -231,9 +253,10 @@ void	tarsnap_mode_d(struct bsdtar *bsdtar);
 void	tarsnap_mode_r(struct bsdtar *bsdtar);
 void	tarsnap_mode_t(struct bsdtar *bsdtar);
 void	tarsnap_mode_x(struct bsdtar *bsdtar);
-void	tarsnap_mode_fsck(struct bsdtar *bsdtar);
+void	tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey);
 void	tarsnap_mode_list_archives(struct bsdtar *bsdtar);
 void	tarsnap_mode_nuke(struct bsdtar *bsdtar);
+void	tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey);
 int	unmatched_inclusions(struct bsdtar *bsdtar);
 int	unmatched_inclusions_warn(struct bsdtar *bsdtar, const char *msg);
 void	usage(struct bsdtar *);

@@ -10,6 +10,7 @@
 
 #include "network_internal.h"
 #include "tarsnap_opt.h"
+#include "tvmath.h"
 #include "warnp.h"
 
 #include "network.h"
@@ -56,7 +57,6 @@ callback_buf(void * cookie, int status)
 {
 	struct network_buf_cookie * C = cookie;
 	struct timeval timeo;
-	struct timeval curtime;
 	size_t oplen;
 	ssize_t len;
 	int rc = -1;	/* If not callback or reset, we have an error. */
@@ -143,13 +143,11 @@ callback_buf(void * cookie, int status)
 
 tryagain:
 	/* We need more data.  Reset the callback. */
-	if (gettimeofday(&curtime, NULL)) {
-		warnp("gettimeofday");
+	memcpy(&timeo, &C->timeout, sizeof(struct timeval));
+	if (tvmath_subctime(&timeo)) {
 		status = NETWORK_STATUS_ERR;
 		goto docallback;
 	}
-	memcpy(&timeo, &C->timeout, sizeof(struct timeval));
-	tv_sub(&timeo, &curtime);
 	if (tv_lt(&C->timeout_max, &timeo))
 		memcpy(&timeo, &C->timeout_max, sizeof(struct timeval)); 
 	if (network_register(C->fd, C->netop, &timeo, callback_buf, C)) {
@@ -213,11 +211,9 @@ network_buf(int fd, uint8_t * buf, size_t buflen,
 	C->bwlimit = bwlimit;
 
 	/* Figure out when we should give up waiting. */
-	if (gettimeofday(&C->timeout, NULL)) {
-		warnp("gettimeofday");
+	memcpy(&C->timeout, to1, sizeof(struct timeval));
+	if (tvmath_addctime(&C->timeout))
 		goto err1;
-	}
-	tv_add(&C->timeout, to1);
 
 	/* Record the maximum time that any single send/recv will wait. */
 	memcpy(&C->timeout_max, to0, sizeof(struct timeval));

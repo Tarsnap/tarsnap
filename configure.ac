@@ -48,10 +48,6 @@ AC_SUBST(LIBARCHIVE_VERSION_NUMBER)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([tar/tarsnap.1-mdoc])
-AC_CONFIG_FILES([tar/tarsnap.1-man])
-AC_CONFIG_FILES([tar/tarsnap.conf.5-mdoc])
-AC_CONFIG_FILES([tar/tarsnap.conf.5-man])
 
 dnl Compilation on mingw and Cygwin needs special Makefile rules
 inc_windows_files=no
@@ -118,11 +114,41 @@ AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_HEADERS([sys/sysinfo.h])
 AC_CHECK_FUNCS([sysinfo])
 AC_CHECK_TYPES([struct sysinfo], [], [], [[#include <sys/sysinfo.h>]])
-AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit],
-    [], [], [[#include <sys/sysinfo.h>]])
+AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit], [], [],
+    [[#include <sys/sysinfo.h>]])
 
 # Check if we have a hw.usermem sysctl.
 CHECK_SYSCTL_HW_USERMEM
+
+# Check for <sys/mount.h>, <sys/statvfs.h>, <sys/vfs.h>, and <sys/statfs.h>,
+# which are used on various OSes to provide statfs(2) and statvfs(2).
+AC_CHECK_HEADERS([sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h], [], [],
+[#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif])
+
+# Check for members of struct statfs and struct statvfs.
+AC_CHECK_MEMBERS([struct statfs.f_fstypename, struct statfs.f_type,
+    struct statvfs.f_fstypename, struct statvfs.f_basetype], [], [],
+[#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
+#ifdef HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif])
+
+# Check for <linux/magic.h>, which contains magic numbers for statfs on
+# Linux 2.6.  (We hard-code values for Linux 2.4.)
+AC_CHECK_HEADERS([linux/magic.h])
 
 # If we're on Solaris, we need to add some extra paths to the Makefile.
 # This needs to be done *before* we look for OpenSSL; otherwise we won't
