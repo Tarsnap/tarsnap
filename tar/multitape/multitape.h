@@ -124,10 +124,12 @@ int writetape_close(TAPE_W *);
 void writetape_free(TAPE_W *);
 
 /**
- * deletetape(machinenum, cachedir, tapename, printstats):
+ * deletetape(machinenum, cachedir, tapename, printstats, withname):
  * Delete the specified tape, and print statistics to stderr if requested.
+ * If ${withname} is non-zero, print statistics with the archive name, not
+ * just as "This archive".
  */
-int deletetape(uint64_t, const char *, const char *, int);
+int deletetape(uint64_t, const char *, const char *, int, int);
 
 /**
  * statstape_open(machinenum, cachedir):
@@ -169,11 +171,22 @@ int statstape_print(TAPE_S *, const char *);
 int statstape_close(TAPE_S *);
 
 /**
- * fscktape(machinenum, cachedir):
+ * fscktape(machinenum, cachedir, prune, whichkey):
  * Correct any inconsistencies in the archive set (by removing orphaned or
- * corrupt files) and reconstruct the chunk directory in ${cachedir}.
+ * corrupt files) and reconstruct the chunk directory in ${cachedir}.  If
+ * ${prune} is zero, don't correct inconsistencies; instead, exit with an
+ * error.  If ${whichkey} is zero, use the write key (for non-pruning fsck
+ * only); otherwise, use the delete key.
  */
-int fscktape(uint64_t, const char *);
+int fscktape(uint64_t, const char *, int, int);
+
+/**
+ * recovertape(machinenum, cachedir, whichkey):
+ * Complete any pending checkpoint or commit, including a checkpoint in a
+ * write transaction being performed by a different machine (if any).  If
+ * ${whichkey} is zero, use the write key; otherwise, use the delete key.
+ */
+int recovertape(uint64_t, const char *, int);
 
 /**
  * nuketape(machinenum):

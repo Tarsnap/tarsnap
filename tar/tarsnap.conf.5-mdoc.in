@@ -47,6 +47,7 @@ The following options may be specified:
 .It Cm exclude Ar pattern
 .It Cm humanize-numbers
 .It Cm include Ar pattern
+.It Cm insane-filesystems
 .It Cm keyfile Pa key-file
 .It Cm lowmem
 .It Cm maxbw
@@ -60,15 +61,18 @@ The following options may be specified:
 .It Cm no-config-include
 .It Cm no-disk-pause
 .It Cm no-humanize-numbers
+.It Cm no-insane-filesystems
 .It Cm no-maxbw
 .It Cm no-maxbw-rate-down
 .It Cm no-maxbw-rate-up
 .It Cm no-nodump
 .It Cm no-print-stats
+.It Cm no-quiet
 .It Cm no-snaptime
 .It Cm no-store-atime
 .It Cm no-totals
 .It Cm print-stats
+.It Cm quiet
 .It Cm snaptime Pa file
 .It Cm store-atime
 .It Cm totals

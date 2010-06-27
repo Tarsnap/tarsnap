@@ -25,7 +25,7 @@ static int phase2(uint64_t, STORAGE_D *,
 static CHUNKS_S * phase3(uint64_t, const char *);
 static int phase4(STORAGE_D *, STORAGE_R *, CHUNKS_S *,
     struct tapemetadata **, size_t);
-static int phase5(STORAGE_D * SD, CHUNKS_S * C);
+static int phase5(STORAGE_D *, CHUNKS_S *);
 
 /**
  * findinlist(file, flist, nfiles):
@@ -430,18 +430,21 @@ phase5(STORAGE_D * SD, CHUNKS_S * C)
 {
 
 	/* Report status. */
-	fprintf(stdout, "Phase 5: Removing unreferenced chunks\n");
+	fprintf(stdout, "Phase 5: Identifying unreferenced chunks\n");
 
 	return (chunks_fsck_deletechunks(C, SD));
 }
 
 /**
- * fscktape(machinenum, cachedir):
+ * fscktape(machinenum, cachedir, prune, whichkey):
  * Correct any inconsistencies in the archive set (by removing orphaned or
- * corrupt files) and reconstruct the chunk directory in ${cachedir}.
+ * corrupt files) and reconstruct the chunk directory in ${cachedir}.  If
+ * ${prune} is zero, don't correct inconsistencies; instead, exit with an
+ * error.  If ${whichkey} is zero, use the write key (for non-pruning fsck
+ * only); otherwise, use the delete key.
  */
 int
-fscktape(uint64_t machinenum, const char * cachedir)
+fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 {
 	STORAGE_D * SD;
 	STORAGE_R * SR;
@@ -451,6 +454,7 @@ fscktape(uint64_t machinenum, const char * cachedir)
 	struct tapemetadata ** mdatlist;
 	size_t nmdat;
 	size_t file;
+	int key = (whichkey == 0) ? 0 : 1;
 
 	/* Make sure the cache directory exists. */
 	if (dirutil_needdir(cachedir))
@@ -461,11 +465,20 @@ fscktape(uint64_t machinenum, const char * cachedir)
 		goto err0;
 
 	/* Make sure the lower layers are in a clean state. */
-	if (multitape_cleanstate(cachedir, machinenum, 1))
+	if (multitape_cleanstate(cachedir, machinenum, whichkey))
 		goto err1;
 
+	/*
+	 * If a checkpointed archive creation was in progress on a different
+	 * machine, we might as well commit it -- we're going to regenerate
+	 * all of our local state anyway.
+	 */
+	if (storage_transaction_commitfromcheckpoint(machinenum, key))
+		goto err0;
+
 	/* Start a storage-layer fsck transaction. */
-	if ((SD = storage_fsck_start(machinenum, seqnum)) == NULL)
+	if ((SD = storage_fsck_start(machinenum, seqnum,
+	    prune ? 0 : 1, key)) == NULL)
 		goto err1;
 
 	/* Obtain a storage-layer read cookie. */
@@ -526,7 +539,7 @@ fscktape(uint64_t machinenum, const char * cachedir)
 		goto err1;
 
 	/* Commit the transaction. */
-	if (multitape_commit(cachedir, machinenum, seqnum, 1))
+	if (multitape_commit(cachedir, machinenum, seqnum, key))
 		goto err1;
 
 	/* Unlock the cache directory. */

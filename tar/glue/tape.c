@@ -16,11 +16,18 @@
 void
 tarsnap_mode_d(struct bsdtar *bsdtar)
 {
+	size_t i;
 
-	if (deletetape(bsdtar->machinenum, bsdtar->cachedir,
-	    bsdtar->tapename, bsdtar->option_print_stats)) {
-		bsdtar_warnc(bsdtar, 0, "Error deleting archive");
-		exit(1);
+	for (i = 0; i < bsdtar->ntapes; i++) {
+		if (bsdtar->verbose && (bsdtar->ntapes > 1))
+			fprintf(stderr, "Deleting archive \"%s\"\n",
+			    bsdtar->tapenames[i]);
+		if (deletetape(bsdtar->machinenum, bsdtar->cachedir,
+		    bsdtar->tapenames[i], bsdtar->option_print_stats,
+		    bsdtar->ntapes > 1 ? 1 : 0)) {
+			bsdtar_warnc(bsdtar, 0, "Error deleting archive");
+			exit(1);
+		}
 	}
 }
 
@@ -37,7 +44,7 @@ tarsnap_mode_r(struct bsdtar *bsdtar)
 
 	/* Open the tape. */
 	if ((d = readtape_open(bsdtar->machinenum,
-	    bsdtar->tapename)) == NULL)
+	    bsdtar->tapenames[0])) == NULL)
 		goto err1;
 
 	/* Loop until we have an error or EOF. */
@@ -81,6 +88,7 @@ void
 tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 {
 	TAPE_S * d;
+	size_t i;
 
 	/* Open the archive set for statistics purposes. */
 	if ((d = statstape_open(bsdtar->machinenum,
@@ -91,17 +99,19 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	if (statstape_printglobal(d))
 		goto err2;
 
-	if (bsdtar->tapename == NULL) {
+	if (bsdtar->ntapes == 0) {
 		/* User only wanted global statistics. */
-	} else if ((bsdtar->tapename[0] == '*') &&
-	    (bsdtar->tapename[1] == '\0')) {
+	} else if ((bsdtar->tapenames[0][0] == '*') &&
+	    (bsdtar->tapenames[0][1] == '\0')) {
 		/* User wants statistics on all archives. */
 		if (statstape_printall(d))
 			goto err2;
 	} else {
-		/* User wants statistics about a single archive. */
-		if (statstape_print(d, bsdtar->tapename))
-			goto err2;
+		/* User wants statistics about specific archive(s). */
+		for (i = 0; i < bsdtar->ntapes; i++) {
+			if (statstape_print(d, bsdtar->tapenames[i]))
+				goto err2;
+		}
 	}
 
 	/* We're done.  Close the archive set. */
@@ -154,10 +164,10 @@ err1:
  * Archive set consistency check and repair.
  */
 void
-tarsnap_mode_fsck(struct bsdtar *bsdtar)
+tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey)
 {
 
-	if (fscktape(bsdtar->machinenum, bsdtar->cachedir))
+	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey))
 		goto err1;
 
 	/* Success! */
@@ -198,5 +208,24 @@ tarsnap_mode_nuke(struct bsdtar *bsdtar)
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error nuking archives");
+	exit(1);
+}
+
+/*
+ * Recover an interrupted archive if one exists.
+ */
+void
+tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey)
+{
+
+	if (recovertape(bsdtar->machinenum, bsdtar->cachedir, whichkey))
+		goto err1;
+
+	/* Success! */
+	return;
+
+err1:
+	/* Failure! */
+	bsdtar_warnc(bsdtar, 0, "Error recovering archive");
 	exit(1);
 }

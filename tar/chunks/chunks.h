@@ -118,11 +118,12 @@ int chunks_delete_chunk(CHUNKS_D *, const uint8_t *);
 void chunks_delete_extrastats(CHUNKS_D *, size_t);
 
 /**
- * chunks_delete_printstats(stream, C):
+ * chunks_delete_printstats(stream, C, name):
  * Print statistics for the delete transaction associated with the cookie
- * ${C} to ${stream}.
+ * ${C} to ${stream}.  If ${name} is non-NULL, use it to identify the archive
+ * being deleted.
  */
-int chunks_delete_printstats(FILE *, CHUNKS_D *);
+int chunks_delete_printstats(FILE *, CHUNKS_D *, const char *);
 
 /**
  * chunks_delete_end(C):

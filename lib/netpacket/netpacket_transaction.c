@@ -61,6 +61,7 @@ netpacket_transaction_start(NETPACKET_CONNECTION * NPC,
 	/* Look up the key which is used to sign this packet. */
 	switch (operation) {
 	case 0:	/* Write. */
+	case 3:	/* Read-only fsck using the write key. */
 		key = CRYPTO_KEY_AUTH_PUT;
 		break;
 	case 1:	/* Delete. */
@@ -228,6 +229,7 @@ netpacket_transaction_cancel(NETPACKET_CONNECTION * NPC,
 	/* Look up the key which is used to sign this packet. */
 	switch (whichkey) {
 	case 0:	/* Write key. */
+	case 3:	/* Write key and state = 0. */
 		key = CRYPTO_KEY_AUTH_PUT;
 		break;
 	case 1:	/* Delete key. */
@@ -309,6 +311,63 @@ netpacket_transaction_trycommit(NETPACKET_CONNECTION * NPC,
 
 	/* Send the packet. */
 	if (netproto_writepacket(NPC->NC, NETPACKET_TRANSACTION_TRYCOMMIT,
+	    packetbuf, 73, netpacket_op_packetsent, NPC))
+		goto err0;
+
+	/* Set callback for handling a response. */
+	NPC->pending_current->handlepacket = callback;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * netpacket_transaction_ischeckpointed(NPC, machinenum, whichkey, nonce,
+ *     callback):
+ * Construct and send a NETPACKET_TRANSACTION_ISCHECKPOINTED packet asking if
+ * a checkpointed write transaction is in progress; the packet is signed with
+ * the write access key if ${whichkey} is 0, and with the delete access key
+ * if ${whichkey} is 1.
+ */
+int
+netpacket_transaction_ischeckpointed(NETPACKET_CONNECTION * NPC,
+    uint64_t machinenum, uint8_t whichkey, const uint8_t nonce[32],
+    handlepacket_callback * callback)
+{
+	uint8_t packetbuf[73];
+	int key;
+
+	/* Look up the key which is used to sign this packet. */
+	switch (whichkey) {
+	case 0:
+		key = CRYPTO_KEY_AUTH_PUT;
+		break;
+	case 1:
+		key = CRYPTO_KEY_AUTH_DELETE;
+		break;
+	default:
+		warn0("Programmer error: "
+		    "Invalid key in netpacket_transaction_ischeckpointed");
+		goto err0;
+	}
+
+	/* Construct the packet. */
+	be64enc(&packetbuf[0], machinenum);
+	packetbuf[8] = whichkey;
+	memcpy(&packetbuf[9], nonce, 32);
+
+	/* Append hmac. */
+	if (netpacket_hmac_append(NETPACKET_TRANSACTION_ISCHECKPOINTED,
+	    packetbuf, 41, key))
+		goto err0;
+
+	/* Send the packet. */
+	if (netproto_writepacket(NPC->NC,
+	    NETPACKET_TRANSACTION_ISCHECKPOINTED,
 	    packetbuf, 73, netpacket_op_packetsent, NPC))
 		goto err0;
 

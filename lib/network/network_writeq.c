@@ -1,9 +1,13 @@
 #include "bsdtar_platform.h"
 
+#include <sys/time.h>
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "network_internal.h"
+#include "tvmath.h"
+#include "warnp.h"
 
 #include "network.h"
 
@@ -11,6 +15,7 @@ struct network_writeq_buf {
 	const uint8_t * buf;
 	size_t buflen;
 	struct timeval timeo;
+	int abstimeo;
 	network_callback * callback;
 	void * cookie;
 	struct network_writeq_buf * next;
@@ -21,7 +26,32 @@ struct network_writeq_internal {
 	struct network_writeq_buf ** tailptr;
 };
 
+static int dowrite(struct network_writeq_internal *);
 static network_callback callback_bufdone;
+
+static int
+dowrite(struct network_writeq_internal * Q)
+{
+	struct network_writeq_buf * QB = Q->head;
+	struct timeval timeo;
+
+	/* Figure out how long to allow for this buffer write. */
+	memcpy(&timeo, &QB->timeo, sizeof(struct timeval));
+	if (QB->abstimeo && tvmath_subctime(&timeo))
+		goto err0;
+
+	/* Write the buffer. */
+	if (network_write(Q->fd, QB->buf, QB->buflen, &timeo, &timeo,
+	    callback_bufdone, Q))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
 
 /**
  * callback_bufdone(cookie, status):
@@ -56,8 +86,7 @@ callback_bufdone(void * cookie, int status)
 	 * socket.
 	 */
 	if (Q->head != NULL) {
-		if (network_write(Q->fd, Q->head->buf, Q->head->buflen,
-		    &Q->head->timeo, &Q->head->timeo, callback_bufdone, Q))
+		if (dowrite(Q))
 			goto err1;
 	} else {
 		if ((status == NETWORK_STATUS_OK) && network_uncork(Q->fd))
@@ -108,15 +137,19 @@ err0:
 }
 
 /**
- * network_writeq_add(Q, buf, buflen, timeo, callback, cookie):
+ * _network_writeq_add(Q, buf, buflen, timeo, callback, cookie, abstimeo):
  * Add a buffer write to the specified write queue.  The callback function
  * will be called when the write is finished, fails, or is cancelled.
- * The timeout is relative to when the buffer in question starts to be
- * written (i.e., when the previous buffered write finishes).
+ * If ${abstimeo} is zero, the timeout is relative to when the buffer in
+ * question starts to be written (i.e., when the previous buffered write
+ * finishes); otherwise, the timeout is relative to the present time.  If
+ * ${buflen} is zero, the callback will be performed, at the appropriate
+ * point, with a status of NETWORK_STATUS_ZEROBYTE.
  */
 int
-network_writeq_add(NETWORK_WRITEQ * Q, const uint8_t * buf, size_t buflen,
-    struct timeval * timeo, network_callback * callback, void * cookie)
+_network_writeq_add(NETWORK_WRITEQ * Q, const uint8_t * buf, size_t buflen,
+    struct timeval * timeo, network_callback * callback, void * cookie,
+    int abstimeo)
 {
 	struct network_writeq_buf * QB;
 	struct network_writeq_buf ** tailptr_old;
@@ -128,9 +161,14 @@ network_writeq_add(NETWORK_WRITEQ * Q, const uint8_t * buf, size_t buflen,
 	QB->buf = buf;
 	QB->buflen = buflen;
 	memcpy(&QB->timeo, timeo, sizeof(struct timeval));
+	QB->abstimeo = abstimeo;
 	QB->callback = callback;
 	QB->cookie = cookie;
 	QB->next = NULL;
+
+	/* Compute absolute time if appropriate. */
+	if (abstimeo && tvmath_addctime(&QB->timeo))
+		goto err1;
 
 	/* Add this to the write queue. */
 	head_old = Q->head;
@@ -142,19 +180,19 @@ network_writeq_add(NETWORK_WRITEQ * Q, const uint8_t * buf, size_t buflen,
 	if (head_old == NULL) {
 		/* Cork the socket so that we don't send small packets. */
 		if (network_cork(Q->fd))
-			goto err1;
+			goto err2;
 
-		if (network_write(Q->fd, Q->head->buf, Q->head->buflen,
-		    &Q->head->timeo, &Q->head->timeo, callback_bufdone, Q))
-			goto err1;
+		if (dowrite(Q))
+			goto err2;
 	}
 
 	/* Success! */
 	return (0);
 
-err1:
+err2:
 	Q->tailptr = tailptr_old;
 	*Q->tailptr = NULL;
+err1:
 	free(QB);
 err0:
 	/* Failure! */

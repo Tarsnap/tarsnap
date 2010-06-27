@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "network_internal.h"
+#include "tvmath.h"
 #include "warnp.h"
 
 #include "network.h"
@@ -339,13 +340,14 @@ network_register(int fd, int op, struct timeval * timeo,
 	nci->cookie = cookie;
 
 	/* Convert the timeout into an absolute time. */
-	if (gettimeofday(&nci->timeout, NULL)) {
-		warnp("gettimeofday()");
+	if (timeo == NULL)
+		memset(&nci->timeout, 0, sizeof(struct timeval));
+	else
+		memcpy(&nci->timeout, timeo, sizeof(struct timeval));
+	if (tvmath_addctime(&nci->timeout)) {
 		nci->callback = NULL;
 		goto err0;
 	}
-	if (timeo != NULL)
-		tv_add(&nci->timeout, timeo);
 
 	/* Update the number of the highest used fd if necessary. */
 	if (N.maxfd < fd)

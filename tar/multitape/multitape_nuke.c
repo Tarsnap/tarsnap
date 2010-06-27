@@ -23,7 +23,7 @@ nuketape(uint64_t machinenum)
 	size_t i;
 
 	/* Start a storage-layer fsck transaction. */
-	if ((SD = storage_fsck_start(machinenum, seqnum)) == NULL)
+	if ((SD = storage_fsck_start(machinenum, seqnum, 0, 1)) == NULL)
 		goto err0;
 
 	/* Obtain a list of metadata files. */

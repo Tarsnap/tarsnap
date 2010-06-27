@@ -409,21 +409,48 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 		}
 	}
 
+	/**
+	 * We want to move ${t} to ${s} in a crash-proof way.  Unfortunately
+	 * the POSIX rename(2) syscall merely guarantees that if ${s} already
+	 * exists then ${s} will always exist -- not that the file being
+	 * renamed will always exist.  Depending on how crash-proof the
+	 * filesystem is, that second requirement might not be satisfied.
+	 *
+	 * Ideally we would like to solve this problem by creating a hard
+	 * link, syncing the directory, then unlinking the old file; but we
+	 * might be running on a filesystem/OS which doesn't support hard
+	 * links (e.g., FAT32).
+	 *
+	 * If the link(2) call fails with ENOSYS (sensible failure code for
+	 * not supporting hard links) or EPERM (linux's idea of a joke?), we
+	 * fall back to using rename(2) instead of link/sync/unlink.
+	 */
+
 	/* Create a link from ${cachedir}/directory.tmp. */
 	if (link(t, s)) {
-		warnp("link(%s, %s)", t, s);
-		goto err2;
+		if ((errno != ENOSYS) && (errno != EPERM)) {
+			warnp("link(%s, %s)", t, s);
+			goto err2;
+		}
+
+		/* Use rename(2) instead. */
+		if (rename(t, s)) {
+			warnp("rename(%s, %s)", t, s);
+			goto err2;
+		}
+	} else {
+		/* Make sure ${cachedir} is flushed to disk. */
+		if (dirutil_fsyncdir(cachepath))
+			goto err2;
+
+		/* Remove ${cachedir}/directory.tmp. */
+		if (unlink(t)) {
+			warnp("unlink(%s)", t);
+			goto err2;
+		}
 	}
 
-	/* Make sure ${cachedir} is flushed to disk. */
-	if (dirutil_fsyncdir(cachepath))
-		goto err2;
-
-	/* Remove ${cachedir}/directory.tmp and flush ${cachedir} to disk. */
-	if (unlink(t)) {
-		warnp("unlink(%s)", t);
-		goto err2;
-	}
+	/* Finally, sync the directory one last time. */
 	if (dirutil_fsyncdir(cachepath))
 		goto err2;
 

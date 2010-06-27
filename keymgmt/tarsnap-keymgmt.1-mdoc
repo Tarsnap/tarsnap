@@ -42,6 +42,30 @@ being able to read it; while a key file generated with
 can be used to delete all the archives stored, but not individual
 archives.
 .Pp
+The
+.Fl -recover
+command requires either
+.Fl d
+(archive deleting),
+.Fl w
+(archive creating), or
+.Fl -nuke
+keys.
+The
+.Fl -fsck
+command requires either
+.Fl d
+(archive deleting) keys or
+.Fl r
+(archive reading) and
+.Fl w
+(archive writing) keys; while the
+.Fl -fsck-prune
+command requires
+.Fl d
+(archive deleting) keys, since it needs to be able to delete
+corrupted archives.
+.Pp
 If the
 .Fl -passphrased
 option is specified, the user will be prompted to enter a passphrase (twice)

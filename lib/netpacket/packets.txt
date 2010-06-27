@@ -124,7 +124,8 @@ Packet contents:
 The value operation is
 	0	Write transaction (key = write access key)
 	1	Delete transaction (key = delete access key)
-	2	Fsck transaction (key = delete access key, state = 0).
+	2	Fsck transaction (key = delete access key, state = 0)
+	3	Fsck transaction w/o pruning (key = write access key, state = 0).
 
 The value snonce is as provided by the server (see above); the value cnonce
 is a random client nonce; the value state is the transaction nonce of the
@@ -248,7 +249,8 @@ Packet contents:
 The value whichkey is
 	0	key = write access key
 	1	key = delete access key
-	2	key = delete access key and state = 0.
+	2	key = delete access key and state = 0
+	3	key = write access key and state = 0.
 
 The value snonce is as provided by the server in response to a
 NETPACKET_TRANSACTION_GETNONCE request; the value cnonce is a random client
@@ -315,6 +317,44 @@ respond "try again later".
 
 The value hmac is HMAC(key, 0x95 || nonce || status) where key is the write
 or delete key as in NETPACKET_TRANSACTION_TRYCOMMIT.
+
+NETPACKET_TRANSACTION_ISCHECKPOINTED (0x16)
+-------------------------------------------
+
+Packet contents:
+	uint64_t machinenum
+	uint8_t whichkey
+	uint8_t nonce[32]
+	uint8_t hmac[32]
+
+The value whichkey is
+	0	key = write access key
+	1	key = delete access key.
+
+The value nonce is a random 256-bit operation nonce.
+
+The value hmac is HMAC(key, 0x16 || [packet minus final hmac]).
+
+NETPACKET_TRANSACTION_ISCHECKPOINTED_RESPONSE (0x96)
+----------------------------------------------------
+
+Packet contents:
+	uint8_t status
+	uint8_t tnonce[32]
+	uint8_t hmac[32]
+
+The value status is
+	0	No transaction is in progress, the transaction in progress is
+		a delete transaction, or the write transaction in progress
+		does not have any checkpoints.
+	1	A write transaction is in progress and has a checkpoint.
+	2	"Reply hazy, try again" -- Magic 8-Ball
+
+The value tnonce is the transaction nonce of the current transaction if
+status is 1; and zero otherwise.
+
+The value hmac is HMAC(key, 0x96 || nonce || [packet minus final hmac]) where
+key is the write or delete key as in NETPACKET_TRANSACTION_ISCHECKPOINTED.
 
 NETPACKET_WRITE_FEXIST (0x20)
 -----------------------------

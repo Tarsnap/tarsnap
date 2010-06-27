@@ -96,6 +96,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 
 #include "archive_multitape.h"
 #include "ccache.h"
+#include "getfstype.h"
 #include "network.h"
 #include "sigquit.h"
 
@@ -272,7 +273,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 
 	/* Open the archive, keeping a cookie for talking to the tape layer. */
 	bsdtar->write_cookie = archive_write_open_multitape(a,
-	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapename,
+	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapenames[0],
 	    bsdtar->argc_orig, bsdtar->argv_orig,
 	    bsdtar->option_print_stats, bsdtar->option_dryrun);
 	if (bsdtar->write_cookie == NULL)
@@ -678,6 +679,8 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 	dev_t first_dev = 0;
 	int dev_recorded = 0;
 	int tree_ret;
+	dev_t last_dev = 0;
+	char * fstype;
 
 	tree = tree_open(path);
 
@@ -765,12 +768,40 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		}
 
 		/*
+		 * If the user did not specify --insane-filesystems, do not
+		 * cross into a new filesystem which is known to be synthetic.
+		 * Note that we will archive synthetic filesystems if we are
+		 * explcitly told to do so.
+		 */
+		if ((bsdtar->option_insane_filesystems == 0) &&
+		    (dev_recorded == 1) &&
+		    (lst->st_dev != last_dev)) {
+			fstype = getfstype(tree_current_access_path(tree));
+			if (fstype == NULL)
+				bsdtar_errc(bsdtar, 1, errno,
+				    "%s: Error getting filesystem type",
+				    name);
+			if (getfstype_issynthetic(fstype)) {
+				if (!bsdtar->option_quiet)
+					bsdtar_warnc(bsdtar, 0,
+					    "Skipping entry on filesystem of type %s: %s",
+					    fstype, name);
+				free(fstype);
+				continue;
+			}
+			free(fstype);
+
+			/* This device is ok to archive. */
+			last_dev = lst->st_dev;
+		}
+
+		/*
 		 * If user has asked us not to cross mount points,
 		 * then don't descend into into a dir on a different
 		 * device.
 		 */
 		if (!dev_recorded) {
-			first_dev = lst->st_dev;
+			last_dev = first_dev = lst->st_dev;
 			dev_recorded = 1;
 		}
 		if (bsdtar->option_dont_traverse_mounts) {
@@ -838,8 +869,10 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 */
 		if ((lst->st_ino == bsdtar->cachedir_ino) &&
 		    (lst->st_dev == bsdtar->cachedir_dev)) {
-			bsdtar_warnc(bsdtar, 0,
-			    "Not adding cache directory to archive: %s", name);
+			if (!bsdtar->option_quiet)
+				bsdtar_warnc(bsdtar, 0,
+				    "Not adding cache directory to archive: %s",
+				name);
 			continue;
 		}
 
@@ -1094,9 +1127,11 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 		}
 		if (bytes_written < bytes_read) {
 			/* Write was truncated; warn but continue. */
-			bsdtar_warnc(bsdtar, 0,
-			    "%s: Truncated write; file may have grown while being archived.",
-			    archive_entry_pathname(entry));
+			if (!bsdtar->option_quiet)
+				bsdtar_warnc(bsdtar, 0,
+				    "%s: Truncated write; file may have "
+				    "grown while being archived.",
+				    archive_entry_pathname(entry));
 			return (0);
 		}
 

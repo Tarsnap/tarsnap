@@ -33,6 +33,8 @@ typedef int handlepacket_callback(void *, NETPACKET_CONNECTION *,
 #define NETPACKET_TRANSACTION_CANCEL_RESPONSE	0x94
 #define NETPACKET_TRANSACTION_TRYCOMMIT		0x15
 #define NETPACKET_TRANSACTION_TRYCOMMIT_RESPONSE 0x95
+#define NETPACKET_TRANSACTION_ISCHECKPOINTED	0x16
+#define NETPACKET_TRANSACTION_ISCHECKPOINTED_RESPONSE 0x96
 #define NETPACKET_WRITE_FEXIST			0x20
 #define NETPACKET_WRITE_FEXIST_RESPONSE		0xa0
 #define NETPACKET_WRITE_FILE			0x21
@@ -132,6 +134,17 @@ int netpacket_transaction_cancel(NETPACKET_CONNECTION *, uint64_t,
  * ${whichkey} is 0, and with the delete access key if ${whichkey} is 1.
  */
 int netpacket_transaction_trycommit(NETPACKET_CONNECTION *, uint64_t,
+    uint8_t, const uint8_t[32], handlepacket_callback *);
+
+/**
+ * netpacket_transaction_ischeckpointed(NPC, machinenum, whichkey, nonce,
+ *     callback):
+ * Construct and send a NETPACKET_TRANSACTION_ISCHECKPOINTED packet asking if
+ * a checkpointed write transaction is in progress; the packet is signed with
+ * the write access key if ${whichkey} is 0, and with the delete access key
+ * if ${whichkey} is 1.
+ */
+int netpacket_transaction_ischeckpointed(NETPACKET_CONNECTION *, uint64_t,
     uint8_t, const uint8_t[32], handlepacket_callback *);
 
 /**
