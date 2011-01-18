@@ -112,7 +112,7 @@ if the
 flag is specified two or more times, the command
 line with which
 .Nm
-was invoked to create each archive is als printed.
+was invoked to create each archive is also printed.
 .It Fl -print-stats
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
@@ -328,7 +328,7 @@ containing only the entries from
 .Ar all-backup
 containing the string
 .Sq foo .
-.It Fl --insane-filesystems
+.It Fl -insane-filesystems
 (c mode only)
 Allow archival of entries from synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the

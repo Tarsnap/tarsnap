@@ -98,7 +98,7 @@ if the
 flag is specified two or more times, the command
 line with which
 \fB\%tarsnap\fP
-was invoked to create each archive is als printed.
+was invoked to create each archive is also printed.
 .TP
 \fB\--print-stats\fP
 Print global statistics concerning the archives stored, and optionally
@@ -343,7 +343,7 @@ containing only the entries from
 containing the string
 Sq foo.
 .TP
-\fB\---insane-filesystems\fP
+\fB\--insane-filesystems\fP
 (c mode only)
 Allow archival of entries from synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
