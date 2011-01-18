@@ -108,7 +108,7 @@ crypto_file_enc(const uint8_t * buf, size_t len, uint8_t * filebuf)
 
 	/* Encrypt the data. */
 	if ((stream =
-	    crypto_aesctr_init(&encr_aes->key, encr_aes->nonce)) == NULL)
+	    crypto_aesctr_init(&encr_aes->key, encr_aes->nonce++)) == NULL)
 		goto err0;
 	crypto_aesctr_stream(stream, buf, filebuf + CRYPTO_FILE_HLEN, len);
 	crypto_aesctr_free(stream);
