@@ -47,15 +47,15 @@
  * 3. A base64-encoded encrypted key file.
  */
 
-static int read_raw(uint8_t *, size_t, uint64_t *, const char *);
-static int read_plaintext(uint8_t *, size_t, uint64_t *, const char *);
-static int read_encrypted(uint8_t *, size_t, uint64_t *, const char *);
-static int read_base256(uint8_t *, size_t, uint64_t *, const char *);
-static int read_base64(uint8_t *, size_t, uint64_t *, const char *);
+static int read_raw(uint8_t *, size_t, uint64_t *, const char *, int);
+static int read_plaintext(uint8_t *, size_t, uint64_t *, const char *, int);
+static int read_encrypted(uint8_t *, size_t, uint64_t *, const char *, int);
+static int read_base256(uint8_t *, size_t, uint64_t *, const char *, int);
+static int read_base64(uint8_t *, size_t, uint64_t *, const char *, int);
 
 static int
 read_raw(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename)
+    const char * filename, int keys)
 {
 
 	/* Sanity-check size. */
@@ -68,7 +68,7 @@ read_raw(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	*machinenum = be64dec(keybuf);
 
 	/* Parse keys. */
-	if (crypto_keys_import(&keybuf[8], keylen - 8))
+	if (crypto_keys_import(&keybuf[8], keylen - 8, keys))
 		goto err0;
 
 	/* Success! */
@@ -81,7 +81,7 @@ err0:
 
 static int
 read_plaintext(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename)
+    const char * filename, int keys)
 {
 
 	/* Sanity-check size. */
@@ -97,7 +97,7 @@ read_plaintext(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	}
 
 	/* The rest of the buffer is raw key data. */
-	return (read_raw(&keybuf[8], keylen - 8, machinenum, filename));
+	return (read_raw(&keybuf[8], keylen - 8, machinenum, filename, keys));
 
 err0:
 	/* Failure! */
@@ -106,7 +106,7 @@ err0:
 
 static int
 read_encrypted(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename)
+    const char * filename, int keys)
 {
 	char * pwprompt;
 	char * passwd;
@@ -190,7 +190,7 @@ read_encrypted(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	memset(passwd, 0, strlen(passwd));
 
 	/* Process the decrypted key file. */
-	if (read_plaintext(deckeybuf, deckeylen, machinenum, filename))
+	if (read_plaintext(deckeybuf, deckeylen, machinenum, filename, keys))
 		goto err3;
 
 	/* Clean up. */
@@ -217,7 +217,7 @@ err0:
 
 static int
 read_base256(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename)
+    const char * filename, int keys)
 {
 
 	/* Sanity-check size. */
@@ -228,10 +228,12 @@ read_base256(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Is this encrypted? */
 	if (memcmp(keybuf, "scrypt", 6) == 0)
-		return (read_encrypted(keybuf, keylen, machinenum, filename));
+		return (read_encrypted(keybuf, keylen,
+		    machinenum, filename, keys));
 
 	/* Parse this as a plaintext keyfile. */
-	return (read_plaintext(keybuf, keylen, machinenum, filename));
+	return (read_plaintext(keybuf, keylen,
+	    machinenum, filename, keys));
 
 err0:
 	/* Failure! */
@@ -240,7 +242,7 @@ err0:
 
 static int
 read_base64(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename)
+    const char * filename, int keys)
 {
 	uint8_t * decbuf;
 	size_t decbuflen;
@@ -322,7 +324,7 @@ read_base64(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	}
 
 	/* Process the decoded key file. */
-	if (read_base256(decbuf, decpos, machinenum, filename))
+	if (read_base256(decbuf, decpos, machinenum, filename, keys))
 		goto err1;
 
 	/* Zero and free memory. */
@@ -343,12 +345,12 @@ err0:
 }
 
 /**
- * keyfile_read(filename, machinenum):
+ * keyfile_read(filename, machinenum, keys):
  * Read keys from a tarsnap key file; and return the machine # via the
- * provided pointer.
+ * provided pointer.  Ignore any keys not specified in the ${keys} mask.
  */
 int
-keyfile_read(const char * filename, uint64_t * machinenum)
+keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 {
 	struct stat sb;
 	uint8_t * keybuf;
@@ -384,14 +386,16 @@ keyfile_read(const char * filename, uint64_t * machinenum)
 
 	/* If this is a raw key file, process it. */
 	if ((keybuf[0] == 0x00) || (keybuf[0] == 0xff)) {
-		if (read_raw(keybuf, sb.st_size, machinenum, filename)) {
+		if (read_raw(keybuf, sb.st_size,
+		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
 			goto err1;
 		}
 	} else {
 		/* Otherwise, try to base64 decode it. */
-		if (read_base64(keybuf, sb.st_size, machinenum, filename)) {
+		if (read_base64(keybuf, sb.st_size,
+		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
 			goto err1;

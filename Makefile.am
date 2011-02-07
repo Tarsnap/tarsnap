@@ -6,8 +6,8 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 # What to build and install
 #
 noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a
-bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keymgmt
-dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
+bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
+dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
 
 #
 # Libarchive headers, source, etc.
@@ -273,6 +273,66 @@ tarsnap_keygen_CFLAGS=					\
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 
 #
+# tarsnap-keyregen source, docs, etc.
+#
+#
+
+tarsnap_keyregen_SOURCES=	keyregen/keyregen.c
+
+tarsnap_keyregen_LDADD= -lcrypto lib/libtarsnap.a
+tarsnap_keyregen_CFLAGS=					\
+		-I${top_srcdir}/libarchive		\
+		-I$(top_srcdir)/tar			\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I$(top_srcdir)/lib/keyfile		\
+		-I$(top_srcdir)/lib/netpacket		\
+		-I$(top_srcdir)/lib/netproto		\
+		-I$(top_srcdir)/lib/network		\
+		-I$(top_srcdir)/lib/util		\
+		-DUSERAGENT=\"tarsnap-keyregen-${VERSION}\"
+
+tarsnap_keyregen_dist_man_MANS=	keyregen/tarsnap-keyregen.1
+
+#
+#
+# tarsnap-recrypt source, docs, etc.
+#
+#
+
+tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
+		tar/multitape/multitape_metadata.c	\
+		tar/multitape/multitape_transaction.c	\
+		tar/chunks/chunks_write.c		\
+		tar/chunks/chunks_stats.c		\
+		tar/chunks/chunks_delete.c		\
+		tar/chunks/chunks_transaction.c		\
+		tar/chunks/chunks_stats_internal.c	\
+		tar/chunks/chunks_directory.c		\
+		tar/storage/storage_write.c		\
+		tar/storage/storage_read.c		\
+		tar/storage/storage_delete.c		\
+		tar/storage/storage_directory.c		\
+		tar/storage/storage_transaction.c
+
+tarsnap_recrypt_LDADD= -lcrypto lib/libtarsnap.a
+tarsnap_recrypt_CFLAGS=						\
+		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/libarchive		\
+		-I$(top_srcdir)/tar/chunks		\
+		-I$(top_srcdir)/tar/multitape		\
+		-I$(top_srcdir)/tar/storage		\
+		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/datastruct		\
+		-I$(top_srcdir)/lib/keyfile		\
+		-I$(top_srcdir)/lib/netpacket		\
+		-I$(top_srcdir)/lib/netproto		\
+		-I$(top_srcdir)/lib/network		\
+		-I$(top_srcdir)/lib/util		\
+		-DUSERAGENT=\"tarsnap-recrypt-${VERSION}\"
+tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
+
+#
 #
 # tarsnap-keymgmt source, docs, etc.
 #
@@ -287,8 +347,7 @@ tarsnap_keymgmt_CFLAGS=					\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I${top_srcdir}/lib/keyfile		\
-		-I$(top_srcdir)/lib/util		\
-		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
+		-I$(top_srcdir)/lib/util
 
 tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
@@ -306,5 +365,9 @@ tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@
 	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5
 keygen/tarsnap-keygen.1: keygen/tarsnap-keygen.1-@MANVER@
 	cat ${top_srcdir}/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1
+keyregen/tarsnap-keyregen.1: keyregen/tarsnap-keyregen.1-@MANVER@
+	cat ${top_srcdir}/keyregen/tarsnap-keyregen.1-@MANVER@ > keyregen/tarsnap-keyregen.1
+recrypt/tarsnap-recrypt.1: recrypt/tarsnap-recrypt.1-@MANVER@
+	cat ${top_srcdir}/recrypt/tarsnap-recrypt.1-@MANVER@ > recrypt/tarsnap-recrypt.1
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1

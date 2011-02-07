@@ -1,0 +1,51 @@
+.TH TARSNAP-KEYREGEN 1 "January 23, 2011" ""
+.SH NAME
+.ad l
+\fB\%tarsnap-keyregen\fP
+\- generate a key file for use with
+\fBtarsnap-recrypt\fP(1)
+.SH SYNOPSIS
+.ad l
+.br
+\fB\%tarsnap-keyregen\fP
+\fB\--keyfile\fP \fIkey-file\fP
+\fB\--oldkey\fP \fIold-key-file\fP
+\fB\--user\fP \fIuser-name\fP
+\fB\--machine\fP \fImachine-name\fP
+[\fB\--passphrased\fP]
+[\fB\--passphrase-mem\fP \fImaxmem\fP]
+.SH DESCRIPTION
+.ad l
+\fB\%tarsnap-keyregen\fP
+generates a set of cryptographic keys which are compatible
+with an existing set of cryptographic keys, registers with
+the tarsnap server, and writes a key file for use with
+\fBtarsnap-recrypt\fP(1)
+and
+\fBtarsnap\fP(1).
+The term
+Qq compatible
+here means that it is possible to re-encrypt archives stored with
+the first set of keys to be stored with the second set of keys.
+.PP
+The
+\fB\--keyfile\fP,
+\fB\--user\fP,
+\fB\--machine\fP,
+and
+\fB\--oldkey\fP
+parameters are all required.
+.PP
+If the
+\fB\--passphrased\fP
+option is specified, the user will be prompted to enter a passphrase (twice)
+to be used to encrypt the key file.
+.PP
+If the
+\fB\--passphrase-mem\fP \fImaxmem\fP
+option is specified, a maximum of
+\fImaxmem\fP
+bytes of RAM will be used in the scrypt key derivation function to
+encrypt the key file; it may be necessary to set this option if a key
+file is being generated on a system with far more RAM than the system
+on which the key file will be used.

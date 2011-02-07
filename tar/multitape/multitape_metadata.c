@@ -24,6 +24,8 @@
  * RSA_SIGN(all the metadata before this signature)
  */
 
+static int multitape_metadata_enc(const struct tapemetadata *, uint8_t **,
+    size_t *);
 static int multitape_metadata_dec(struct tapemetadata *, uint8_t *, size_t);
 static int multitape_metadata_get(STORAGE_R *, CHUNKS_S *,
     struct tapemetadata *, const uint8_t[32], const char *, int);
@@ -52,15 +54,14 @@ err0:
 }
 
 /**
- * multitape_metadata_put(S, C, mdat, extrastats):
- * Store archive metadata.  Call chunks_write_extrastats on ${C} and the
- * metadata file length if ${extrastats} != 0.
+ * multitape_metadata_enc(mdat, bufp, buflenp):
+ * Encode a struct tapemetadata into a buffer.  Return the buffer and its
+ * length via ${bufp} and ${buflenp} respectively.
  */
-int
-multitape_metadata_put(STORAGE_W * S, CHUNKS_W * C,
-    struct tapemetadata * mdat, int extrastats)
+static int
+multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
+    size_t * buflenp)
 {
-	uint8_t hbuf[32];	/* HMAC of tape name. */
 	uint8_t * buf;		/* Encoded metadata. */
 	size_t buflen;		/* Encoded metadata size. */
 	uint8_t * p;
@@ -113,6 +114,37 @@ multitape_metadata_put(STORAGE_W * S, CHUNKS_W * C,
 	/* Generate signature. */
 	if (crypto_rsa_sign(CRYPTO_KEY_SIGN_PRIV, buf, p - buf, p, 256))
 		goto err1;
+
+	/* Return buffer and length. */
+	*bufp = buf;
+	*buflenp = buflen;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(buf);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * multitape_metadata_put(S, C, mdat, extrastats):
+ * Store archive metadata.  Call chunks_write_extrastats on ${C} and the
+ * metadata file length if ${extrastats} != 0.
+ */
+int
+multitape_metadata_put(STORAGE_W * S, CHUNKS_W * C,
+    struct tapemetadata * mdat, int extrastats)
+{
+	uint8_t hbuf[32];	/* HMAC of tape name. */
+	uint8_t * buf;		/* Encoded metadata. */
+	size_t buflen;		/* Encoded metadata size. */
+
+	/* Construct metadata file. */
+	if (multitape_metadata_enc(mdat, &buf, &buflen))
+		goto err0;
 
 	/* Compute hash of tape name. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_NAME,
@@ -412,6 +444,45 @@ multitape_metadata_free(struct tapemetadata * mdat)
 
 	/* Free archive name. */
 	free(mdat->name);
+}
+
+/**
+ * multitape_metadata_recrypt(obuf, obuflen, nbuf, nbuflen):
+ * Decrypt and re-encrypt the provided metadata file.
+ */
+int
+multitape_metadata_recrypt(uint8_t * obuf, size_t obuflen, uint8_t ** nbuf,
+    size_t * nbuflen)
+{
+	struct tapemetadata mdat;
+
+	/* Parse the metadata file. */
+	switch (multitape_metadata_dec(&mdat, obuf, obuflen)) {
+	case 1:
+		warn0("Metadata file is corrupt");
+		goto err0;
+	case -1:
+		warnp("Error parsing metadata file");
+		goto err0;
+	}
+
+	/* Construct a new metadata file. */
+	if (multitape_metadata_enc(&mdat, nbuf, nbuflen)) {
+		warnp("Error constructing metadata file");
+		goto err1;
+	}
+
+	/* Free the metadata we parsed. */
+	multitape_metadata_free(&mdat);
+
+	/* Success! */
+	return (0);
+
+err1:
+	multitape_metadata_free(&mdat);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /**

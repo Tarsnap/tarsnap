@@ -40,7 +40,8 @@ static handlepacket_callback callback_directory_response;
  * NETPACKET_DIRECTORY_D requests (using the delete key).  Return the list
  * and the number of files via ${flist} and ${nfiles} respectively.
  */
-int storage_directory_read(uint64_t machinenum, char class, int key,
+int
+storage_directory_read(uint64_t machinenum, char class, int key,
     uint8_t ** flist, size_t * nfiles)
 {
 	struct directory_read_internal C;

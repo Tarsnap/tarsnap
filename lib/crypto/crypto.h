@@ -22,6 +22,15 @@
 #define CRYPTO_KEY_AUTH_GET	11
 #define CRYPTO_KEY_AUTH_DELETE	12
 
+/*
+ * HMAC_FILE_WRITE is normally the same key as HMAC_FILE, but can be set to
+ * a different value via a masked crypto_keys_import if we need to read from
+ * one archive set and write to another (i.e., tarsnap-recrypt).  Because it
+ * is a duplicate key, HMAC_FILE_WRITE cannot be exported or generated.
+ */
+/* Keys #13--18 reserved for server code. */
+#define CRYPTO_KEY_HMAC_FILE_WRITE 19
+
 /* Fake HMAC "key" to represent "just SHA256 the data". */
 #define CRYPTO_KEY_HMAC_SHA256	(-1)
 
@@ -35,6 +44,7 @@
 #define CRYPTO_KEYMASK_ENCR					\
 	(CRYPTO_KEYMASK_ENCR_PRIV | CRYPTO_KEYMASK_ENCR_PUB)
 #define CRYPTO_KEYMASK_HMAC_FILE	(1 << CRYPTO_KEY_HMAC_FILE)
+#define CRYPTO_KEYMASK_HMAC_FILE_WRITE	(1 << CRYPTO_KEY_HMAC_FILE_WRITE)
 #define CRYPTO_KEYMASK_HMAC_CHUNK	(1 << CRYPTO_KEY_HMAC_CHUNK)
 #define CRYPTO_KEYMASK_HMAC_NAME	(1 << CRYPTO_KEY_HMAC_NAME)
 #define CRYPTO_KEYMASK_HMAC_CPARAMS	(1 << CRYPTO_KEY_HMAC_CPARAMS)
@@ -95,10 +105,11 @@ int crypto_entropy_read(uint8_t *, size_t);
 int crypto_keys_init(void);
 
 /**
- * crypto_keys_import(buf, buflen):
- * Import keys from the provided buffer into the key cache.
+ * crypto_keys_import(buf, buflen, keys):
+ * Import keys from the provided buffer into the key cache.  Ignore any keys
+ * not specified in the mask ${keys}.
  */
-int crypto_keys_import(uint8_t * buf, size_t buflen);
+int crypto_keys_import(uint8_t *, size_t, int);
 
 /**
  * crypto_keys_missing(keys):

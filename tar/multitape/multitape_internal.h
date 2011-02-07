@@ -134,6 +134,12 @@ int multitape_metadata_get_byname(STORAGE_R *, CHUNKS_S *,
 void multitape_metadata_free(struct tapemetadata *);
 
 /**
+ * multitape_metadata_recrypt(obuf, obuflen, nbuf, nbuflen):
+ * Decrypt and re-encrypt the provided metadata file.
+ */
+int multitape_metadata_recrypt(uint8_t *, size_t, uint8_t **, size_t *);
+
+/**
  * multitape_metadata_delete(S, C, mdat):
  * Delete specified metadata file; ${mdat} must have been initialized by a
  * call to multitape_metadata_get_by(hash|name).  Call
