@@ -40,6 +40,19 @@ int storage_read_file_alloc(STORAGE_R *, uint8_t **, size_t *, char,
     const uint8_t[32]);
 
 /**
+ * storage_read_file_callback(S, buf, buflen, class, name, callback, cookie):
+ * Read the file ${name} from class ${class} using the read cookie ${S}
+ * returned from storage_read_init.  If ${buf} is non-NULL, then read the
+ * file (which should be ${buflen} bytes in length} into ${buf}; otherwise
+ * malloc a buffer.  Invoke ${callback}(${cookie}, status, b, blen) when
+ * complete, where ${status} is 0, 1, 2, or -1 as per storage_read_file,
+ * ${b} is the buffer into which the data was read (which will be ${buf} if
+ * that value was non-NUL) and ${blen} is the length of the file.
+ */
+int storage_read_file_callback(STORAGE_R *, uint8_t *, size_t, char,
+    const uint8_t[32], int(*)(void *, int, uint8_t *, size_t), void *);
+
+/**
  * storage_read_free(S):
  * Close the read cookie ${S} and free any allocated memory.
  */

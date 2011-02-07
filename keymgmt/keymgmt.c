@@ -133,8 +133,12 @@ main(int argc, char **argv)
 
 	/* Read the specified key files. */
 	while (argc-- > 0) {
-		/* Suck in the key file. */
-		if (keyfile_read(argv[0], &kfmachinenum)) {
+		/*
+		 * Suck in the key file.  We could mask this to only load the
+		 * keys we want to copy, but there's no point really since we
+		 * export keys selectively.
+		 */
+		if (keyfile_read(argv[0], &kfmachinenum, ~0)) {
 			warnp("Cannot read key file: %s", argv[0]);
 			exit(1);
 		}

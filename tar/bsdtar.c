@@ -1537,7 +1537,7 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 	uint64_t machinenum;
 
 	/* Load the key file. */
-	if (keyfile_read(path, &machinenum))
+	if (keyfile_read(path, &machinenum, ~0))
 		bsdtar_errc(bsdtar, 1, errno,
 		    "Cannot read key file: %s", path);
 

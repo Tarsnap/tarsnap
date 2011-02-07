@@ -114,7 +114,7 @@ crypto_file_enc(const uint8_t * buf, size_t len, uint8_t * filebuf)
 	crypto_aesctr_free(stream);
 
 	/* Compute HMAC. */
-	if (crypto_hash_data(CRYPTO_KEY_HMAC_FILE, filebuf,
+	if (crypto_hash_data(CRYPTO_KEY_HMAC_FILE_WRITE, filebuf,
 	    CRYPTO_FILE_HLEN + len, filebuf + CRYPTO_FILE_HLEN + len))
 		goto err0;
 

@@ -1,3 +1,9 @@
+tarsnap (1.0.29) unstable; urgency=low
+
+  * New version of tarsnap adds tarsnap-recrypt utility for re-encrypting
+    stored data.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Tue, 1 Feb 2011 21:28:44 +0000
 tarsnap (1.0.28) unstable; urgency=critical
 
   * Bug fix in encryption code.

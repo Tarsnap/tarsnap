@@ -56,5 +56,5 @@ int
 crypto_keys_server_import_root(void)
 {
 
-	return (crypto_keys_import(root_key, root_key_len));
+	return (crypto_keys_import(root_key, root_key_len, ~0));
 }

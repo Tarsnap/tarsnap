@@ -19,12 +19,16 @@ struct storage_read_internal {
 };
 
 struct read_file_internal {
-	/* General state information. */
-	uint64_t machinenum;
 	int done;
 	int status;
+	uint8_t * buf;
+	size_t buflen;
+};
 
-	/* Parameters used in read_file. */
+struct read_file_cookie {
+	int (*callback)(void *, int, uint8_t *, size_t);
+	void * cookie;
+	uint64_t machinenum;
 	uint8_t class;
 	uint8_t name[32];
 	uint32_t size;
@@ -34,6 +38,7 @@ struct read_file_internal {
 
 static sendpacket_callback callback_read_file_send;
 static handlepacket_callback callback_read_file_response;
+static int callback_read_file(void *, int, uint8_t *, size_t);
 
 /**
  * storage_read_init(machinenum):
@@ -79,26 +84,15 @@ storage_read_file(STORAGE_R * S, uint8_t * buf, size_t buflen,
 {
 	struct read_file_internal C;
 
-	/* Sanity-check file size. */
-	if (buflen > 262144 - STORAGE_FILE_OVERHEAD) {
-		warn0("Programmer error: File too large");
-		goto err0;
-	}
-
 	/* Initialize structure. */
-	C.machinenum = S->machinenum;
-	C.class = class;
-	memcpy(C.name, name, 32);
-	C.size = buflen + STORAGE_FILE_OVERHEAD;
 	C.buf = buf;
 	C.buflen = buflen;
 	C.done = 0;
 
-	/* Ask the netpacket layer to send a request and get a response. */
-	if (netpacket_op(S->NPC, callback_read_file_send, &C))
+	/* Issue the request and spin until completion. */
+	if (storage_read_file_callback(S, C.buf, C.buflen, class, name,
+	    callback_read_file, &C))
 		goto err0;
-
-	/* Wait until the server has responded or we have failed. */
 	if (network_spin(&C.done))
 		goto err0;
 
@@ -123,19 +117,14 @@ int storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
 	struct read_file_internal C;
 
 	/* Initialize structure. */
-	C.machinenum = S->machinenum;
-	C.class = class;
-	memcpy(C.name, name, 32);
-	C.size = (uint32_t)(-1);
 	C.buf = NULL;
 	C.buflen = 0;
 	C.done = 0;
 
-	/* Ask the netpacket layer to send a request and get a response. */
-	if (netpacket_op(S->NPC, callback_read_file_send, &C))
+	/* Issue the request and spin until completion. */
+	if (storage_read_file_callback(S, C.buf, C.buflen, class, name,
+	    callback_read_file, &C))
 		goto err0;
-
-	/* Wait until the server has responded or we have failed. */
 	if (network_spin(&C.done))
 		goto err0;
 
@@ -145,9 +134,66 @@ int storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
 		*buflen = C.buflen;
 	}
 
-	/* Return status code from server. */
+	/* Return status code. */
 	return (C.status);
 
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * storage_read_file_callback(S, buf, buflen, class, name, callback, cookie):
+ * Read the file ${name} from class ${class} using the read cookie ${S}
+ * returned from storage_read_init.  If ${buf} is non-NULL, then read the
+ * file (which should be ${buflen} bytes in length} into ${buf}; otherwise
+ * malloc a buffer.  Invoke ${callback}(${cookie}, status, b, blen) when
+ * complete, where ${status} is 0, 1, 2, or -1 as per storage_read_file,
+ * ${b} is the buffer into which the data was read (which will be ${buf} if
+ * that value was non-NUL) and ${blen} is the length of the file.
+ */
+int
+storage_read_file_callback(STORAGE_R * S, uint8_t * buf, size_t buflen,
+    char class, const uint8_t name[32],
+    int callback(void *, int, uint8_t *, size_t), void * cookie)
+{
+	struct read_file_cookie * C;
+
+	/* Sanity-check file size if a buffer was provided. */
+	if ((buf != NULL) && (buflen > 262144 - STORAGE_FILE_OVERHEAD)) {
+		warn0("Programmer error: File too large");
+		goto err0;
+	}
+
+	/* Bake a cookie. */
+	if ((C = malloc(sizeof(struct read_file_cookie))) == NULL)
+		goto err0;
+	C->callback = callback;
+	C->cookie = cookie;
+	C->machinenum = S->machinenum;
+	C->class = class;
+	memcpy(C->name, name, 32);
+
+	/* Do we have a buffer? */
+	if (buf != NULL) {
+		C->buf = buf;
+		C->buflen = buflen;
+		C->size = buflen + STORAGE_FILE_OVERHEAD;
+	} else {
+		C->buf = NULL;
+		C->buflen = 0;
+		C->size = (uint32_t)(-1);
+	}
+
+	/* Ask the netpacket layer to send a request and get a response. */
+	if (netpacket_op(S->NPC, callback_read_file_send, C))
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(C);
 err0:
 	/* Failure! */
 	return (-1);
@@ -156,7 +202,7 @@ err0:
 static int
 callback_read_file_send(void * cookie, NETPACKET_CONNECTION * NPC)
 {
-	struct read_file_internal * C = cookie;
+	struct read_file_cookie * C = cookie;
 
 	/* Ask the server to read the file. */
 	return (netpacket_read_file(NPC, C->machinenum, C->class,
@@ -168,10 +214,11 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
     int status, uint8_t packettype, const uint8_t * packetbuf,
     size_t packetlen)
 {
-	struct read_file_internal * C = cookie;
+	struct read_file_cookie * C = cookie;
 	uint32_t filelen;
+	int sc;
+	int rc;
 
-	(void)packetlen; /* UNUSED */
 	(void)NPC; /* UNUSED */
 
 	/* Handle errors. */
@@ -198,12 +245,12 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	    (memcmp(&packetbuf[2], C->name, 32)))
 		goto err1;
 
-	/* Record status code returned by server. */
-	C->status = packetbuf[0];
+	/* Extract status code and file length returned by server. */
+	sc = packetbuf[0];
+	filelen = be32dec(&packetbuf[34]);
 
 	/* Verify packet integrity. */
-	filelen = be32dec(&packetbuf[34]);
-	switch (C->status) {
+	switch (sc) {
 	case 0:
 		if (packetlen != filelen + 70)
 			goto err1;
@@ -230,7 +277,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	}
 
 	/* Decrypt file data if appropriate. */
-	if (C->status == 0) {
+	if (sc == 0) {
 		/* Allocate a buffer if necessary. */
 		if (C->size == (uint32_t)(-1)) {
 			C->buflen = filelen - STORAGE_FILE_OVERHEAD;
@@ -240,7 +287,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		switch (crypto_file_dec(&packetbuf[38], C->buflen, C->buf)) {
 		case 1:
 			/* File is corrupt. */
-			C->status = 2;
+			sc = 2;
 			if (C->size == (uint32_t)(-1))
 				free(C->buf);
 			break;
@@ -255,24 +302,45 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	 * If the user's tarsnap account balance is negative, print a warning
 	 * message and then pass back a generic error status code.
 	 */
-	if (C->status == 3) {
+	if (sc == 3) {
 		warn0("Cannot read data from tarsnap server: "
 		    "Account balance is not positive.");
 		warn0("Please add more money to your tarsnap account");
-		C->status = -1;
+		sc = -1;
 	}
 
-	/* We're done! */
-	C->done = 1;
+	/* Perform the callback. */
+	rc = (C->callback)(C->cookie, sc, C->buf, C->buflen);
 
-	/* Success! */
-	return (0);
+	/* Free the cookie. */
+	free(C);
+
+	/* Return result from callback. */
+	return (rc);
 
 err1:
 	netproto_printerr(NETPROTO_STATUS_PROTERR);
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/* Callback for storage_read_file and storage_read_file_alloc. */
+static int
+callback_read_file(void * cookie, int sc, uint8_t * buf, size_t buflen)
+{
+	struct read_file_internal * C = cookie;
+
+	/* Record parameters. */
+	C->status = sc;
+	C->buf = buf;
+	C->buflen = buflen;
+
+	/* We're done. */
+	C->done = 1;
+
+	/* Success! */
+	return (0);
 }
 
 /**

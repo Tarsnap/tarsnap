@@ -21,6 +21,7 @@ static struct {
 	RSA * encr_pub;
 	RSA * root_pub;
 	struct crypto_hmac_key * hmac_file;
+	struct crypto_hmac_key * hmac_file_write;
 	struct crypto_hmac_key * hmac_chunk;
 	struct crypto_hmac_key * hmac_name;
 	struct crypto_hmac_key * hmac_cparams;
@@ -149,11 +150,12 @@ err0:
 }
 
 /**
- * crypto_keys_import(buf, buflen):
- * Import keys from the provided buffer into the key cache.
+ * crypto_keys_import(buf, buflen, keys):
+ * Import keys from the provided buffer into the key cache.  Ignore any keys
+ * not specified in the mask ${keys}.
  */
 int
-crypto_keys_import(uint8_t * buf, size_t buflen)
+crypto_keys_import(uint8_t * buf, size_t buflen, int keys)
 {
 	struct keyheader * kh;
 	uint32_t len;
@@ -181,62 +183,78 @@ crypto_keys_import(uint8_t * buf, size_t buflen)
 		/* Parse the key. */
 		switch (kh->type) {
 		case CRYPTO_KEY_SIGN_PRIV:
-			if (crypto_keys_subr_import_RSA_priv(
+			if ((keys & CRYPTO_KEYMASK_SIGN_PRIV) &&
+			    crypto_keys_subr_import_RSA_priv(
 			    &keycache.sign_priv, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_SIGN_PUB:
-			if (crypto_keys_subr_import_RSA_pub(
+			if ((keys & CRYPTO_KEYMASK_SIGN_PUB) &&
+			    crypto_keys_subr_import_RSA_pub(
 			    &keycache.sign_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_ENCR_PRIV:
-			if (crypto_keys_subr_import_RSA_priv(
+			if ((keys & CRYPTO_KEYMASK_ENCR_PRIV) &&
+			    crypto_keys_subr_import_RSA_priv(
 			    &keycache.encr_priv, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_ENCR_PUB:
-			if (crypto_keys_subr_import_RSA_pub(
+			if ((keys & CRYPTO_KEYMASK_ENCR_PUB) &&
+			    crypto_keys_subr_import_RSA_pub(
 			    &keycache.encr_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_HMAC_FILE:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_HMAC_FILE) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_file, buf, len))
+				goto err0;
+			if ((keys & CRYPTO_KEYMASK_HMAC_FILE_WRITE) &&
+			    crypto_keys_subr_import_HMAC(
+			    &keycache.hmac_file_write, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_HMAC_CHUNK:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_HMAC_CHUNK) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_chunk, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_HMAC_NAME:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_HMAC_NAME) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_name, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_HMAC_CPARAMS:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_HMAC_CPARAMS) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_cparams, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_ROOT_PUB:
-			if (crypto_keys_subr_import_RSA_pub(
+			if ((keys & CRYPTO_KEYMASK_ROOT_PUB) &&
+			    crypto_keys_subr_import_RSA_pub(
 			    &keycache.root_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_AUTH_PUT:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_AUTH_PUT) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.auth_put, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_AUTH_GET:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_AUTH_GET) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.auth_get, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_AUTH_DELETE:
-			if (crypto_keys_subr_import_HMAC(
+			if ((keys & CRYPTO_KEYMASK_AUTH_DELETE) &&
+			    crypto_keys_subr_import_HMAC(
 			    &keycache.auth_delete, buf, len))
 				goto err0;
 			break;
@@ -295,6 +313,10 @@ crypto_keys_missing(int keys)
 		case CRYPTO_KEY_HMAC_FILE:
 			if (keycache.hmac_file == NULL)
 				keyname = "file HMAC";
+			break;
+		case CRYPTO_KEY_HMAC_FILE_WRITE:
+			if (keycache.hmac_file == NULL)
+				keyname = "file write HMAC";
 			break;
 		case CRYPTO_KEY_HMAC_CHUNK:
 			if (keycache.hmac_chunk == NULL)
@@ -635,6 +657,9 @@ crypto_keys_lookup_HMAC(int key)
 	switch (key) {
 	case CRYPTO_KEY_HMAC_FILE:
 		hkey = keycache.hmac_file;
+		break;
+	case CRYPTO_KEY_HMAC_FILE_WRITE:
+		hkey = keycache.hmac_file_write;
 		break;
 	case CRYPTO_KEY_HMAC_CHUNK:
 		hkey = keycache.hmac_chunk;
