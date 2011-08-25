@@ -96,7 +96,7 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 	s.s_len = stats->s_len + stats_extra->s_len;
 	s.s_zlen = stats->s_zlen + stats_extra->s_zlen;
 
-	/* Stringify values, */
+	/* Stringify values. */
 	if (tarsnap_opt_humanize_numbers) {
 		if ((s_lenstr = humansize(s.s_len)) == NULL)
 			goto err0;

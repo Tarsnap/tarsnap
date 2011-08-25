@@ -91,7 +91,8 @@ recalloc(void ** ptr, size_t clen, size_t nlen, size_t size)
 		cplen = nlen;
 	else
 		cplen = clen;
-	memcpy(nbuf, *ptr, cplen * size);
+	if (cplen > 0)
+		memcpy(nbuf, *ptr, cplen * size);
 
 	/* Zero any uninitialized buffer contents. */
 	memset((void *)((char *)nbuf + cplen * size), 0,
@@ -206,7 +207,7 @@ selectstats_stopclock(void)
 }
 
 /**
- * network_init():
+ * network_init(void):
  * Initialize the network subsystem and return a cookie.
  */
 int
@@ -730,7 +731,7 @@ network_getselectstats(double * NN, double * mu, double * va, double * max)
 }
 
 /**
- * network_fini():
+ * network_fini(void):
  * Free resources associated with the network subsystem.
  */
 void

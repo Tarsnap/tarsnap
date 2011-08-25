@@ -267,6 +267,10 @@ main(int argc, char **argv)
 			/* libarchive doesn't need this; just ignore it. */
 			break;
 		case 'C': /* GNU tar */
+			if (strlen(bsdtar->optarg) == 0)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Meaningless option: -C ''");
+
 			set_chdir(bsdtar, bsdtar->optarg);
 			break;
 		case 'c': /* SUSv2 */
@@ -550,7 +554,13 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_OWNER;
 			break;
 		case OPTION_STRIP_COMPONENTS: /* GNU tar 1.15 */
-			bsdtar->strip_components = atoi(bsdtar->optarg);
+			errno = 0;
+			bsdtar->strip_components = strtol(bsdtar->optarg,
+			    NULL, 0);
+			if (errno)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Invalid --strip-components argument: %s",
+				    bsdtar->optarg);
 			break;
 		case 'T': /* GNU tar */
 			bsdtar->names_from_file = bsdtar->optarg;
@@ -684,6 +694,10 @@ main(int argc, char **argv)
 	    (strlen(bsdtar->tapenames[0]) > 1023))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cannot create an archive with a name > 1023 characters");
+	if ((bsdtar->mode == 'c') &&
+	    (strlen(bsdtar->tapenames[0]) == 0))
+		bsdtar_errc(bsdtar, 1, 0,
+		    "Cannot create an archive with an empty name");
 	if ((bsdtar->cachedir == NULL) &&
 	    (bsdtar->mode == 'c' || bsdtar->mode == 'd' ||
 	     bsdtar->mode == OPTION_RECOVER ||
@@ -760,6 +774,7 @@ main(int argc, char **argv)
 		if (realpath(bsdtar->cachedir, cachedir) == NULL)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
+		free(bsdtar->cachedir);
 		bsdtar->cachedir = cachedir;
 	}
 
@@ -1522,7 +1537,7 @@ optset:
 needarg:
 	/* Option needs an argument. */
 	bsdtar_errc(bsdtar, 1, 0,
-	    "Argument requried for configuration file option: %s", conf_opt);
+	    "Argument required for configuration file option: %s", conf_opt);
 
 badopt:
 	/* No such option. */

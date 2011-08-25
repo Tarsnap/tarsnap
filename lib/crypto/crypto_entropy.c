@@ -154,7 +154,7 @@ generate(uint8_t * buf, size_t buflen)
 }
 
 /**
- * crypto_entropy_init():
+ * crypto_entropy_init(void):
  * Initialize the PRNG.
  */
 int

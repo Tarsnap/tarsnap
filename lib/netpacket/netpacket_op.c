@@ -23,6 +23,9 @@ static network_callback callback_packetreceived;
 /* Maximum number of times we'll try to reconnect. */
 #define MAXRECONNECTS	10
 
+/* As above, except the server doesn't seem to be around at all. */
+#define MAXRECONNECTS_AWOL	1
+
 /* Time to wait between each attempt. */
 static int reconnect_wait[MAXRECONNECTS + 1] = {
     0, 0, 1, 2, 4, 8, 15, 30, 60, 90, 90
@@ -235,10 +238,10 @@ reconnect(NETPACKET_CONNECTION * NPC)
 	/* We're not reading a packet any more, if we ever were. */
 	NPC->reading = 0;
 
-	/* Have we lost out connection / failed to connect too many times? */
+	/* Have we lost our connection / failed to connect too many times? */
 	NPC->ndrops += 1;
-	if ((NPC->ndrops > 10) ||
-	    (NPC->serveralive == 0 && NPC->ndrops > 1)) {
+	if ((NPC->ndrops > MAXRECONNECTS) ||
+	    (NPC->serveralive == 0 && NPC->ndrops > MAXRECONNECTS_AWOL)) {
 		warn0("Too many network failures");
 		goto err0;
 	}
@@ -502,6 +505,9 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 		NPC->pending_current = next;
 	}
 
+	/* Free string allocated by strdup. */
+	free(NPC->useragent);
+
 	/* Free the cookie. */
 	free(NPC);
 
@@ -516,6 +522,7 @@ err1:
 		NPC->pending_current = next;
 	}
 
+	free(NPC->useragent);
 	free(NPC);
 
 	/* Failure! */

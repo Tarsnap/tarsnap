@@ -393,7 +393,7 @@ archive_read_format_iso9660_options(struct archive_read *a,
 
 	/* Note: The "warn" return is just to inform the options
 	 * supervisor that we didn't handle it.  It will generate
-	 * a suitable error if noone used this option. */
+	 * a suitable error if no one used this option. */
 	return (ARCHIVE_WARN);
 }
 
@@ -439,13 +439,6 @@ isJolietSVD(struct iso9660 *iso9660, const unsigned char *h)
 
 	iso9660->volume_size = iso9660->logical_block_size
 	    * (uint64_t)toi(h + SVD_volume_space_size_offset, 4);
-
-#if DEBUG
-	fprintf(stderr, "Joliet UCS-2 level %d with "
-			"logical block size:%d, volume size:%d\n",
-			iso9660->seenJoliet,
-			iso9660->logical_block_size, iso9660->volume_size);
-#endif
 
 	/* Store the root directory in the pending list. */
 	file = parse_file_info(iso9660, NULL, h + SVD_root_directory_record_offset);
@@ -774,7 +767,7 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 #if 0 /* untested code, is it at all useful on Joliet? */
 		/* trim trailing first version and dot from filename.
 		 *
-		 * Remember we where in UTF-16BE land!
+		 * Remember we were in UTF-16BE land!
 		 * SEPARATOR 1 (.) and SEPARATOR 2 (;) are both
 		 * 16 bits big endian characters on Joliet.
 		 *
@@ -906,7 +899,7 @@ parse_rockridge(struct iso9660 *iso9660, struct file_info *file,
 					    * iso9660->logical_block_size
 					    + toi(data + 8, 4);
 					file->ce_size = toi(data + 16, 4);
-					/* If the result is rediculous,
+					/* If the result is ridiculous,
 					 * ignore it. */
 					if (file->ce_offset + file->ce_size
 					    > iso9660->volume_size) {

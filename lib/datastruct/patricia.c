@@ -49,7 +49,7 @@ struct pnode {
  *
  * In some applications it may be preferable to eliminate variable-length
  * memory allocations entirely and provide the same size of memory allocation
- * to each node; if this is done, it would almost certainly be desireable to
+ * to each node; if this is done, it would almost certainly be desirable to
  * reduce MAXSLEN further, e.g., to (2 * sizeof(void *) - 3) so that each
  * node would be of size (4 * sizeof(void *)).
  */
@@ -241,7 +241,7 @@ foreach_internal(struct pnode * n,
 }
 
 /*
- * Recusively free the tree.
+ * Recursively free the tree.
  */
 static void
 free_internal(struct pnode * n)
@@ -260,7 +260,7 @@ free_internal(struct pnode * n)
 }
 
 /**
- * patricia_init():
+ * patricia_init(void):
  * Create a Patricia tree to be used for mapping arbitrary-length keys to
  * records.  Return NULL on failure.
  */
@@ -335,7 +335,7 @@ patricia_insert(PATRICIA * P, const uint8_t * key, size_t keylen, void * rec)
 			 * Split the node *np after mlen bytes and a number
 			 * of bits based on mask.  Leave *np pointing to the
 			 * upper of the two nodes (because we will continue
-			 * by traversing into the so-far-nonexistant child
+			 * by traversing into the so-far-nonexistent child
 			 * of the new node).
 			 */
 			/* Create the lower of the new nodes. */
@@ -468,7 +468,7 @@ patricia_lookup(PATRICIA * P, const uint8_t * key, size_t keylen)
 
 /**
  * patricia_foreach(tree, func, cookie):
- * Traverse the tree in lexographical order of stored keys, and call
+ * Traverse the tree in lexicographical order of stored keys, and call
  * func(cookie, key, keylen, rec) for each (key, record) pair.  Stop the
  * traversal early if func returns a non-zero value; return zero, the
  * non-zero value returned by func, or (-1) if an error occurs in the
@@ -507,7 +507,7 @@ void
 patricia_free(PATRICIA * P)
 {
 
-	/* Behave consistenly with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (P == NULL)
 		return;
 

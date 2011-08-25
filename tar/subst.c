@@ -153,7 +153,8 @@ realloc_strncat(struct bsdtar *bsdtar, char **str, const char *append, size_t le
 	new_str = malloc(old_len + len + 1);
 	if (new_str == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
-	memcpy(new_str, *str, old_len);
+	if (*str != NULL)
+		memcpy(new_str, *str, old_len);
 	memcpy(new_str + old_len, append, len);
 	new_str[old_len + len] = '\0';
 	free(*str);
@@ -174,7 +175,8 @@ realloc_strcat(struct bsdtar *bsdtar, char **str, const char *append)
 	new_str = malloc(old_len + strlen(append) + 1);
 	if (new_str == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
-	memcpy(new_str, *str, old_len);
+	if (*str != NULL)
+		memcpy(new_str, *str, old_len);
 	strcpy(new_str + old_len, append);
 	free(*str);
 	*str = new_str;
@@ -211,7 +213,9 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 		for (i = 0, j = 0; rule->result[i] != '\0'; ++i) {
 			if (rule->result[i] == '~') {
 				realloc_strncat(bsdtar, result, rule->result + j, i - j);
-				realloc_strncat(bsdtar, result, name, matches[0].rm_eo);
+				realloc_strncat(bsdtar, result,
+				    name + matches[0].rm_so,
+				    matches[0].rm_eo - matches[0].rm_so);
 				j = i + 1;
 				continue;
 			}

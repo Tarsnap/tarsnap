@@ -368,7 +368,7 @@ archive_read_format_tar_bid(struct archive_read *a)
 }
 
 /*
- * The function invoked by archive_read_header().  This
+ * The function invoked by archive_read_next_header().  This
  * just sets up a few things and then calls the internal
  * tar_read_header() function below.
  */
@@ -593,7 +593,7 @@ tar_read_header(struct archive_read *a, struct tar *tar,
 		return (bytes);
 	if (bytes < 512) {  /* Short read or EOF. */
 		/* Try requesting just one byte and see what happens. */
-		h = __archive_read_ahead(a, 1, &bytes);
+		(void)__archive_read_ahead(a, 1, &bytes);
 		if (bytes == 0) {
 			/*
 			 * The archive ends at a 512-byte boundary but
@@ -896,7 +896,7 @@ read_body_to_string(struct archive_read *a, struct tar *tar,
 		return (ARCHIVE_FATAL);
 	}
 
- 	/* Read the body into the string. */
+	/* Read the body into the string. */
 	padded_size = (size + 511) & ~ 511;
 	src = __archive_read_ahead(a, padded_size, NULL);
 	if (src == NULL)
@@ -1200,7 +1200,7 @@ pax_header(struct archive_read *a, struct tar *tar,
     struct archive_entry *entry, char *attr)
 {
 	size_t attr_length, l, line_length;
-	char *line, *p;
+	char *p;
 	char *key, *value;
 	int err, err2;
 
@@ -1216,7 +1216,7 @@ pax_header(struct archive_read *a, struct tar *tar,
 		/* Parse decimal length field at start of line. */
 		line_length = 0;
 		l = attr_length;
-		line = p = attr; /* Record start of line. */
+		p = attr; /* Record start of line. */
 		while (l>0) {
 			if (*p == ' ') {
 				p++;
@@ -1828,7 +1828,7 @@ gnu_sparse_old_parse(struct tar *tar,
  * Beginning with GNU tar 1.15, sparse files are stored using
  * information in the pax extended header.  The GNU tar maintainers
  * have gone through a number of variations in the process of working
- * out this scheme; furtunately, they're all numbered.
+ * out this scheme; fortunately, they're all numbered.
  *
  * Sparse format 0.0 uses attribute GNU.sparse.numblocks to store the
  * number of blocks, and GNU.sparse.offset/GNU.sparse.numbytes to
@@ -2193,7 +2193,7 @@ utf8_decode(struct tar *tar, const char *src, size_t length)
 
 	/* Ensure pax_entry buffer is big enough. */
 	if (tar->pax_entry_length <= length) {
-		wchar_t *old_entry = tar->pax_entry;
+		wchar_t *old_entry;
 
 		if (tar->pax_entry_length <= 0)
 			tar->pax_entry_length = 1024;

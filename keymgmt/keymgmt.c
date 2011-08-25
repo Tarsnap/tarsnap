@@ -127,7 +127,8 @@ main(int argc, char **argv)
 
 	/*
 	 * It doesn't make sense to specify --passphrase-mem if we're not
-	 * using a passphrase. */
+	 * using a passphrase.
+	 */
 	if ((maxmem != 0) && (passphrased == 0))
 		usage();
 

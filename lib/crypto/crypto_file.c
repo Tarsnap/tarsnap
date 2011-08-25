@@ -23,7 +23,7 @@ static RWHASHTAB * decr_aes_cache;
 static int keygen(void);
 
 /**
- * crypto_file_init_keys():
+ * crypto_file_init_keys(void):
  * Initialize the keys cached by crypto_file.
  */
 int

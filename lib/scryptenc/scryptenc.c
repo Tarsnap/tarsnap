@@ -317,7 +317,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime):
- * Decrypt inbuflen bytes fro inbuf, writing the result into outbuf and the
+ * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
  * decrypted data length to outlen.  The allocated length of outbuf must
  * be at least inbuflen.
  */
@@ -473,7 +473,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	int rc;
 
 	/*
-	 * Read the first 7 bytes of the file; all future version of scrypt
+	 * Read the first 7 bytes of the file; all future versions of scrypt
 	 * are guaranteed to have at least 7 bytes of header.
 	 */
 	if (fread(header, 7, 1, infile) < 1) {
@@ -490,7 +490,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 		return (8);
 
 	/*
-	 * Read another 89 bytes of the file; version 0 of the srypt file
+	 * Read another 89 bytes of the file; version 0 of the scrypt file
 	 * format has a 96-byte header.
 	 */
 	if (fread(&header[7], 89, 1, infile) < 1) {

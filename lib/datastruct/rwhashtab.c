@@ -37,21 +37,20 @@ struct rwhashtab_internal {
 };
 
 static int rwhashtab_enlarge(RWHASHTAB * H);
-static size_t rwhashtab_search(RWHASHTAB * H, void ** ht, size_t size,
-    const uint8_t * key);
+static size_t rwhashtab_search(RWHASHTAB * H, const uint8_t * key);
 
-/* Enlarge the table by a factor of 2, and rehash */
+/* Enlarge the table by a factor of 2, and rehash. */
 static int
 rwhashtab_enlarge(RWHASHTAB * H)
 {
-	void ** htnew;
+	void ** htnew, ** htold;
 	void * rec;
-	size_t newsize;
+	size_t newsize, oldsize;
 	size_t htposold, htposnew;
 
 	/*
 	 * Compute new size, and make sure the new table size in bytes
-	 * doesn't overflow
+	 * doesn't overflow.
 	 */
 	newsize = H->cursize * 2;
 	if (newsize > SIZE_MAX / sizeof(void *)) {
@@ -59,27 +58,30 @@ rwhashtab_enlarge(RWHASHTAB * H)
 		return (-1);
 	}
 
-	/* Allocate and zero the new space */
-	htnew = malloc(newsize * sizeof(void *));
-	if (htnew == NULL)
+	/* Allocate and zero the new space. */
+	if ((htnew = malloc(newsize * sizeof(void *))) == NULL)
 		return (-1);
 	for (htposnew = 0; htposnew < newsize; htposnew++)
 		htnew[htposnew] = NULL;
 
-	/* Rehash into new table */
-	for (htposold = 0; htposold < H->cursize; htposold++) {
-		rec = H->ht[htposold];
+	/* Attach new space to hash table. */
+	htold = H->ht;
+	H->ht = htnew;
+	oldsize = H->cursize;
+	H->cursize = newsize;
+
+	/* Rehash into new table. */
+	for (htposold = 0; htposold < oldsize; htposold++) {
+		rec = htold[htposold];
 		if (rec != NULL) {
-			htposnew = rwhashtab_search(H, htnew, newsize,
+			htposnew = rwhashtab_search(H,
 			    (uint8_t *)rec + H->keyoffset);
-			htnew[htposnew] = rec;
+			H->ht[htposnew] = rec;
 		}
 	}
 
-	/* Update fields in H and free now-unused memory. */
-	free(H->ht);
-	H->ht = htnew;
-	H->cursize = newsize;
+	/* Free now-unused memory. */
+	free(htold);
 
 	/* Success! */
 	return (0);
@@ -90,12 +92,12 @@ rwhashtab_enlarge(RWHASHTAB * H)
  * Return the position of the record or of the first NULL found.
  */
 static size_t
-rwhashtab_search(RWHASHTAB * H, void ** ht, size_t size, const uint8_t * key)
+rwhashtab_search(RWHASHTAB * H, const uint8_t * key)
 {
 	size_t htpos;
 	uint8_t hashbuf[32];
 
-	/* Compute the hash of the record key */
+	/* Compute the hash of the record key. */
 	if (crypto_hash_data_2(CRYPTO_KEY_HMAC_SHA256, H->randbuf, 32,
 	    key, H->keylength, hashbuf)) {
 		warn0("Programmer error: "
@@ -103,8 +105,8 @@ rwhashtab_search(RWHASHTAB * H, void ** ht, size_t size, const uint8_t * key)
 		abort();
 	}
 
-	/* Compute starting hash location */
-	htpos = le64dec(hashbuf) & (size - 1);
+	/* Compute starting hash location. */
+	htpos = le64dec(hashbuf) & (H->cursize - 1);
 
 	/*
 	 * Search.  This is not an endless loop since the table isn't
@@ -112,16 +114,16 @@ rwhashtab_search(RWHASHTAB * H, void ** ht, size_t size, const uint8_t * key)
 	 */
 	do {
 		/* Is the space empty? */
-		if (ht[htpos] == NULL)
+		if (H->ht[htpos] == NULL)
 			return (htpos);
 
 		/* Do we have the right key? */
-		if (memcmp((uint8_t *)(ht[htpos]) + H->keyoffset,
+		if (memcmp((uint8_t *)(H->ht[htpos]) + H->keyoffset,
 		    key, H->keylength) == 0)
 			return (htpos);
 
-		/* Move to the next table entry */
-		htpos = (htpos + 1) & (size - 1);
+		/* Move to the next table entry. */
+		htpos = (htpos + 1) & (H->cursize - 1);
 	} while (1);
 }
 
@@ -137,7 +139,7 @@ rwhashtab_init(size_t keyoffset, size_t keylength)
 	RWHASHTAB * H;
 	size_t i;
 
-	/* Sanity check */
+	/* Sanity check. */
 	if (keylength == 0)
 		return (NULL);
 
@@ -156,14 +158,14 @@ rwhashtab_init(size_t keyoffset, size_t keylength)
 		return (NULL);
 	}
 
-	/* Allocate space for pointers to records */
+	/* Allocate space for pointers to records. */
 	H->ht = malloc(H->cursize * sizeof(void *));
 	if (H->ht == NULL) {
 		free(H);
 		return (NULL);
 	}
 
-	/* All of the entries are empty */
+	/* All of the entries are empty. */
 	for (i = 0; i < H->cursize; i++)
 		H->ht[i] = NULL;
 
@@ -200,14 +202,13 @@ rwhashtab_insert(RWHASHTAB * H, void * rec)
 	 * Search for the record, to see if it is already present and/or
 	 * where it should be inserted.
 	 */
-	htpos = rwhashtab_search(H, H->ht, H->cursize,
-	    (uint8_t *)rec + H->keyoffset);
+	htpos = rwhashtab_search(H, (uint8_t *)rec + H->keyoffset);
 
 	/* Already present? */
 	if (H->ht[htpos] != NULL)
 		return (1);
 
-	/* Insert the record */
+	/* Insert the record. */
 	H->ht[htpos] = rec;
 	H->numentries += 1;
 	return (0);
@@ -223,10 +224,10 @@ rwhashtab_read(RWHASHTAB * H, const uint8_t * key)
 {
 	size_t htpos;
 
-	/* Search */
-	htpos = rwhashtab_search(H, H->ht, H->cursize, key);
+	/* Search. */
+	htpos = rwhashtab_search(H, key);
 
-	/* Return the record, or NULL if not present */
+	/* Return the record, or NULL if not present. */
 	return (H->ht[htpos]);
 }
 
@@ -261,11 +262,11 @@ void
 rwhashtab_free(RWHASHTAB * H)
 {
 
-	/* Behave consistenly with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (H == NULL)
 		return;
 
-	/* Free everything */
+	/* Free everything. */
 	free(H->ht);
 	free(H);
 }

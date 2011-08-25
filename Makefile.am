@@ -66,20 +66,8 @@ libarchive_libarchive_a_SOURCES=						\
 	libarchive/archive_write_open_filename.c		\
 	libarchive/archive_write_open_memory.c			\
 	libarchive/archive_write_private.h			\
-	libarchive/archive_write_set_compression_bzip2.c	\
-	libarchive/archive_write_set_compression_compress.c	\
-	libarchive/archive_write_set_compression_gzip.c		\
 	libarchive/archive_write_set_compression_none.c		\
-	libarchive/archive_write_set_compression_program.c	\
-	libarchive/archive_write_set_compression_xz.c		\
-	libarchive/archive_write_set_format.c			\
-	libarchive/archive_write_set_format_ar.c		\
-	libarchive/archive_write_set_format_by_name.c		\
-	libarchive/archive_write_set_format_cpio.c		\
-	libarchive/archive_write_set_format_cpio_newc.c		\
-	libarchive/archive_write_set_format_mtree.c		\
 	libarchive/archive_write_set_format_pax.c		\
-	libarchive/archive_write_set_format_shar.c		\
 	libarchive/archive_write_set_format_ustar.c		\
 	libarchive/config_freebsd.h				\
 	libarchive/config_windows.h				\
@@ -358,16 +346,23 @@ sysconf_DATA	=	tar/tarsnap.conf.sample
 # macros available on this system.
 tar/tarsnap.1-man tar/tarsnap.1-mdoc \
 tar/tarsnap.conf.5-man tar/tarsnap.conf.5-mdoc:
-	sed -e 's|@sysconfdir[@]|${sysconfdir}|g' $${srcdir}$@.in > $@
+	sed -e 's|@sysconfdir[@]|${sysconfdir}|g' ${srcdir}/$@.in > $@.tmp
+	mv $@.tmp $@
 tar/tarsnap.1:	tar/tarsnap.1-@MANVER@
-	cat tar/tarsnap.1-@MANVER@ > tar/tarsnap.1
+	cat tar/tarsnap.1-@MANVER@ > tar/tarsnap.1.tmp
+	mv $@.tmp $@
 tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@
-	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5
+	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5.tmp
+	mv $@.tmp $@
 keygen/tarsnap-keygen.1: keygen/tarsnap-keygen.1-@MANVER@
-	cat ${top_srcdir}/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1
+	cat ${top_srcdir}/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1.tmp
+	mv $@.tmp $@
 keyregen/tarsnap-keyregen.1: keyregen/tarsnap-keyregen.1-@MANVER@
-	cat ${top_srcdir}/keyregen/tarsnap-keyregen.1-@MANVER@ > keyregen/tarsnap-keyregen.1
+	cat ${top_srcdir}/keyregen/tarsnap-keyregen.1-@MANVER@ > keyregen/tarsnap-keyregen.1.tmp
+	mv $@.tmp $@
 recrypt/tarsnap-recrypt.1: recrypt/tarsnap-recrypt.1-@MANVER@
-	cat ${top_srcdir}/recrypt/tarsnap-recrypt.1-@MANVER@ > recrypt/tarsnap-recrypt.1
+	cat ${top_srcdir}/recrypt/tarsnap-recrypt.1-@MANVER@ > recrypt/tarsnap-recrypt.1.tmp
+	mv $@.tmp $@
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
-	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1
+	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
+	mv $@.tmp $@

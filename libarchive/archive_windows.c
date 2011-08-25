@@ -276,7 +276,7 @@ canHardLinkW(const wchar_t *path1, const wchar_t *path2)
 		if (sizeof(root) -3 < len)
 			return (0);
 		root[0] = root[1] = L'\\';
-		wcsncpy(root + 2, path1 + 8 , len);
+		wcsncpy(root + 2, path1 + 8, len);
 		/* root : "\\Server\Share\" */
 		root[2 + len] = L'\0';
 	} else if (wcsncmp(path1, L"\\\\?\\", 4) == 0) {
@@ -1106,7 +1106,7 @@ Digest_Update(Digest_CTX *ctx, const unsigned char *buf, size_t len)
 {
 
 	if (!ctx->valid)
-	return;
+		return;
 
 	CryptHashData(ctx->hash, buf, (DWORD)len, 0);
 }

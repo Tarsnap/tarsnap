@@ -287,7 +287,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
 		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
 
-	/* Read the chunkfication cache. */
+	/* Read the chunkification cache. */
 	if (bsdtar->cachecrunch < 2) {
 		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
 		if (bsdtar->chunk_cache == NULL)
@@ -364,6 +364,12 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 				if (arg == NULL) {
 					bsdtar_warnc(bsdtar, 0,
 					    "Missing argument for -C");
+					bsdtar->return_value = 1;
+					goto cleanup;
+				}
+				if (*arg == '\0') {
+					bsdtar_warnc(bsdtar, 0,
+					    "Meaningless argument for -C: ''");
 					bsdtar->return_value = 1;
 					goto cleanup;
 				}
@@ -457,7 +463,13 @@ static int
 archive_names_from_file_helper(struct bsdtar *bsdtar, const char *line)
 {
 	if (bsdtar->next_line_is_dir) {
-		set_chdir(bsdtar, line);
+		if (*line != '\0')
+			set_chdir(bsdtar, line);
+		else {
+			bsdtar_warnc(bsdtar, 0,
+			    "Meaningless argument for -C: ''");
+			bsdtar->return_value = 1;
+		}
 		bsdtar->next_line_is_dir = 0;
 	} else if (!bsdtar->option_null && strcmp(line, "-C") == 0)
 		bsdtar->next_line_is_dir = 1;
@@ -771,7 +783,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 * If the user did not specify --insane-filesystems, do not
 		 * cross into a new filesystem which is known to be synthetic.
 		 * Note that we will archive synthetic filesystems if we are
-		 * explcitly told to do so.
+		 * explicitly told to do so.
 		 */
 		if ((bsdtar->option_insane_filesystems == 0) &&
 		    (dev_recorded == 1) &&
@@ -797,7 +809,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 
 		/*
 		 * If user has asked us not to cross mount points,
-		 * then don't descend into into a dir on a different
+		 * then don't descend into a dir on a different
 		 * device.
 		 */
 		if (!dev_recorded) {
@@ -946,7 +958,8 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			fprintf(stderr, "\n");
 	}
 	archive_entry_free(entry);
-	tree_close(tree);
+	if (tree_close(tree))
+		bsdtar_errc(bsdtar, 1, 0, "Error traversing directory tree");
 }
 
 /*

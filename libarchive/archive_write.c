@@ -29,7 +29,7 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_write.c,v 1.27 2008/03/14 23:09:0
 /*
  * This file contains the "essential" portions of the write API, that
  * is, stuff that will essentially always be used by any client that
- * actually needs to write a archive.  Optional pieces have been, as
+ * actually needs to write an archive.  Optional pieces have been, as
  * far as possible, separated out into separate files to reduce
  * needlessly bloating statically-linked clients.
  */
@@ -80,6 +80,7 @@ archive_write_vtable(void)
 		av.archive_write_header = _archive_write_header;
 		av.archive_write_finish_entry = _archive_write_finish_entry;
 		av.archive_write_data = _archive_write_data;
+		inited = 1;
 	}
 	return (&av);
 }
@@ -315,7 +316,6 @@ archive_write_open(struct archive *_a, void *client_data,
 	struct archive_write *a = (struct archive_write *)_a;
 	int ret;
 
-	ret = ARCHIVE_OK;
 	__archive_check_magic(&a->archive, ARCHIVE_WRITE_MAGIC,
 	    ARCHIVE_STATE_NEW, "archive_write_open");
 	archive_clear_error(&a->archive);

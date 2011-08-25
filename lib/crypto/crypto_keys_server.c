@@ -49,7 +49,7 @@ static uint8_t root_key[] = {
 };
 
 /**
- * crypto_keys_server_import_root():
+ * crypto_keys_server_import_root(void):
  * Import the public part of the server root key.
  */
 int

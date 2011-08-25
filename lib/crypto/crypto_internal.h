@@ -27,7 +27,7 @@ RSA * crypto_keys_lookup_RSA(int);
 struct crypto_hmac_key * crypto_keys_lookup_HMAC(int);
 
 /**
- * crypto_keys_server_import_root():
+ * crypto_keys_server_import_root(void):
  * Import the public part of the server root key.
  */
 int crypto_keys_server_import_root(void);
@@ -86,7 +86,7 @@ int crypto_keys_subr_generate_RSA(RSA **, RSA **);
 int crypto_keys_subr_generate_HMAC(struct crypto_hmac_key **);
 
 /**
- * crypto_file_init_keys():
+ * crypto_file_init_keys(void):
  * Initialize the keys cached by crypto_file.
  */
 int crypto_file_init_keys(void);

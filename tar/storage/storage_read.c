@@ -150,7 +150,7 @@ err0:
  * malloc a buffer.  Invoke ${callback}(${cookie}, status, b, blen) when
  * complete, where ${status} is 0, 1, 2, or -1 as per storage_read_file,
  * ${b} is the buffer into which the data was read (which will be ${buf} if
- * that value was non-NUL) and ${blen} is the length of the file.
+ * that value was non-NULL) and ${blen} is the length of the file.
  */
 int
 storage_read_file_callback(STORAGE_R * S, uint8_t * buf, size_t buflen,

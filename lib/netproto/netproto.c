@@ -155,7 +155,7 @@ callback_sleep(void * cookie, int status)
 
 	/*
 	 * Our wake-up call is happening right now; record that there is no
-	 * pending callback so that we don't try to unregister it when the
+	 * pending callback so that we don't try to deregister it when the
 	 * connection is closed later.
 	 */
 	C->sleepcookie.handle = -1;

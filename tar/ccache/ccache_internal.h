@@ -59,7 +59,7 @@ struct ccache_record_external {
 	/* Immediately following each record is suffix[]. */
 };
 /**
- * After all of the cache_record_external and suffix[] pairs, the
+ * After all of the ccache_record_external and suffix[] pairs, the
  * struct chunkheader chp[] and uint8_t ztrailer[] data is stored in the
  * same order.
  */

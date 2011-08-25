@@ -223,36 +223,23 @@ compareblists(const struct block * oblist, size_t oblistlen,
 	int rc;
 
 	/* Make sure that nblist is a subset of oblist. */
-	i = j = 0;
-	do {
-		/* If we've hit the end of nblist, we're fine. */
-		if (j == nblistlen)
-			break;
+	for (i = j = 0; j < nblistlen; i++) {
+		/*
+		 * If we've hit the end of oblist or the next block in oblist
+		 * is greater than the next block in nblist, there's at least
+		 * one block in nblist which is not in oblist.
+		 */
+		if ((i == oblistlen) ||
+		    ((rc = cmpblock(&oblist[i], &nblist[j])) > 0)) {
+			warn0("New machine has data not in old machine!"
+			    "  Cannot continue.");
+			exit(1);
+		}
 
-		/* If we've hit the end of oblist, it's missing something. */
-		if (i == oblistlen)
-			goto notsubset;
-
-		/* Compare the two block names we're looking at. */
-		rc = cmpblock(&oblist[i], &nblist[j]);
-
-		/* If the block from oblist is >, we're missing something. */
-		if (rc > 0)
-			goto notsubset;
-
-		/* Advance the new block list pointer if blocks are ==. */
+		/* If we've matched this new block, advance the pointer. */
 		if (rc == 0)
 			j++;
-
-		/* Move on to the nest block. */
-		i++;
-		continue;
-
-notsubset:
-		/* The new block list has something not in the old list. */
-		warn0("New machine has data not in old machine!  Cannot continue.");
-		exit(1);
-	} while (1);
+	}
 
 	/* If the lists are identical, we have nothing to do. */
 	if (oblistlen == nblistlen) {

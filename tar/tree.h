@@ -54,7 +54,7 @@ struct tree;
 
 /* Initiate/terminate a tree traversal. */
 struct tree *tree_open(const char * /* pathname */);
-void tree_close(struct tree *);
+int tree_close(struct tree *);
 
 /*
  * tree_next() returns Zero if there is no next entry, non-zero if

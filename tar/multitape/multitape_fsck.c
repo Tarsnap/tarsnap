@@ -164,7 +164,7 @@ phase1(uint64_t machinenum, STORAGE_D * SD, STORAGE_R * SR,
 	if (storage_directory_read(machinenum, 'm', 0, &flist, &nfiles))
 		goto err0;
 
-	/* Allocate space for nfiles tapemetadat structures. */
+	/* Allocate space for nfiles tapemetadata structures. */
 	if ((mdats = malloc(nfiles * sizeof(struct tapemetadata *))) == NULL)
 		goto err1;
 	nvalids = 0;

@@ -118,7 +118,7 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
  * Open the multitape tape ${tapename} for writing and associate it with the
  * archive $a$.  If ${printstats} is non-zero, print archive statistics when
  * the tape is closed.  If ${dryrun} is non-zero, perform a dry run.  Return
- * a cookie which which can be passed to the multitape layer.
+ * a cookie which can be passed to the multitape layer.
  */
 void *
 archive_write_open_multitape(struct archive * a, uint64_t machinenum,

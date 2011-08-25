@@ -47,6 +47,7 @@ archive_read_disk_vtable(void)
 	if (!inited) {
 		av.archive_finish = _archive_read_finish;
 		av.archive_close = _archive_read_close;
+		inited = 1;
 	}
 	return (&av);
 }

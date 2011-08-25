@@ -198,8 +198,8 @@ callback_directory_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		}
 		if ((flist_new = malloc(C->nfiles_alloc * 32)) == NULL)
 			goto err0;
-
-		memcpy(flist_new, C->flist, C->nfiles * 32);
+		if (C->nfiles > 0)
+			memcpy(flist_new, C->flist, C->nfiles * 32);
 		free(C->flist);
 		C->flist = flist_new;
 	}

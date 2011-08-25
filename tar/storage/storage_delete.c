@@ -50,7 +50,7 @@ static handlepacket_callback callback_delete_file_response;
 
 /**
  * storage_delete_start(machinenum, lastseq, seqnum):
- * Start a delete transaction, presuming that ${lastseq} is the the sequence
+ * Start a delete transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
  * into ${seqnum}.
@@ -337,7 +337,7 @@ err1:
 
 /**
  * storage_delete_free(S):
- * Free any memory allocated as part of the delete transcation associated
+ * Free any memory allocated as part of the delete transaction associated
  * with the cookie ${S}; the transaction will not be committed.
  */
 void

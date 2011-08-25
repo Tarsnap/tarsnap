@@ -85,7 +85,7 @@
 typedef struct crypto_session_internal CRYPTO_SESSION;
 
 /**
- * crypto_entropy_init():
+ * crypto_entropy_init(void):
  * Initialize the PRNG.
  */
 int crypto_entropy_init(void);
@@ -98,7 +98,7 @@ int crypto_entropy_init(void);
 int crypto_entropy_read(uint8_t *, size_t);
 
 /**
- * crypto_keys_init():
+ * crypto_keys_init(void):
  * Initialize the key cache.  Note that crypto_entropy_init MUST be called
  * before this function.
  */
@@ -147,7 +147,7 @@ void crypto_hash_data_key(const uint8_t *, size_t,
 
 /**
  * crypto_hash_data_key_2(key, keylen, data0, len0, data1, len1, buf):
- * Hash the concatentation of two buffers with the provided HMAC-SHA256 key.
+ * Hash the concatenation of two buffers with the provided HMAC-SHA256 key.
  */
 void crypto_hash_data_key_2(const uint8_t *, size_t,
     const uint8_t *, size_t, const uint8_t *, size_t, uint8_t[32]);
@@ -237,7 +237,7 @@ int crypto_dh_sanitycheck(const uint8_t[CRYPTO_DH_PUBLEN]);
 
 /**
  * crypto_session_init(pub, priv, nonce, mkey, encr_write, auth_write,
- *     encr_read, auth_read, proofs):
+ *     encr_read, auth_read):
  * Compute K = ${pub}^(2^258 + ${priv}), mkey = MGF1(nonce || K, 48), and
  * return a CRYPTO_SESSION with encryption and authentication write and read
  * keys constructed from HMAC(mkey, (encr|auth)_(write|read)).
