@@ -27,13 +27,17 @@ PKGBUILD file; but you may wish to change the pkgver=, md5sums=, and
 sha256sums= lines so that you get the latest version of tarsnap.
 
 There may be a newer version of the PKGBUILD file at
-  http://aur.archlinux.org/packages.php?ID=22963
+  http://www.archlinux.org/packages/community/i686/tarsnap/
+  http://www.archlinux.org/packages/community/x86_64/tarsnap/
+(in fact, those probably have identical PKGBUILD files).
 
 Slackware
 ---------
 
 There is a SlackBuild for tarsnap (possibly an earlier version) at
-  http://slackbuilds.org/repository/12.2/system/tarsnap/
+  http://slackbuilds.org/repository/${VER}/system/tarsnap/
+for VER = 12.2 and 13.1 (and possibly other versions by the time
+you read this).
 
 FreeBSD
 -------

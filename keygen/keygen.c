@@ -127,7 +127,8 @@ main(int argc, char **argv)
 
 	/*
 	 * It doesn't make sense to specify --passphrase-mem if we're not
-	 * using a passphrase. */
+	 * using a passphrase.
+	 */
 	if ((maxmem != 0) && (passphrased == 0))
 		usage();
 
@@ -136,9 +137,18 @@ main(int argc, char **argv)
 		fprintf(stderr, "User name too long: %s\n", C.user);
 		exit(1);
 	}
+	if (strlen(C.user) == 0) {
+		fprintf(stderr, "User name must be non-empty\n");
+		exit(1);
+	}
 
+	/* Sanity-check the machine name. */
 	if (strlen(C.name) > 255) {
 		fprintf(stderr, "Machine name too long: %s\n", C.name);
+		exit(1);
+	}
+	if (strlen(C.name) == 0) {
+		fprintf(stderr, "Machine name must be non-empty\n");
 		exit(1);
 	}
 

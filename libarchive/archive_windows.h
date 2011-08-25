@@ -334,7 +334,7 @@ extern ssize_t	 la_write(int fd, const void *buf, size_t nbytes);
 #define WIFEXITED(sts)		((sts & 0x100) == 0)
 #define WEXITSTATUS(sts)	(sts & 0x0FF)
 
-/* Convertion a Win32 API error code */
+/* Convert a Win32 API error code */
 extern void _dosmaperr(unsigned long);
 
 /* Message digest function */

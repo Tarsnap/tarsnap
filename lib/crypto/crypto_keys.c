@@ -112,7 +112,7 @@ err0:
 }
 
 /**
- * crypto_keys_init():
+ * crypto_keys_init(void):
  * Initialize the key cache.
  */
 int
@@ -505,7 +505,7 @@ crypto_keys_generate(int keys)
 		keys &= ~CRYPTO_KEYMASK_HMAC_NAME;
 	}
 
-	/* Chunkfication parameters HMAC key. */
+	/* Chunkification parameters HMAC key. */
 	if (keys & CRYPTO_KEYMASK_HMAC_CPARAMS) {
 		if (crypto_keys_subr_generate_HMAC(&keycache.hmac_cparams))
 			goto err0;
@@ -646,7 +646,7 @@ err0:
 
 /**
  * crypto_keys_lookup_HMAC(key):
- * Return the requested HMAC key
+ * Return the requested HMAC key.
  */
 struct crypto_hmac_key *
 crypto_keys_lookup_HMAC(int key)

@@ -198,15 +198,15 @@ stream_read(struct stream * S, uint8_t * buf, size_t buflen, CHUNKS_R * C)
 		if (readlen > buflen - bufpos)
 			readlen = buflen - bufpos;
 
+		/* Stop looping if we have no more data. */
+		if (readlen == 0)
+			break;
+
 		/* Mark the data as consumed. */
 		S->chunkpos += readlen;
 
 		/* Copy into the correct position in our buffer. */
 		memcpy(buf + bufpos, readbuf, readlen);
-
-		/* Stop looping if we have no more data. */
-		if (readlen == 0)
-			break;
 	}
 
 	/* Success (or perhaps EOF). */

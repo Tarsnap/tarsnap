@@ -32,7 +32,7 @@ sigquit_handler(int sig)
 }
 
 /**
- * termios_restore():
+ * termios_restore(void):
  * Restore the saved tc_saved termios state.
  */
 static void
@@ -72,7 +72,7 @@ err0:
 }
 
 /**
- * sigquit_init():
+ * sigquit_init(void):
  * Prepare to catch SIGQUIT and ^Q, and zero sigquit_received.
  */
 int

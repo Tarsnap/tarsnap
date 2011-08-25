@@ -43,22 +43,23 @@ archives.
 .PP
 The
 \fB\--recover\fP
-command requires either
+command requires either (1)
 \fB\-d\fP
-(archive deleting),
+(archive deleting), (2)
 \fB\-w\fP
-(archive creating), or
+(archive creating), or (3)
 \fB\--nuke\fP
 keys.
 The
 \fB\--fsck\fP
-command requires either
-\fB\-d\fP
-(archive deleting) keys or
-\fB\-r\fP
-(archive reading) and
+command requires either (1) both
 \fB\-w\fP
-(archive writing) keys; while the
+(archive writing) and
+\fB\-r\fP
+(archive reading) keys, or (2)
+\fB\-d\fP
+(archive deleting) keys.
+The
 \fB\--fsck-prune\fP
 command requires
 \fB\-d\fP

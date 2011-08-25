@@ -53,7 +53,7 @@ callback_addchunk(void * cookie, struct chunkheader * ch)
 	if (cce->hittrailer)
 		goto done;
 
-	/* Do we need to expand the allocate space? */
+	/* Do we need to expand the allocated space? */
 	if (ccr->nch >= ccr->nchalloc) {
 		/* Double the allocated memory. */
 		if (ccr->nchalloc)

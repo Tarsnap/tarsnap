@@ -21,7 +21,7 @@ CCACHE * ccache_read(const char *);
  * ${sb}, to the multitape with write cookie ${cookie}.  Look up the file in
  * the chunkification cache ${cache}, and set ${fullentry} to a non-zero
  * value iff the cache can provide at least sb->st_size bytes of the archive
- * entry.  Return a cookie which can be passed to either ccahe_entry_write
+ * entry.  Return a cookie which can be passed to either ccache_entry_write
  * or ccache_entry_start depending upon whether ${fullentry} is zero or not.
  */
 CCACHE_ENTRY * ccache_entry_lookup(CCACHE *, const char *,

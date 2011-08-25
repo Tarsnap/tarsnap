@@ -19,7 +19,7 @@ struct chunkifier_internal {
 	uint32_t p;		/* Modulus */
 	uint32_t pp;		/* - p^(-1) mod 2^32 */
 	uint32_t ar;		/* alpha * 2^32 mod p */
-	uint32_t * cm;		/* Coefficent map modulo p */
+	uint32_t * cm;		/* Coefficient map modulo p */
 	uint32_t htlen;		/* Size of hash table in 2-word entries */
 	uint32_t blen;		/* Length of buf[] */
 	uint32_t w;		/* Minimum substring length; size of b[] */
@@ -48,7 +48,7 @@ static int minorder(uint32_t ar, uint32_t ord, uint32_t p, uint32_t pp);
 static uint32_t isqrt(uint32_t x);
 static void chunkify_start(CHUNKIFIER * c);
 
-/* Returns nonzero iff n is prime */
+/* Returns nonzero iff n is prime. */
 static int
 isprime(uint32_t n)
 {
@@ -136,15 +136,15 @@ chunkify_start(CHUNKIFIER * c)
 {
 	uint32_t i;
 
-	/* No entries in the hash table */
+	/* No entries in the hash table. */
 	for (i = 0; i < c->htlen; i++)
 		c->ht[i * 2] = - c->htlen;
 
-	/* Nothing in the queue waiting to be added to the table, either */
+	/* Nothing in the queue waiting to be added to the table, either. */
 	for (i = 0; i < c->w; i++)
 		c->b[i] = c->p;
 
-	/* No bytes input yet */
+	/* No bytes input yet. */
 	c->akr = (- c->p) % c->p;
 	c->yka = 0;
 	c->k = 0;
@@ -255,7 +255,7 @@ chunkify_init(uint32_t meanlen, uint32_t maxlen,
 	c->p = nextprime(pmin + (c->p % isqrt(c->mu)));
 	/* c->p <= 1431655739 < 1431655765 = floor(2^32 / 3) */
 
-	/* Compute pp = - p^(-1) mod 2^32 */
+	/* Compute pp = - p^(-1) mod 2^32. */
 	c->pp = ((2 * c->p + 4) & 8) - c->p;	/* pp = - 1/p mod 2^4 */
 	c->pp *= 2 + c->p * c->pp;		/* pp = - 1/p mod 2^8 */
 	c->pp *= 2 + c->p * c->pp;		/* pp = - 1/p mod 2^16 */
@@ -273,7 +273,7 @@ chunkify_init(uint32_t meanlen, uint32_t maxlen,
 	}
 
 	/*
-	 * Prepare for incoming data
+	 * Prepare for incoming data.
 	 */
 	chunkify_start(c);
 
@@ -283,7 +283,7 @@ chunkify_init(uint32_t meanlen, uint32_t maxlen,
 	return (c);
 
 err:
-	/* free(NULL) is safe, so it doesn't matter where we jumped from */
+	/* free(NULL) is safe, so it doesn't matter where we jumped from. */
 	free(c->buf);
 	free(c->ht);
 	free(c->b);
@@ -301,7 +301,7 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 	int rc;
 
 	for (i = 0; i < buflen; i++) {
-		/* Add byte to buffer */
+		/* Add byte to buffer. */
 		c->buf[c->k] = buf[i];
 
 		/* k := k + 1 */
@@ -327,14 +327,14 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 			continue;
 
 		/*
-		 * Update state to add new character
+		 * Update state to add new character.
 		 */
 
 		/* y_k(a) := y_k(a) + a^k * x_k mod p */
-		/* yka <= p * (2 + p / (2^32 - p)) <= p * 2.5 < 2^31 + p*/
+		/* yka <= p * (2 + p / (2^32 - p)) <= p * 2.5 < 2^31 + p */
 		c->yka += mmul(c->akr, c->cm[buf[i]], c->p, c->pp);
 
-		/* Each step reduces yka by p iff yka >= p */
+		/* Each step reduces yka by p iff yka >= p. */
 		c->yka -= c->p & (((c->yka - c->p) >> 31) - 1);
 		c->yka -= c->p & (((c->yka - c->p) >> 31) - 1);
 
@@ -358,7 +358,7 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 			if (c->k - c->ht[2 * htpos] - 1 >= 2 * c->r)
 				break;
 
-			/* Move to the next position in the table */
+			/* Move to the next position in the table. */
 			htpos = (htpos + 1) & (c->htlen - 1);
 		} while (1);
 
@@ -375,7 +375,7 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 				break;
 			}
 
-			/* Move to the next position in the table */
+			/* Move to the next position in the table. */
 			htpos = (htpos + 1) & (c->htlen - 1);
 		} while (1);
 
@@ -406,16 +406,16 @@ chunkify_end(CHUNKIFIER * c)
 {
 	int rc;
 
-	/* If we haven't started the chunk yet, don't end it either */
+	/* If we haven't started the chunk yet, don't end it either. */
 	if (c->k == 0)
 		return (0);
 
-	/* Process the chunk */
+	/* Process the chunk. */
 	rc = (c->chunkdone)(c->cookie, c->buf, c->k);
 	if (rc)
 		return (rc);
 
-	/* Prepare for more input */
+	/* Prepare for more input. */
 	chunkify_start(c);
 
 	return (0);
@@ -429,7 +429,7 @@ chunkify_free(CHUNKIFIER * c)
 	if (c == NULL)
 		return;
 
-	/* Free everything */
+	/* Free everything. */
 	free(c->buf);
 	free(c->ht);
 	free(c->b);

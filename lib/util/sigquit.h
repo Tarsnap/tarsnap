@@ -7,7 +7,7 @@
 sig_atomic_t sigquit_received;
 
 /**
- * sigquit_init():
+ * sigquit_init(void):
  * Prepare to catch SIGQUIT and zero sigquit_received.
  */
 int sigquit_init(void);

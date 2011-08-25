@@ -87,17 +87,20 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 	/* Copy values into buffer. */
 	le32enc(p, mind->hindexlen);
 	p += 4;
-	memcpy(p, mind->hindex, mind->hindexlen);
+	if (mind->hindexlen > 0)
+		memcpy(p, mind->hindex, mind->hindexlen);
 	p += mind->hindexlen;
 
 	le32enc(p, mind->cindexlen);
 	p += 4;
-	memcpy(p, mind->cindex, mind->cindexlen);
+	if (mind->cindexlen > 0)
+		memcpy(p, mind->cindex, mind->cindexlen);
 	p += mind->cindexlen;
 
 	le32enc(p, mind->tindexlen);
 	p += 4;
-	memcpy(p, mind->tindex, mind->tindexlen);
+	if (mind->tindexlen > 0)
+		memcpy(p, mind->tindex, mind->tindexlen);
 	p += mind->tindexlen;
 
 	/* Compute hash of tape name. */
@@ -222,9 +225,11 @@ int multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	if (buflen < mind->hindexlen)
 		goto corrupt0;
-	if ((mind->hindex = malloc(mind->hindexlen)) == NULL)
+	if (((mind->hindex = malloc(mind->hindexlen)) == NULL) &&
+	    (mind->hindexlen > 0))
 		goto err1;
-	memcpy(mind->hindex, buf, mind->hindexlen);
+	if (mind->hindexlen > 0)
+		memcpy(mind->hindex, buf, mind->hindexlen);
 	buf += mind->hindexlen;
 	buflen -= mind->hindexlen;
 
@@ -237,9 +242,11 @@ int multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	if (buflen < mind->cindexlen)
 		goto corrupt1;
-	if ((mind->cindex = malloc(mind->cindexlen)) == NULL)
+	if (((mind->cindex = malloc(mind->cindexlen)) == NULL) &&
+	    (mind->cindexlen > 0))
 		goto err2;
-	memcpy(mind->cindex, buf, mind->cindexlen);
+	if (mind->cindexlen > 0)
+		memcpy(mind->cindex, buf, mind->cindexlen);
 	buf += mind->cindexlen;
 	buflen -= mind->cindexlen;
 
@@ -252,9 +259,11 @@ int multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	if (buflen < mind->tindexlen)
 		goto corrupt2;
-	if ((mind->tindex = malloc(mind->tindexlen)) == NULL)
+	if (((mind->tindex = malloc(mind->tindexlen)) == NULL) &&
+	    (mind->tindexlen > 0))
 		goto err3;
-	memcpy(mind->tindex, buf, mind->tindexlen);
+	if (mind->tindexlen > 0)
+		memcpy(mind->tindex, buf, mind->tindexlen);
 	buf += mind->tindexlen;
 	buflen -= mind->tindexlen;
 

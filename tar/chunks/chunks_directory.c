@@ -176,7 +176,7 @@ chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
 	    (size_t)(sb.st_size - sizeof(struct chunkstats_external)) /
 	    sizeof(struct chunkdata_external);
 
-	/* Make sure we we don't get an integer overflow. */
+	/* Make sure we don't get an integer overflow. */
 	if (numchunks >= SIZE_MAX / sizeof(struct chunkdata)) {
 		warn0("on-disk directory is too large: %s", s);
 		goto err2;
@@ -406,6 +406,13 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 				warnp("unlink(%s)", s);
 				goto err2;
 			}
+		} else {
+			/*
+			 * We're replaying and we've already linked the two
+			 * paths; skip ahead to unlinking the .tmp file, as
+			 * otherwise link(2) will fail with EEXIST.
+			 */
+			goto linkdone;
 		}
 	}
 
@@ -439,6 +446,7 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 			goto err2;
 		}
 	} else {
+linkdone:
 		/* Make sure ${cachedir} is flushed to disk. */
 		if (dirutil_fsyncdir(cachepath))
 			goto err2;

@@ -47,7 +47,7 @@ int storage_read_file_alloc(STORAGE_R *, uint8_t **, size_t *, char,
  * malloc a buffer.  Invoke ${callback}(${cookie}, status, b, blen) when
  * complete, where ${status} is 0, 1, 2, or -1 as per storage_read_file,
  * ${b} is the buffer into which the data was read (which will be ${buf} if
- * that value was non-NUL) and ${blen} is the length of the file.
+ * that value was non-NULL) and ${blen} is the length of the file.
  */
 int storage_read_file_callback(STORAGE_R *, uint8_t *, size_t, char,
     const uint8_t[32], int(*)(void *, int, uint8_t *, size_t), void *);
@@ -60,7 +60,7 @@ void storage_read_free(STORAGE_R *);
 
 /**
  * storage_write_start(machinenum, lastseq, seqnum, dryrun):
- * Start a write transaction, presuming that ${lastseq} is the the sequence
+ * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
  * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
@@ -108,7 +108,7 @@ void storage_write_free(STORAGE_W *);
 
 /**
  * storage_delete_start(machinenum, lastseq, seqnum):
- * Start a delete transaction, presuming that ${lastseq} is the the sequence
+ * Start a delete transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
  * into ${seqnum}.
@@ -149,7 +149,7 @@ int storage_delete_end(STORAGE_D *);
 
 /**
  * storage_delete_free(S):
- * Free any memory allocated as part of the delete transcation associated
+ * Free any memory allocated as part of the delete transaction associated
  * with the cookie ${S}; the transaction will not be committed.
  */
 void storage_delete_free(STORAGE_D *);

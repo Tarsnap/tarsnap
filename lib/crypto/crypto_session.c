@@ -51,7 +51,7 @@ crypto_session_init(uint8_t pub[CRYPTO_DH_PUBLEN],
 	memcpy(MGFbuf + 32, K, CRYPTO_DH_PUBLEN);
 	crypto_MGF1(MGFbuf, 32 + CRYPTO_DH_PUBLEN, mkey, 48);
 
-	/* Allocate space for session key stucture. */
+	/* Allocate space for session key structure. */
 	if ((CS = malloc(sizeof(struct crypto_session_internal))) == NULL)
 		goto err0;
 

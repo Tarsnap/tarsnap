@@ -205,7 +205,7 @@ struct archive_write_disk {
 
 /*
  * Default mode for dirs created automatically (will be modified by umask).
- * Note that POSIX specifies 0777 for implicity-created dirs, "modified
+ * Note that POSIX specifies 0777 for implicitly-created dirs, "modified
  * by the process' file creation mask."
  */
 #define	DEFAULT_DIR_MODE 0777
@@ -273,7 +273,7 @@ _archive_write_disk_lazy_stat(struct archive_write_disk *a)
 #endif
 	/*
 	 * XXX At this point, symlinks should not be hit, otherwise
-	 * XXX a race occured.  Do we want to check explicitly for that?
+	 * XXX a race occurred.  Do we want to check explicitly for that?
 	 */
 	if (lstat(a->name, &a->st) == 0) {
 		a->pst = &a->st;
@@ -296,6 +296,7 @@ archive_write_disk_vtable(void)
 		av.archive_write_finish_entry = _archive_write_finish_entry;
 		av.archive_write_data = _archive_write_data;
 		av.archive_write_data_block = _archive_write_data_block;
+		inited = 1;
 	}
 	return (&av);
 }
@@ -455,7 +456,11 @@ _archive_write_header(struct archive *_a, struct archive_entry *entry)
 #ifdef HAVE_FCHDIR
 	/* If we changed directory above, restore it here. */
 	if (a->restore_pwd >= 0) {
-		fchdir(a->restore_pwd);
+		r = fchdir(a->restore_pwd);
+		if (r != 0) {
+			archive_set_error(&a->archive, errno, "chdir() failure");
+			ret = ARCHIVE_FATAL;
+		}
 		close(a->restore_pwd);
 		a->restore_pwd = -1;
 	}
@@ -612,7 +617,7 @@ write_data_block(struct archive_write_disk *a, const char *buff, size_t size)
 			a->fd_offset = a->offset;
 			a->archive.file_position = a->offset;
 			a->archive.raw_position = a->offset;
- 		}
+		}
 		bytes_written = write(a->fd, buff, bytes_to_write);
 		if (bytes_written < 0) {
 			archive_set_error(&a->archive, errno, "Write failed");
@@ -967,7 +972,7 @@ restore_entry(struct archive_write_disk *a)
 		 */
 		int r = 0;
 		/*
-		 * The SECURE_SYMLINK logic has already removed a
+		 * The SECURE_SYMLINKS logic has already removed a
 		 * symlink to a dir if the client wants that.  So
 		 * follow the symlink if we're creating a dir.
 		 */
@@ -1501,7 +1506,7 @@ cleanup_pathname_win(struct archive_write_disk *a)
 		++alen;
 		if (*p == '\\')
 			l = 1;
-		/* Rewrite the path name if its character is a unusable. */
+		/* Rewrite the path name if its next character is unusable. */
 		if (*p == ':' || *p == '*' || *p == '?' || *p == '"' ||
 		    *p == '<' || *p == '>' || *p == '|')
 			*p = '_';
@@ -1660,8 +1665,6 @@ create_dir(struct archive_write_disk *a, char *path)
 	char *slash, *base;
 	mode_t mode_final, mode;
 	int r;
-
-	r = ARCHIVE_OK;
 
 	/* Check for special names and just skip them. */
 	slash = strrchr(path, '/');
@@ -2210,22 +2213,25 @@ set_fflags_platform(struct archive_write_disk *a, int fd, const char *name,
 	 * to read the current flags from disk. XXX
 	 */
 	ret = ARCHIVE_OK;
+
+	/* Read the current file flags. */
+	if (ioctl(myfd, EXT2_IOC_GETFLAGS, &oldflags) < 0)
+		goto fail;
+
 	/* Try setting the flags as given. */
-	if (ioctl(myfd, EXT2_IOC_GETFLAGS, &oldflags) >= 0) {
-		newflags = (oldflags & ~clear) | set;
-		if (ioctl(myfd, EXT2_IOC_SETFLAGS, &newflags) >= 0)
-			goto cleanup;
-		if (errno != EPERM)
-			goto fail;
-	}
+	newflags = (oldflags & ~clear) | set;
+	if (ioctl(myfd, EXT2_IOC_SETFLAGS, &newflags) >= 0)
+		goto cleanup;
+	if (errno != EPERM)
+		goto fail;
+
 	/* If we couldn't set all the flags, try again with a subset. */
-	if (ioctl(myfd, EXT2_IOC_GETFLAGS, &oldflags) >= 0) {
-		newflags &= ~sf_mask;
-		oldflags &= sf_mask;
-		newflags |= oldflags;
-		if (ioctl(myfd, EXT2_IOC_SETFLAGS, &newflags) >= 0)
-			goto cleanup;
-	}
+	newflags &= ~sf_mask;
+	oldflags &= sf_mask;
+	newflags |= oldflags;
+	if (ioctl(myfd, EXT2_IOC_SETFLAGS, &newflags) >= 0)
+		goto cleanup;
+
 	/* We couldn't set the flags, so report the failure. */
 fail:
 	archive_set_error(&a->archive, errno,

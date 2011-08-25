@@ -24,7 +24,7 @@ crypto_hash_data_key(const uint8_t * key, size_t keylen,
 
 /**
  * crypto_hash_data_key_2(key, keylen, data0, len0, data1, len1, buf):
- * Hash the concatentation of two buffers with the provided HMAC-SHA256 key.
+ * Hash the concatenation of two buffers with the provided HMAC-SHA256 key.
  */
 void
 crypto_hash_data_key_2(const uint8_t * key, size_t keylen,

@@ -122,19 +122,20 @@ static void
 add_pattern(struct bsdtar *bsdtar, struct match **list, const char *pattern)
 {
 	struct match *match;
+	size_t len;
 
-	match = malloc(sizeof(*match) + strlen(pattern) + 1);
+	len = strlen(pattern);
+	match = malloc(sizeof(*match) + len + 1);
 	if (match == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	strcpy(match->pattern, pattern);
 	/* Both "foo/" and "foo" should match "foo/bar". */
-	if (match->pattern[strlen(match->pattern)-1] == '/')
-		match->pattern[strlen(match->pattern)-1] = '\0';
+	if (len && match->pattern[len - 1] == '/')
+		match->pattern[len - 1] = '\0';
 	match->next = *list;
 	*list = match;
 	match->matches = 0;
 }
-
 
 int
 excluded(struct bsdtar *bsdtar, const char *pathname)

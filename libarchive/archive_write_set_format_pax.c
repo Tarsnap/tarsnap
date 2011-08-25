@@ -171,18 +171,17 @@ add_pax_attr_time(struct archive_string *as, const char *key,
 static char *
 format_int(char *t, int64_t i)
 {
-	int sign;
+	uint64_t ui;
 
-	if (i < 0) {
-		sign = -1;
-		i = -i;
-	} else
-		sign = 1;
+	if (i < 0) 
+		ui = (i == INT64_MIN) ? (uint64_t)(INT64_MAX) + 1 : (uint64_t)(-i);
+	else
+		ui = i;
 
 	do {
-		*--t = "0123456789"[i % 10];
-	} while (i /= 10);
-	if (sign < 0)
+		*--t = "0123456789"[ui % 10];
+	} while (ui /= 10);
+	if (i < 0)
 		*--t = '-';
 	return (t);
 }
@@ -546,7 +545,7 @@ archive_write_pax_header(struct archive_write *a,
 		/* We have an all-ASCII path; we'd like to just store
 		 * it in the ustar header if it will fit.  Yes, this
 		 * duplicates some of the logic in
-		 * write_set_format_ustar.c
+		 * archive_write_set_format_ustar.c
 		 */
 		if (strlen(path) <= 100) {
 			/* Fits in the old 100-char tar name field. */
@@ -1138,7 +1137,7 @@ build_ustar_entry_name(char *dest, const char *src, size_t src_length,
  *
  * Joerg Schilling has argued that this is unnecessary because, in
  * practice, if the pax extended attributes get extracted as regular
- * files, noone is going to bother reading those attributes to
+ * files, no one is going to bother reading those attributes to
  * manually restore them.  Based on this, 'star' uses
  * /tmp/PaxHeader/'basename' as the ustar header name.  This is a
  * tempting argument, in part because it's simpler than the SUSv3
@@ -1212,15 +1211,11 @@ build_pax_attribute_name(char *dest, const char *src)
 static int
 archive_write_pax_finish(struct archive_write *a)
 {
-	struct pax *pax;
-	int r;
 
 	if (a->compressor.write == NULL)
 		return (ARCHIVE_OK);
 
-	pax = (struct pax *)a->format_data;
-	r = write_nulls(a, 512 * 2);
-	return (r);
+	return (write_nulls(a, 512 * 2));
 }
 
 static int

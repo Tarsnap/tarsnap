@@ -118,7 +118,7 @@ raisesigs(struct storage_write_internal * S)
 
 /**
  * storage_write_start(machinenum, lastseq, seqnum, dryrun):
- * Start a write transaction, presuming that ${lastseq} is the the sequence
+ * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
  * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
@@ -463,7 +463,7 @@ storage_write_flush(STORAGE_W * S)
 			goto err0;
 	}
 
-	/* Succes! */
+	/* Success! */
 	return (0);
 
 err0:

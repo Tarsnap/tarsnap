@@ -20,7 +20,7 @@ struct chunkdata {
 	size_t zlen;		/* Compressed length of chunk. */
 	size_t nrefs;		/* Number of existing tapes using this. */
 	size_t ncopies;		/* Number of copies of this chunk. */
-	size_t ncopies_ctape;	/* Used by chunks_fsck only. */
+	size_t ncopies_ctape;	/* Used by chunks_stats only. */
 	int flags;		/* See CHDATA_* flags. */
 };
 

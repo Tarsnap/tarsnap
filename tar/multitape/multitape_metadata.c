@@ -403,7 +403,7 @@ int multitape_metadata_get_byhash(STORAGE_R * S, CHUNKS_S * C,
  * Read and parse metadata for the archive named ${tapename}.  If ${C} is
  * non-NULL, call chunks_stats_extrastats on ${C} and the length of the
  * metadata file.  If ${quiet}, don't print any warnings about corrupt or
- * missing files. Return 0 on success, 1 if the metadata file does not
+ * missing files.  Return 0 on success, 1 if the metadata file does not
  * exist, 2 if the metadata file is corrupt, or -1 on error.
  */
 int multitape_metadata_get_byname(STORAGE_R * S, CHUNKS_S * C,

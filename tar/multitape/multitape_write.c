@@ -46,7 +46,7 @@ struct multitape_write_internal {
 	uint64_t machinenum;	/* Machine number. */
 	char * cachedir;	/* Cache directory. */
 	time_t ctime;		/* Archive creation time. */
-	int argc;		/* Number of commmand-line arguments. */
+	int argc;		/* Number of command-line arguments. */
 	char ** argv;		/* Command-line arguments. */
 	int stats_enabled;	/* Stats printed on close. */
 	int eof;		/* Tape is truncated at current position. */

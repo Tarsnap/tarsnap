@@ -74,7 +74,7 @@ dirutil_needdir(const char * dirname)
 			return (-1);
 		}
 
-		/* Directory does not exist; try to create it */
+		/* Directory does not exist; try to create it. */
 		if (mkdir(dirname, 0777)) {
 			warnp("mkdir(%s)", dirname);
 			return (-1);

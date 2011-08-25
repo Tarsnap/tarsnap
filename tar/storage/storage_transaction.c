@@ -142,8 +142,8 @@ storage_transaction_cancel(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 	C.whichkey = whichkey;
 
 	/*
-	 * As the server to cancel any in-progress transaction; if it asks us
-	 * to go away and come back later, sleep 1 second and then poke it
+	 * Ask the server to cancel any in-progress transaction; if it asks
+	 * us to go away and come back later, sleep 1 second and then poke it
 	 * again.
 	 */
 	do {

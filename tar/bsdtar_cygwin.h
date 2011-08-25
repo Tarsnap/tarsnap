@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-/* a foward declaration, of sorts */
+/* a forward declaration, of sorts */
 typedef struct bsdtar * struct_bsdtar_p;
 
 extern int	bsdtar_is_privileged(struct bsdtar *bsdtar);

@@ -354,7 +354,7 @@ dh_sent(void * cookie, int status)
 
 	/*-
 	 * NOTE: We could construct the session keys, and compute and send
-	 * the proof of key posession in dh_received instead of here; doing
+	 * the proof of key possession in dh_received instead of here; doing
 	 * so would reduce the bandwidth used since the two messages of 256
 	 * and 32 bytes would be coalesced into a single TCP/IP packet, but
 	 * it would slow down the connection setup since it would prevent the

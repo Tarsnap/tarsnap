@@ -99,6 +99,9 @@ __archive_string_free(struct archive_string *as)
 struct archive_string *
 __archive_string_ensure(struct archive_string *as, size_t s)
 {
+	char *p;
+	size_t new_length;
+
 	/* If buffer is already big enough, don't reallocate. */
 	if (as->s && (s <= as->buffer_length))
 		return (as);
@@ -112,18 +115,17 @@ __archive_string_ensure(struct archive_string *as, size_t s)
 	 */
 	if (as->buffer_length < 32)
 		/* Start with a minimum 32-character buffer. */
-		as->buffer_length = 32;
+		new_length = 32;
 	else if (as->buffer_length < 8192)
 		/* Buffers under 8k are doubled for speed. */
-		as->buffer_length += as->buffer_length;
+		new_length = as->buffer_length + as->buffer_length;
 	else {
 		/* Buffers 8k and over grow by at least 25% each time. */
-		size_t old_length = as->buffer_length;
-		as->buffer_length += as->buffer_length / 4;
-		/* Be safe: If size wraps, release buffer and return NULL. */
-		if (as->buffer_length < old_length) {
-			free(as->s);
-			as->s = NULL;
+		new_length = as->buffer_length + as->buffer_length / 4;
+		/* Be safe: If size wraps, fail. */
+		if (new_length < as->buffer_length) {
+			/* On failure, wipe the string and return NULL. */
+			__archive_string_free(as);
 			return (NULL);
 		}
 	}
@@ -132,12 +134,18 @@ __archive_string_ensure(struct archive_string *as, size_t s)
 	 * grow the buffer.  In any case, we have to grow it enough to
 	 * hold the request.
 	 */
-	if (as->buffer_length < s)
-		as->buffer_length = s;
+	if (new_length < s)
+		new_length = s;
 	/* Now we can reallocate the buffer. */
-	as->s = (char *)realloc(as->s, as->buffer_length);
-	if (as->s == NULL)
+	p = (char *)realloc(as->s, new_length);
+	if (p == NULL) {
+		/* On failure, wipe the string and return NULL. */
+		__archive_string_free(as);
 		return (NULL);
+	}
+
+	as->s = p;
+	as->buffer_length = new_length;
 	return (as);
 }
 
@@ -289,18 +297,17 @@ __archive_string_utf8_w(struct archive_string *as)
 {
 	wchar_t *ws, *dest;
 	int wc, wc2;/* Must be large enough for a 21-bit Unicode code point. */
-	const char *src;
+	const char *src, *end;
 	int n;
-	int err;
 
 	ws = (wchar_t *)malloc((as->length + 1) * sizeof(wchar_t));
 	if (ws == NULL)
 		__archive_errx(1, "Out of memory");
-	err = 0;
 	dest = ws;
 	src = as->s;
+	end = as->s + as->buffer_length;
 	while (*src != '\0') {
-		n = utf8_to_unicode(&wc, src, 8);
+		n = utf8_to_unicode(&wc, src, end - src);
 		if (n == 0)
 			break;
 		if (n < 0) {
@@ -313,7 +320,7 @@ __archive_string_utf8_w(struct archive_string *as)
 			 * has translated UTF16 to UTF8 without combining
 			 * surrogates; rebuild the full code point before
 			 * continuing. */
-			n = utf8_to_unicode(&wc2, src, 8);
+			n = utf8_to_unicode(&wc2, src, end - src);
 			if (n < 0) {
 				free(ws);
 				return (NULL);

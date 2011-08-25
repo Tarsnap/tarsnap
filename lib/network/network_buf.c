@@ -260,7 +260,7 @@ network_read(int fd, uint8_t * buf, size_t buflen,
 }
 
 /**
- * network_write(fd, buf, buflen, timeo, callback, cookie):
+ * network_read(fd, buf, buflen, to0, to1, callback, cookie):
  * Asynchronously write data from the provided buffer to ${fd}, and call
  * callback(cookie, status) where status is a NETWORK_STATUS_* value.  Time
  * out if no data can be written for a period of time to0, or if the complete

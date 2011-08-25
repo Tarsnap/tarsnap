@@ -90,7 +90,7 @@ header_received(void * cookie, int status)
 		goto err1;
 	}
 
-	/* Decrypt header in-place */
+	/* Decrypt header in-place. */
 	crypto_session_decrypt(RC->C->keys, RC->header, RC->header, 37);
 
 	/* Decode packet length. */

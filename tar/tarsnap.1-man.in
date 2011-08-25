@@ -656,7 +656,7 @@ warnings will be silenced by this option in future versions of
 Extract files as sparse files.
 For every block on disk, check first if it contains only NULL bytes and seek
 over it otherwise.
-This works similiar to the conv=sparse option of dd.
+This works similar to the conv=sparse option of dd.
 .TP
 \fB\-s\fP \fIpattern\fP
 Modify file or archive member names according to
@@ -665,10 +665,10 @@ The pattern has the format /old/new/[gps].
 old is a basic regular expression.
 If it doesn't apply, the pattern is skipped.
 new is the replacement string of the matched part.
-~ is substituted with the match, \1 to \9 with the content of
+~ is substituted with the match, \e1 to \e9 with the contents of
 the corresponding captured group.
 The optional trailing g specifies that matching should continue
-after the matched part and stopped on the first unmatched pattern.
+after the matched part and stop on the first unmatched pattern.
 The optional trailing s specifies that the pattern applies to the value
 of symbolic links.
 The optional trailing p specifies that after a successful substitution

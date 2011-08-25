@@ -73,7 +73,10 @@ get_extract(struct archive_read *a)
 			archive_set_error(&a->archive, ENOMEM, "Can't extract");
 			return (NULL);
 		}
-		archive_write_disk_set_standard_lookup(a->extract->ad);
+		if (archive_write_disk_set_standard_lookup(a->extract->ad)) {
+			archive_set_error(&a->archive, ENOMEM, "Can't extract");
+			return (NULL);
+		}
 		a->cleanup_archive_extract = archive_read_extract_cleanup;
 	}
 	return (a->extract);
@@ -106,7 +109,7 @@ archive_read_extract2(struct archive *_a, struct archive_entry *entry,
 		r = ARCHIVE_WARN;
 	if (r != ARCHIVE_OK)
 		/* If _write_header failed, copy the error. */
- 		archive_copy_error(&a->archive, ad);
+		archive_copy_error(&a->archive, ad);
 	else
 		/* Otherwise, pour data into the entry. */
 		r = copy_data(_a, ad);
@@ -115,7 +118,7 @@ archive_read_extract2(struct archive *_a, struct archive_entry *entry,
 		r2 = ARCHIVE_WARN;
 	/* Use the first message. */
 	if (r2 != ARCHIVE_OK && r == ARCHIVE_OK)
- 		archive_copy_error(&a->archive, ad);
+		archive_copy_error(&a->archive, ad);
 	/* Use the worst error return. */
 	if (r2 < r)
 		r = r2;
@@ -144,6 +147,8 @@ copy_data(struct archive *ar, struct archive *aw)
 	int r;
 
 	extract = get_extract((struct archive_read *)ar);
+	if (extract == NULL)
+		return (ARCHIVE_FATAL);
 	for (;;) {
 		r = archive_read_data_block(ar, &buff, &size, &offset);
 		if (r == ARCHIVE_EOF)

@@ -27,7 +27,7 @@ typedef int network_callback(void *, int);
 #define NETWORK_STATUS_MAX	6
 
 /**
- * network_init():
+ * network_init(void):
  * Initialize the network subsystem.
  */
 int network_init(void);
@@ -106,7 +106,7 @@ int network_read(int, uint8_t *, size_t, struct timeval *, struct timeval *,
     network_callback *, void *);
 
 /**
- * network_write(fd, buf, buflen, timeo, callback, cookie):
+ * network_read(fd, buf, buflen, to0, to1, callback, cookie):
  * Asynchronously write data from the provided buffer to ${fd}, and call
  * callback(cookie, status) where status is a NETWORK_STATUS_* value.  Time
  * out if no data can be written for a period of time to0, or if the complete
@@ -166,7 +166,7 @@ void network_writeq_free(NETWORK_WRITEQ *);
 void network_getselectstats(double *, double *, double *, double *);
 
 /**
- * network_fini():
+ * network_fini(void):
  * Free resources associated with the network subsystem.
  */
 void network_fini(void);

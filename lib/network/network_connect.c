@@ -126,7 +126,7 @@ network_connect(int s, const struct sockaddr * addr, socklen_t addrlen,
 	 * If FreeBSD's net.inet.ip.portrange.randomized sysctl is set to 1
 	 * (the default value) FreeBSD sometimes reuses a source port faster
 	 * than might naively be expected.  This doesn't cause any problems
-	 * except if the pf filewall is running on the source system; said
+	 * except if the pf firewall is running on the source system; said
 	 * firewall detects the packet as belonging to an expired connection
 	 * and drops it.  This would be fine, except that the FreeBSD kernel
 	 * doesn't merely drop the packet when a firewall blocks an outgoing

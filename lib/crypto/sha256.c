@@ -171,7 +171,7 @@ SHA256_Transform(uint32_t * state, const unsigned char block[64])
 	RNDr(S, W, 62, 0xbef9a3f7);
 	RNDr(S, W, 63, 0xc67178f2);
 
-	/* 4. Mix local working variables into global state */
+	/* 4. Mix local working variables into global state. */
 	for (i = 0; i < 8; i++)
 		state[i] += S[i];
 
@@ -201,12 +201,12 @@ SHA256_Pad(SHA256_CTX * ctx)
 	 */
 	be32enc_vect(len, ctx->count, 8);
 
-	/* Add 1--64 bytes so that the resulting length is 56 mod 64 */
+	/* Add 1--64 bytes so that the resulting length is 56 mod 64. */
 	r = (ctx->count[1] >> 3) & 0x3f;
 	plen = (r < 56) ? (56 - r) : (120 - r);
 	SHA256_Update(ctx, PAD, (size_t)plen);
 
-	/* Add the terminating bit-count */
+	/* Add the terminating bit-count. */
 	SHA256_Update(ctx, len, 8);
 }
 
@@ -215,10 +215,10 @@ void
 SHA256_Init(SHA256_CTX * ctx)
 {
 
-	/* Zero bits processed so far */
+	/* Zero bits processed so far. */
 	ctx->count[0] = ctx->count[1] = 0;
 
-	/* Magic initialization constants */
+	/* Magic initialization constants. */
 	ctx->state[0] = 0x6A09E667;
 	ctx->state[1] = 0xBB67AE85;
 	ctx->state[2] = 0x3C6EF372;
@@ -229,7 +229,7 @@ SHA256_Init(SHA256_CTX * ctx)
 	ctx->state[7] = 0x5BE0CD19;
 }
 
-/* Add bytes into the hash */
+/* Add bytes into the hash. */
 void
 SHA256_Update(SHA256_CTX * ctx, const void *in, size_t len)
 {
@@ -237,38 +237,42 @@ SHA256_Update(SHA256_CTX * ctx, const void *in, size_t len)
 	uint32_t r;
 	const unsigned char *src = in;
 
-	/* Number of bytes left in the buffer from previous updates */
+	/* Return immediately if we have nothing to do. */
+	if (len == 0)
+		return;
+
+	/* Number of bytes left in the buffer from previous updates. */
 	r = (ctx->count[1] >> 3) & 0x3f;
 
-	/* Convert the length into a number of bits */
+	/* Convert the length into a number of bits. */
 	bitlen[1] = ((uint32_t)len) << 3;
 	bitlen[0] = (uint32_t)(len >> 29);
 
-	/* Update number of bits */
+	/* Update number of bits. */
 	if ((ctx->count[1] += bitlen[1]) < bitlen[1])
 		ctx->count[0]++;
 	ctx->count[0] += bitlen[0];
 
-	/* Handle the case where we don't need to perform any transforms */
+	/* Handle the case where we don't need to perform any transforms. */
 	if (len < 64 - r) {
 		memcpy(&ctx->buf[r], src, len);
 		return;
 	}
 
-	/* Finish the current block */
+	/* Finish the current block. */
 	memcpy(&ctx->buf[r], src, 64 - r);
 	SHA256_Transform(ctx->state, ctx->buf);
 	src += 64 - r;
 	len -= 64 - r;
 
-	/* Perform complete blocks */
+	/* Perform complete blocks. */
 	while (len >= 64) {
 		SHA256_Transform(ctx->state, src);
 		src += 64;
 		len -= 64;
 	}
 
-	/* Copy left over data into buffer */
+	/* Copy left over data into buffer. */
 	memcpy(ctx->buf, src, len);
 }
 
@@ -280,13 +284,13 @@ void
 SHA256_Final(unsigned char digest[32], SHA256_CTX * ctx)
 {
 
-	/* Add padding */
+	/* Add padding. */
 	SHA256_Pad(ctx);
 
-	/* Write the hash */
+	/* Write the hash. */
 	be32enc_vect(digest, ctx->state, 32);
 
-	/* Clear the context state */
+	/* Clear the context state. */
 	memset((void *)ctx, 0, sizeof(*ctx));
 }
 

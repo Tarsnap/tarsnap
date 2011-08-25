@@ -48,7 +48,7 @@ struct bsdtar {
 	const char	**tapenames; /* -f tapename */
 	size_t		  ntapes;
 	const char	 *homedir;
-	const char	 *cachedir; /* --cachedir */
+	char		 *cachedir; /* --cachedir */
 	dev_t		  cachedir_dev;
 	ino_t		  cachedir_ino;
 	int		  cachecrunch; /* --lowmem / --verylowmem */

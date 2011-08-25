@@ -183,6 +183,8 @@ tree_push(struct tree *t, const char *path)
 	struct tree_entry *te;
 
 	te = malloc(sizeof(*te));
+	if (te == NULL)
+		abort();
 	memset(te, 0, sizeof(*te));
 	te->next = t->stack;
 	t->stack = te;
@@ -203,6 +205,7 @@ static void
 tree_append(struct tree *t, const char *name, size_t name_length)
 {
 	char *p;
+	size_t size_needed;
 
 	if (t->buff != NULL)
 		t->buff[t->dirname_length] = '\0';
@@ -211,12 +214,16 @@ tree_append(struct tree *t, const char *name, size_t name_length)
 		name_length--;
 
 	/* Resize pathname buffer as needed. */
-	while (name_length + 1 + t->dirname_length >= t->buff_length) {
-		t->buff_length *= 2;
+	size_needed = name_length + 1 + t->dirname_length;
+	if (t->buff_length < size_needed) {
 		if (t->buff_length < 1024)
 			t->buff_length = 1024;
+		while (t->buff_length < size_needed)
+			t->buff_length *= 2;
 		t->buff = realloc(t->buff, t->buff_length);
 	}
+	if (t->buff == NULL)
+		abort();
 	p = t->buff + t->dirname_length;
 	t->path_length = t->dirname_length + name_length;
 	/* Add a separating '/' if it's needed. */
@@ -249,6 +256,8 @@ tree_open(const char *path)
 	struct tree *t;
 
 	t = malloc(sizeof(*t));
+	if (t == NULL)
+		abort();
 	memset(t, 0, sizeof(*t));
 	tree_append(t, path, strlen(path));
 #ifdef HAVE_FCHDIR
@@ -348,9 +357,9 @@ tree_next(struct tree *t)
 	 * violation.  Just crash now. */
 	if (t->visit_type == TREE_ERROR_FATAL) {
 		const char *msg = "Unable to continue traversing"
-		    " directory heirarchy after a fatal error.";
+		    " directory hierarchy after a fatal error.\n";
 		write(2, msg, strlen(msg));
-		*(int *)0 = 1; /* Deliberate SEGV; NULL pointer dereference. */
+		*(volatile int *)0 = 1; /* Deliberate SEGV; NULL pointer dereference. */
 		exit(1); /* In case the SEGV didn't work. */
 	}
 
@@ -363,8 +372,17 @@ tree_next(struct tree *t)
 	while (t->stack != NULL) {
 		/* If there's an open dir, get the next entry from there. */
 		while (t->d != NULL) {
+			errno = 0;
 			de = readdir(t->d);
 			if (de == NULL) {
+				if (errno) {
+					/* If readdir fails, we're screwed. */
+					closedir(t->d);
+					t->d = NULL;
+					t->visit_type = TREE_ERROR_FATAL;
+					return (t->visit_type);
+				}
+				/* Reached end of directory. */
 				closedir(t->d);
 				t->d = NULL;
 			} else if (de->d_name[0] == '.'
@@ -641,9 +659,11 @@ tree_current_depth(struct tree *t)
 /*
  * Terminate the traversal and release any resources.
  */
-void
+int
 tree_close(struct tree *t)
 {
+	int rc = 0;
+
 	/* Release anything remaining in the stack. */
 	while (t->stack != NULL)
 		tree_pop(t);
@@ -652,16 +672,18 @@ tree_close(struct tree *t)
 	/* chdir() back to where we started. */
 #ifdef HAVE_FCHDIR
 	if (t->initialDirFd >= 0) {
-		fchdir(t->initialDirFd);
+		rc = fchdir(t->initialDirFd);
 		close(t->initialDirFd);
 		t->initialDirFd = -1;
 	}
 #elif defined(_WIN32) && !defined(__CYGWIN__)
 	if (t->initialDir != NULL) {
-		chdir(t->initialDir);
+		rc = chdir(t->initialDir);
 		free(t->initialDir);
 		t->initialDir = NULL;
 	}
 #endif
 	free(t);
+
+	return (rc);
 }

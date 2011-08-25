@@ -10,7 +10,7 @@
 typedef struct patricia_internal PATRICIA;
 
 /**
- * patricia_init():
+ * patricia_init(void):
  * Create a Patricia tree to be used for mapping arbitrary-length keys to
  * records.  Return NULL on failure.
  */
@@ -42,7 +42,7 @@ void ** patricia_lookup(PATRICIA *, const uint8_t *, size_t);
 
 /**
  * patricia_foreach(tree, func, cookie):
- * Traverse the tree in lexographical order of stored keys, and call
+ * Traverse the tree in lexicographical order of stored keys, and call
  * func(cookie, key, keylen, rec) for each (key, record) pair.  Stop the
  * traversal early if func returns a non-zero value; return zero, the
  * non-zero value returned by func, or (-1) if an error occurs in the
