@@ -1,3 +1,10 @@
+tarsnap (1.0.31) unstable; urgency=low
+
+  * New version of tarsnap fixes security vulnerabilities relating to key
+    file creation on multi-user systems, plus several minor enhancements
+    and bug fixes.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 17 Nov 2011 10:52:59 +0000
 tarsnap (1.0.30) unstable; urgency=low
 
   * New version of tarsnap brings many minor bug fixes.

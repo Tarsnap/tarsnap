@@ -299,13 +299,13 @@ network_register(int fd, int op, struct timeval * timeo,
 		 * the reallocations fails, we may end up with some buffers
 		 * being allocated extra space; but this is harmless.
 		 */
-		if (recalloc((void **)&N.writers, N.alloclen, newalloclen,
+		if (recalloc((void *)&N.writers, N.alloclen, newalloclen,
 		    sizeof(struct network_callback_internal)))
 			goto err0;
-		if (recalloc((void **)&N.readers, N.alloclen, newalloclen,
+		if (recalloc((void *)&N.readers, N.alloclen, newalloclen,
 		    sizeof(struct network_callback_internal)))
 			goto err0;
-		if (recalloc((void **)&N.waiters, N.alloclen, newalloclen,
+		if (recalloc((void *)&N.waiters, N.alloclen, newalloclen,
 		    sizeof(struct network_callback_internal)))
 			goto err0;
 
@@ -483,6 +483,7 @@ network_select(int blocking)
 	int ntimeouts = 0;
 	double tokensecs;
 
+restart:
 	/* Get current time. */
 	if (gettimeofday(&curtime, NULL)) {
 		warnp("gettimeofday()");
@@ -601,9 +602,16 @@ selectagain:
 	selectstats_select();
 	while ((nready = select(N.maxfd + 1, &readfds, &writefds,
 	    NULL, &timeout)) == -1) {
-		/* EINTR is harmless. */
+		/*
+		 * EINTR is harmless, but on linux (contrary to POSIX!) it is
+		 * documented as rendering the fd sets and timeout undefined.
+		 * Go back to the start of the function and regenerate all of
+		 * those (we can't just save and restore them in case some
+		 * time passed before the signal arrived and the select call
+		 * was interrupted).
+		 */
 		if (errno == EINTR)
-			continue;
+			goto restart;
 
 		/* Anything else is an error. */
 		warnp("select()");

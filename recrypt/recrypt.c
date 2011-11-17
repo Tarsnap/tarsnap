@@ -656,8 +656,8 @@ main(int argc, char **argv)
 		/* We have a new last sequence number. */
 		memcpy(nlastseq, nseqnum, 32);
 
-		/* We're done this group. */
-		printf(" done.\n");
+		/* We've done this group. */
+		printf(". done.\n");
 	}
 
 	/* Open the old cache directory... */

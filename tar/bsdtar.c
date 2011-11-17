@@ -202,6 +202,14 @@ main(int argc, char **argv)
 		exit(1);
 
 	/*
+	 * Make stdout line-buffered (if possible) so that operations such as
+	 * "tarsnap --list-archives | more" will run more smoothly.  The only
+	 * downside to this is a slight performance cost; but we don't write
+	 * enough data to stdout for that to matter.
+	 */
+	setvbuf(stdout, NULL, _IONBF, 0);
+
+	/*
 	 * Unless specified otherwise, we consider ourselves to be
 	 * constructing a snapshot of the disk as it is right now.
 	 */

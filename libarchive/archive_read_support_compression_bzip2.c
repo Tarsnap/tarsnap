@@ -185,7 +185,7 @@ bzip2_reader_init(struct archive_read_filter *self)
 
 	state = (struct private_data *)calloc(sizeof(*state), 1);
 	out_block = (unsigned char *)malloc(out_block_size);
-	if (self == NULL || state == NULL || out_block == NULL) {
+	if (state == NULL || out_block == NULL) {
 		archive_set_error(&self->archive->archive, ENOMEM,
 		    "Can't allocate data for bzip2 decompression");
 		free(out_block);
@@ -210,12 +210,11 @@ static ssize_t
 bzip2_filter_read(struct archive_read_filter *self, const void **p)
 {
 	struct private_data *state;
-	size_t read_avail, decompressed;
+	size_t decompressed;
 	const char *read_buf;
 	ssize_t ret;
 
 	state = (struct private_data *)self->data;
-	read_avail = 0;
 
 	if (state->eof) {
 		*p = NULL;
@@ -344,11 +343,12 @@ bzip2_filter_close(struct archive_read_filter *self)
 					  "Failed to clean up decompressor");
 			ret = ARCHIVE_FATAL;
 		}
+		state->valid = 0;
 	}
 
 	free(state->out_block);
 	free(state);
-	return (ARCHIVE_OK);
+	return (ret);
 }
 
 #endif /* HAVE_BZLIB_H */

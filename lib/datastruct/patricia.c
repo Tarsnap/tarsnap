@@ -448,7 +448,7 @@ patricia_lookup(PATRICIA * P, const uint8_t * key, size_t keylen)
 			if (keylen == 0) {
 				/* Is there a record here? */
 				if (n->left != NULL)
-					return ((void **)&n->left);
+					return ((void **)(void *)&n->left);
 				else
 					return (NULL);
 			}

@@ -19,6 +19,6 @@ void b64encode(const uint8_t *, char *, size_t);
  * of space; but ${outlen} might be less than this.  Return non-zero if the
  * input ${in} is not valid base-64 encoded text.
  */
-int b64decode(char *, size_t, uint8_t *, size_t *);
+int b64decode(const char *, size_t, uint8_t *, size_t *);
 
 #endif /* !_B64ENCODE_H_ */

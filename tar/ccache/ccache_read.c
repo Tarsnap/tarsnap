@@ -186,9 +186,11 @@ ccache_read(const char * path)
 	struct ccache_internal * C;
 	struct ccache_read_internal R;
 	struct ccache_record * ccr;
+#ifdef HAVE_MMAP
 	struct stat sb;
 	off_t fpos;
 	long int pagesize;
+#endif
 	size_t i;
 	uint8_t N[4];
 
@@ -248,6 +250,7 @@ ccache_read(const char * path)
 		C->trailerusage += ccr->tzlen;
 	}
 
+#ifdef HAVE_MMAP
 	/* Obtain page size, since mmapped regions must be page-aligned. */
 	if ((pagesize = sysconf(_SC_PAGESIZE)) == -1) {
 		warnp("sysconf(_SC_PAGESIZE)");
@@ -280,9 +283,20 @@ ccache_read(const char * path)
 		warnp("mmap(%s)", R.s);
 		goto err5;
 	}
+	R.data = (uint8_t *)C->data + (fpos % pagesize);
+#else
+	/* Allocate space. */
+	C->datalen = R.datalen;
+	if (((C->data = malloc(C->datalen)) == NULL) && (C->datalen > 0))
+		goto err5;
+	if (fread(C->data, C->datalen, 1, R.f) != 1) {
+		warnp("fread(%s)", R.s);
+		goto err6;
+	}
+	R.data = (uint8_t *)C->data;
+#endif
 
 	/* Iterate through the tree reading chunk headers and trailers. */
-	R.data = (uint8_t *)C->data + (fpos % pagesize);
 	if (patricia_foreach(C->tree, callback_read_data, &R)) {
 		warnp("Error reading cache: %s", R.s);
 		goto err6;
@@ -306,8 +320,12 @@ emptycache:
 	return (C);
 
 err6:
+#ifdef HAVE_MMAP
 	if (C->datalen > 0)
 		munmap(C->data, C->datalen);
+#else
+	free(C->data);
+#endif
 err5:
 	free(R.sbuf);
 	patricia_foreach(C->tree, callback_free, NULL);
@@ -343,8 +361,12 @@ ccache_free(CCACHE * cache)
 	patricia_free(C->tree);
 
 	/* Unmap memory. */
+#ifdef HAVE_MMAP
 	if (C->datalen > 0 && munmap(C->data, C->datalen))
 		warnp("munmap failed on cache data");
+#else
+	free(C->data);
+#endif
 
 	/* Free the cache. */
 	free(C);
