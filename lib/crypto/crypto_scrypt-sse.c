@@ -301,7 +301,7 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 	if ((errno = posix_memalign(&XY0, 64, 256 * r + 64)) != 0)
 		goto err1;
 	XY = (uint32_t *)(XY0);
-#ifndef MAP_ANON
+#if !defined(MAP_ANON) || !defined(HAVE_MMAP)
 	if ((errno = posix_memalign(&V0, 64, 128 * r * N)) != 0)
 		goto err2;
 	V = (uint32_t *)(V0);
@@ -313,13 +313,13 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 	if ((XY0 = malloc(256 * r + 64 + 63)) == NULL)
 		goto err1;
 	XY = (uint32_t *)(((uintptr_t)(XY0) + 63) & ~ (uintptr_t)(63));
-#ifndef MAP_ANON
+#if !defined(MAP_ANON) || !defined(HAVE_MMAP)
 	if ((V0 = malloc(128 * r * N + 63)) == NULL)
 		goto err2;
 	V = (uint32_t *)(((uintptr_t)(V0) + 63) & ~ (uintptr_t)(63));
 #endif
 #endif
-#ifdef MAP_ANON
+#if defined(MAP_ANON) && defined(HAVE_MMAP)
 	if ((V0 = mmap(NULL, 128 * r * N, PROT_READ | PROT_WRITE,
 #ifdef MAP_NOCORE
 	    MAP_ANON | MAP_PRIVATE | MAP_NOCORE,
@@ -344,7 +344,7 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 	PBKDF2_SHA256(passwd, passwdlen, B, p * 128 * r, 1, buf, buflen);
 
 	/* Free memory. */
-#ifdef MAP_ANON
+#if defined(MAP_ANON) && defined(HAVE_MMAP)
 	if (munmap(V0, 128 * r * N))
 		goto err2;
 #else

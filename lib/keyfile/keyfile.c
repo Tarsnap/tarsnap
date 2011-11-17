@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +21,8 @@
  * Key file format:
  * keyfile == (rawkeyfile | textkeyfile)
  * textkeyfile == line*
- * line == commentline | base64line
+ * line == blankline | commentline | base64line
+ * blankline == EOL
  * commentline == "#" char* EOL
  * base64line == [a-zA-Z0-9+/=]+ EOL
  * EOL = "\n" | "\r" | "\r\n"
@@ -31,8 +33,9 @@
  * rawlinechecksum == byte{6}
  * where rawlinechecksum is the first 6 bytes of SHA256(rawlinedata).
  *
- * After ignoring any commentlines, converting base64lines to rawlinedatas,
- * and concatenating them together, a textkeyfile becomes a tarsnapkeyfile.
+ * After ignoring any blanklines and commentlines, converting base64lines to
+ * rawlinedatas, and concatenating them together, a textkeyfile becomes a
+ * tarsnapkeyfile.
  *
  * tarsnapkeyfile == scryptkeyfile | cookedkeyfile
  * scryptkeyfile == scrypt(cookedkeyfile)
@@ -47,14 +50,19 @@
  * 3. A base64-encoded encrypted key file.
  */
 
-static int read_raw(uint8_t *, size_t, uint64_t *, const char *, int);
-static int read_plaintext(uint8_t *, size_t, uint64_t *, const char *, int);
-static int read_encrypted(uint8_t *, size_t, uint64_t *, const char *, int);
-static int read_base256(uint8_t *, size_t, uint64_t *, const char *, int);
-static int read_base64(uint8_t *, size_t, uint64_t *, const char *, int);
+static int read_raw(const uint8_t *, size_t,
+    uint64_t *, const char *, int);
+static int read_plaintext(const uint8_t *, size_t,
+    uint64_t *, const char *, int);
+static int read_encrypted(const uint8_t *, size_t,
+    uint64_t *, const char *, int);
+static int read_base256(const uint8_t *, size_t,
+    uint64_t *, const char *, int);
+static int read_base64(const char *, size_t,
+    uint64_t *, const char *, int);
 
 static int
-read_raw(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
+read_raw(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys)
 {
 
@@ -80,7 +88,7 @@ err0:
 }
 
 static int
-read_plaintext(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
+read_plaintext(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys)
 {
 
@@ -105,7 +113,7 @@ err0:
 }
 
 static int
-read_encrypted(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
+read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys)
 {
 	char * pwprompt;
@@ -141,7 +149,7 @@ read_encrypted(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Decrypt the key file. */
 	rc = scryptdec_buf(keybuf, keylen, deckeybuf, &deckeylen,
-	    passwd, strlen(passwd), 0, 0.5, 86400.0);
+	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0);
 	if (rc != 0) {
 		switch (rc) {
 		case 1:
@@ -216,7 +224,7 @@ err0:
 }
 
 static int
-read_base256(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
+read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys)
 {
 
@@ -241,7 +249,7 @@ err0:
 }
 
 static int
-read_base64(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
+read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys)
 {
 	uint8_t * decbuf;
@@ -283,8 +291,8 @@ read_base64(uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 			goto err1;
 		}
 
-		/* If this isn't a comment line, base-64 decode it. */
-		if (keybuf[0] != '#') {
+		/* If this isn't a comment or blank line, base-64 decode it. */
+		if ((llen > 0) && (keybuf[0] != '#')) {
 			if (b64decode(keybuf, llen, &decbuf[decpos], &len))
 				goto err2;
 
@@ -394,7 +402,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 		}
 	} else {
 		/* Otherwise, try to base64 decode it. */
-		if (read_base64(keybuf, sb.st_size,
+		if (read_base64((const char *)keybuf, sb.st_size,
 		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
@@ -432,15 +440,9 @@ keyfile_write(const char * filename, uint64_t machinenum, int keys,
 	FILE * f;
 
 	/* Create key file. */
-	if ((f = fopen(filename, "w")) == NULL) {
+	if ((f = keyfile_write_open(filename)) == NULL) {
 		warnp("Cannot create %s", filename);
 		goto err0;
-	}
-
-	/* Set the permissions on the key file to 0600. */
-	if (fchmod(fileno(f), S_IRUSR | S_IWUSR)) {
-		warnp("Cannot set permissions on key file: %s", filename);
-		goto err2;
 	}
 
 	/* Write keys. */
@@ -467,6 +469,40 @@ err0:
 }
 
 /**
+ * keyfile_write_open(filename):
+ * Open a key file for writing.  Avoid race conditions.  Return a FILE *.
+ */
+FILE *
+keyfile_write_open(const char * filename)
+{
+	FILE * f;
+	int fd;
+
+	/* Attempt to create the file. */
+	if ((fd = open(filename, O_WRONLY | O_CREAT | O_EXCL,
+	    S_IRUSR | S_IWUSR)) == -1) {
+		/* Special error message for EEXIST. */
+		if (errno == EEXIST)
+			warn0("Key file already exists, not overwriting: %s",
+			    filename);
+		goto err0;
+	}
+
+	/* Wrap the fd into a FILE. */
+	if ((f = fdopen(fd, "w")) == NULL)
+		goto err1;
+
+	/* Success! */
+	return (f);
+
+err1:
+	close(fd);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
  * keyfile_write_file(f, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
  * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
@@ -483,7 +519,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	uint8_t * encrbuf;
 	int rc;
 	uint8_t linebuf256[54];
-	uint8_t linebuf64[73];
+	char linebuf64[73];
 	size_t writepos;
 	size_t linelen;
 	uint8_t hbuf[32];
@@ -516,7 +552,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 
 		/* Encrypt. */
 		switch ((rc = scryptenc_buf(tskeybuf, tskeylen, encrbuf,
-		    passphrase, strlen(passphrase),
+		    (uint8_t *)passphrase, strlen(passphrase),
 		    maxmem, (maxmem != 0) ? 0.5 : 0.125, cputime))) {
 		case 0:
 			/* Success! */

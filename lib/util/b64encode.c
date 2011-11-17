@@ -56,7 +56,7 @@ b64encode(const uint8_t * in, char * out, size_t len)
  * input ${in} is not valid base-64 encoded text.
  */
 int
-b64decode(char * in, size_t inlen, uint8_t * out, size_t * outlen)
+b64decode(const char * in, size_t inlen, uint8_t * out, size_t * outlen)
 {
 	uint32_t t;
 	size_t deadbytes = 0;

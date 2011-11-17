@@ -77,6 +77,7 @@
 #define	HAVE_MEMMOVE 1
 #define	HAVE_MEMORY_H 1
 #define	HAVE_MEMSET 1
+#define	HAVE_MMAP 1
 #if __FreeBSD_version >= 450002 /* nl_langinfo introduced */
 #define	HAVE_NL_LANGINFO 1
 #endif

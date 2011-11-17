@@ -35,7 +35,7 @@ with
 .Ar old-key-file .
 .Pp
 .Nm
-checkpoints its progress after every 1-2 GB of data is
+checkpoints its progress after every 1-2 GB of data that it has
 copied; if it is interrupted it can be re-run and it will
 attempt to continue.
 .Pp

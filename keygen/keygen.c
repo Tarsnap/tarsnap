@@ -68,7 +68,6 @@ main(int argc, char **argv)
 	struct register_internal C;
 	const char * keyfilename;
 	FILE * keyfile;
-	struct stat sb;
 	NETPACKET_CONNECTION * NPC;
 	int passphrased;
 	uint64_t maxmem;
@@ -164,67 +163,33 @@ main(int argc, char **argv)
 	 * avoid registering with the server if we won't be able to create
 	 * the key file later.
 	 */
-	if ((keyfile = fopen(keyfilename, "a")) == NULL) {
+	if ((keyfile = keyfile_write_open(keyfilename)) == NULL) {
 		warnp("Cannot create %s", keyfilename);
-		exit(1);
-	}
-
-	/* Lock the key file to safeguard against simultaneous keygen runs. */
-#ifdef HAVE_LOCKF
-	while (lockf(fileno(keyfile), F_LOCK, 0)) {
-#else
-	while (flock(fileno(keyfile), LOCK_EX)) {
-#endif
-		/* Retry on EINTR. */
-		if (errno == EINTR)
-			continue;
-
-		warnp("Cannot lock file: %s", keyfilename);
-		exit(1);
-	}
-
-	/*
-	 * Make sure that the file is currently empty, i.e., that we're not
-	 * writing to a preexisting key file.
-	 */
-	if (fstat(fileno(keyfile), &sb)) {
-		warnp("fstat(%s)", keyfilename);
-		exit(1);
-	}
-	if (sb.st_size > 0) {
-		warn0("Key file already exists, not overwriting: %s",
-		    keyfilename);
-		exit(1);
-	}
-
-	/* Set the permissions on the key file to 0600. */
-	if (fchmod(fileno(keyfile), S_IRUSR | S_IWUSR)) {
-		warnp("Cannot set permissions on key file: %s", keyfilename);
 		exit(1);
 	}
 
 	/* Initialize entropy subsystem. */
 	if (crypto_entropy_init()) {
 		warnp("Entropy subsystem initialization failed");
-		exit(1);
+		goto err1;
 	}
 
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
-		exit(1);
+		goto err1;
 	}
 
 	/* Generate keys. */
 	if (crypto_keys_generate(CRYPTO_KEYMASK_USER)) {
 		warnp("Error generating keys");
-		exit(1);
+		goto err1;
 	}
 
 	/* Initialize network layer. */
 	if (network_init()) {
 		warnp("Network layer initialization failed");
-		exit(1);
+		goto err1;
 	}
 
 	/*
@@ -237,19 +202,19 @@ main(int argc, char **argv)
 
 	/* Open netpacket connection. */
 	if ((NPC = netpacket_open(USERAGENT)) == NULL)
-		goto err1;
+		goto err2;
 
 	/* Ask the netpacket layer to send a request and get a response. */
 	if (netpacket_op(NPC, callback_register_send, &C))
-		goto err1;
+		goto err2;
 
 	/* Run event loop until an error occurs or we're done. */
 	if (network_spin(&C.done))
-		goto err1;
+		goto err2;
 
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
-		goto err1;
+		goto err2;
 
 	/*
 	 * If we didn't respond to a challenge, the server's response must
@@ -257,14 +222,14 @@ main(int argc, char **argv)
 	 */
 	if ((C.donechallenge == 0) && (C.status != 1)) {
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		exit(1);
+		goto err1;
 	}
 
 	/* The machine number should be -1 iff the status is nonzero. */
 	if (((C.machinenum == (uint64_t)(-1)) && (C.status == 0)) ||
 	    ((C.machinenum != (uint64_t)(-1)) && (C.status != 0))) {
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		exit(1);
+		goto err1;
 	}
 
 	/* Parse status returned by server. */
@@ -284,8 +249,7 @@ main(int argc, char **argv)
 		break;
 	default:
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		warnp("Error registering with server");
-		exit(1);
+		goto err2;
 	}
 
 	/* Shut down the network event loop. */
@@ -293,7 +257,7 @@ main(int argc, char **argv)
 
 	/* Exit with a code of 1 if we couldn't register. */
 	if (C.machinenum == (uint64_t)(-1))
-		exit(1);
+		goto err1;
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
 	if (passphrased != 0) {
@@ -301,7 +265,7 @@ main(int argc, char **argv)
 		    "Please enter passphrase for keyfile encryption",
 		    "Please confirm passphrase for keyfile encryption", 1)) {
 			warnp("Error reading password");
-			exit(1);
+			goto err1;
 		}
 	} else {
 		passphrase = NULL;
@@ -310,19 +274,21 @@ main(int argc, char **argv)
 	/* Write keys to file. */
 	if (keyfile_write_file(keyfile, C.machinenum,
 	    CRYPTO_KEYMASK_USER, passphrase, maxmem, 1.0))
-		exit(1);
+		goto err1;
 
 	/* Close the key file. */
 	if (fclose(keyfile)) {
 		warnp("Error closing key file");
-		exit(1);
+		goto err1;
 	}
 
 	/* Success! */
 	return (0);
 
-err1:
+err2:
 	warnp("Error registering with server");
+err1:
+	unlink(keyfilename);
 	exit(1);
 }
 

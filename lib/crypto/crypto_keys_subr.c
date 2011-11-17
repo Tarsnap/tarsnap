@@ -30,7 +30,7 @@
  * x[0] || x[1] || x[2] ... x[31]
  */
 
-static int import_BN(BIGNUM **, uint8_t **, size_t *);
+static int import_BN(BIGNUM **, const uint8_t **, size_t *);
 static int export_BN(BIGNUM *, uint8_t **, size_t *, uint32_t *);
 
 /**
@@ -39,7 +39,7 @@ static int export_BN(BIGNUM *, uint8_t **, size_t *, uint32_t *);
  * pointer, and adjust the remaining buffer length.
  */
 static int
-import_BN(BIGNUM ** bn, uint8_t ** buf, size_t * buflen)
+import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 {
 	uint32_t len;
 	uint8_t * bnbuf;
@@ -161,7 +161,7 @@ err0:
  * Import the specified RSA private key from the provided buffer.
  */
 int
-crypto_keys_subr_import_RSA_priv(RSA ** key, uint8_t * buf, size_t buflen)
+crypto_keys_subr_import_RSA_priv(RSA ** key, const uint8_t * buf, size_t buflen)
 {
 
 	/* Free any existing key. */
@@ -212,7 +212,7 @@ err0:
  * Import the specified RSA public key from the provided buffer.
  */
 int
-crypto_keys_subr_import_RSA_pub(RSA ** key, uint8_t * buf, size_t buflen)
+crypto_keys_subr_import_RSA_pub(RSA ** key, const uint8_t * buf, size_t buflen)
 {
 
 	/* Free any existing key. */
@@ -251,8 +251,8 @@ err0:
  * Import the specified HMAC key from the provided buffer.
  */
 int
-crypto_keys_subr_import_HMAC(struct crypto_hmac_key ** key, uint8_t * buf,
-    size_t buflen)
+crypto_keys_subr_import_HMAC(struct crypto_hmac_key ** key,
+    const uint8_t * buf, size_t buflen)
 {
 
 	/* Free any existing key. */

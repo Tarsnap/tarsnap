@@ -196,8 +196,8 @@ proto_received(void * cookie, int status)
 	    namelen_sent, KC))
 		goto err2;
 	KC->refcount++;
-	if (network_writeq_add(KC->C->Q, KC->useragent, KC->useragentlen,
-	    &KC->timeout, name_sent, KC))
+	if (network_writeq_add(KC->C->Q, (const uint8_t *)KC->useragent,
+	    KC->useragentlen, &KC->timeout, name_sent, KC))
 		goto err2;
 
 	/* Success! */

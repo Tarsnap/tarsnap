@@ -296,6 +296,11 @@ option, the archive will be stored with
 In mode print-stats, if
 \fIarchive-name\fP
 is *, statistics will be printed for every archive.
+In the print-stats and d modes,
+\fB\-f\fP \fIarchive-name\fP
+can be specified multiple times, in which case the operation
+(printing statistics, or deletion) will be performed for each
+of the specified archives.
 .PP
 Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when

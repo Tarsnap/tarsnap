@@ -36,19 +36,19 @@ int crypto_keys_server_import_root(void);
  * crypto_keys_subr_import_RSA_priv(key, buf, buflen):
  * Import the specified RSA private key from the provided buffer.
  */
-int crypto_keys_subr_import_RSA_priv(RSA **, uint8_t *, size_t);
+int crypto_keys_subr_import_RSA_priv(RSA **, const uint8_t *, size_t);
 
 /**
  * crypto_keys_subr_import_RSA_pub(key, buf, buflen):
  * Import the specified RSA public key from the provided buffer.
  */
-int crypto_keys_subr_import_RSA_pub(RSA **, uint8_t *, size_t);
+int crypto_keys_subr_import_RSA_pub(RSA **, const uint8_t *, size_t);
 
 /**
  * crypto_keys_subr_import_HMAC(key, buf, buflen):
  * Import the specified HMAC key from the provided buffer.
  */
-int crypto_keys_subr_import_HMAC(struct crypto_hmac_key **, uint8_t *,
+int crypto_keys_subr_import_HMAC(struct crypto_hmac_key **, const uint8_t *,
     size_t);
 
 /**

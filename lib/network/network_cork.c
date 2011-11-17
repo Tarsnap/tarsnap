@@ -25,7 +25,8 @@
  * XXX defined, but seems to be broken; we use autoconf to detect OS X and
  * XXX define BROKEN_TCP_NOPUSH.  On Cygwin, TCP_NOPUSH is defined, but
  * XXX using it produces a ENOPROTOOPT error; we define BROKEN_TCP_NOPUSH
- * XXX in this case, too.
+ * XXX in this case, too.  On Minix, TCP_NODELAY fails with ENOSYS; since
+ * XXX corking occurs for performance reasons only, we ignore this errno.
  */
 
 /* Macro to simplify setting options. */
@@ -35,7 +36,8 @@
 	val = value;							\
 	if (setsockopt(fd, IPPROTO_TCP, opt, &val, sizeof(int))) {	\
 		if ((errno != ETIMEDOUT) &&				\
-		    (errno != ECONNRESET)) {				\
+		    (errno != ECONNRESET) &&				\
+		    (errno != ENOSYS)) {				\
 			warnp("setsockopt(%s, %d)", #opt, val);		\
 			goto err0;					\
 		}							\

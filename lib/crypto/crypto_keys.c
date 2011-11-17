@@ -155,9 +155,9 @@ err0:
  * not specified in the mask ${keys}.
  */
 int
-crypto_keys_import(uint8_t * buf, size_t buflen, int keys)
+crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 {
-	struct keyheader * kh;
+	const struct keyheader * kh;
 	uint32_t len;
 
 	/* Loop until we've processed all the provided data. */
@@ -169,7 +169,7 @@ crypto_keys_import(uint8_t * buf, size_t buflen, int keys)
 		}
 
 		/* Parse header. */
-		kh = (struct keyheader *)buf;
+		kh = (const struct keyheader *)buf;
 		buf += sizeof(struct keyheader);
 		buflen -= sizeof(struct keyheader);
 

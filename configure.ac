@@ -366,6 +366,9 @@ AC_CHECK_FUNCS([tzset unsetenv utime utimes vfork])
 AC_CHECK_FUNCS([wcrtomb wcscpy wcslen wctomb wmemcmp wmemcpy])
 AC_CHECK_FUNCS([asprintf getaddrinfo lockf posix_memalign qsort_r])
 
+# Check for mmap so we can work around its absence on Minix
+AC_CHECK_FUNCS([mmap])
+
 # FreeBSD's nl_langinfo supports an option to specify whether the
 # current locale uses month/day or day/month ordering.  It makes the
 # output a little prettier...

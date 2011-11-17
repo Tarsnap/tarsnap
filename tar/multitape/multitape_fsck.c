@@ -372,6 +372,9 @@ phase4(STORAGE_D * SD, STORAGE_R * SR, CHUNKS_S * C,
 
 	/* Iterate through the archives. */
 	for (file = 0; file < nmdat; file++) {
+		/* Print progress. */
+		fprintf(stdout, "  Archive %zu/%zu...\n", file + 1, nmdat);
+
 		/* Skip deleted metadata. */
 		if (mdatlist[file] == NULL)
 			continue;

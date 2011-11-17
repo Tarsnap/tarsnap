@@ -20,6 +20,12 @@ int keyfile_read(const char *, uint64_t *, int);
 int keyfile_write(const char *, uint64_t, int, char *, size_t, double);
 
 /**
+ * keyfile_write_open(filename):
+ * Open a key file for writing.  Avoid race conditions.  Return a FILE *.
+ */
+FILE * keyfile_write_open(const char *);
+
+/**
  * keyfile_write_file(f, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
  * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of

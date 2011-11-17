@@ -201,7 +201,7 @@ __archive_errx(int retvalue, const char *msg)
  *      but character '-' cannot be used for the first character.
  *      (Regular expression is [a-z][-a-z]+)
  *
- *    - For a specfic format/filter, using the format name with ':'.
+ *    - For a specific format/filter, using the format name with ':'.
  *        e.g  "zip:compression=9"
  *        (This "compression=9" option entry is for "zip" format only)
  *

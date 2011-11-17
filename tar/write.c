@@ -103,21 +103,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 /* Size of buffer for holding file data prior to writing. */
 #define FILEDATABUFLEN	65536
 
-/* Fixed size of uname/gname caches. */
-#define	name_cache_size 101
-
-static const char * const NO_NAME = "(noname)";
-
-struct name_cache {
-	int	probes;
-	int	hits;
-	size_t	size;
-	struct {
-		id_t id;
-		const char *name;
-	} cache[name_cache_size];
-};
-
 static int		 append_archive(struct bsdtar *, struct archive *,
 			     struct archive *ina, void * cookie);
 static int		 append_archive_filename(struct bsdtar *,
@@ -855,7 +840,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 * If this file/dir is flagged "nodump" and we're
 		 * honoring such flags, skip this file/dir.
 		 */
-#ifdef HAVE_STRUCT_STAT_ST_FLAGS
+#if defined(HAVE_STRUCT_STAT_ST_FLAGS) && defined(UF_NODUMP)
 		/* BSD systems store flags in struct stat */
 		if (bsdtar->option_honor_nodump &&
 		    (lst->st_flags & UF_NODUMP))

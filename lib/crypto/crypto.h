@@ -109,7 +109,7 @@ int crypto_keys_init(void);
  * Import keys from the provided buffer into the key cache.  Ignore any keys
  * not specified in the mask ${keys}.
  */
-int crypto_keys_import(uint8_t *, size_t, int);
+int crypto_keys_import(const uint8_t *, size_t, int);
 
 /**
  * crypto_keys_missing(keys):
