@@ -171,6 +171,8 @@ const char * synthetic_filesystems[] = {
 	"usbdevfs",		/* Linux */
 	"securityfs",		/* Linux */
 	"selinux",		/* Linux */
+	"kernfs",		/* NetBSD */
+	"ptyfs",		/* NetBSD */
 	"dev",			/* Solaris */
 	"ctfs",			/* Solaris */
 	"mntfs",		/* Solaris */

@@ -39,7 +39,8 @@ There is a SlackBuild for tarsnap (possibly an earlier version) at
 for VER = 12.2 and 13.1 (and possibly other versions by the time
 you read this).
 
-FreeBSD
--------
+FreeBSD, OpenBSD, and pkgsrc
+----------------------------
 
-Tarsnap is in the FreeBSD ports tree as sysutils/tarsnap.
+Tarsnap is in the FreeBSD ports tree, the OpenBSD ports tree, and
+the pkgsrc tree as sysutils/tarsnap.

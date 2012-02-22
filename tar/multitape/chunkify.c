@@ -67,7 +67,7 @@ isprime(uint32_t n)
 static uint32_t
 nextprime(uint32_t n)
 {
-	uint32_t p;
+	volatile uint32_t p;
 
 	for (p = n; p != 0; p++)
 		if (isprime(p))
