@@ -94,6 +94,7 @@ archive_read_open_filename(struct archive *a, const char *filename,
 	}
 	if (fstat(fd, &st) != 0) {
 		archive_set_error(a, errno, "Can't stat '%s'", filename);
+		close(fd);
 		return (ARCHIVE_FATAL);
 	}
 

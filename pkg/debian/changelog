@@ -1,3 +1,9 @@
+tarsnap (1.0.32) unstable; urgency=low
+
+  * New version of tarsnap fixes a bug which made the --nodump option
+    inoperative.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Sun, 12 Feb 2012 02:18:25 +0000
 tarsnap (1.0.31) unstable; urgency=low
 
   * New version of tarsnap fixes security vulnerabilities relating to key

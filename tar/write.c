@@ -850,7 +850,8 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 #if defined(EXT2_IOC_GETFLAGS) && defined(EXT2_NODUMP_FL)
 		/* Linux uses ioctl to read flags. */
 		if (bsdtar->option_honor_nodump) {
-			int fd = open(name, O_RDONLY | O_NONBLOCK);
+			int fd = open(tree_current_access_path(tree),
+			    O_RDONLY | O_NONBLOCK);
 			if (fd >= 0) {
 				unsigned long fflags;
 				int r = ioctl(fd, EXT2_IOC_GETFLAGS, &fflags);
