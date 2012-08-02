@@ -860,6 +860,11 @@ If
 is
 ``-''
 then the list of names will be read from the standard input.
+Note:  If you are generating lists of files using
+\fBfind\fP(1),
+you probably want to use
+\fB\-n\fP
+as well.
 .TP
 \fB\--totals\fP
 (c mode only)

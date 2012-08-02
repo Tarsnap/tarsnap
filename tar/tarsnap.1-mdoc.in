@@ -773,6 +773,11 @@ If
 is
 .Dq -
 then the list of names will be read from the standard input.
+Note:  If you are generating lists of files using
+.Xr find 1 ,
+you probably want to use
+.Fl n
+as well.
 .It Fl -totals
 (c mode only)
 Print the size of the archive after creating it.  This option is provided
