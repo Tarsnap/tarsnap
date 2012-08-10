@@ -149,7 +149,7 @@ tryagain:
 		goto docallback;
 	}
 	if (tv_lt(&C->timeout_max, &timeo))
-		memcpy(&timeo, &C->timeout_max, sizeof(struct timeval)); 
+		memcpy(&timeo, &C->timeout_max, sizeof(struct timeval));
 	if (network_register(C->fd, C->netop, &timeo, callback_buf, C)) {
 		status = NETWORK_STATUS_ERR;
 		goto docallback;
@@ -221,7 +221,7 @@ network_buf(int fd, uint8_t * buf, size_t buflen,
 	/* Set up the callback. */
 	memcpy(&timeo, to1, sizeof(struct timeval));
 	if (tv_lt(to0, &timeo))
-		memcpy(&timeo, to0, sizeof(struct timeval)); 
+		memcpy(&timeo, to0, sizeof(struct timeval));
 	if (network_register(fd, netop, &timeo, callback_buf, C))
 		goto err1;
 

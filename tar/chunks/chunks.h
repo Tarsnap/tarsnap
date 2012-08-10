@@ -19,6 +19,13 @@ typedef struct chunks_stats_internal	CHUNKS_S;
 CHUNKS_R * chunks_read_init(STORAGE_R *, size_t);
 
 /**
+ * chunks_read_cache(C, hash):
+ * Using the read cookie ${C}, tell the storage layer to cache the chunk with
+ * HMAC ${hash} after it is read.
+ */
+int chunks_read_cache(CHUNKS_R *, const uint8_t *);
+
+/**
  * chunks_read_chunk(C, hash, len, zlen, buf, quiet):
  * Using the read cookie ${C}, read the chunk with HMAC ${hash}
  * into ${buf}; it should have length ${len} and compressed size ${zlen}.
@@ -101,6 +108,12 @@ void chunks_write_free(CHUNKS_W *);
 CHUNKS_D * chunks_delete_start(const char *, STORAGE_D *);
 
 /**
+ * chunks_delete_getdirsz(C):
+ * Return the number of entries in the chunks directory associated with ${C}.
+ */
+size_t chunks_delete_getdirsz(CHUNKS_D *);
+
+/**
  * chunks_delete_chunk(C, hash):
  * Delete the chunk with HMAC ${hash} as part of the delete transaction
  * associated with the cookie ${C}.  Note that chunks are actually
@@ -176,6 +189,12 @@ int chunks_fsck_end(CHUNKS_S *);
  * Prepare for calls to other chunks_stats* functions.
  */
 CHUNKS_S * chunks_stats_init(const char *);
+
+/**
+ * chunks_stats_getdirsz(C):
+ * Return the number of entries in the chunks directory associated with ${C}.
+ */
+size_t chunks_stats_getdirsz(CHUNKS_S *);
 
 /**
  * chunks_stats_printglobal(stream, C):

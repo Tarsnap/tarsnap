@@ -16,19 +16,34 @@
 void
 tarsnap_mode_d(struct bsdtar *bsdtar)
 {
+	TAPE_D * d;
 	size_t i;
 
+	/* Prepare for deletes. */
+	if ((d = deletetape_init(bsdtar->machinenum)) == NULL)
+		goto err1;
+
+	/* Delete archives. */
 	for (i = 0; i < bsdtar->ntapes; i++) {
 		if (bsdtar->verbose && (bsdtar->ntapes > 1))
 			fprintf(stderr, "Deleting archive \"%s\"\n",
 			    bsdtar->tapenames[i]);
-		if (deletetape(bsdtar->machinenum, bsdtar->cachedir,
+		if (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
-		    bsdtar->ntapes > 1 ? 1 : 0)) {
-			bsdtar_warnc(bsdtar, 0, "Error deleting archive");
-			exit(1);
-		}
+		    bsdtar->ntapes > 1 ? 1 : 0))
+			goto err1;
 	}
+
+	/* We've finished deleting archives. */
+	deletetape_free(d);
+
+	/* Success! */
+	return;
+
+err1:
+	/* Failure! */
+	bsdtar_warnc(bsdtar, 0, "Error deleting archive");
+	exit(1);
 }
 
 /*

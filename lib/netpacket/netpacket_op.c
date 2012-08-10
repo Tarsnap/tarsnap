@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "monoclock.h"
 #include "netpacket_internal.h"
 #include "netproto.h"
 #include "sysendian.h"
@@ -253,10 +254,8 @@ reconnect(NETPACKET_CONNECTION * NPC)
 	 * Warn the user that we're waiting, if we haven't already printed a
 	 * warning message recently.
 	 */
-	if (gettimeofday(&tp, NULL)) {
-		warnp("gettimeofday");
+	if (monoclock_get(&tp))
 		goto err0;
-	}
 	if ((nseconds >= (tarsnap_opt_noisy_warnings ? 1 : 30)) &&
 	    ((tp.tv_sec > next_connlost_warning.tv_sec) ||
 	        ((tp.tv_sec == next_connlost_warning.tv_sec) &&

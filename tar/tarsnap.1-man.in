@@ -850,7 +850,7 @@ uploaded to the Tarsnap server.
 .ad l
 Upon receipt of the
 .BR SIGQUIT
-signal or 
+signal or
 ua
 Q,
 or if the bandwidth limit specified via a

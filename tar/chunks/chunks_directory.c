@@ -59,7 +59,7 @@ callback_write(void * rec, void * cookie)
 	/* Convert to on-disk format. */
 	memcpy(che.hash, ch->hash, 32);
 	le32enc(che.len, ch->len);
-	le32enc(che.zlen, ch->zlen);
+	le32enc(che.zlen, ch->zlen_flags & CHDATA_ZLEN);
 	le32enc(che.nrefs, ch->nrefs);
 	le32enc(che.ncopies, ch->ncopies);
 
@@ -84,7 +84,7 @@ callback_free(void * rec, void * cookie)
 
 	(void)cookie; 	/* Unused. */
 
-	if (ch->flags & CHDATA_MALLOC)
+	if (ch->zlen_flags & CHDATA_MALLOC)
 		free(rec);
 
 	return (0);
@@ -92,7 +92,7 @@ callback_free(void * rec, void * cookie)
 
 /**
  * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra,
- *     mustexist):
+ *     mustexist, statstape):
  * Read stats_extra statistics (statistics on non-chunks which are stored)
  * and the chunk directory (if present) from "${cachepath}/directory" into
  * memory allocated and assigned to ${*dir}; and return a hash table
@@ -100,18 +100,20 @@ callback_free(void * rec, void * cookie)
  * statistics for all the chunks listed in the directory (counting
  * multiplicity) and populate stats_unique with statistics reflecting the
  * unique chunks.  If ${mustexist}, error out if the directory does not exist.
+ * If ${statstape}, allocate struct chunkdata_statstape records instead.
  */
 RWHASHTAB *
-chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
+chunks_directory_read(const char * cachepath, void ** dir,
     struct chunkstats * stats_unique, struct chunkstats * stats_all,
-    struct chunkstats * stats_extra, int mustexist)
+    struct chunkstats * stats_extra, int mustexist, int statstape)
 {
 	struct chunkdata_external che;
 	struct chunkstats_external cse;
 	struct stat sb;
 	RWHASHTAB * HT;
 	char * s;
-	struct chunkdata * p;
+	struct chunkdata * p = NULL;
+	struct chunkdata_statstape * ps = NULL;
 	FILE * f;
 	size_t numchunks;
 
@@ -177,19 +179,25 @@ chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
 	    sizeof(struct chunkdata_external);
 
 	/* Make sure we don't get an integer overflow. */
-	if (numchunks >= SIZE_MAX / sizeof(struct chunkdata)) {
+	if (numchunks >= SIZE_MAX / sizeof(struct chunkdata_statstape)) {
 		warn0("on-disk directory is too large: %s", s);
 		goto err2;
 	}
 
 	/*
 	 * Allocate memory to ${*dir} large enough to store a struct
-	 * chunkdata for each struct chunkdata_external in
-	 * ${cachepath}/directory.
+	 * chunkdata or struct chunkdata_statstape for each struct
+	 * chunkdata_external in ${cachepath}/directory.
 	 */
-	if ((p = malloc(numchunks * sizeof(struct chunkdata))) == NULL)
+	if (statstape) {
+		ps = malloc(numchunks * sizeof(struct chunkdata_statstape));
+		*dir = ps;
+	} else {
+		p = malloc(numchunks * sizeof(struct chunkdata));
+		*dir = p;
+	}
+	if (*dir == NULL)
 		goto err2;
-	*dir = p;
 
 	/* Open the directory file. */
 	if ((f = fopen(s, "r")) == NULL) {
@@ -208,6 +216,10 @@ chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
 
 	/* Read the chunk structures. */
 	for (; numchunks != 0; numchunks--) {
+		/* Set p to point at the struct chunkdata. */
+		if (statstape)
+			p = &ps->d;
+
 		/* Read the file one record at a time... */
 		if (fread(&che, sizeof(che), 1, f) != 1) {
 			warnp("fread(%s)", s);
@@ -217,27 +229,29 @@ chunks_directory_read(const char * cachepath, struct chunkdata ** dir,
 		/* ... creating struct chunkdata records... */
 		memcpy(p->hash, che.hash, 32);
 		p->len = le32dec(che.len);
-		p->zlen = le32dec(che.zlen);
+		p->zlen_flags = le32dec(che.zlen);
 		p->nrefs = le32dec(che.nrefs);
 		p->ncopies = le32dec(che.ncopies);
-		p->flags = 0;
 
 		/* ... inserting them into the hash table... */
 		if (rwhashtab_insert(HT, p))
 			goto err4;
 
 		/* ... and updating the statistics. */
-		chunks_stats_add(stats_unique, p->len, p->zlen, 1);
-		chunks_stats_add(stats_all, p->len, p->zlen, p->ncopies);
+		chunks_stats_add(stats_unique, p->len, p->zlen_flags, 1);
+		chunks_stats_add(stats_all, p->len, p->zlen_flags, p->ncopies);
 
 		/* Sanity check. */
-		if ((p->len == 0) || (p->zlen == 0) || (p->nrefs == 0)) {
+		if ((p->len == 0) || (p->zlen_flags == 0) || (p->nrefs == 0)) {
 			warn0("on-disk directory is corrupt: %s", s);
 			goto err4;
 		}
 
 		/* Move to next record. */
-		p++;
+		if (statstape)
+			ps++;
+		else
+			p++;
 	}
 	if (fclose(f)) {
 		warnp("fclose(%s)", s);
@@ -339,7 +353,7 @@ err0:
  * elements, and ${dir}.
  */
 void
-chunks_directory_free(RWHASHTAB * HT, struct chunkdata * dir)
+chunks_directory_free(RWHASHTAB * HT, void * dir)
 {
 
 	/* Free records in the hash table. */

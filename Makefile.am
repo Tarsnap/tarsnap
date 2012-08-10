@@ -134,6 +134,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/hexlink.c			\
 		lib/util/humansize.c			\
 		lib/util/memlimit.c			\
+		lib/util/monoclock.c			\
 		lib/util/readpass.c			\
 		lib/util/sigquit.c			\
 		lib/util/tvmath.c			\

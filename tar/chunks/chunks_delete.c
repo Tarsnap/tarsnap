@@ -12,7 +12,7 @@
 
 struct chunks_delete_internal {
 	RWHASHTAB * HT;			/* Hash table of struct chunkdata. */
-	struct chunkdata * dir;		/* On-disk directory entries. */
+	void * dir;			/* On-disk directory entries. */
 	char * path;			/* Path to cache directory. */
 	STORAGE_D * S;			/* Storage layer cookie. */
 	struct chunkstats stats_total;	/* All archives, w/ multiplicity. */
@@ -46,7 +46,7 @@ chunks_delete_start(const char * cachepath, STORAGE_D * S)
 
 	/* Read the existing chunk directory. */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0)) == NULL)
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0, 0)) == NULL)
 		goto err2;
 
 	/* Zero "new chunks" and "this tape" statistics. */
@@ -64,6 +64,18 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * chunks_delete_getdirsz(C):
+ * Return the number of entries in the chunks directory associated with ${C}.
+ */
+size_t
+chunks_delete_getdirsz(CHUNKS_D * C)
+{
+
+	/* Get the value from the hash table. */
+	return (rwhashtab_getsize(C->HT));
 }
 
 /**
@@ -85,14 +97,16 @@ chunks_delete_chunk(CHUNKS_D * C, const uint8_t * hash)
 	}
 
 	/* Update statistics. */
-	chunks_stats_add(&C->stats_total, ch->len, ch->zlen, -1);
-	chunks_stats_add(&C->stats_tape, ch->len, ch->zlen, 1);
+	chunks_stats_add(&C->stats_total, ch->len,
+	    ch->zlen_flags & CHDATA_ZLEN, -1);
+	chunks_stats_add(&C->stats_tape, ch->len,
+	    ch->zlen_flags & CHDATA_ZLEN, 1);
 	ch->ncopies -= 1;
 
 	/* If the chunk is not marked as CHDATA_CTAPE... */
-	if ((ch->flags & CHDATA_CTAPE) == 0) {
+	if ((ch->zlen_flags & CHDATA_CTAPE) == 0) {
 		/* ... add that flag... */
-		ch->flags |= CHDATA_CTAPE;
+		ch->zlen_flags |= CHDATA_CTAPE;
 
 		/* ... decrement the reference counter... */
 		ch->nrefs -= 1;
@@ -100,9 +114,9 @@ chunks_delete_chunk(CHUNKS_D * C, const uint8_t * hash)
 		/* ... and delete the chunk if the refcount is now zero. */
 		if (ch->nrefs == 0) {
 			chunks_stats_add(&C->stats_unique, ch->len,
-			    ch->zlen, -1);
+			    ch->zlen_flags & CHDATA_ZLEN, -1);
 			chunks_stats_add(&C->stats_freed, ch->len,
-			    ch->zlen, 1);
+			    ch->zlen_flags & CHDATA_ZLEN, 1);
 
 			if (storage_delete_file(C->S, 'c', hash))
 				goto err0;

@@ -126,6 +126,9 @@ statstape_printall(TAPE_S * d)
 	if (storage_directory_read(d->machinenum, 'm', 0, &flist, &nfiles))
 		goto err0;
 
+	/* Cache up to 100 bytes of blocks per chunk in the directory. */
+	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
+
 	/* Iterate through the files. */
 	for (file = 0; file < nfiles; file++) {
 		/* Zero archive statistics. */
@@ -259,6 +262,9 @@ int
 statstape_print(TAPE_S * d, const char * tapename)
 {
 	struct tapemetadata tmd;
+
+	/* Cache up to 100 bytes of blocks per chunk in the directory. */
+	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
 
 	/* Zero archive statistics. */
 	chunks_stats_zeroarchive(d->C);

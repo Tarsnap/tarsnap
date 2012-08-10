@@ -69,6 +69,19 @@ err0:
 }
 
 /**
+ * chunks_read_cache(C, hash):
+ * Using the read cookie ${C}, tell the storage layer to cache the chunk with
+ * HMAC ${hash} after it is read.
+ */
+int
+chunks_read_cache(CHUNKS_R * C, const uint8_t * hash)
+{
+
+	/* Pass the message on to the storage layer. */
+	return (storage_read_cache(C->S, 'c', hash));
+}
+
+/**
  * chunks_read_chunk(C, hash, len, zlen, buf, quiet):
  * Using the read cookie ${C}, read the chunk with HMAC ${hash}
  * into ${buf}; it should have length ${len} and compressed size ${zlen}.

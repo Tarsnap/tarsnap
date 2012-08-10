@@ -295,8 +295,8 @@ err0:
  * netproto_readpacket(C, callback_getbuf, callback_done, cookie):
  * Read a packet from the connection.  Once the type and length of the
  * packet is known, call callback_getbuf(cookie, type, buf, buflen); once
- * the packet is read or fails, call callback(cookie, status), where status
- * is a NETPROTO_STATUS_* value.
+ * the packet is read or fails, call callback_done(cookie, status), where
+ * status is a NETPROTO_STATUS_* value.
  */
 int netproto_readpacket(NETPROTO_CONNECTION * C,
     int (* callback_getbuf)(void *, uint8_t, uint8_t **, size_t),

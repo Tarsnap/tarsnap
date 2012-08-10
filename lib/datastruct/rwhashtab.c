@@ -173,6 +173,18 @@ rwhashtab_init(size_t keyoffset, size_t keylength)
 }
 
 /**
+ * rwhashtab_getsize(table):
+ * Return the number of entries in the table.
+ */
+size_t
+rwhashtab_getsize(RWHASHTAB * H)
+{
+
+	/* Just extract the value and return it. */
+	return (H->numentries);
+}
+
+/**
  * rwhashtab_insert(table, record):
  * Insert the provided record into the hash table.  Returns (-1) on error,
  * 0 on success, and 1 if the table already contains a record with the same

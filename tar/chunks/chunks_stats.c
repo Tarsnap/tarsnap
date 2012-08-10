@@ -12,8 +12,8 @@
 #include "chunks.h"
 
 struct chunks_stats_internal {
-	RWHASHTAB * HT;		/* Hash table of struct chunkdata. */
-	struct chunkdata * dir;	/* On-disk directory entries. */
+	RWHASHTAB * HT;		/* Hash table of struct chunkdata_statstape. */
+	struct chunkdata_statstape * dir;	/* On-disk directory entries. */
 	char * cachepath;	/* Path to cache directory. */
 	struct chunkstats stats_total;	/* All archives, w/ multiplicity. */
 	struct chunkstats stats_unique;	/* All archives, w/o multiplicity. */
@@ -29,16 +29,17 @@ static int callback_delete(void *, void *);
 
 /**
  * callback_zero(rec, cookie):
- * Mark the struct chunkdata ${rec} as being not used in the current archive.
+ * Mark the struct chunkdata_statstape ${rec} as being not used in the current
+ * archive.
  */
 static int
 callback_zero(void * rec, void * cookie)
 {
-	struct chunkdata * ch = rec;
+	struct chunkdata_statstape * ch = rec;
 
 	(void)cookie;	/* UNUSED */
 
-	ch->flags &= ~CHDATA_CTAPE;
+	ch->d.zlen_flags &= ~CHDATA_CTAPE;
 	ch->ncopies_ctape = 0;
 
 	/* Success! */
@@ -52,13 +53,13 @@ callback_zero(void * rec, void * cookie)
 static int
 callback_add(void * rec, void * cookie)
 {
-	struct chunkdata * ch = rec;
+	struct chunkdata_statstape * ch = rec;
 
 	(void)cookie;	/* UNUSED */
 
-	ch->ncopies += ch->ncopies_ctape;
-	if (ch->flags & CHDATA_CTAPE)
-		ch->nrefs += 1;
+	ch->d.ncopies += ch->ncopies_ctape;
+	if (ch->d.zlen_flags & CHDATA_CTAPE)
+		ch->d.nrefs += 1;
 
 	/* Success! */
 	return (0);
@@ -66,22 +67,22 @@ callback_add(void * rec, void * cookie)
 
 /**
  * callback_delete(rec, cookie):
- * If the reference count of the struct chunkdata ${rec} is zero, delete
- * the chunk using the storage layer delete cookie ${cookie}.
+ * If the reference count of the struct chunkdata_statstape ${rec} is zero,
+ * delete the chunk using the storage layer delete cookie ${cookie}.
  */
 static int
 callback_delete(void * rec, void * cookie)
 {
-	struct chunkdata * ch = rec;
+	struct chunkdata_statstape * ch = rec;
 	STORAGE_D * S = cookie;
 	char hashbuf[65];
 
-	if (ch->nrefs)
+	if (ch->d.nrefs)
 		goto done;
 
-	hexify(ch->hash, hashbuf, 32);
+	hexify(ch->d.hash, hashbuf, 32);
 	fprintf(stdout, "  Removing unreferenced chunk file: %s\n", hashbuf);
-	if (storage_delete_file(S, 'c', ch->hash))
+	if (storage_delete_file(S, 'c', ch->d.hash))
 		goto err0;
 
 done:
@@ -119,21 +120,21 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	if (storage_directory_read(machinenum, 'c', 0, &flist, &nfiles))
 		goto err2;
 
-	/* Construct a chunkdata structure for each file. */
-	if (nfiles > SIZE_MAX / sizeof(struct chunkdata)) {
+	/* Construct a chunkdata_statstape structure for each file. */
+	if (nfiles > SIZE_MAX / sizeof(struct chunkdata_statstape)) {
 		errno = ENOMEM;
 		free(flist);
 		goto err2;
 	}
-	if ((C->dir = malloc(nfiles * sizeof(struct chunkdata))) == NULL) {
+	if ((C->dir =
+	    malloc(nfiles * sizeof(struct chunkdata_statstape))) == NULL) {
 		free(flist);
 		goto err2;
 	}
 	for (file = 0; file < nfiles; file++) {
-		memcpy(C->dir[file].hash, &flist[file * 32], 32);
-		C->dir[file].len = C->dir[file].zlen = 0;
-		C->dir[file].nrefs = C->dir[file].ncopies = 0;
-		C->dir[file].flags = 0;
+		memcpy(C->dir[file].d.hash, &flist[file * 32], 32);
+		C->dir[file].d.len = C->dir[file].d.zlen_flags = 0;
+		C->dir[file].d.nrefs = C->dir[file].d.ncopies = 0;
 	}
 
 	/* Free the file list. */
@@ -232,6 +233,7 @@ CHUNKS_S *
 chunks_stats_init(const char * cachepath)
 {
 	struct chunks_stats_internal * C;
+	void * dir;
 
 	/* Allocate memory. */
 	if ((C = malloc(sizeof(struct chunks_stats_internal))) == NULL)
@@ -242,9 +244,10 @@ chunks_stats_init(const char * cachepath)
 		goto err1;
 
 	/* Read directory. */
-	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra, 1)) == NULL)
+	if ((C->HT = chunks_directory_read(cachepath, &dir,
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 1, 1)) == NULL)
 		goto err2;
+	C->dir = dir;
 
 	/* Success! */
 	return (C);
@@ -256,6 +259,18 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * chunks_stats_getdirsz(C):
+ * Return the number of entries in the chunks directory associated with ${C}.
+ */
+size_t
+chunks_stats_getdirsz(CHUNKS_S * C)
+{
+
+	/* Get the value from the hash table. */
+	return (rwhashtab_getsize(C->HT));
 }
 
 /**
@@ -312,28 +327,28 @@ int
 chunks_stats_addchunk(CHUNKS_S * C, const uint8_t * hash,
     size_t len, size_t zlen)
 {
-	struct chunkdata * ch;
+	struct chunkdata_statstape * ch;
 
 	/* If the chunk is not in ${S}->HT, error out. */
 	if ((ch = rwhashtab_read(C->HT, hash)) == NULL)
 		goto notpresent;
 
 	/* Record the lengths if necessary. */
-	if (ch->nrefs == 0 && ch->ncopies_ctape == 0) {
-		ch->len = len;
-		ch->zlen = zlen;
+	if (ch->d.nrefs == 0 && ch->ncopies_ctape == 0) {
+		ch->d.len = len;
+		ch->d.zlen_flags = zlen | (ch->d.zlen_flags & CHDATA_FLAGS);
 	}
 
 	/* Update "current tape" statistics. */
 	chunks_stats_add(&C->stats_tape, len, zlen, 1);
 
 	/* Update "data unique to this archive" statistics. */
-	if ((ch->nrefs <= 1) && ((ch->flags & CHDATA_CTAPE) == 0))
+	if ((ch->d.nrefs <= 1) && ((ch->d.zlen_flags & CHDATA_CTAPE) == 0))
 		chunks_stats_add(&C->stats_tapeu, len, zlen, 1);
 
 	/* Chunk is in current archive. */
 	ch->ncopies_ctape += 1;
-	ch->flags |= CHDATA_CTAPE;
+	ch->d.zlen_flags |= CHDATA_CTAPE;
 
 	/* Success! */
 	return (0);

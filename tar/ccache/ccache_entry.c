@@ -64,7 +64,7 @@ callback_addchunk(void * cookie, struct chunkheader * ch)
 		}
 
 		/* Make sure we don't overflow. */
-		if (nchalloc_new > 
+		if (nchalloc_new >
 		    SIZE_MAX / sizeof(struct chunkheader)) {
 			errno = ENOMEM;
 			goto err0;

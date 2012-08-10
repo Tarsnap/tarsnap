@@ -764,6 +764,9 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			break;
 		}
 
+		if (bsdtar->option_no_subdirs)
+			descend = 0;
+
 		/*
 		 * If the user did not specify --insane-filesystems, do not
 		 * cross into a new filesystem which is known to be synthetic.
@@ -810,8 +813,15 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 * In -u mode, check that the file is newer than what's
 		 * already in the archive; in all modes, obey --newerXXX flags.
 		 */
-		if (!new_enough(bsdtar, name, st))
+		if (!new_enough(bsdtar, name, st)) {
+			if (!descend)
+				continue;
+			if (bsdtar->option_interactive &&
+			    !yes("add '%s'", name))
+				continue;
+			tree_descend(tree);
 			continue;
+		}
 
 		archive_entry_free(entry);
 		entry = archive_entry_new();
@@ -885,7 +895,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			continue;
 
 		/* Note: if user vetoes, we won't descend. */
-		if (descend && !bsdtar->option_no_subdirs)
+		if (descend)
 			tree_descend(tree);
 
 		/*

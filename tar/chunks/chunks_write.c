@@ -19,7 +19,7 @@ struct chunks_write_internal {
 	uint8_t * zbuf;			/* Buffer for compression. */
 	size_t zbuflen;			/* Length of zbuf. */
 	RWHASHTAB * HT;			/* Hash table of struct chunkdata. */
-	struct chunkdata * dir;		/* On-disk directory entries. */
+	void * dir;			/* On-disk directory entries. */
 	char * path;			/* Path to cache directory. */
 	STORAGE_W * S;			/* Storage layer cookie. */
 	int dryrun;			/* Nonzero if this is a dry run. */
@@ -73,7 +73,7 @@ chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
 
 	/* Read the existing chunk directory (if one exists). */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,
-	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0)) == NULL)
+	    &C->stats_unique, &C->stats_total, &C->stats_extra, 0, 0)) == NULL)
 		goto err3;
 
 	/* Zero "new chunks" and "this tape" statistics. */
@@ -113,14 +113,16 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 
 	/* If the chunk is in ${C}->HT, return the compressed length. */
 	if ((ch = rwhashtab_read(C->HT, hash)) != NULL) {
-		chunks_stats_add(&C->stats_total, ch->len, ch->zlen, 1);
-		chunks_stats_add(&C->stats_tape, ch->len, ch->zlen, 1);
+		chunks_stats_add(&C->stats_total, ch->len,
+		    ch->zlen_flags & CHDATA_ZLEN, 1);
+		chunks_stats_add(&C->stats_tape, ch->len,
+		    ch->zlen_flags & CHDATA_ZLEN, 1);
 		ch->ncopies += 1;
-		if ((ch->flags & CHDATA_CTAPE) == 0) {
+		if ((ch->zlen_flags & CHDATA_CTAPE) == 0) {
 			ch->nrefs += 1;
-			ch->flags |= CHDATA_CTAPE;
+			ch->zlen_flags |= CHDATA_CTAPE;
 		}
-		return (ch->zlen);
+		return (ch->zlen_flags & CHDATA_ZLEN);
 	}
 
 	/* Compress the chunk. */
@@ -157,20 +159,19 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 	/* ... fill in the chunk parameters... */
 	memcpy(ch->hash, hash, 32);
 	ch->len = buflen;
-	ch->zlen = zlen;
+	ch->zlen_flags = zlen | CHDATA_MALLOC | CHDATA_CTAPE;
 	ch->nrefs = 1;
 	ch->ncopies = 1;
-	ch->flags = CHDATA_MALLOC | CHDATA_CTAPE;
 
 	/* ... and insert it into the hash table. */
 	if (rwhashtab_insert(C->HT, ch))
 		goto err0;
 
 	/* Update statistics. */
-	chunks_stats_add(&C->stats_total, ch->len, ch->zlen, 1);
-	chunks_stats_add(&C->stats_unique, ch->len, ch->zlen, 1);
-	chunks_stats_add(&C->stats_tape, ch->len, ch->zlen, 1);
-	chunks_stats_add(&C->stats_new, ch->len, ch->zlen, 1);
+	chunks_stats_add(&C->stats_total, ch->len, zlen, 1);
+	chunks_stats_add(&C->stats_unique, ch->len, zlen, 1);
+	chunks_stats_add(&C->stats_tape, ch->len, zlen, 1);
+	chunks_stats_add(&C->stats_new, ch->len, zlen, 1);
 
 	/* Success! */
 	return (zlen);
@@ -210,12 +211,14 @@ chunks_write_chunkref(CHUNKS_W * C, const uint8_t * hash)
 	 * transaction and return 0.
 	 */
 	if ((ch = rwhashtab_read(C->HT, hash)) != NULL) {
-		chunks_stats_add(&C->stats_total, ch->len, ch->zlen, 1);
-		chunks_stats_add(&C->stats_tape, ch->len, ch->zlen, 1);
+		chunks_stats_add(&C->stats_total, ch->len,
+		    ch->zlen_flags & CHDATA_ZLEN, 1);
+		chunks_stats_add(&C->stats_tape, ch->len,
+		    ch->zlen_flags & CHDATA_ZLEN, 1);
 		ch->ncopies += 1;
-		if ((ch->flags & CHDATA_CTAPE) == 0) {
+		if ((ch->zlen_flags & CHDATA_CTAPE) == 0) {
 			ch->nrefs += 1;
-			ch->flags |= CHDATA_CTAPE;
+			ch->zlen_flags |= CHDATA_CTAPE;
 		}
 
 		return (0);

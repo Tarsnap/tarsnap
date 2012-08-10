@@ -1,3 +1,11 @@
+tarsnap (1.0.33) unstable; urgency=low
+
+  * New version of tarsnap brings reduced memory usage on systems with a
+    large amount of stored data; faster operation for --fsck and when
+    deleting or printing statistics for multiple archives; and corrects
+    a bug in the handling of the --newerXXX option.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Wed, 1 Aug 2002 23:52:10 +0000
 tarsnap (1.0.32) unstable; urgency=low
 
   * New version of tarsnap fixes a bug which made the --nodump option
