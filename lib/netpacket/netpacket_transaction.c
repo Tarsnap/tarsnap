@@ -44,7 +44,7 @@ err0:
 /**
  * netpacket_transaction_start(NPC, machinenum, operation, snonce, cnonce,
  *     state, callback):
- * Construct and send a NETPACKET_TRANSACTION_GETNONCE packet asking to
+ * Construct and send a NETPACKET_TRANSACTION_START packet asking to
  * start a transaction; the transaction is a write transaction if
  * ${operation} is 0, a delete transaction if ${operation} is 1, or a fsck
  * transaction if ${operation} is 2.

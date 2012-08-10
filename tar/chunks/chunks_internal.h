@@ -9,19 +9,25 @@
 #include "rwhashtab.h"
 
 /* Chunk metadata structure was allocated by malloc(3). */
-#define	CHDATA_MALLOC	(1 << 0)
+#define	CHDATA_MALLOC	((uint32_t)(1) << 30)
 /* Chunk belongs to the current tape. */
-#define CHDATA_CTAPE	(1 << 1)
+#define CHDATA_CTAPE	((uint32_t)(1) << 31)
+#define CHDATA_FLAGS	(0xc0000000)
+#define CHDATA_ZLEN	(~CHDATA_FLAGS)
 
 /* In-core chunk metadata structure. */
 struct chunkdata {
 	uint8_t hash[32];	/* HMAC of chunk. */
-	size_t len;		/* Length of chunk. */
-	size_t zlen;		/* Compressed length of chunk. */
-	size_t nrefs;		/* Number of existing tapes using this. */
-	size_t ncopies;		/* Number of copies of this chunk. */
-	size_t ncopies_ctape;	/* Used by chunks_stats only. */
-	int flags;		/* See CHDATA_* flags. */
+	uint32_t len;		/* Length of chunk. */
+	uint32_t zlen_flags;	/* Compressed length of chunk | flags. */
+	uint32_t nrefs;		/* Number of existing tapes using this. */
+	uint32_t ncopies;	/* Number of copies of this chunk. */
+};
+
+/* In-core chunk metadata structure used by statstape. */
+struct chunkdata_statstape {
+	struct chunkdata d;
+	uint32_t ncopies_ctape;	/* Used by chunks_stats only. */
 };
 
 /* Chunk statistics structure. */
@@ -33,7 +39,7 @@ struct chunkstats {
 
 /**
  * chunks_directory_read(cachepath, dir, stats_unique, stats_all, stats_extra,
- *     mustexist):
+ *     mustexist, statstape):
  * Read stats_extra statistics (statistics on non-chunks which are stored)
  * and the chunk directory (if present) from "${cachepath}/directory" into
  * memory allocated and assigned to ${*dir}; and return a hash table
@@ -41,9 +47,10 @@ struct chunkstats {
  * statistics for all the chunks listed in the directory (counting
  * multiplicity) and populate stats_unique with statistics reflecting the
  * unique chunks.  If ${mustexist}, error out if the directory does not exist.
+ * If ${statstape}, allocate struct chunkdata_statstape records instead.
  */
-RWHASHTAB * chunks_directory_read(const char *, struct chunkdata **,
-    struct chunkstats *, struct chunkstats *, struct chunkstats *, int);
+RWHASHTAB * chunks_directory_read(const char *, void **,
+    struct chunkstats *, struct chunkstats *, struct chunkstats *, int, int);
 
 /**
  * chunks_directory_write(cachepath, HT, stats_extra, suff):
@@ -59,7 +66,7 @@ int chunks_directory_write(const char *, RWHASHTAB *, struct chunkstats *,
  * Free the hash table ${HT} of struct chunkdata records, all of its
  * elements, and ${dir}.
  */
-void chunks_directory_free(RWHASHTAB *, struct chunkdata *);
+void chunks_directory_free(RWHASHTAB *, void *);
 
 /**
  * chunks_directory_commit(cachepath, osuff, nsuff):

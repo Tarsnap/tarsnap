@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "monoclock.h"
 #include "network_internal.h"
 #include "tvmath.h"
 #include "warnp.h"
@@ -160,7 +161,7 @@ selectstats_select(void)
 		return;
 
 	/* If we can't get the current time, do nothing. */
-	if (gettimeofday(&tnow, NULL))
+	if (monoclock_get(&tnow))
 		return;
 
 	/* Figure out how long it has been since the clock started. */
@@ -190,7 +191,7 @@ selectstats_startclock(void)
 	/* Is the clock already running? */
 	if ((select_rettime.tv_sec == 0) &&
 	    (select_rettime.tv_usec == 0)) {
-		gettimeofday(&select_rettime, NULL);
+		monoclock_get(&select_rettime);
 	}
 }
 
@@ -485,10 +486,8 @@ network_select(int blocking)
 
 restart:
 	/* Get current time. */
-	if (gettimeofday(&curtime, NULL)) {
-		warnp("gettimeofday()");
+	if (monoclock_get(&curtime))
 		goto err0;
-	}
 
 	/*
 	 * Figure out how long it has been since we last added tokens to the
@@ -620,10 +619,8 @@ selectagain:
 	selectstats_startclock();
 
 	/* Get current time so that we can detect timeouts. */
-	if (gettimeofday(&curtime, NULL)) {
-		warnp("gettimeofday()");
+	if (monoclock_get(&curtime))
 		goto err0;
-	}
 
 	/*
 	 * Scan the descriptors in decreasing order, just in case maxfd is

@@ -7,6 +7,7 @@
 
 typedef struct multitape_read_internal TAPE_R;
 typedef struct multitape_write_internal TAPE_W;
+typedef struct multitape_delete_internal TAPE_D;
 typedef struct multitape_stats_internal TAPE_S;
 
 struct chunkheader;
@@ -124,12 +125,24 @@ int writetape_close(TAPE_W *);
 void writetape_free(TAPE_W *);
 
 /**
- * deletetape(machinenum, cachedir, tapename, printstats, withname):
+ * deletetape_init(machinenum):
+ * Return a cookie which can be passed to deletetape.
+ */
+TAPE_D * deletetape_init(uint64_t);
+
+/**
+ * deletetape(d, machinenum, cachedir, tapename, printstats, withname):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
  * just as "This archive".
  */
-int deletetape(uint64_t, const char *, const char *, int, int);
+int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int);
+
+/**
+ * deletetape_free(d):
+ * Free the delete cookie ${d}.
+ */
+void deletetape_free(TAPE_D *);
 
 /**
  * statstape_open(machinenum, cachedir):

@@ -770,7 +770,7 @@ uploaded to the Tarsnap server.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
-signal or 
+signal or
 .ua
 Q,
 or if the bandwidth limit specified via a

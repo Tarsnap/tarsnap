@@ -30,7 +30,7 @@
 #define _READPASS_H_
 
 /**
- * tarsnap_getpass(passwd, prompt, confirmprompt, devtty)
+ * tarsnap_readpass(passwd, prompt, confirmprompt, devtty)
  * If ${devtty} is non-zero, read a password from /dev/tty if possible; if
  * not, read from stdin.  If reading from a tty (either /dev/tty or stdin),
  * disable echo and prompt the user by printing ${prompt} to stderr.  If

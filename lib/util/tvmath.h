@@ -5,19 +5,19 @@
 
 /**
  * tvmath_addctime(tv):
- * Set tv += gettimeofday.
+ * Set tv += monoclock.
  */
 int tvmath_addctime(struct timeval *);
 
 /**
  * tvmath_subctime(tv):
- * Set tv -= gettimeofday.
+ * Set tv -= monoclock.
  */
 int tvmath_subctime(struct timeval *);
 
 /**
  * tvmath_rsubctime(tv):
- * Set tv = gettimeofday - tv.
+ * Set tv = monoclock - tv.
  */
 int tvmath_rsubctime(struct timeval *);
 
