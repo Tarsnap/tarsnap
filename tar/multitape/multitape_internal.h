@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "chunks.h"
+#include "ctassert.h"
 #include "storage.h"
 
 /* On-disk chunk header structure.  Integers are little-endian. */
@@ -12,6 +13,7 @@ struct chunkheader {
 	uint8_t len[4];
 	uint8_t zlen[4];
 };
+CTASSERT(sizeof(struct chunkheader) == 40);
 
 /* On-disk entry header structure. */
 struct entryheader {
@@ -19,6 +21,7 @@ struct entryheader {
 	uint8_t clen[8];
 	uint8_t tlen[4];
 };
+CTASSERT(sizeof(struct entryheader) == 16);
 
 /* Archive metadata structure. */
 struct tapemetadata {

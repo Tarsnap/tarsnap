@@ -88,57 +88,73 @@ libarchive_libarchive_a_CFLAGS=-I $(top_builddir)/libarchive
 #
 #
 lib_libtarsnap_a_SOURCES=					\
-		lib/crypto/crypto_aesctr.c		\
-		lib/crypto/crypto_dh.c			\
-		lib/crypto/crypto_dh_group14.c		\
-		lib/crypto/crypto_entropy.c		\
-		lib/crypto/crypto_file.c		\
-		lib/crypto/crypto_hash.c		\
-		lib/crypto/crypto_keys.c		\
-		lib/crypto/crypto_keys_server.c		\
-		lib/crypto/crypto_keys_subr.c		\
-		lib/crypto/crypto_passwd_to_dh.c	\
-		lib/crypto/crypto_rsa.c			\
-		lib/crypto/crypto_scrypt-@SCRYPTVER@.c	\
-		lib/crypto/crypto_session.c		\
-		lib/crypto/crypto_verify_bytes.c	\
-		lib/crypto/sha256.c			\
-		lib/datastruct/patricia.c		\
-		lib/datastruct/rwhashtab.c		\
-		lib/keyfile/keyfile.c			\
-		lib/netpacket/netpacket_delete.c	\
-		lib/netpacket/netpacket_directory.c	\
-		lib/netpacket/netpacket_hmac.c		\
-		lib/netpacket/netpacket_op.c		\
-		lib/netpacket/netpacket_read.c		\
-		lib/netpacket/netpacket_register.c	\
-		lib/netpacket/netpacket_transaction.c	\
-		lib/netpacket/netpacket_write.c		\
-		lib/netproto/netproto.c			\
-		lib/netproto/netproto_connect.c		\
-		lib/netproto/netproto_keyexchange.c	\
-		lib/netproto/netproto_packet.c		\
-		lib/network/network_buf.c		\
-		lib/network/network_connect.c		\
-		lib/network/network_cork.c		\
-		lib/network/network_select.c		\
-		lib/network/network_writeq.c		\
-		lib/scryptenc/scryptenc.c		\
-		lib/scryptenc/scryptenc_cpuperf.c	\
-		lib/util/asprintf.c			\
-		lib/util/b64encode.c			\
-		lib/util/dirutil.c			\
-		lib/util/entropy.c			\
-		lib/util/getfstype.c			\
-		lib/util/hexify.c			\
-		lib/util/hexlink.c			\
-		lib/util/humansize.c			\
-		lib/util/memlimit.c			\
-		lib/util/monoclock.c			\
-		lib/util/readpass.c			\
-		lib/util/sigquit.c			\
-		lib/util/tvmath.c			\
-		lib/util/warnp.c
+		lib/crypto/crypto_file.c			\
+		lib/crypto/crypto_hash.c			\
+		lib/crypto/crypto_keys.c			\
+		lib/crypto/crypto_keys_server.c			\
+		lib/crypto/crypto_keys_subr.c			\
+		lib/crypto/crypto_passwd_to_dh.c		\
+		lib/crypto/crypto_rsa.c				\
+		lib/crypto/crypto_scrypt-@SCRYPTVER@.c		\
+		lib/crypto/crypto_session.c			\
+		lib/datastruct/patricia.c			\
+		lib/datastruct/rwhashtab.c			\
+		lib/keyfile/keyfile.c				\
+		lib/netpacket/netpacket_delete.c		\
+		lib/netpacket/netpacket_directory.c		\
+		lib/netpacket/netpacket_hmac.c			\
+		lib/netpacket/netpacket_op.c			\
+		lib/netpacket/netpacket_read.c			\
+		lib/netpacket/netpacket_register.c		\
+		lib/netpacket/netpacket_transaction.c		\
+		lib/netpacket/netpacket_write.c			\
+		lib/netproto/netproto.c				\
+		lib/netproto/netproto_connect.c			\
+		lib/netproto/netproto_keyexchange.c		\
+		lib/netproto/netproto_packet.c			\
+		lib/network/tsnetwork_buf.c			\
+		lib/network/tsnetwork_bwlimit.c			\
+		lib/network/tsnetwork_connect.c			\
+		lib/network/tsnetwork_cork.c			\
+		lib/network/tsnetwork_register.c		\
+		lib/network/tsnetwork_select.c			\
+		lib/network/tsnetwork_sleep.c			\
+		lib/network/tsnetwork_writeq.c			\
+		lib/scryptenc/scryptenc.c			\
+		lib/scryptenc/scryptenc_cpuperf.c		\
+		lib/util/dirutil.c				\
+		lib/util/getfstype.c				\
+		lib/util/hexlink.c				\
+		lib/util/memlimit.c				\
+		lib/util/sigquit.c				\
+		lib/util/tvmath.c				\
+		libcperciva/alg/sha256.c			\
+		libcperciva/crypto/crypto_aesctr.c		\
+		libcperciva/crypto/crypto_dh.c			\
+		libcperciva/crypto/crypto_dh_group14.c		\
+		libcperciva/crypto/crypto_entropy.c		\
+		libcperciva/crypto/crypto_verify_bytes.c	\
+		libcperciva/datastruct/elasticarray.c		\
+		libcperciva/datastruct/ptrheap.c		\
+		libcperciva/datastruct/timerqueue.c		\
+		libcperciva/events/events.c			\
+		libcperciva/events/events_immediate.c		\
+		libcperciva/events/events_network.c		\
+		libcperciva/events/events_network_selectstats.c	\
+		libcperciva/events/events_timer.c		\
+		libcperciva/network/network_accept.c		\
+		libcperciva/network/network_buf.c		\
+		libcperciva/network/network_connect.c		\
+		libcperciva/util/asprintf.c			\
+		libcperciva/util/b64encode.c			\
+		libcperciva/util/entropy.c			\
+		libcperciva/util/hexify.c			\
+		libcperciva/util/humansize.c			\
+		libcperciva/util/monoclock.c			\
+		libcperciva/util/readpass.c			\
+		libcperciva/util/sock.c				\
+		libcperciva/util/sock_util.c			\
+		libcperciva/util/warnp.c
 
 lib_libtarsnap_a_CFLAGS=				\
 		-I${top_srcdir}/tar			\
@@ -150,7 +166,13 @@ lib_libtarsnap_a_CFLAGS=				\
 		-I$(top_srcdir)/lib/netproto		\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/scryptenc		\
-		-I$(top_srcdir)/lib/util
+		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/alg		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/datastruct	\
+		-I$(top_srcdir)/libcperciva/events	\
+		-I$(top_srcdir)/libcperciva/network	\
+		-I$(top_srcdir)/libcperciva/util
 
 #
 #
@@ -235,6 +257,8 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/lib/netproto		\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/util	\
 		-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\"	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
 tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
@@ -257,6 +281,8 @@ tarsnap_keygen_CFLAGS=					\
 		-I$(top_srcdir)/lib/netproto		\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
@@ -279,6 +305,8 @@ tarsnap_keyregen_CFLAGS=					\
 		-I$(top_srcdir)/lib/netproto		\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keyregen-${VERSION}\"
 
 tarsnap_keyregen_dist_man_MANS=	keyregen/tarsnap-keyregen.1
@@ -318,6 +346,8 @@ tarsnap_recrypt_CFLAGS=						\
 		-I$(top_srcdir)/lib/netproto		\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-recrypt-${VERSION}\"
 tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
 
@@ -336,7 +366,9 @@ tarsnap_keymgmt_CFLAGS=					\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I${top_srcdir}/lib/keyfile		\
-		-I$(top_srcdir)/lib/util
+		-I$(top_srcdir)/lib/util		\
+		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/util
 
 tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
 

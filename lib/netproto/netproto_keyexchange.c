@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "crypto.h"
+#include "crypto_dh.h"
 #include "ctassert.h"
-#include "netproto_internal.h"
-#include "network.h"
 #include "warnp.h"
+
+#include "crypto.h"
+#include "netproto_internal.h"
+#include "tsnetwork.h"
 
 #include "netproto.h"
 
@@ -152,7 +154,7 @@ proto_sent(void * cookie, int status)
 	KC->C->bytesout += 1;
 
 	/* Data was sent.  Read the server protocol version. */
-	if (network_read(KC->C->fd, &KC->serverproto, 1, &KC->timeout,
+	if (tsnetwork_read(KC->C->fd, &KC->serverproto, 1, &KC->timeout,
 	    &KC->timeout, proto_received, KC))
 		goto err2;
 
@@ -260,7 +262,7 @@ name_sent(void * cookie, int status)
 	KC->C->bytesout += KC->useragentlen;
 
 	/* Data was sent.  Read the server crypto parameters. */
-	if (network_read(KC->C->fd, KC->serverparams,
+	if (tsnetwork_read(KC->C->fd, KC->serverparams,
 	    CRYPTO_DH_PUBLEN + 256 + 32, &KC->timeout, &KC->timeout,
 	    dh_received, KC))
 		goto err2;
@@ -417,7 +419,7 @@ proof_sent(void * cookie, int status)
 	KC->C->bytesout += 32;
 
 	/* Client proof was sent.  Read the server proof. */
-	if (network_read(KC->C->fd, KC->serverproof, 32, &KC->timeout,
+	if (tsnetwork_read(KC->C->fd, KC->serverproof, 32, &KC->timeout,
 	    &KC->timeout, proof_received, KC))
 		goto err2;
 

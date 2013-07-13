@@ -7,9 +7,12 @@
 #include <openssl/err.h>
 #include <openssl/rsa.h>
 
-#include "crypto_internal.h"
+#include "crypto_entropy.h"
+#include "crypto_verify_bytes.h"
 #include "sysendian.h"
 #include "warnp.h"
+
+#include "crypto_internal.h"
 
 #include "crypto.h"
 

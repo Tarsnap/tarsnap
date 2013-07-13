@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "crypto.h"
+#include "crypto_verify_bytes.h"
 #include "sysendian.h"
 #include "warnp.h"
 

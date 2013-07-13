@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "crypto_verify_bytes.h"
+
 #include "crypto.h"
 
 #include "netpacket.h"

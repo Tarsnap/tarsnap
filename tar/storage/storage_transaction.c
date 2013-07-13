@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "crypto.h"
+#include "crypto_entropy.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "warnp.h"

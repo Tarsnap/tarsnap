@@ -68,8 +68,8 @@ struct patricia_internal {
 };
 
 static struct pnode * node_alloc(uint8_t, const uint8_t *);
-static struct pnode * node_dup(struct pnode *, uint8_t, const uint8_t *);
-static int compare(struct pnode *, const uint8_t *, size_t, uint8_t *,
+static struct pnode * node_dup(const struct pnode *, uint8_t, const uint8_t *);
+static int compare(const struct pnode *, const uint8_t *, size_t, uint8_t *,
     uint8_t *);
 static int foreach_internal(struct pnode *,
     int(void *, uint8_t *, size_t, void *), void *, uint8_t *, size_t);
@@ -104,7 +104,7 @@ node_alloc(uint8_t slen, const uint8_t * s)
  * Create a duplicate of a node but with different slen and s[].
  */
 static struct pnode *
-node_dup(struct pnode * n0, uint8_t slen, const uint8_t * s)
+node_dup(const struct pnode * n0, uint8_t slen, const uint8_t * s)
 {
 	struct pnode *	n;
 
@@ -134,7 +134,7 @@ node_dup(struct pnode * n0, uint8_t slen, const uint8_t * s)
  * node).
  */
 static int
-compare(struct pnode * n, const uint8_t * key, size_t keylen,
+compare(const struct pnode * n, const uint8_t * key, size_t keylen,
     uint8_t * mlen, uint8_t * mask)
 {
 	size_t	i;

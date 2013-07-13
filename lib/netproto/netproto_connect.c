@@ -3,59 +3,76 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
-#include <netdb.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #include "netproto_internal.h"
+#include "sock.h"
+#include "sock_util.h"
 #include "network.h"
 #include "warnp.h"
 
 #include "netproto.h"
 
 struct netproto_connect_cookie {
+	struct sock_addr ** sas;
 	char * useragent;
 	network_callback * callback;
 	void * cookie;
+	void * connect_cookie;
 	NETPROTO_CONNECTION * NC;
 };
 
-static network_callback callback_connect;
-static int dnslookup(const char *, struct sockaddr **, socklen_t *);
-
 static int
-callback_connect(void * cookie, int status)
+callback_connect(void * cookie, int s)
 {
 	struct netproto_connect_cookie * C = cookie;
 	int rc;
 
-	/* Did the connection attempt fail? */
-	if (status != NETWORK_STATUS_OK)
-		goto failed;
+	/* The connect is no longer pending. */
+	C->connect_cookie = NULL;
 
-	/* Perform key exchange. */
-	if (netproto_keyexchange(C->NC, C->useragent,
-	    C->callback, C->cookie)) {
-		status = NETWORK_STATUS_ERR;
-		goto failed;
+	/* Did the connection attempt fail? */
+	if (s == -1) {
+		/*
+		 * Call the upstream callback.  Upon being informed that the
+		 * connect has failed, the upstream code is responsible for
+		 * calling netproto_close, which (since we haven't called
+		 * netproto_setfd yet) will call into callback_cancel and let
+		 * us clean up.
+		 */
+		return ((C->callback)(C->cookie, NETWORK_STATUS_CONNERR));
 	}
 
+	/* Inform the netproto code that we have a socket. */
+	if (netproto_setfd(C->NC, s))
+		goto err2;
+
+	/* Perform key exchange. */
+	if (netproto_keyexchange(C->NC, C->useragent, C->callback, C->cookie))
+		goto err1;
+
 	/* Free the cookie. */
+	sock_addr_freelist(C->sas);
 	free(C->useragent);
 	free(C);
 
 	/* Success! */
 	return (0);
 
-failed:
+err2:
+	/* Drop the socket since we can't use it properly. */
+	close(s);
+err1:
 	/* Call the upstream callback. */
-	rc = (C->callback)(C->cookie, status);
+	rc = (C->callback)(C->cookie, NETWORK_STATUS_ERR);
 
-	/* Free the cookie. */
+	/*
+	 * We've called netproto_setfd, so callback_cancel won't happen; we
+	 * are responsible for cleaning up after ourselves.
+	 */
+	sock_addr_freelist(C->sas);
 	free(C->useragent);
 	free(C);
 
@@ -63,99 +80,34 @@ failed:
 	return (rc);
 }
 
-#ifdef HAVE_GETADDRINFO
 static int
-dnslookup(const char * sname, struct sockaddr ** addr, socklen_t * addrlen)
+callback_cancel(void * cookie)
 {
-	struct addrinfo hints;
-	struct addrinfo * res;
-	int error;
+	struct netproto_connect_cookie * C = cookie;
+	int rc;
 
-	/* Do the DNS lookup. */
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-#ifdef AI_NUMERICSERV
-	/**
-	 * XXX Portability
-	 * XXX POSIX states that AI_NUMERICSERV should be defined in netdb.h,
-	 * XXX but some operating systems don't provide it.  The flag isn't
-	 * XXX really necessary anyway, since getaddrinfo should interpret
-	 * XXX "9279" as 'a string specifying a decimal port number'; but
-	 * XXX passing the flag (on operating systems which provide it) might
-	 * XXX avoid waiting for a name resolution service (e.g., NIS+) to
-	 * XXX be invoked.
-	 */
-	hints.ai_flags = AI_NUMERICSERV;
-#endif
-	if ((error = getaddrinfo(sname, "9279",
-	    &hints, &res)) != 0) {
-		warn0("Error looking up %s: %s", sname, gai_strerror(error));
-		goto err0;
-	}
-	if (res == NULL) {
-		warn0("Cannot look up %s", sname);
-		goto err0;
-	}
+	/* Cancel the connection attempt if still pending. */
+	if (C->connect_cookie != NULL)
+		network_connect_cancel(C->connect_cookie);
 
-	/* Create a copy of the structure. */
-	if ((*addr = malloc(res->ai_addrlen)) == NULL)
-		goto err0;
-	memcpy(*addr, res->ai_addr, res->ai_addrlen);
-	*addrlen = res->ai_addrlen;
+	/* We were cancelled. */
+	rc = (C->callback)(C->cookie, NETWORK_STATUS_CANCEL);
 
-	/* Free the returned list of addresses. */
-	freeaddrinfo(res);
+	/* Free our cookie. */
+	sock_addr_freelist(C->sas);
+	free(C->useragent);
+	free(C);
 
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
+	/* Return value from user callback. */
+	return (rc);
 }
-#else
-static int
-dnslookup(const char * sname, struct sockaddr ** addr, socklen_t * addrlen)
+
+static struct sock_addr **
+getserveraddr(void)
 {
-	struct hostent * hp;
-	struct sockaddr_in sin;
-
-	if ((hp = gethostbyname(sname)) == NULL) {
-		warn0("Error looking up %s", sname);
-		goto err0;
-	}
-
-	/* Construct a struct sockaddr_in. */
-	bzero(&sin, sizeof(struct sockaddr_in));
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(9279);
-	memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
-
-	/* Make a copy of this to return. */
-	if ((*addr = malloc(sizeof(struct sockaddr_in))) == NULL)
-		goto err0;
-	memcpy(*addr, &sin, sizeof(struct sockaddr_in));
-	*addrlen = sizeof(struct sockaddr_in);
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-#endif
-
-static void
-getserveraddr(struct sockaddr ** addr, socklen_t * addrlen)
-{
-	static struct sockaddr * srv_addr = NULL;
-	static socklen_t srv_addrlen = 0;
+	static struct sock_addr ** srv_addr = NULL;
 	static time_t srv_time = (time_t)(-1);
-	struct sockaddr * tmp_addr;
-	socklen_t tmp_addrlen;
+	struct sock_addr ** tmp_addr;
 	time_t tmp_time;
 
 	/*
@@ -164,13 +116,12 @@ getserveraddr(struct sockaddr ** addr, socklen_t * addrlen)
 	 */
 	tmp_time = time(NULL);
 	if ((srv_time == (time_t)(-1)) || (tmp_time > srv_time + 60)) {
-		if (dnslookup(TSSERVER "-server.tarsnap.com",
-		    &tmp_addr, &tmp_addrlen)) {
+		tmp_addr = sock_resolve(TSSERVER "-server.tarsnap.com:9279");
+		if (tmp_addr == NULL) {
 			if (srv_addr != NULL)
 				warn0("Using cached DNS lookup");
 			else
 				warn0("Cannot obtain server address");
-			tmp_addr = NULL;
 		}
 	} else {
 		tmp_addr = NULL;
@@ -178,15 +129,13 @@ getserveraddr(struct sockaddr ** addr, socklen_t * addrlen)
 
 	/* If we have a new lookup, update the cache. */
 	if (tmp_addr != NULL) {
-		free(srv_addr);
+		sock_addr_freelist(srv_addr);
 		srv_addr = tmp_addr;
-		srv_addrlen = tmp_addrlen;
 		srv_time = tmp_time;
 	}
 
-	/* Return the cached value. */
-	*addr = srv_addr;
-	*addrlen = srv_addrlen;
+	/* Return a duplicate of the cached value. */
+	return (sock_addr_duplist(srv_addr));
 }
 
 /**
@@ -200,56 +149,44 @@ netproto_connect(const char * useragent,
     network_callback * callback, void * cookie)
 {
 	struct netproto_connect_cookie * C;
-	int s;
-	NETPROTO_CONNECTION * NC;
-	struct sockaddr * addr;
-	socklen_t addrlen;
 	struct timeval timeo;
-
-	/* Create a network socket. */
-	if ((s = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-		warnp("socket()");
-		goto err0;
-	}
-
-	/* Wrap the socket into a protocol-layer cookie. */
-	if ((NC = netproto_open(s)) == NULL) {
-		close(s);
-		goto err0;
-	}
 
 	/* Create a cookie to be passed to callback_connect. */
 	if ((C = malloc(sizeof(struct netproto_connect_cookie))) == NULL)
-		goto err1;
+		goto err0;
 	if ((C->useragent = strdup(useragent)) == NULL)
-		goto err2;
+		goto err1;
 	C->callback = callback;
 	C->cookie = cookie;
-	C->NC = NC;
 
 	/* Look up the server's IP address. */
-	getserveraddr(&addr, &addrlen);
-	if (addr == NULL)
-		goto err3;
+	if ((C->sas = getserveraddr())== NULL)
+		goto err2;
 
-	/* Try to connect to server within 5 seconds. */
+	/* Try to connect to server, waiting up to 5 seconds per address. */
 	timeo.tv_sec = 5;
 	timeo.tv_usec = 0;
-	if (network_connect(s, addr, addrlen,
-	    &timeo, callback_connect, C)) {
+	if ((C->connect_cookie = network_connect_timeo(C->sas, &timeo,
+	    callback_connect, C)) == NULL) {
 		netproto_printerr(NETWORK_STATUS_CONNERR);
 		goto err3;
 	}
 
-	/* Success! */
-	return (NC);
+	/* Create a network protocol connection cookie. */
+	if ((C->NC = netproto_alloc(callback_cancel, C)) == NULL)
+		goto err4;
 
+	/* Success! */
+	return (C->NC);
+
+err4:
+	network_connect_cancel(C->connect_cookie);
 err3:
-	free(C->useragent);
+	sock_addr_freelist(C->sas);
 err2:
-	free(C);
+	free(C->useragent);
 err1:
-	netproto_close(NC);
+	free(C);
 err0:
 	/* Failure! */
 	return (NULL);

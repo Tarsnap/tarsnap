@@ -6,10 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "crypto.h"
+#include "crypto_entropy.h"
 #include "ctassert.h"
 #include "sysendian.h"
 #include "warnp.h"
+
+#include "crypto.h"
 
 #include "rwhashtab.h"
 

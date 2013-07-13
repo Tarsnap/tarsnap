@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "network.h"
+#include "tsnetwork.h"
 
 typedef struct netproto_connection_internal NETPROTO_CONNECTION;
 

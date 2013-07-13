@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "crypto_entropy.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "storage_internal.h"

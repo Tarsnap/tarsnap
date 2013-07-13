@@ -1,3 +1,16 @@
+tarsnap (1.0.34) unstable; urgency=low
+
+  * New version of tarsnap brings IPv6 support; support for platforms with
+    mandatory struct alignment (e.g., ARM OABI); and greater resilience
+    against network glitches when tarsnap first contacts the server.
+  * A bug causing tarsnap to crash when reading certain corrupt key files
+    on 64-bit platforms is fixed.
+  * Terminal settings are now restored if tarsnap is killed with ^C while
+    reading an account password or a keyfile passphrase.
+  * A large amount of library code has been restructured into an open
+    source "libcperciva" library.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Say, 6 Jul 2013 21:33:46 +0000
 tarsnap (1.0.33) unstable; urgency=low
 
   * New version of tarsnap brings reduced memory usage on systems with a
@@ -5,7 +18,7 @@ tarsnap (1.0.33) unstable; urgency=low
     deleting or printing statistics for multiple archives; and corrects
     a bug in the handling of the --newerXXX option.
 
- -- Colin Percival <cperciva@tarsnap.com>  Wed, 1 Aug 2002 23:52:10 +0000
+ -- Colin Percival <cperciva@tarsnap.com>  Wed, 1 Aug 2012 23:52:10 +0000
 tarsnap (1.0.32) unstable; urgency=low
 
   * New version of tarsnap fixes a bug which made the --nodump option

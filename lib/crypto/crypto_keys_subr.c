@@ -10,7 +10,7 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 
-#include "crypto.h"
+#include "crypto_entropy.h"
 #include "sysendian.h"
 #include "warnp.h"
 

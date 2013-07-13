@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "network.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "netproto.h"
@@ -51,13 +51,13 @@ _netproto_printerr(int status)
 }
 
 /**
- * netproto_open(fd):
- * Create and return a network protocol connection cookie for use on the
- * connected socket ${fd}.  Note that netproto_keyexchange() must be called
- * before _writepacket or _readpacket are called on the cookie.
+ * netproto_alloc(callback, cookie):
+ * Allocate a network protocol connection cookie.  If the connection is closed
+ * before netproto_setfd is called, netproto_close will call callback(cookie)
+ * in lieu of performing callback cancels on a socket.
  */
-NETPROTO_CONNECTION *
-netproto_open(int fd)
+struct netproto_connection_internal *
+netproto_alloc(int (* callback)(void *), void * cookie)
 {
 	struct netproto_connection_internal * C;
 
@@ -65,31 +65,53 @@ netproto_open(int fd)
 	if ((C = malloc(sizeof(struct netproto_connection_internal))) == NULL)
 		goto err0;
 
-	/* We have a file descriptor, but we don't have keys yet. */
-	C->fd = fd;
+	/* Record connect-cancel callback and cookie. */
+	C->cancel = callback;
+	C->cookie = cookie;
+
+	/* We have no state yet. */
+	C->fd = -1;
 	C->keys = NULL;
-
-	/* We're not sleeping. */
 	C->sleepcookie.handle = -1;
-
-	/* No traffic yet. */
 	C->bytesin = C->bytesout = C->bytesqueued = 0;
-
-	/* The connection isn't broken. */
 	C->broken = 0;
-
-	/* Create a network layer write queue. */
-	if ((C->Q = network_writeq_init(fd)) == NULL)
-		goto err1;
+	C->Q = NULL;
 
 	/* Success! */
 	return (C);
 
-err1:
-	free(C);
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * netproto_setfd(C, fd):
+ * Set the network protocol connection cookie ${C} to use connected socket
+ * ${fd}.  This function must be called exactly once after netproto_alloc
+ * before calling any other functions aside from netproto_free.
+ */
+int
+netproto_setfd(struct netproto_connection_internal * C, int fd)
+{
+
+	/* The connect is no longer pending. */
+	C->cancel = NULL;
+	C->cookie = NULL;
+
+	/* We have a file descriptor. */
+	C->fd = fd;
+
+	/* Create a network layer write queue. */
+	if ((C->Q = network_writeq_init(fd)) == NULL)
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /**
@@ -174,7 +196,10 @@ netproto_flush(NETPROTO_CONNECTION * C)
 	int rc, rc2;
 
 	/* Cancel pending writes. */
-	rc = network_writeq_cancel(C->Q);
+	if (C->Q != NULL)
+		rc = network_writeq_cancel(C->Q);
+	else
+		rc = 0;
 
 	/*
 	 * Mark this connection as being broken.  The upstream caller should
@@ -184,9 +209,11 @@ netproto_flush(NETPROTO_CONNECTION * C)
 	C->broken = 1;
 
 	/* Cancel any in-progress read. */
-	rc2 = network_deregister(C->fd, NETWORK_OP_READ);
-	if (rc == 0)
-		rc = rc2;
+	if (C->fd != -1) {
+		rc2 = network_deregister(C->fd, NETWORK_OP_READ);
+		if (rc == 0)
+			rc = rc2;
+	}
 
 	/* Return success or the first nonzero callback value. */
 	return (rc);
@@ -201,25 +228,33 @@ netproto_close(NETPROTO_CONNECTION * C)
 {
 	int rc, rc2;
 
-	/* Cancel any in-progress sleep. */
-	if (C->sleepcookie.handle != -1)
-		network_desleep(C->sleepcookie.handle);
+	/* If we were connecting, cancel that. */
+	if (C->cancel != NULL)
+		rc = (C->cancel)(C->cookie);
+	else
+		rc = 0;
 
 	/* Cancel pending writes. */
-	rc = network_writeq_cancel(C->Q);
+	if (C->Q != NULL) {
+		rc2 = network_writeq_cancel(C->Q);
+		rc = rc ? rc : rc2;
+	}
 
 	/* Free the write queue. */
-	network_writeq_free(C->Q);
+	if (C->Q != NULL)
+		network_writeq_free(C->Q);
 
 	/* Cancel any in-progress read. */
-	rc2 = network_deregister(C->fd, NETWORK_OP_READ);
-	rc = rc ? rc : rc2;
+	if (C->fd != -1) {
+		rc2 = network_deregister(C->fd, NETWORK_OP_READ);
+		rc = rc ? rc : rc2;
+	}
 
 	/* Free cryptographic keys, if any exist. */
 	crypto_session_free(C->keys);
 
 	/* Close the socket. */
-	while (close(C->fd)) {
+	while (C->fd != -1 && close(C->fd)) {
 		if (errno == ECONNRESET) {
 			/*
 			 * You can't dump me!  I'm dumping you!  We don't

@@ -79,7 +79,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "crypto.h"
 #include "keyfile.h"
 #include "humansize.h"
-#include "network.h"
+#include "tsnetwork.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
 
@@ -136,6 +136,8 @@ main(int argc, char **argv)
 	time_t			 now;
 	size_t 			 i;
 
+	WARNP_INIT;
+
 	/*
 	 * Use a pointer for consistency, but stack-allocated storage
 	 * for ease of cleanup.
@@ -163,9 +165,6 @@ main(int argc, char **argv)
 		else
 			bsdtar->progname = *argv;
 	}
-#ifdef NEED_WARN_PROGNAME
-	warn_progname = bsdtar->progname;
-#endif
 
 	/* We don't have a machine # yet. */
 	bsdtar->machinenum = (uint64_t)(-1);
@@ -189,16 +188,8 @@ main(int argc, char **argv)
 #endif
 	possible_help_request = 0;
 
-	/* Initialize entropy subsystem. */
-	if (crypto_entropy_init())
-		exit(1);
-
 	/* Initialize key cache.  We don't have any keys yet. */
 	if (crypto_keys_init())
-		exit(1);
-
-	/* Initialize network layer. */
-	if (network_init())
 		exit(1);
 
 	/*
@@ -554,7 +545,7 @@ main(int argc, char **argv)
 			add_substitution(bsdtar, bsdtar->optarg);
 #else
 			bsdtar_warnc(bsdtar, 0,
-			    "-s is not supported by this version of bsdtar");
+			    "-s is not supported by this version of tarsnap");
 			usage(bsdtar);
 #endif
 			break;
@@ -732,7 +723,10 @@ main(int argc, char **argv)
 	    (bsdtar->mode != OPTION_PRINT_STATS))
 		only_mode(bsdtar, "-f", "cxtdr");
 
-	/* These options don't make sense for "delete" and "convert to tar" */
+	/*
+	 * These options don't make sense for the "delete" and "convert to
+	 * tar" modes.
+	 */
 	if (bsdtar->pending_chdir)
 		only_mode(bsdtar, "-C", "cxt");
 	if (bsdtar->names_from_file)
@@ -1024,8 +1018,8 @@ long_help(struct bsdtar *bsdtar)
 
 	fflush(stderr);
 
-	p = (strcmp(prog,"tarsnap") != 0) ? "(tarsnap)" : "";
-	printf("%s%s: efficiently manipulate multiple archives\n", prog, p);
+	p = (strcmp(prog, "tarsnap") != 0) ? "(tarsnap)" : "";
+	printf("%s%s: create and manipulate archives on the Tarsnap backup service\n", prog, p);
 
 	for (p = long_help_msg; *p != '\0'; p++) {
 		if (*p == '%') {

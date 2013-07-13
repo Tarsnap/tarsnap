@@ -76,7 +76,11 @@
 #define CRYPTO_FILE_HLEN	(256 + 8)
 #define CRYPTO_FILE_TLEN	32
 
-/* Sizes of Diffie-Hellman private, public, and exchanged keys. */
+/*
+ * Sizes of Diffie-Hellman private, public, and exchanged keys.  These are
+ * defined in libcperciva/crypto/crypto_dh.h, but are also included here as
+ * the sizes are used in places which don't actually do Diffie-Hellman.
+ */
 #define CRYPTO_DH_PRIVLEN	32
 #define CRYPTO_DH_PUBLEN	256
 #define CRYPTO_DH_KEYLEN	256
@@ -85,22 +89,8 @@
 typedef struct crypto_session_internal CRYPTO_SESSION;
 
 /**
- * crypto_entropy_init(void):
- * Initialize the PRNG.
- */
-int crypto_entropy_init(void);
-
-/**
- * crypto_entropy_read(buf, buflen):
- * Fill the buffer with unpredictable bits.  The value ${buflen} must be
- * less than 2^16.
- */
-int crypto_entropy_read(uint8_t *, size_t);
-
-/**
  * crypto_keys_init(void):
- * Initialize the key cache.  Note that crypto_entropy_init MUST be called
- * before this function.
+ * Initialize the key cache.
  */
 int crypto_keys_init(void);
 
@@ -211,31 +201,6 @@ int crypto_file_enc(const uint8_t *, size_t, uint8_t *);
 int crypto_file_dec(const uint8_t *, size_t, uint8_t *);
 
 /**
- * crypto_dh_generate(pub, priv):
- * Generate a 256-bit private key ${priv}, and compute ${pub} equal to
- * 2^(2^258 + ${priv}) mod p where p is the Diffie-Hellman group #14 modulus.
- * Both values are stored as big-endian integers.
- */
-int crypto_dh_generate(uint8_t[CRYPTO_DH_PUBLEN], uint8_t[CRYPTO_DH_PRIVLEN]);
-
-/**
- * crypto_dh_compute(pub, priv, key):
- * In the Diffie-Hellman group #14, compute ${pub}^(2^258 + ${priv}) and
- * write the result into ${key}.  All values are big-endian.  Note that the
- * value ${pub} is the public key produced the call to crypto_dh_generate
- * made by the *other* participant in the key exchange.
- */
-int crypto_dh_compute(const uint8_t[CRYPTO_DH_PUBLEN],
-    const uint8_t[CRYPTO_DH_PRIVLEN], uint8_t[CRYPTO_DH_KEYLEN]);
-
-/**
- * crypto_dh_sanitycheck(pub):
- * Sanity-check the Diffie-Hellman public value ${pub} by checking that it
- * is less than the group #14 modulus.  Return 0 if sane, -1 if insane.
- */
-int crypto_dh_sanitycheck(const uint8_t[CRYPTO_DH_PUBLEN]);
-
-/**
  * crypto_session_init(pub, priv, nonce, mkey, encr_write, auth_write,
  *     encr_read, auth_read):
  * Compute K = ${pub}^(2^258 + ${priv}), mkey = MGF1(nonce || K, 48), and
@@ -289,12 +254,5 @@ void crypto_session_free(CRYPTO_SESSION *);
  */
 int crypto_passwd_to_dh(const char *, const uint8_t[32],
     uint8_t[CRYPTO_DH_PUBLEN], uint8_t[CRYPTO_DH_PRIVLEN]);
-
-/**
- * crypto_verify_bytes(buf0, buf1, len):
- * Return zero if and only if buf0[0 .. len - 1] and buf1[0 .. len - 1] are
- * identical.  Do not leak any information via timing side channels.
- */
-uint8_t crypto_verify_bytes(const uint8_t *, const uint8_t *, size_t);
 
 #endif /* !_CRYPTO_H_ */

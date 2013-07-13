@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "chunks.h"
-#include "crypto.h"
+#include "crypto_entropy.h"
 #include "dirutil.h"
 #include "hexify.h"
 #include "hexlink.h"
