@@ -339,7 +339,7 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 		c->yka -= c->p & (((c->yka - c->p) >> 31) - 1);
 
 		/* a^k := a^k * alpha mod p */
-		/* akr <= p * 2^32 / (2^32 - p)) */
+		/* akr <= p * 2^32 / (2^32 - p) */
 		c->akr = mmul(c->akr, c->ar, c->p, c->pp);
 
 		/*

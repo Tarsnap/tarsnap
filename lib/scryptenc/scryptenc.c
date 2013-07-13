@@ -37,13 +37,15 @@
 
 #include <openssl/aes.h>
 
+#include "crypto_aesctr.h"
+#include "crypto_entropy.h"
+#include "sha256.h"
+#include "sysendian.h"
+
 #include "crypto.h"
-#include "crypto_internal.h"
 #include "crypto_scrypt.h"
 #include "memlimit.h"
 #include "scryptenc_cpuperf.h"
-#include "sha256.h"
-#include "sysendian.h"
 
 #include "scryptenc.h"
 

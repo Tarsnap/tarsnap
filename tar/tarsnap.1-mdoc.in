@@ -968,7 +968,7 @@ but was replaced by Tim Kientzle's
 utility and
 .Xr libarchive 3
 library in
-FreeBSD 5.3 .
+FreeBSD 5.3.
 .Pp
 .Nm
 is built around

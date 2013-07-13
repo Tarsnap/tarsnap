@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#include "crypto_internal.h"
+#include "crypto_dh.h"
 #include "ctassert.h"
 
 #include "crypto.h"

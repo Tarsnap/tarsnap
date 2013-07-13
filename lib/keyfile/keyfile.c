@@ -132,7 +132,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	if (asprintf(&pwprompt, "Please enter passphrase for keyfile %s",
 	    filename) == -1)
 		goto err0;
-	if (tarsnap_readpass(&passwd, pwprompt, NULL, 1)) {
+	if (readpass(&passwd, pwprompt, NULL, 1)) {
 		warnp("Error reading passphrase");
 		goto err1;
 	}

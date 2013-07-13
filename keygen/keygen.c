@@ -13,11 +13,13 @@
 #include <unistd.h>
 
 #include "crypto.h"
+#include "crypto_dh.h"
+#include "crypto_verify_bytes.h"
 #include "humansize.h"
 #include "keyfile.h"
 #include "netpacket.h"
 #include "netproto.h"
-#include "network.h"
+#include "tsnetwork.h"
 #include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
@@ -73,9 +75,7 @@ main(int argc, char **argv)
 	uint64_t maxmem;
 	char * passphrase;
 
-#ifdef NEED_WARN_PROGNAME
-	warn_progname = "tarsnap-keygen";
-#endif
+	WARNP_INIT;
 
 	/* We have no username, machine name, or key filename yet. */
 	C.user = C.name = NULL;
@@ -152,8 +152,7 @@ main(int argc, char **argv)
 	}
 
 	/* Get a password. */
-	if (tarsnap_readpass(&C.passwd, "Enter tarsnap account password",
-	    NULL, 0)) {
+	if (readpass(&C.passwd, "Enter tarsnap account password", NULL, 0)) {
 		warnp("Error reading password");
 		exit(1);
 	}
@@ -168,12 +167,6 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Initialize entropy subsystem. */
-	if (crypto_entropy_init()) {
-		warnp("Entropy subsystem initialization failed");
-		goto err1;
-	}
-
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
@@ -183,12 +176,6 @@ main(int argc, char **argv)
 	/* Generate keys. */
 	if (crypto_keys_generate(CRYPTO_KEYMASK_USER)) {
 		warnp("Error generating keys");
-		goto err1;
-	}
-
-	/* Initialize network layer. */
-	if (network_init()) {
-		warnp("Network layer initialization failed");
 		goto err1;
 	}
 
@@ -261,7 +248,7 @@ main(int argc, char **argv)
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
 	if (passphrased != 0) {
-		if (tarsnap_readpass(&passphrase,
+		if (readpass(&passphrase,
 		    "Please enter passphrase for keyfile encryption",
 		    "Please confirm passphrase for keyfile encryption", 1)) {
 			warnp("Error reading password");

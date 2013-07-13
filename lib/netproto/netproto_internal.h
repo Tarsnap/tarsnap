@@ -4,9 +4,11 @@
 #include <stdint.h>
 
 #include "crypto.h"
-#include "network.h"
+#include "tsnetwork.h"
 
 struct netproto_connection_internal {
+	int (*cancel)(void *);
+	void * cookie;
 	int fd;
 	NETWORK_WRITEQ * Q;
 	CRYPTO_SESSION * keys;
@@ -20,6 +22,22 @@ struct netproto_connection_internal {
 	uint64_t bytesqueued;
 	int broken;
 };
+
+/**
+ * netproto_alloc(callback, cookie):
+ * Allocate a network protocol connection cookie.  If the connection is closed
+ * before netproto_setfd is called, netproto_close will call callback(cookie)
+ * in lieu of performing callback cancels on a socket.
+ */
+struct netproto_connection_internal * netproto_alloc(int (*)(void *), void *);
+
+/**
+ * netproto_setfd(C, fd):
+ * Set the network protocol connection cookie ${C} to use connected socket
+ * ${fd}.  This function must be called exactly once after netproto_alloc
+ * before calling any other functions aside from netproto_free.
+ */
+int netproto_setfd(struct netproto_connection_internal *, int);
 
 /**
  * netproto_open(fd):

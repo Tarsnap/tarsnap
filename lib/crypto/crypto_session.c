@@ -6,9 +6,13 @@
 
 #include <openssl/aes.h>
 
-#include "crypto_internal.h"
+#include "crypto_aesctr.h"
+#include "crypto_dh.h"
+#include "crypto_verify_bytes.h"
 #include "sysendian.h"
 #include "warnp.h"
+
+#include "crypto_internal.h"
 
 #include "crypto.h"
 

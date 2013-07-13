@@ -12,7 +12,7 @@
 #include "crypto.h"
 #include "multitape.h"
 #include "multitape_internal.h"
-#include "network.h"
+#include "tsnetwork.h"
 #include "patricia.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -24,12 +24,12 @@ struct ccache_entry {
 	struct ccache_internal * cci;	/* Cache data structure. */
 	struct ccache_record * ccr;	/* Actual cache entry. */
 	struct ccache_record ** ccrp;	/* Pointer to pointer in tree. */
-	int	hittrailer;		/* Non-zero if the multitape layer */
+	int hittrailer;			/* Non-zero if the multitape layer */
 					/* has told us about a trailer. */
-	uint8_t *	trailer;	/* Uncompressed trailer. */
-	ino_t	ino_new;		/* New inode number. */
-	off_t	size_new;		/* New file size. */
-	time_t	mtime_new;		/* New modification time. */
+	uint8_t * trailer;		/* Uncompressed trailer. */
+	ino_t ino_new;			/* New inode number. */
+	off_t size_new;			/* New file size. */
+	time_t mtime_new;		/* New modification time. */
 };
 
 static int callback_addchunk(void *, struct chunkheader *);

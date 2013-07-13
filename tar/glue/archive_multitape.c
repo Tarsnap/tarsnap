@@ -4,7 +4,7 @@
 
 #include "archive.h"
 #include "multitape.h"
-#include "network.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "archive_multitape.h"

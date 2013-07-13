@@ -7,11 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "crypto.h"
-#include "netproto_internal.h"
-#include "network.h"
+#include "crypto_verify_bytes.h"
 #include "sysendian.h"
 #include "warnp.h"
+
+#include "crypto.h"
+#include "netproto_internal.h"
+#include "tsnetwork.h"
 
 #include "netproto.h"
 
@@ -132,7 +134,7 @@ header_received(void * cookie, int status)
 	to0.tv_sec = 60;
 	to1.tv_sec = 300;
 	to0.tv_usec = to1.tv_usec = 0;
-	if (network_read(RC->C->fd, RC->buf, RC->len, &to0, &to1,
+	if (tsnetwork_read(RC->C->fd, RC->buf, RC->len, &to0, &to1,
 	    data_received, RC))
 		goto err2;
 
@@ -323,7 +325,7 @@ int netproto_readpacket(NETPROTO_CONNECTION * C,
 	to0.tv_sec = 60;
 	to1.tv_sec = 120;
 	to0.tv_usec = to1.tv_usec = 0;
-	if (network_read(C->fd, RC->header, 69, &to0, &to1,
+	if (tsnetwork_read(C->fd, RC->header, 69, &to0, &to1,
 	    header_received, RC))
 		goto err1;
 

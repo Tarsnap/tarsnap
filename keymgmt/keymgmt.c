@@ -41,15 +41,7 @@ main(int argc, char **argv)
 	uint64_t maxmem = 0;
 	char * passphrase;
 
-#ifdef NEED_WARN_PROGNAME
-	warn_progname = "tarsnap-keymgmt";
-#endif
-
-	/* Initialize entropy subsystem. */
-	if (crypto_entropy_init()) {
-		warnp("Entropy subsystem initialization failed");
-		exit(1);
-	}
+	WARNP_INIT;
 
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
@@ -169,7 +161,7 @@ main(int argc, char **argv)
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
 	if (passphrased != 0) {
-		if (tarsnap_readpass(&passphrase,
+		if (readpass(&passphrase,
 		    "Please enter passphrase for keyfile encryption",
 		    "Please confirm passphrase for keyfile encryption", 1)) {
 			warnp("Error reading password");

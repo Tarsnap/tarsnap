@@ -25,7 +25,7 @@ static network_callback callback_packetreceived;
 #define MAXRECONNECTS	10
 
 /* As above, except the server doesn't seem to be around at all. */
-#define MAXRECONNECTS_AWOL	1
+#define MAXRECONNECTS_AWOL	3
 
 /* Time to wait between each attempt. */
 static int reconnect_wait[MAXRECONNECTS + 1] = {

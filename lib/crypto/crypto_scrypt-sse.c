@@ -42,18 +42,18 @@
 
 #include "crypto_scrypt.h"
 
-static void blkcpy(void *, void *, size_t);
-static void blkxor(void *, void *, size_t);
+static void blkcpy(void *, const void *, size_t);
+static void blkxor(void *, const void *, size_t);
 static void salsa20_8(__m128i *);
-static void blockmix_salsa8(__m128i *, __m128i *, __m128i *, size_t);
-static uint64_t integerify(void *, size_t);
+static void blockmix_salsa8(const __m128i *, __m128i *, __m128i *, size_t);
+static uint64_t integerify(const void *, size_t);
 static void smix(uint8_t *, size_t, uint64_t, void *, void *);
 
 static void
-blkcpy(void * dest, void * src, size_t len)
+blkcpy(void * dest, const void * src, size_t len)
 {
 	__m128i * D = dest;
-	__m128i * S = src;
+	const __m128i * S = src;
 	size_t L = len / 16;
 	size_t i;
 
@@ -62,10 +62,10 @@ blkcpy(void * dest, void * src, size_t len)
 }
 
 static void
-blkxor(void * dest, void * src, size_t len)
+blkxor(void * dest, const void * src, size_t len)
 {
 	__m128i * D = dest;
-	__m128i * S = src;
+	const __m128i * S = src;
 	size_t L = len / 16;
 	size_t i;
 
@@ -142,7 +142,7 @@ salsa20_8(__m128i B[4])
  * temporary space X must be 64 bytes.
  */
 static void
-blockmix_salsa8(__m128i * Bin, __m128i * Bout, __m128i * X, size_t r)
+blockmix_salsa8(const __m128i * Bin, __m128i * Bout, __m128i * X, size_t r)
 {
 	size_t i;
 
@@ -174,9 +174,9 @@ blockmix_salsa8(__m128i * Bin, __m128i * Bout, __m128i * X, size_t r)
  * Return the result of parsing B_{2r-1} as a little-endian integer.
  */
 static uint64_t
-integerify(void * B, size_t r)
+integerify(const void * B, size_t r)
 {
-	uint32_t * X = (void *)((uintptr_t)(B) + (2 * r - 1) * 64);
+	const uint32_t * X = (const void *)((uintptr_t)(B) + (2 * r - 1) * 64);
 
 	return (((uint64_t)(X[13]) << 32) + X[0]);
 }
@@ -260,13 +260,14 @@ smix(uint8_t * B, size_t r, uint64_t N, void * V, void * XY)
  */
 int
 crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
-    const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t r, uint32_t p,
+    const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t _r, uint32_t _p,
     uint8_t * buf, size_t buflen)
 {
 	void * B0, * V0, * XY0;
 	uint8_t * B;
 	uint32_t * V;
 	uint32_t * XY;
+	size_t r = _r, p = _p;
 	uint32_t i;
 
 	/* Sanity-check parameters. */

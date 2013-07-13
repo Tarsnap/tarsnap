@@ -8,6 +8,7 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
+#include "crypto_entropy.h"
 #include "sysendian.h"
 #include "warnp.h"
 
@@ -30,12 +31,15 @@ static struct {
 	struct crypto_hmac_key * auth_delete;
 } keycache;
 
-/* External key data format. */
-struct keyheader {
-	uint8_t len[4];	/* Length of key data, little-endian. */
-	uint8_t type;	/* Key type. */
-	/* Key data, in key-specific format. */
-};
+/*
+ * External key data format:
+ * 4 byte little-endian integer = length of key data
+ * 1 byte = key type
+ * N bytes = key data, in key-specific format
+ */
+#define KEYHEADER_OFFSET_LEN	0
+#define KEYHEADER_OFFSET_TYPE	4
+#define KEYHEADER_LEN	5
 
 /* Amount of entropy to use for seeding OpenSSL. */
 #define RANDBUFLEN	2048
@@ -157,31 +161,33 @@ err0:
 int
 crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 {
-	const struct keyheader * kh;
+	const uint8_t * kh;
 	uint32_t len;
+	uint8_t type;
 
 	/* Loop until we've processed all the provided data. */
 	while (buflen) {
-		/* We must have at least a struct keyheader. */
-		if (buflen < sizeof(struct keyheader)) {
+		/* We must have at least a key header. */
+		if (buflen < KEYHEADER_LEN) {
 			warn0("Unexpected EOF of key data");
 			goto err0;
 		}
 
 		/* Parse header. */
-		kh = (const struct keyheader *)buf;
-		buf += sizeof(struct keyheader);
-		buflen -= sizeof(struct keyheader);
+		kh = buf;
+		buf += KEYHEADER_LEN;
+		buflen -= KEYHEADER_LEN;
 
 		/* Sanity check length. */
-		len = le32dec(kh->len);
+		len = le32dec(&kh[KEYHEADER_OFFSET_LEN]);
 		if (len > buflen) {
 			warn0("Unexpected EOF of key data");
 			goto err0;
 		}
 
 		/* Parse the key. */
-		switch (kh->type) {
+		type = kh[KEYHEADER_OFFSET_TYPE];
+		switch (type) {
 		case CRYPTO_KEY_SIGN_PRIV:
 			if ((keys & CRYPTO_KEYMASK_SIGN_PRIV) &&
 			    crypto_keys_subr_import_RSA_priv(
@@ -259,7 +265,7 @@ crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 				goto err0;
 			break;
 		default:
-			warn0("Unrecognized key type: %d", kh->type);
+			warn0("Unrecognized key type: %d", type);
 			goto err0;
 		}
 
@@ -360,7 +366,7 @@ crypto_keys_missing(int keys)
 int
 crypto_keys_export(int keys, uint8_t ** buf, size_t * buflen)
 {
-	struct keyheader * kh;
+	uint8_t * kh;
 	size_t bufpos;
 	uint32_t len;
 	int key;
@@ -380,11 +386,11 @@ crypto_keys_export(int keys, uint8_t ** buf, size_t * buflen)
 			goto err0;
 		}
 		*buflen += len;
-		if (*buflen > *buflen + sizeof(struct keyheader)) {
+		if (*buflen > *buflen + KEYHEADER_LEN) {
 			errno = ENOMEM;
 			goto err0;
 		}
-		*buflen += sizeof(struct keyheader);
+		*buflen += KEYHEADER_LEN;
 	}
 
 	/* Allocate memory. */
@@ -396,25 +402,25 @@ crypto_keys_export(int keys, uint8_t ** buf, size_t * buflen)
 	for (key = 0; key < (int)(sizeof(int) * 8); key++)
 	    if ((keys >> key) & 1) {
 		/* Sanity check remaining buffer length. */
-		if (*buflen - bufpos < sizeof(struct keyheader)) {
+		if (*buflen - bufpos < KEYHEADER_LEN) {
 			warn0("Programmer error");
 			goto err1;
 		}
 
 		/* Export key. */
 		len = export_key(key,
-		    *buf + (bufpos + sizeof(struct keyheader)),
-		    *buflen - (bufpos + sizeof(struct keyheader)));
+		    *buf + (bufpos + KEYHEADER_LEN),
+		    *buflen - (bufpos + KEYHEADER_LEN));
 		if (len == (uint32_t)(-1))
 			goto err1;
 
 		/* Write key header. */
-		kh = (struct keyheader *)(*buf + bufpos);
-		kh->type = key;
-		le32enc(kh->len, len);
+		kh = *buf + bufpos;
+		le32enc(&kh[KEYHEADER_OFFSET_LEN], len);
+		kh[KEYHEADER_OFFSET_TYPE] = key;
 
 		/* Advance buffer position. */
-		bufpos += sizeof(struct keyheader) + len;
+		bufpos += KEYHEADER_LEN + len;
 	}
 
 	/* Sanity-check -- we should have filled the buffer. */

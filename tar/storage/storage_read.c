@@ -391,7 +391,7 @@ err0:
  * storage_read_file_callback(S, buf, buflen, class, name, callback, cookie):
  * Read the file ${name} from class ${class} using the read cookie ${S}
  * returned from storage_read_init.  If ${buf} is non-NULL, then read the
- * file (which should be ${buflen} bytes in length} into ${buf}; otherwise
+ * file (which should be ${buflen} bytes in length) into ${buf}; otherwise
  * malloc a buffer.  Invoke ${callback}(${cookie}, status, b, blen) when
  * complete, where ${status} is 0, 1, 2, or -1 as per storage_read_file,
  * ${b} is the buffer into which the data was read (which will be ${buf} if

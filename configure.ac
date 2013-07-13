@@ -65,7 +65,7 @@ AM_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_TOOL([STRIP],[strip])
 
-# We use asprintf, which is hidden behind _GNU_SOURCE on linux.
+# We use some _GNU_SOURCE bits
 AC_GNU_SOURCE
 
 # Don't rebuild the configure script.  I'm distributing a perfectly good one.
@@ -98,11 +98,6 @@ AC_CHECK_HEADERS([stdint.h stdlib.h string.h])
 AC_CHECK_HEADERS([sys/acl.h sys/extattr.h sys/ioctl.h sys/mkdev.h])
 AC_CHECK_HEADERS([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
 AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h wctype.h windows.h])
-
-# Look for sys/endian.h and be64enc.  Old versions of NetBSD have
-# sys/endian.h but don't have the (le|be)(32|64)(enc|dec) functions in it.
-AC_CHECK_HEADERS([sys/endian.h])
-AC_CHECK_DECLS([be64enc], [], [], [[#include <sys/endian.h>]])
 
 # Check for clock_gettime.  On some systems, this is provided via librt.
 AC_CHECK_LIB(rt, clock_gettime)
@@ -364,7 +359,7 @@ AC_CHECK_FUNCS([nl_langinfo pipe poll readlink select setenv setlocale])
 AC_CHECK_FUNCS([strchr strdup strerror strrchr timegm])
 AC_CHECK_FUNCS([tzset unsetenv utime utimes vfork])
 AC_CHECK_FUNCS([wcrtomb wcscpy wcslen wctomb wmemcmp wmemcpy])
-AC_CHECK_FUNCS([asprintf getaddrinfo lockf posix_memalign qsort_r])
+AC_CHECK_FUNCS([lockf posix_memalign qsort_r])
 
 # Check for mmap so we can work around its absence on Minix
 AC_CHECK_FUNCS([mmap])

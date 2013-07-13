@@ -1078,7 +1078,7 @@ but was replaced by Tim Kientzle's
 utility and
 \fBlibarchive\fP(3)
 library in
-FreeBSD 5.3 .
+FreeBSD 5.3.
 .PP
 \fB\%tarsnap\fP
 is built around

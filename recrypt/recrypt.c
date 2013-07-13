@@ -11,7 +11,7 @@
 #include "keyfile.h"
 #include "multitape_internal.h"
 #include "storage.h"
-#include "network.h"
+#include "tsnetwork.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
 
@@ -428,28 +428,16 @@ main(int argc, char **argv)
 	char *odirpath, *ndirpath;
 	FILE *odir, *ndir;
 
-#ifdef NEED_WARN_PROGNAME
-	warn_progname = "tarsnap-recrypt";
-#endif
+	WARNP_INIT;
 
 	/* Attempt to avoid buffering stdout since we print progress msgs. */
 	setvbuf(stdout, NULL, _IONBF, 0);
-
-	/* Initialize entropy subsystem. */
-	if (crypto_entropy_init()) {
-		warnp("Entropy subsystem initialization failed");
-		exit(1);
-	}
 
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
 		exit(1);
 	}
-
-	/* Initialize network layer. */
-	if (network_init())
-		exit(1);
 
 	/* No options yet. */
 	ocachedir = ncachedir = NULL;

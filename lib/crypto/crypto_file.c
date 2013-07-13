@@ -1,13 +1,18 @@
 #include "bsdtar_platform.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #include <openssl/aes.h>
 
-#include "crypto_internal.h"
-#include "rwhashtab.h"
+#include "crypto_aesctr.h"
+#include "crypto_entropy.h"
+#include "crypto_verify_bytes.h"
 #include "sysendian.h"
 #include "warnp.h"
+
+#include "crypto_internal.h"
+#include "rwhashtab.h"
 
 #include "crypto.h"
 
