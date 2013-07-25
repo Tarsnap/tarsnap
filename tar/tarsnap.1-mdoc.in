@@ -335,7 +335,7 @@ containing the string
 .Sq foo .
 .It Fl -insane-filesystems
 (c mode only)
-Allow archival of entries from synthetic filesystems such as procfs.
+Allow descent into synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .It Fl k
@@ -598,7 +598,7 @@ warnings will be silenced by this option in future versions of
 .It Fl S
 (x mode only)
 Extract files as sparse files.
-For every block on disk, check first if it contains only NULL bytes and seek
+For every block on disk, check first if it contains any non-NULL bytes and seek
 over it otherwise.
 This works similar to the conv=sparse option of dd.
 .It Fl s Ar pattern

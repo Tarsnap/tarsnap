@@ -104,6 +104,9 @@ callback_timeo(void * cookie)
 	/* We're not waiting for a timer callback any more. */
 	C->cookie_timeo = NULL;
 
+	/* Stop listening for this socket. */
+	events_network_cancel(C->s, EVENTS_NETWORK_OP_WRITE);
+
 	/* This connect attempt failed. */
 	return (dofailed(C));
 }
