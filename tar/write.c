@@ -768,34 +768,6 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			descend = 0;
 
 		/*
-		 * If the user did not specify --insane-filesystems, do not
-		 * cross into a new filesystem which is known to be synthetic.
-		 * Note that we will archive synthetic filesystems if we are
-		 * explicitly told to do so.
-		 */
-		if ((bsdtar->option_insane_filesystems == 0) &&
-		    (dev_recorded == 1) &&
-		    (lst->st_dev != last_dev)) {
-			fstype = getfstype(tree_current_access_path(tree));
-			if (fstype == NULL)
-				bsdtar_errc(bsdtar, 1, errno,
-				    "%s: Error getting filesystem type",
-				    name);
-			if (getfstype_issynthetic(fstype)) {
-				if (!bsdtar->option_quiet)
-					bsdtar_warnc(bsdtar, 0,
-					    "Skipping entry on filesystem of type %s: %s",
-					    fstype, name);
-				free(fstype);
-				continue;
-			}
-			free(fstype);
-
-			/* This device is ok to archive. */
-			last_dev = lst->st_dev;
-		}
-
-		/*
 		 * If user has asked us not to cross mount points,
 		 * then don't descend into a dir on a different
 		 * device.
@@ -807,6 +779,33 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		if (bsdtar->option_dont_traverse_mounts) {
 			if (lst->st_dev != first_dev)
 				descend = 0;
+		}
+
+		/*
+		 * If the user did not specify --insane-filesystems, do not
+		 * cross into a new filesystem which is known to be synthetic.
+		 * Note that we will archive synthetic filesystems if we are
+		 * explicitly told to do so.
+		 */
+		if ((bsdtar->option_insane_filesystems == 0) &&
+		    (descend != 0) &&
+		    (lst->st_dev != last_dev)) {
+			fstype = getfstype(tree_current_access_path(tree));
+			if (fstype == NULL)
+				bsdtar_errc(bsdtar, 1, errno,
+				    "%s: Error getting filesystem type",
+				    name);
+			if (getfstype_issynthetic(fstype)) {
+				if (!bsdtar->option_quiet)
+					bsdtar_warnc(bsdtar, 0,
+					    "Not descending into filesystem of type %s: %s",
+					    fstype, name);
+				descend = 0;
+			} else {
+				/* This device is ok to archive. */
+				last_dev = lst->st_dev;
+			}
+			free(fstype);
 		}
 
 		/*

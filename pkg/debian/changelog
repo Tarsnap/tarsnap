@@ -1,3 +1,10 @@
+tarsnap (1.0.35) unstable; urgency=medium
+
+  * New version of tarsnap fixes a networking bug, introduced by the
+    addition of IPv6 support, which can cause tarsnap to crash (segment
+    violation or bus error) during network glitches / outages.
+
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 25 Jul 2013 09:20:55 +0000
 tarsnap (1.0.34) unstable; urgency=low
 
   * New version of tarsnap brings IPv6 support; support for platforms with
@@ -10,7 +17,7 @@ tarsnap (1.0.34) unstable; urgency=low
   * A large amount of library code has been restructured into an open
     source "libcperciva" library.
 
- -- Colin Percival <cperciva@tarsnap.com>  Say, 6 Jul 2013 21:33:46 +0000
+ -- Colin Percival <cperciva@tarsnap.com>  Sat, 6 Jul 2013 21:33:46 +0000
 tarsnap (1.0.33) unstable; urgency=low
 
   * New version of tarsnap brings reduced memory usage on systems with a
