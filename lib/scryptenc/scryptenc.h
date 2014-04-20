@@ -33,6 +33,14 @@
 #include <stdio.h>
 
 /**
+ * NOTE: This file provides prototypes for routines which encrypt/decrypt data
+ * using a key derived from a password by using the scrypt key derivation
+ * function.  If you are just trying to "hash" a password for user logins,
+ * this is not the code you are looking for.  You want to use the crypt_scrypt
+ * function directly.
+ */
+
+/**
  * The parameters maxmem, maxmemfrac, and maxtime used by all of these
  * functions are defined as follows:
  * maxmem - maximum number of bytes of storage to use for V array (which is
