@@ -1115,7 +1115,8 @@ parse_escapes(char *src, struct mtree_entry *mentry)
 static int64_t
 mtree_atol8(char **p)
 {
-	int64_t	l, limit, last_digit_limit;
+	int64_t last_digit_limit;
+	uint64_t l, limit;
 	int digit, base;
 
 	base = 8;
