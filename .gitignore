@@ -1,0 +1,9 @@
+# ignore autotools-generated files
+Makefile.in
+aclocal.m4
+config.aux/
+config.h.in
+config.log
+configure
+confinc
+confmf
