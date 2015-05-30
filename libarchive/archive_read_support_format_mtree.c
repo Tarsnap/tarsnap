@@ -1143,7 +1143,8 @@ mtree_atol8(char **p)
 static int64_t
 mtree_atol10(char **p)
 {
-	int64_t l, limit, last_digit_limit;
+	int64_t last_digit_limit;
+	uint64_t l, limit;
 	int base, digit, sign;
 
 	base = 10;
@@ -1192,7 +1193,8 @@ parsehex(char c)
 static int64_t
 mtree_atol16(char **p)
 {
-	int64_t l, limit, last_digit_limit;
+	int64_t last_digit_limit;
+	uint64_t l, limit;
 	int base, digit, sign;
 
 	base = 16;
