@@ -641,7 +641,7 @@ main(int argc, char **argv)
 	if (bsdtar->mode == '\0')
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Must specify one of -c, -d, -r, -t, -x,"
-		    " --list-archives, --print-stats,"
+		    " --list-archives, --print-stats, --version,"
 		    " --fsck, --fsck-prune, or --nuke");
 
 	/* Process "delayed" command-line options which we queued earlier. */
