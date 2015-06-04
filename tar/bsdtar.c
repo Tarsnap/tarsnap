@@ -1129,6 +1129,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_arg;
 	size_t optlen;
 	char * conf_arg_malloced;
+	size_t len;
 
 	/* Skip any leading whitespace. */
 	while ((line[0] == ' ') || (line[0] == '\t'))
@@ -1141,6 +1142,16 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Duplicate line. */
 	if ((conf_opt = strdup(line)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+	/* Skip any following whitespace.
+	 * We cannot modify 'line' because it is const, so we perform this step
+	 * on the duplicated string. */
+	len = strlen(conf_opt);
+	while ((len > 0) &&
+	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+		len--;
+	}
+	conf_opt[len] = '\0';
 
 	/* Split line into option and argument if possible. */
 	optlen = strcspn(conf_opt, " \t");
