@@ -1129,6 +1129,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_arg;
 	size_t optlen;
 	char * conf_arg_malloced;
+	size_t len;
 
 	/* Skip any leading whitespace. */
 	while ((line[0] == ' ') || (line[0] == '\t'))
@@ -1141,6 +1142,19 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Duplicate line. */
 	if ((conf_opt = strdup(line)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+	/*
+	 * Detect any trailing whitespace.  This could happen before string
+	 * duplication, but to reduce the number of diffs to a later version,
+	 * we'll do it here.
+	 */
+	len = strlen(conf_opt);
+	if ((len > 0) &&
+	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+		bsdtar_warnc(bsdtar, 0,
+		    "option contains trailing whitespace; future behaviour"
+		    " may change for:\n    %s", line);
+	}
 
 	/* Split line into option and argument if possible. */
 	optlen = strcspn(conf_opt, " \t");
