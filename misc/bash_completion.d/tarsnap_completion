@@ -1,0 +1,230 @@
+# /etc/bash_completion.d/tarsnap - bash-completion for tarsnap
+#
+# Besides supplying options it will also try to determine
+# when it is suitible to complete what.
+#
+# Feel free to send comments or suggestions.
+
+shopt -s extglob
+
+_tarsnap ()
+{
+	local cur prev wfilearg wpatharg wotherarg longopts shortopts options
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X"
+
+	# These options will be completed by the path to a directory.
+	wpatharg="--cachedir"
+
+	# These options requires a non-completable argument.
+	# They won't be completed at all.
+	wotherarg="--checkpoint-bytes|--exclude|-f|--include|--maxbw|--maxbw-rate|
+		   |--maxbw-rate-down|--maxbw-rate-up|--newer|--newer-mtime|-s|
+		   |--strip-components|--disk-pause"
+
+	# Availible long options
+	longopts="--list-archives --print-stats --fsck --nuke --aggressive-networking \
+	          --cachedir --check-links --checkpoint-bytes --chroot --dry-run \
+		  --exclude --humanize-numbers --include --keep-newer-files --keyfile \
+		  --lowmem --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
+		  --newer --newer-mtime --newer-than --newer-mtime-than --nodump \
+		  --noisy-warnings --null --numeric-owner --one-file-system --print-stats \
+		  --fast-read --strip-components --snaptime --verylowmem --version \
+		  --disk-pause --fast-read --normalmem --no-aggressive-networking \
+		  --no-config-exclude --no-config-include --no-disk-pause --no-humanize-numbers \
+		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
+		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
+		  --insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune"
+
+	# Availible short options
+	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X -q"
+
+	options=${longopts}" "${shortopts}
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wpatharg))
+			_filedir -d
+			return 0
+			;;
+
+		@($wotherarg))
+			return 0
+			;;
+
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
+		return 0
+	else
+		_filedir
+		return 0
+	fi
+}
+
+_tarsnap_keygen ()
+{
+	local cur prev wfilearg wotherarg longopts
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--keyfile"
+
+	# These options requires a non-completable argument.
+	# They won't be completed at all.
+	wotherarg="--user|--machine|--passphrase-mem"
+
+	# Availible long options
+	longopts="--user --machine --keyfile --passphrased --passphrase-mem"
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wotherarg))
+			return 0
+			;;
+
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${longopts}" -- ${cur}) )
+		return 0
+	fi
+}
+
+_tarsnap_keyregen ()
+{
+	local cur prev wfilearg wotherarg longopts
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--keyfile|--oldkey"
+
+	# These options requires a non-completable argument.
+	# They won't be completed at all.
+	wotherarg="--user|--machine|--passphrase-mem"
+
+	# Availible long options
+	longopts="--user --machine --keyfile --oldkey --passphrased --passphrase-mem"
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wotherarg))
+			return 0
+			;;
+
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${longopts}" -- ${cur}) )
+		return 0
+	fi
+}
+
+_tarsnap_keymgmt ()
+{
+	local cur prev wfilearg wotherarg longopts shortopts options
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--outkeyfile"
+
+	# These options requires a non-completable argument.
+	# They won't be completed at all.
+	wotherarg="--passphrase-mem"
+
+	# Availible long options
+	longopts="--outkeyfile --nuke --passphrased --passphrase-mem"
+
+	# Availible short options
+	shortopts="-r -w -d"
+
+	options=${longopts}" "${shortopts}
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wotherarg))
+			return 0
+			;;
+
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
+		return 0
+	else
+		_filedir
+		return 0
+	fi
+}
+
+_tarsnap_recrypt ()
+{
+	local cur prev wfilearg wpatharg longopts
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--oldkey|--newkey"
+
+	# These options will be completed by the path to a directory.
+	wpatharg="--oldcachedir|--newcachedir"
+
+	longopts="--oldkey --newkey --oldcachedir --newcachedir"
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wpatharg))
+			_filedir -d
+			return 0
+			;;
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${longopts}" -- ${cur}) )
+		return 0
+	fi
+}
+
+
+complete -F _tarsnap -o filenames tarsnap
+complete -F _tarsnap_keygen -o filenames tarsnap-keygen
+complete -F _tarsnap_keyregen -o filenames tarsnap-keyregen
+complete -F _tarsnap_keymgmt -o filenames tarsnap-keymgmt
+complete -F _tarsnap_recrypt -o filenames tarsnap-recrypt
