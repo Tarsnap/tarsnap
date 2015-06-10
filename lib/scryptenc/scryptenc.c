@@ -428,8 +428,10 @@ scryptenc_file(FILE * infile, FILE * outfile,
 			break;
 		crypto_aesctr_stream(AES, buf, buf, readlen);
 		HMAC_SHA256_Update(&hctx, buf, readlen);
-		if (fwrite(buf, 1, readlen, outfile) < readlen)
+		if (fwrite(buf, 1, readlen, outfile) < readlen) {
+			crypto_aesctr_free(AES);
 			return (12);
+		}
 	} while (1);
 	crypto_aesctr_free(AES);
 
@@ -536,8 +538,10 @@ scryptdec_file(FILE * infile, FILE * outfile,
 		 */
 		HMAC_SHA256_Update(&hctx, buf, buflen - 32);
 		crypto_aesctr_stream(AES, buf, buf, buflen - 32);
-		if (fwrite(buf, 1, buflen - 32, outfile) < buflen - 32)
+		if (fwrite(buf, 1, buflen - 32, outfile) < buflen - 32) {
+			crypto_aesctr_free(AES);
 			return (12);
+		}
 
 		/* Move the last 32 bytes to the start of the buffer. */
 		memmove(buf, &buf[buflen - 32], 32);
