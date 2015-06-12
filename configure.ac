@@ -469,4 +469,40 @@ AC_SYS_LARGEFILE
 AC_CHECK_DECLS([optarg])
 AC_CHECK_DECLS([optind])
 
+# install bash completion
+AC_ARG_WITH([bash-completion-dir],
+    AS_HELP_STRING([--with-bash-completion-dir@<:@=DIRNAME@:>@],
+        [Install bash completion script. @<:@default=no@:>@]),
+    [], [with_bash_completion_dir=no])
+# by default, use what the user told us
+BASH_COMPLETION_DIR="$with_bash_completion_dir"
+
+# print results
+AC_MSG_CHECKING([whether to install bash completion])
+AS_IF([test "x$with_bash_completion_dir" != "xno"],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
+
+# maybe find a better value
+if test "x$with_bash_completion_dir" != "xno"; then
+    AC_CHECK_PROG(HAS_PKG_CONFIG, pkg-config, yes)
+
+    # should we find the directory automatically?
+    if test "x$with_bash_completion_dir" == "xyes"; then
+        # default guess for automatic
+        BASH_COMPLETION_DIR="$datadir/bash-completion/completions"
+        # try to use pkg-config
+        if test "x$HAS_PKG_CONFIG" != "xno"; then
+            # find the actual value from the system
+            PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
+                [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"])
+        fi
+    fi
+fi
+
+# pass values to Makefile.am
+AC_SUBST([BASH_COMPLETION_DIR])
+AM_CONDITIONAL([INSTALL_BASH_COMPLETION],[test "x$with_bash_completion_dir" != "xno"])
+
+
 AC_OUTPUT

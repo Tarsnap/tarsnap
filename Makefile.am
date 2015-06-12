@@ -422,3 +422,17 @@ recrypt/tarsnap-recrypt.1: recrypt/tarsnap-recrypt.1-@MANVER@
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
+
+#
+# Misc helper scripts
+#
+#
+if INSTALL_BASH_COMPLETION
+bashcompdir = $(BASH_COMPLETION_DIR)
+dist_bashcomp_DATA = misc/bash_completion.d/tarsnap \
+	misc/bash_completion.d/tarsnap-keygen \
+	misc/bash_completion.d/tarsnap-keymgmt \
+	misc/bash_completion.d/tarsnap-keyregen \
+	misc/bash_completion.d/tarsnap-recrypt
+endif
+
