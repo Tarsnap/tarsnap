@@ -19,19 +19,22 @@ int badsigs[] = {
 };
 #define NSIGS sizeof(badsigs)/sizeof(badsigs[0])
 
+/* Highest signal number we care about. */
+#define MAX2(a, b) ((a) > (b) ? (a) : (b))
+#define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
+#define MAX8(a, b, c, d, e, f, g, h) MAX2(MAX4(a, b, c, d), MAX4(e, f, g, h))
+#define MAXSIG	MAX2(SIGALRM, MAX8(SIGHUP, SIGINT, SIGPIPE, SIGQUIT, \
+		    SIGTERM, SIGTSTP, SIGTTIN, SIGTTOU))
+
 /* Has a signal of this type been received? */
-static volatile sig_atomic_t gotsig[NSIGS];
+static volatile sig_atomic_t gotsig[MAXSIG + 1];
 
 /* Signal handler. */
 static void
 handle(int sig)
 {
-	size_t i;
 
-	for (i = 0; i < NSIGS; i++) {
-		if (sig == badsigs[i])
-			gotsig[i] = 1;
-	}
+	gotsig[sig] = 1;
 }
 
 /**
@@ -64,7 +67,7 @@ readpass(char ** passwd, const char * prompt,
 		readfrom = stdin;
 
 	/* We have not received any signals yet. */
-	for (i = 0; i < NSIGS; i++)
+	for (i = 0; i <= MAXSIG; i++)
 		gotsig[i] = 0;
 
 	/*
@@ -132,7 +135,7 @@ retry:
 
 	/* If we intercepted a signal, re-issue it. */
 	for (i = 0; i < NSIGS; i++) {
-		if (gotsig[i])
+		if (gotsig[badsigs[i]])
 			raise(badsigs[i]);
 	}
 
