@@ -1,0 +1,101 @@
+# bash-completion for tarsnap
+#
+# Besides supplying options it will also try to determine
+# when it is suitible to complete what.
+#
+# Feel free to send comments or suggestions.
+#
+#
+# Copyright (c) 2009-2012 Andreas Olsson
+# 
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+
+shopt -s extglob
+
+_tarsnap ()
+{
+	local cur prev wfilearg wpatharg wotherarg longopts shortopts options
+	COMPREPLAY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	# These options will be completed by the path to a filename.
+	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X"
+
+	# These options will be completed by the path to a directory.
+	wpatharg="--cachedir"
+
+	# These options requires a non-completable argument.
+	# They won't be completed at all.
+	wotherarg="--checkpoint-bytes|--exclude|-f|--include|--maxbw|--maxbw-rate|
+		   |--maxbw-rate-down|--maxbw-rate-up|--newer|--newer-mtime|-s|
+		   |--strip-components|--disk-pause"
+
+	# Availible long options
+	longopts="--list-archives --print-stats --fsck --nuke --aggressive-networking \
+	          --cachedir --check-links --checkpoint-bytes --chroot --dry-run \
+		  --exclude --humanize-numbers --include --keep-newer-files --keyfile \
+		  --lowmem --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
+		  --newer --newer-mtime --newer-than --newer-mtime-than --nodump \
+		  --noisy-warnings --null --numeric-owner --one-file-system --print-stats \
+		  --fast-read --strip-components --snaptime --verylowmem --version \
+		  --disk-pause --fast-read --normalmem --no-aggressive-networking \
+		  --no-config-exclude --no-config-include --no-disk-pause --no-humanize-numbers \
+		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
+		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
+		  --insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune"
+
+	# Availible short options
+	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X -q"
+
+	options=${longopts}" "${shortopts}
+
+	case "$prev" in
+		@($wfilearg))
+			_filedir
+			return 0
+			;;
+
+		@($wpatharg))
+			_filedir -d
+			return 0
+			;;
+
+		@($wotherarg))
+			return 0
+			;;
+
+	esac
+
+	if [[ ${cur} == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
+		return 0
+	else
+		_filedir
+		return 0
+	fi
+}
+
+complete -F _tarsnap -o filenames tarsnap
+
