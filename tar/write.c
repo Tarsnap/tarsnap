@@ -244,9 +244,20 @@ void
 tarsnap_mode_c(struct bsdtar *bsdtar)
 {
 	struct archive *a;
+	size_t i;
 
 	if (*bsdtar->argv == NULL && bsdtar->names_from_file == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "no files or directories specified");
+
+	for (i = 0; bsdtar->argv[i] != NULL; i++) {
+		if (bsdtar->argv[i][0] == '-' && bsdtar->argv[i][1] == '-') {
+			bsdtar_warnc(bsdtar, 0,
+			    "List of objects to archive includes '%s'."
+			    "  This might not be what you intended.",
+			    bsdtar->argv[i]);
+			break;
+		}
+	}
 
 	a = archive_write_new();
 
