@@ -82,7 +82,7 @@ network_sleep(struct timeval * timeo,
 
 		/* Append the record. */
 		if (sleepers_append(sleepers, &sp, 1))
-			goto err0;
+			goto err1;
 	}
 
 	/* Register the timer event. */
@@ -93,6 +93,8 @@ network_sleep(struct timeval * timeo,
 	/* Success! */
 	return (h);
 
+err1:
+	free(sp);
 err0:
 	/* Failure! */
 	return (-1);
