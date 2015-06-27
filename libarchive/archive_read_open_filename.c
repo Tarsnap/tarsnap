@@ -102,6 +102,7 @@ archive_read_open_filename(struct archive *a, const char *filename,
 	b = malloc(block_size);
 	if (mine == NULL || b == NULL) {
 		archive_set_error(a, ENOMEM, "No memory");
+		close(fd);
 		free(mine);
 		free(b);
 		return (ARCHIVE_FATAL);
