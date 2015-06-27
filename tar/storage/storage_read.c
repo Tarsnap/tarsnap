@@ -433,13 +433,11 @@ storage_read_file_callback(STORAGE_R * S, uint8_t * buf, size_t buflen,
 
 	/* Ask the netpacket layer to send a request and get a response. */
 	if (netpacket_op(S->NPC, callback_read_file_send, C))
-		goto err1;
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(C);
 err0:
 	/* Failure! */
 	return (-1);
