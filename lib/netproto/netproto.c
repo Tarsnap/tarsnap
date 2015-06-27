@@ -21,8 +21,8 @@ _netproto_printerr(int status)
 
 	switch (status) {
 	case NETWORK_STATUS_CONNERR:
-		/* Could not connect; error is specified in errno. */
-		warnp("Error connecting to server");
+		/* Could not connect. */
+		warn0("Error connecting to server");
 		break;
 	case NETWORK_STATUS_ERR:
 		/* Error is specified in errno. */
