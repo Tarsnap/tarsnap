@@ -534,8 +534,10 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		case 1:
 			/* File is corrupt. */
 			sc = 2;
-			if (C->size == (uint32_t)(-1))
+			if (C->size == (uint32_t)(-1)) {
 				free(C->buf);
+				C->buf = NULL;
+			}
 			break;
 		case -1:
 			if (C->size == (uint32_t)(-1))
@@ -547,7 +549,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		classname[0] = C->class;
 		memcpy(&classname[1], C->name, 32);
 		if (((CF = rwhashtab_read(C->S->cache, classname)) != NULL) &&
-		    (CF->inqueue != 0) && (CF->buf == NULL)) {
+		    (CF->inqueue != 0) && (CF->buf == NULL) && (sc == 0)) {
 			/* Make a copy of this buffer if we can. */
 			if ((CF->buf = malloc(C->buflen)) != NULL) {
 				/* Copy in data and data length. */
