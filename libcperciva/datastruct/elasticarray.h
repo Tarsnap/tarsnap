@@ -117,7 +117,7 @@ void elasticarray_free(struct elasticarray *);
 	}								\
 	static inline int						\
 	prefix##_append(struct prefix##_struct * EA,			\
-	    const void * buf, size_t nrec)				\
+	    rectype const * buf, size_t nrec)				\
 	{								\
 		return (elasticarray_append((struct elasticarray *)EA,	\
 		    buf, nrec, sizeof(rectype)));			\
@@ -137,11 +137,11 @@ void elasticarray_free(struct elasticarray *);
 	static inline rectype *						\
 	prefix##_get(struct prefix##_struct * EA, size_t pos)		\
 	{								\
-		void * rec;						\
+		rectype * rec;						\
 									\
 		rec = elasticarray_get((struct elasticarray *)EA,	\
 		    pos, sizeof(rectype));				\
-		return ((rectype *)rec);				\
+		return (rec);						\
 	}								\
 	static inline void						\
 	prefix##_free(struct prefix##_struct * EA)			\
