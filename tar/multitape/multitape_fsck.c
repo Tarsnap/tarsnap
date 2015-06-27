@@ -480,7 +480,7 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 	 * all of our local state anyway.
 	 */
 	if (storage_transaction_commitfromcheckpoint(machinenum, key))
-		goto err0;
+		goto err1;
 
 	/* Start a storage-layer fsck transaction. */
 	if ((SD = storage_fsck_start(machinenum, seqnum,
