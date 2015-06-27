@@ -980,7 +980,7 @@ static void
 version(void)
 {
 	printf("tarsnap %s\n", PACKAGE_VERSION);
-	exit(1);
+	exit(0);
 }
 
 static const char *long_help_msg =
