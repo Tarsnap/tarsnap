@@ -135,7 +135,7 @@ getserveraddr(void)
 	}
 
 	/* Return a duplicate of the cached value. */
-	return (sock_addr_duplist(srv_addr));
+	return (srv_addr ? sock_addr_duplist(srv_addr) : NULL);
 }
 
 /**
