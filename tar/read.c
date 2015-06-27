@@ -129,8 +129,8 @@ read_archive(struct bsdtar *bsdtar, char mode)
 		include_from_file(bsdtar, bsdtar->names_from_file);
 
 	a = archive_read_new();
-	archive_read_support_compression_all(a);
-	archive_read_support_format_all(a);
+	archive_read_support_compression_none(a);
+	archive_read_support_format_tar(a);
 	if (archive_read_open_multitape(a, bsdtar->machinenum,
 	    bsdtar->tapenames[0]) == NULL)
 		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
