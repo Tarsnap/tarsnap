@@ -143,8 +143,9 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/events/events_network_selectstats.c	\
 		libcperciva/events/events_timer.c		\
 		libcperciva/network/network_accept.c		\
-		libcperciva/network/network_buf.c		\
 		libcperciva/network/network_connect.c		\
+		libcperciva/network/network_read.c		\
+		libcperciva/network/network_write.c		\
 		libcperciva/util/asprintf.c			\
 		libcperciva/util/b64encode.c			\
 		libcperciva/util/entropy.c			\
@@ -172,7 +173,8 @@ lib_libtarsnap_a_CFLAGS=				\
 		-I$(top_srcdir)/libcperciva/datastruct	\
 		-I$(top_srcdir)/libcperciva/events	\
 		-I$(top_srcdir)/libcperciva/network	\
-		-I$(top_srcdir)/libcperciva/util
+		-I$(top_srcdir)/libcperciva/util	\
+		-DPOSIXFAIL_MSG_NOSIGNAL
 
 #
 #
