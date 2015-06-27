@@ -124,6 +124,13 @@ main(int argc, char **argv)
 	if ((maxmem != 0) && (passphrased == 0))
 		usage();
 
+	/* Warn the user if they're being silly. */
+	if (keyswanted == 0) {
+		warn0("None of {-r, -w, -d, --nuke} options are specified."
+		    "  This will create a key file with no keys, which is"
+		    " probably not what you intended.");
+	}
+
 	/* Read the specified key files. */
 	while (argc-- > 0) {
 		/*
