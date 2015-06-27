@@ -344,7 +344,7 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	/* Ask the netpacket layer to send a request and get a response. */
 	S->lastcnum = (S->lastcnum + 1) % S->numconns;
 	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
-		goto err2;
+		goto err0;
 
 	/* Send ourself SIGQUIT or SIGUSR2 if necessary. */
 	raisesigs(S);
