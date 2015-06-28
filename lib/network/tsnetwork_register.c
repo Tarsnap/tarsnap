@@ -218,14 +218,16 @@ network_deregister(int fd, int op)
 	/* Figure out which set of callbacks we're dealing with. */
 	cs = callbacks[op2cs(op)];
 
-	/* Sanity-check: We should have a callbacks array. */
-	if (cs == NULL) {
-		warn0("Callbacks uninitialized");
-		goto err0;
-	}
+	/* If we have no callbacks array we have no callback, so do nothing. */
+	if (cs == NULL)
+		return (0);
+
+	/* If this is beyond the end of the array, we have no callback. */
+	if (fd >= (int)callbacks_getsize(cs))
+		return (0);
 
 	/* Sanity-check the file descriptor. */
-	if ((fd < 0) || (fd >= (int)callbacks_getsize(cs))) {
+	if (fd < 0) {
 		warn0("Invalid file descriptor: %d", fd);
 		goto err0;
 	}
