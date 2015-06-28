@@ -321,7 +321,7 @@ crypto_keys_missing(int keys)
 				keyname = "file HMAC";
 			break;
 		case CRYPTO_KEY_HMAC_FILE_WRITE:
-			if (keycache.hmac_file == NULL)
+			if (keycache.hmac_file_write == NULL)
 				keyname = "file write HMAC";
 			break;
 		case CRYPTO_KEY_HMAC_CHUNK:
