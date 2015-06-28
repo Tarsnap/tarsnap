@@ -19,18 +19,18 @@ monoclock_get(struct timeval * tv)
 #endif
 
 #ifdef CLOCK_MONOTONIC
-	if (clock_gettime(CLOCK_MONOTONIC, &tp)) {
+	if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0) {
+		tv->tv_sec = tp.tv_sec;
+		tv->tv_usec = tp.tv_nsec / 1000;
+	} else if ((errno != ENOSYS) && (errno != EINVAL)) {
 		warnp("clock_gettime(CLOCK_MONOTONIC)");
 		goto err0;
-	}
-	tv->tv_sec = tp.tv_sec;
-	tv->tv_usec = tp.tv_nsec / 1000;
-#else
+	} else 
+#endif
 	if (gettimeofday(tv, NULL)) {
 		warnp("gettimeofday");
 		goto err0;
 	}
-#endif
 
 	/* Success! */
 	return (0);
