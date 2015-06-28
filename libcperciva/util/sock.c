@@ -425,7 +425,7 @@ sock_connect_nb(const struct sock_addr * sa)
 	/* Attempt to connect. */
 	if ((connect(s, sa->name, sa->namelen) == -1) &&
 	    (errno != EINPROGRESS) &&
-	    (errno == EINTR))
+	    (errno != EINTR))
 		goto err1;
 
 	/* We have a connect(ed|ing) socket. */
