@@ -47,7 +47,10 @@ read_rec(void * cookie)
 
 	/* Read a struct ccache_record_external. */
 	if (fread(&ccre, sizeof(ccre), 1, R->f) != 1) {
-		warnp("Error reading cache: %s", R->s);
+		if (ferror(R->f))
+			warnp("Error reading cache: %s", R->s);
+		else
+			warn0("Error reading cache: %s", R->s);
 		goto err0;
 	}
 
@@ -99,7 +102,10 @@ read_rec(void * cookie)
 
 	/* Read the entry path suffix. */
 	if (fread(R->sbuf + prefixlen, suffixlen, 1, R->f) != 1) {
-		warnp("Error reading cache: %s", R->s);
+		if (ferror(R->f))
+			warnp("Error reading cache: %s", R->s);
+		else
+			warn0("Error reading cache: %s", R->s);
 		goto err1;
 	}
 	R->slen = prefixlen + suffixlen;
@@ -233,7 +239,10 @@ ccache_read(const char * path)
 
 	/* Read the number of cache entries. */
 	if (fread(N, 4, 1, R.f) != 1) {
-		warnp("Error reading cache: %s", R.s);
+		if (ferror(R.f))
+			warnp("Error reading cache: %s", R.s);
+		else
+			warn0("Error reading cache: %s", R.s);
 		goto err4;
 	}
 	R.N = le32dec(N);
