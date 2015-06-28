@@ -68,16 +68,16 @@ memlimit_sysctl_hw_usermem(size_t * memlimit)
 		return (1);
 
 	/*
-	 * Parse as either a uint64_t or a uint32_t based on the length of
-	 * output the kernel reports having copied out.  It appears that all
-	 * systems providing a sysctl interface for reading integers copy
-	 * them out as system-endian values, so we don't need to worry about
-	 * parsing them.
+	 * If we read 8 bytes out, assume this is a system-endian uint64_t.
+	 * If we only read 4 bytes out, the OS is trying to give us a
+	 * uint32_t answer -- but given how many systems now have 4GB+ of RAM,
+	 * it's probably truncating, and we really can't trust the value we
+	 * have returned to us.
 	 */
 	if (usermemlen == sizeof(uint64_t))
 		usermem = *(uint64_t *)usermembuf;
 	else if (usermemlen == sizeof(uint32_t))
-		usermem = *(uint32_t *)usermembuf;
+		usermem = SIZE_MAX;
 	else
 		return (1);
 
