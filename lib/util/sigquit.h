@@ -4,7 +4,7 @@
 #include <signal.h>
 
 /* Set to a non-zero value when SIGQUIT is received. */
-sig_atomic_t sigquit_received;
+extern sig_atomic_t sigquit_received;
 
 /**
  * sigquit_init(void):
