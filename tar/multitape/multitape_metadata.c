@@ -212,6 +212,10 @@ multitape_metadata_dec(struct tapemetadata * mdat, uint8_t * buf,
 	buflen -= 4;
 	p += 4;
 
+	/* Sanity-check argc. */
+	if ((mdat->argc < 0) || ((size_t)(mdat->argc) > buflen))
+		goto bad1;
+
 	/* Allocate space for argv. */
 	if ((mdat->argv = malloc(mdat->argc * sizeof(char *))) == NULL)
 		goto err1;
