@@ -159,7 +159,7 @@ struct ftyperec {
 /* Linux ugliness ends here. */
 
 /* List of names of synthetic filesystem types. */
-const char * synthetic_filesystems[] = {
+static const char * synthetic_filesystems[] = {
 	"devfs",		/* Many OSes */
 	"procfs",		/* Many OSes */
 	"fdescfs",		/* FreeBSD */
