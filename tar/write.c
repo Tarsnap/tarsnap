@@ -273,7 +273,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    bsdtar->argc_orig, bsdtar->argv_orig,
 	    bsdtar->option_print_stats, bsdtar->option_dryrun);
 	if (bsdtar->write_cookie == NULL)
-		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
+		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
 
 	/*
 	 * Remember the device and inode numbers of the cache directory, so
@@ -281,7 +281,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	 */
 	if (getdevino(a, bsdtar->cachedir,
 	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
-		bsdtar_errc(bsdtar, 1, 0, archive_error_string(a));
+		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
 
 	/* Read the chunkification cache. */
 	if (bsdtar->cachecrunch < 2) {
@@ -849,7 +849,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		    entry, -1, st);
 		if (r != ARCHIVE_OK)
 			bsdtar_warnc(bsdtar, archive_errno(bsdtar->diskreader),
-			    archive_error_string(bsdtar->diskreader));
+			    "%s", archive_error_string(bsdtar->diskreader));
 		if (r < ARCHIVE_WARN)
 			continue;
 
