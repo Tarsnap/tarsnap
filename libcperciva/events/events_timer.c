@@ -17,6 +17,27 @@ struct timerrec {
 
 static struct timerqueue * Q = NULL;
 
+/* Set tv := <current time> + tdelta. */
+static int
+gettimeout(struct timeval * tv, struct timeval * tdelta)
+{
+
+	if (monoclock_get(tv))
+		goto err0;
+	tv->tv_sec += tdelta->tv_sec;
+	if ((tv->tv_usec += tdelta->tv_usec) >= 1000000) {
+		tv->tv_usec -= 1000000;
+		tv->tv_sec += 1;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /**
  * events_timer_register(func, cookie, timeo):
  * Register ${func}(${cookie}) to be run ${timeo} in the future.  Return a
@@ -47,13 +68,8 @@ events_timer_register(int (*func)(void *), void * cookie,
 	memcpy(&t->tv_orig, timeo, sizeof(struct timeval));
 
 	/* Compute the absolute timeout. */
-	if (monoclock_get(&tv))
+	if (gettimeout(&tv, &t->tv_orig))
 		goto err2;
-	tv.tv_sec += t->tv_orig.tv_sec;
-	if ((tv.tv_usec += t->tv_orig.tv_usec) >= 1000000) {
-		tv.tv_usec -= 1000000;
-		tv.tv_sec += 1;
-	}
 
 	/* Add this to the timer queue. */
 	if ((t->cookie = timerqueue_add(Q, &tv, t)) == NULL)
@@ -120,13 +136,8 @@ events_timer_reset(void * cookie)
 	struct timeval tv;
 
 	/* Compute the new timeout. */
-	if (monoclock_get(&tv))
+	if (gettimeout(&tv, &t->tv_orig))
 		goto err0;
-	tv.tv_sec += t->tv_orig.tv_sec;
-	if ((tv.tv_usec += t->tv_orig.tv_usec) >= 1000000) {
-		tv.tv_usec -= 1000000;
-		tv.tv_sec += 1;
-	}
 
 	/* Adjust the timer. */
 	timerqueue_increase(Q, t->cookie, &tv);

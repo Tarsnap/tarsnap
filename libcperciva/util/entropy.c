@@ -52,7 +52,7 @@ entropy_read(uint8_t * buf, size_t buflen)
 			goto err1;
 		}
 
-		/* We're partly done. */
+		/* We've filled a portion of the buffer. */
 		buf += lenread;
 		buflen -= lenread;
 	}

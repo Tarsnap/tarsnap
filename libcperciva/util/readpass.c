@@ -12,7 +12,7 @@
 #define MAXPASSLEN 2048
 
 /* Signals we need to block. */
-int badsigs[] = {
+static const int badsigs[] = {
 	SIGALRM, SIGHUP, SIGINT,
 	SIGPIPE, SIGQUIT, SIGTERM,
 	SIGTSTP, SIGTTIN, SIGTTOU
@@ -153,7 +153,7 @@ retry:
 	 * Zero any stored passwords.  This is not guaranteed to work, since a
 	 * "sufficiently intelligent" compiler can optimize these out due to
 	 * the values not being accessed again; some people try to avoid this
-	 * problem by zeroing buffers via a volatile-casted pointed, but this
+	 * problem by zeroing buffers via a volatile-casted pointer, but this
 	 * is not sufficient -- it guarantees that *a* buffer is zeroed but
 	 * not that it is the only buffer containing the data in question.
 	 * Unfortunately the C standard does not provide any way to mark data

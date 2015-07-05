@@ -27,7 +27,7 @@ int crypto_dh_generate(uint8_t[CRYPTO_DH_PUBLEN], uint8_t[CRYPTO_DH_PRIVLEN]);
  * crypto_dh_compute(pub, priv, key):
  * In the Diffie-Hellman group #14, compute ${pub}^(2^258 + ${priv}) and
  * write the result into ${key}.  All values are big-endian.  Note that the
- * value ${pub} is the public key produced the call to crypto_dh_generate
+ * value ${pub} is the public key produced by the call to crypto_dh_generate
  * made by the *other* participant in the key exchange.
  */
 int crypto_dh_compute(const uint8_t[CRYPTO_DH_PUBLEN],

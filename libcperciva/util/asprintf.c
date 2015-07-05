@@ -9,7 +9,7 @@
  * Do asprintf(3) like GNU and BSD do.
  */
 int
-asprintf(char **ret, const char *format, ...)
+asprintf(char ** ret, const char * format, ...)
 {
 	va_list ap;
 	int len;

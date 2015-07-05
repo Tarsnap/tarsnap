@@ -153,7 +153,7 @@ elasticarray_append(struct elasticarray * EA,
 		goto err0;
 
 	/* Copy bytes in. */
-	memcpy((void *)((uintptr_t)(EA->buf) + bufpos), buf, nrec * reclen);
+	memcpy((uint8_t *)(EA->buf) + bufpos, buf, nrec * reclen);
 
 	/* Success! */
 	return (0);
@@ -230,7 +230,7 @@ void *
 elasticarray_get(struct elasticarray * EA, size_t pos, size_t reclen)
 {
 
-	return ((void *)((uintptr_t)(EA->buf) + pos * reclen));
+	return ((uint8_t *)(EA->buf) + pos * reclen);
 }
 
 /**
@@ -247,4 +247,30 @@ elasticarray_free(struct elasticarray * EA)
 
 	free(EA->buf);
 	free(EA);
+}
+
+/**
+ * elasticarray_export(EA, buf, nrec, reclen):
+ * Return the data in the elastic array ${EA} as a buffer ${buf} containing
+ * ${nrec} records of length ${reclen}.  Free the elastic array ${EA}.
+ */
+int
+elasticarray_export(struct elasticarray * EA, void ** buf, size_t * nrec,
+    size_t reclen)
+{
+
+	/* Remove any spare space. */
+	if (elasticarray_truncate(EA))
+		goto err0;
+
+	/* Return the buffer and number of records. */
+	*buf = EA->buf;
+	*nrec = elasticarray_getsize(EA, reclen);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }

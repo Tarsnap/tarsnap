@@ -63,12 +63,12 @@ callback_buf(void * cookie)
 	struct network_write_cookie * C = cookie;
 	size_t oplen;
 	ssize_t len;
-#if MSG_NOSIGNAL == 0
+#ifdef POSIXFAIL_MSG_NOSIGNAL
 	void (*oldsig)(int);
 #endif
 
 	/* If we don't have MSG_NOSIGNAL, catch SIGPIPE. */
-#if MSG_NOSIGNAL == 0
+#ifdef POSIXFAIL_MSG_NOSIGNAL
 	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
 		goto failed;
@@ -83,7 +83,7 @@ callback_buf(void * cookie)
 	assert(len != 0);
 
 	/* If we set a SIGPIPE handler, restore the old one. */
-#if MSG_NOSIGNAL == 0
+#ifdef POSIXFAIL_MSG_NOSIGNAL
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
 		goto failed;

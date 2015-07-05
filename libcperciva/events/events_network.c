@@ -227,7 +227,8 @@ err0:
 /**
  * events_network_select(tv):
  * Check for socket readiness events, waiting up to ${tv} time if there are
- * no sockets immediately ready, or indefinitely if ${tv} is NULL.
+ * no sockets immediately ready, or indefinitely if ${tv} is NULL.  The value
+ * stored in ${tv} may be modified.
  */
 int
 events_network_select(struct timeval * tv)

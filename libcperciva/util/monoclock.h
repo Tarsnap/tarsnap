@@ -6,7 +6,8 @@
 /**
  * monoclock_get(tv):
  * Store the current time in ${tv}.  If CLOCK_MONOTONIC is available, use
- * that clock; otherwise, use gettimeofday(2).
+ * that clock; if CLOCK_MONOTONIC is unavailable, use CLOCK_REALTIME (if
+ * available) or gettimeofday(2).
  */
 int monoclock_get(struct timeval *);
 

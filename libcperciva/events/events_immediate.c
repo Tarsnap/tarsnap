@@ -28,7 +28,7 @@ static struct eventq * heads[32] = {
 static struct eventq * tails[32];
 
 /* For i < minq, heads[i] == NULL. */
-static int minq = 0;
+static int minq = 32;
 
 /**
  * events_immediate_register(func, cookie, prio):
@@ -120,27 +120,23 @@ events_immediate_get(void)
 {
 	struct eventq * q;
 	struct eventrec * r;
-	int prio;
 
-	/* Scan through priorities until we find an event or run out. */
-	for (prio = minq; prio < 32; prio++) {
-		/* Did we find an event? */
-		if (heads[prio] != NULL)
-			break;
-
-		/* This queue is empty; move on to the next one. */
+	/* Advance past priorities which have no events. */
+	while ((minq < 32) && (heads[minq] == NULL))
 		minq++;
-	}
 
 	/* Are there any events? */
-	if (prio == 32)
+	if (minq == 32)
 		return (NULL);
 
-	/* Remove the first node from the linked list. */
-	q = heads[prio];
-	heads[prio] = q->next;
-	if (heads[prio] != NULL)
-		heads[prio]->prev = NULL;
+	/*
+	 * Remove the first node from the highest priority non-empty linked
+	 * list.
+	 */
+	q = heads[minq];
+	heads[minq] = q->next;
+	if (heads[minq] != NULL)
+		heads[minq]->prev = NULL;
 
 	/* Extract the eventrec. */
 	r = q->r;
