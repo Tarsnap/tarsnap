@@ -42,8 +42,8 @@ tvcmp(const struct timeval * x, const struct timeval * y)
 static int
 compar(void * cookie, const void * x, const void * y)
 {
-	const struct timerrec *_x = x;
-	const struct timerrec *_y = y;
+	const struct timerrec * _x = x;
+	const struct timerrec * _y = y;
 
 	(void)cookie; /* UNUSED */
 

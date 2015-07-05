@@ -28,9 +28,8 @@ sock_resolve_unix(const char * addr)
 	struct sockaddr_un * sa_un;
 
 	/* Allocate and populate a sockaddr_un structure. */
-	if ((sa_un = malloc(sizeof(struct sockaddr_un))) == NULL)
+	if ((sa_un = calloc(1, sizeof(struct sockaddr_un))) == NULL)
 		goto err0;
-	memset(sa_un, 0, sizeof(struct sockaddr_un));
 	sa_un->sun_family = AF_UNIX;
 	if (strlen(addr) >= sizeof(sa_un->sun_path)) {
 		warn0("socket path too long: %s", addr);
@@ -124,10 +123,8 @@ sock_resolve_host(const char * addr, const char * ports)
 err3:
 	free(sas[n]);
 err2:
-	for (; n > 0; n--) {
-		free(sas[n - 1]->name);
-		free(sas[n - 1]);
-	}
+	for (; n > 0; n--)
+		sock_addr_free(sas[n - 1]);
 	free(sas);
 err1:
 	freeaddrinfo(res);
@@ -145,9 +142,8 @@ sock_resolve_ipv6(const char * addr, in_port_t p)
 	struct sockaddr_in6 * sin6;
 
 	/* Allocate and populate a sockaddr_in6 structure. */
-	if ((sin6 = malloc(sizeof(struct sockaddr_in6))) == NULL)
+	if ((sin6 = calloc(1, sizeof(struct sockaddr_in6))) == NULL)
 		goto err0;
-	memset(sin6, 0, sizeof(struct sockaddr_in6));
 	sin6->sin6_family = AF_INET6;
 	sin6->sin6_port = htons(p);
 	if (inet_pton(AF_INET6, addr, &sin6->sin6_addr) != 1) {
@@ -190,9 +186,8 @@ sock_resolve_ipv4(const char * addr, in_port_t p)
 	struct sockaddr_in * sin;
 
 	/* Allocate and populate a sockaddr_in structure. */
-	if ((sin = malloc(sizeof(struct sockaddr_in))) == NULL)
+	if ((sin = calloc(1, sizeof(struct sockaddr_in))) == NULL)
 		goto err0;
-	memset(sin, 0, sizeof(struct sockaddr_in));
 	sin->sin_family = AF_INET;
 	sin->sin_port = htons(p);
 	if (inet_pton(AF_INET, addr, &sin->sin_addr) != 1) {
@@ -242,7 +237,7 @@ sock_resolve(const char * addr)
 	/* If the address starts with '/', it's a unix socket. */
 	if (addr[0] == '/') {
 		res = sock_resolve_unix(addr);
-		goto done;
+		goto done0;
 	}
 
 	/* Copy the address so that we can mangle it. */
@@ -283,7 +278,7 @@ sock_resolve(const char * addr)
 	}
 
 	/* If the IP address contains ':', it's IPv6; otherwise, IPv4. */
-	if (strrchr(ips, ':') != NULL)
+	if (strchr(ips, ':') != NULL)
 		res = sock_resolve_ipv6(ips, p);
 	else
 		res = sock_resolve_ipv4(ips, p);
@@ -291,7 +286,7 @@ sock_resolve(const char * addr)
 done1:
 	/* Free string allocated by strdup. */
 	free(s);
-done:
+done0:
 	/* Return result from sock_resolve_foo. */
 	return (res);
 
@@ -327,19 +322,19 @@ sock_listener(const struct sock_addr * sa)
 
 	/* Bind the socket. */
 	if (bind(s, sa->name, sa->namelen)) {
-		warnp("error binding socket");
+		warnp("Error binding socket");
 		goto err1;
 	}
 
 	/* Mark the socket as listening. */
 	if (listen(s, 10)) {
-		warnp("error marking socket as listening");
+		warnp("Error marking socket as listening");
 		goto err1;
 	}
 
-	/* Make the socket as non-blocking. */
+	/* Mark the socket as non-blocking. */
 	if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
-		warnp("error marking socket as non-blocking");
+		warnp("Error marking socket as non-blocking");
 		goto err1;
 	}
 

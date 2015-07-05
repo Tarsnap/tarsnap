@@ -18,15 +18,15 @@
 #define le64enc libcperciva_le64enc
 
 static inline uint16_t
-be16dec(const void *pp)
+be16dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint16_t)(p[1]) + ((uint16_t)(p[0]) << 8));
 }
 
 static inline void
-be16enc(void *pp, uint16_t x)
+be16enc(void * pp, uint16_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 
@@ -35,16 +35,16 @@ be16enc(void *pp, uint16_t x)
 }
 
 static inline uint32_t
-be32dec(const void *pp)
+be32dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8) +
 	    ((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
 }
 
 static inline void
-be32enc(void *pp, uint32_t x)
+be32enc(void * pp, uint32_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 
@@ -55,9 +55,9 @@ be32enc(void *pp, uint32_t x)
 }
 
 static inline uint64_t
-be64dec(const void *pp)
+be64dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint64_t)(p[7]) + ((uint64_t)(p[6]) << 8) +
 	    ((uint64_t)(p[5]) << 16) + ((uint64_t)(p[4]) << 24) +
@@ -66,7 +66,7 @@ be64dec(const void *pp)
 }
 
 static inline void
-be64enc(void *pp, uint64_t x)
+be64enc(void * pp, uint64_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 
@@ -81,15 +81,15 @@ be64enc(void *pp, uint64_t x)
 }
 
 static inline uint16_t
-le16dec(const void *pp)
+le16dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint16_t)(p[0]) + ((uint16_t)(p[1]) << 8));
 }
 
 static inline void
-le16enc(void *pp, uint16_t x)
+le16enc(void * pp, uint16_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 
@@ -98,16 +98,16 @@ le16enc(void *pp, uint16_t x)
 }
 
 static inline uint32_t
-le32dec(const void *pp)
+le32dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint32_t)(p[0]) + ((uint32_t)(p[1]) << 8) +
 	    ((uint32_t)(p[2]) << 16) + ((uint32_t)(p[3]) << 24));
 }
 
 static inline void
-le32enc(void *pp, uint32_t x)
+le32enc(void * pp, uint32_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 
@@ -118,9 +118,9 @@ le32enc(void *pp, uint32_t x)
 }
 
 static inline uint64_t
-le64dec(const void *pp)
+le64dec(const void * pp)
 {
-	const uint8_t *p = (uint8_t const *)pp;
+	const uint8_t * p = (uint8_t const *)pp;
 
 	return ((uint64_t)(p[0]) + ((uint64_t)(p[1]) << 8) +
 	    ((uint64_t)(p[2]) << 16) + ((uint64_t)(p[3]) << 24) +
@@ -129,7 +129,7 @@ le64dec(const void *pp)
 }
 
 static inline void
-le64enc(void *pp, uint64_t x)
+le64enc(void * pp, uint64_t x)
 {
 	uint8_t * p = (uint8_t *)pp;
 

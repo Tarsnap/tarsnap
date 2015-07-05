@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -10,10 +11,14 @@
  * (uint8_t) in big-endian form.  Assumes len is a multiple of 4.
  */
 static void
-be32enc_vect(uint8_t *dst, const uint32_t *src, size_t len)
+be32enc_vect(uint8_t * dst, const uint32_t * src, size_t len)
 {
 	size_t i;
 
+	/* Sanity-check. */
+	assert(len % 4 == 0);
+
+	/* Encode vector, one word at a time. */
 	for (i = 0; i < len / 4; i++)
 		be32enc(dst + i * 4, src[i]);
 }
@@ -23,10 +28,14 @@ be32enc_vect(uint8_t *dst, const uint32_t *src, size_t len)
  * len/4 vector of (uint32_t).  Assumes len is a multiple of 4.
  */
 static void
-be32dec_vect(uint32_t *dst, const uint8_t *src, size_t len)
+be32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
 {
 	size_t i;
 
+	/* Sanity-check. */
+	assert(len % 4 == 0);
+
+	/* Decode vector, one word at a time. */
 	for (i = 0; i < len / 4; i++)
 		dst[i] = be32dec(src + i * 4);
 }
@@ -170,16 +179,22 @@ SHA256_Pad(SHA256_CTX * ctx)
 	 * Convert length to a vector of bytes -- we do this now rather
 	 * than later because the length will change after we pad.
 	 */
-	be32enc_vect(len, ctx->count, 8);
+	be64enc(len, ctx->count);
 
 	/* Add 1--64 bytes so that the resulting length is 56 mod 64. */
-	r = (ctx->count[1] >> 3) & 0x3f;
+	r = (ctx->count >> 3) & 0x3f;
 	plen = (r < 56) ? (56 - r) : (120 - r);
 	SHA256_Update(ctx, PAD, (size_t)plen);
 
 	/* Add the terminating bit-count. */
 	SHA256_Update(ctx, len, 8);
 }
+
+/* Magic initialization constants. */
+static const uint32_t initstate[8] = {
+	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+};
 
 /**
  * SHA256_Init(ctx):
@@ -190,17 +205,10 @@ SHA256_Init(SHA256_CTX * ctx)
 {
 
 	/* Zero bits processed so far. */
-	ctx->count[0] = ctx->count[1] = 0;
+	ctx->count = 0;
 
-	/* Magic initialization constants. */
-	ctx->state[0] = 0x6A09E667;
-	ctx->state[1] = 0xBB67AE85;
-	ctx->state[2] = 0x3C6EF372;
-	ctx->state[3] = 0xA54FF53A;
-	ctx->state[4] = 0x510E527F;
-	ctx->state[5] = 0x9B05688C;
-	ctx->state[6] = 0x1F83D9AB;
-	ctx->state[7] = 0x5BE0CD19;
+	/* Initialize state. */
+	memcpy(ctx->state, initstate, sizeof(initstate));
 }
 
 /**
@@ -208,27 +216,20 @@ SHA256_Init(SHA256_CTX * ctx)
  * Input ${len} bytes from ${in} into the SHA256 context ${ctx}.
  */
 void
-SHA256_Update(SHA256_CTX * ctx, const void *in, size_t len)
+SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
 {
-	uint32_t bitlen[2];
 	uint32_t r;
-	const uint8_t *src = in;
+	const uint8_t * src = in;
 
 	/* Return immediately if we have nothing to do. */
 	if (len == 0)
 		return;
 
 	/* Number of bytes left in the buffer from previous updates. */
-	r = (ctx->count[1] >> 3) & 0x3f;
-
-	/* Convert the length into a number of bits. */
-	bitlen[1] = ((uint32_t)len) << 3;
-	bitlen[0] = (uint32_t)(len >> 29);
+	r = (ctx->count >> 3) & 0x3f;
 
 	/* Update number of bits. */
-	if ((ctx->count[1] += bitlen[1]) < bitlen[1])
-		ctx->count[0]++;
-	ctx->count[0] += bitlen[0];
+	ctx->count += (uint64_t)(len) << 3;
 
 	/* Handle the case where we don't need to perform any transforms. */
 	if (len < 64 - r) {
@@ -332,7 +333,7 @@ HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
  * Input ${len} bytes from ${in} into the HMAC-SHA256 context ${ctx}.
  */
 void
-HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void *in, size_t len)
+HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
 {
 
 	/* Feed data to the inner SHA256 operation. */
@@ -395,6 +396,9 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 	uint64_t j;
 	int k;
 	size_t clen;
+
+	/* Sanity-check. */
+	assert(dkLen <= 32 * (size_t)(UINT32_MAX));
 
 	/* Compute HMAC state after processing P and S. */
 	HMAC_SHA256_Init(&PShctx, passwd, passwdlen);

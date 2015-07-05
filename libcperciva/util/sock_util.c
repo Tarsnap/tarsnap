@@ -85,16 +85,12 @@ sock_addr_duplist(struct sock_addr * const * sas)
 	if ((sas2 = malloc((i + 1) * sizeof(struct sock_addr *))) == NULL)
 		goto err0;
 
-	/* Fill the list with NULLs to make error-path cleanup simpler. */
-	for (i = 0; sas[i] != NULL; i++)
-		sas2[i] = NULL;
-	sas2[i] = NULL;
-
-	/* Duplicate addresses. */
+	/* Duplicate addresses and NULL-terminate. */
 	for (i = 0; sas[i] != NULL; i++) {
 		if ((sas2[i] = sock_addr_dup(sas[i])) == NULL)
 			goto err1;
 	}
+	sas2[i] = NULL;
 
 	/* Success! */
 	return (sas2);
@@ -103,6 +99,7 @@ err1:
 	/*
 	 * Regardless of how many addresses we managed to duplicate before
 	 * failing and being sent here, we have a valid socket address list,
+	 * since the erroring sock_addr_dup call NULL-terminated it for us;
 	 * so we can free it and its constituent addresses easily.
 	 */
 	sock_addr_freelist(sas2);
@@ -187,17 +184,25 @@ err0:
 
 /* Prettyprint an IPv4 address. */
 static char *
-prettyprint_ipv4(struct sockaddr_in * name)
+prettyprint_ipv4(struct sockaddr * name, size_t namelen)
 {
+	struct sockaddr_in sa_in;
 	char addr[INET_ADDRSTRLEN];
 	char * s;
 
+	/* Check name length. */
+	if (namelen != sizeof(struct sockaddr_in))
+		return (NULL);
+
+	/* Copy into buffer for alignment. */
+	memcpy(&sa_in, name, namelen);
+
 	/* Convert IP address to string. */
-	if (inet_ntop(AF_INET, &name->sin_addr, addr, sizeof(addr)) == NULL)
+	if (inet_ntop(AF_INET, &sa_in.sin_addr, addr, sizeof(addr)) == NULL)
 		return (NULL);
 
 	/* Construct address string. */
-	if (asprintf(&s, "[%s]:%d", addr, ntohs(name->sin_port)) == -1)
+	if (asprintf(&s, "[%s]:%d", addr, ntohs(sa_in.sin_port)) == -1)
 		return (NULL);
 
 	/* Success! */
@@ -206,17 +211,25 @@ prettyprint_ipv4(struct sockaddr_in * name)
 
 /* Prettyprint an IPv6 address. */
 static char *
-prettyprint_ipv6(struct sockaddr_in6 * name)
+prettyprint_ipv6(struct sockaddr * name, size_t namelen)
 {
+	struct sockaddr_in6 sa_in6;
 	char addr[INET6_ADDRSTRLEN];
 	char * s;
 
+	/* Check name length. */
+	if (namelen != sizeof(struct sockaddr_in6))
+		return (NULL);
+
+	/* Copy into buffer for alignment. */
+	memcpy(&sa_in6, name, namelen);
+
 	/* Convert IPv6 address to string. */
-	if (inet_ntop(AF_INET6, &name->sin6_addr, addr, sizeof(addr)) == NULL)
+	if (inet_ntop(AF_INET6, &sa_in6.sin6_addr, addr, sizeof(addr)) == NULL)
 		return (NULL);
 
 	/* Construct address string. */
-	if (asprintf(&s, "[%s]:%d", addr, ntohs(name->sin6_port)) == -1)
+	if (asprintf(&s, "[%s]:%d", addr, ntohs(sa_in6.sin6_port)) == -1)
 		return (NULL);
 
 	/* Success! */
@@ -247,9 +260,9 @@ sock_addr_prettyprint(const struct sock_addr * sa)
 	/* Handle different types of addresses differently. */
 	switch (sa->ai_family) {
 	case AF_INET:
-		return (prettyprint_ipv4((struct sockaddr_in *)(sa->name)));
+		return (prettyprint_ipv4(sa->name, sa->namelen));
 	case AF_INET6:
-		return (prettyprint_ipv6((struct sockaddr_in6 *)(sa->name)));
+		return (prettyprint_ipv6(sa->name, sa->namelen));
 	case AF_UNIX:
 		return (prettyprint_unix((struct sockaddr_un *)(sa->name)));
 	default:
