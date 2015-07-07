@@ -153,6 +153,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/entropy.c			\
 		libcperciva/util/hexify.c			\
 		libcperciva/util/humansize.c			\
+		libcperciva/util/insecure_memzero.c		\
 		libcperciva/util/monoclock.c			\
 		libcperciva/util/readpass.c			\
 		libcperciva/util/sock.c				\
