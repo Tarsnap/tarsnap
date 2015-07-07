@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "entropy.h"
+#include "insecure_memzero.h"
 
 #include "sha256.h"
 
@@ -58,7 +59,7 @@ instantiate(void)
 	update(seed_material, 48);
 
 	/* Clean the stack. */
-	memset(seed_material, 0, 48);
+	insecure_memzero(seed_material, 48);
 
 	/* Success! */
 	return (0);
@@ -107,8 +108,8 @@ update(uint8_t * data, size_t datalen)
 	memcpy(drbg.V, Vx, 32);
 
 	/* Clean the stack. */
-	memset(K, 0, 32);
-	memset(Vx, 0, 33);
+	insecure_memzero(K, 32);
+	insecure_memzero(Vx, 33);
 }
 
 /**
@@ -131,7 +132,7 @@ reseed(void)
 	drbg.reseed_counter = 1;
 
 	/* Clean the stack. */
-	memset(seed_material, 0, 32);
+	insecure_memzero(seed_material, 32);
 
 	/* Success! */
 	return (0);
