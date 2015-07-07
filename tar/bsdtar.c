@@ -635,7 +635,7 @@ main(int argc, char **argv)
 	 * is included in the metadata.
 	 */
 	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0))
-		bsdtar->tapenames[bsdtar->ntapes++] = "";
+		bsdtar->tapenames[bsdtar->ntapes++] = "(dry-run)";
 
 	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')

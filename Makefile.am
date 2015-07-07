@@ -184,14 +184,14 @@ lib_libtarsnap_a_CFLAGS=				\
 		-DPOSIXFAIL_MSG_NOSIGNAL
 
 cpusupport-config.h:
-	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
+	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd $(top_srcdir)/libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
 BUILT_SOURCES=	cpusupport-config.h
 
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
-	`. cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+	`. $(top_srcdir)/cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
 
 #
 #
