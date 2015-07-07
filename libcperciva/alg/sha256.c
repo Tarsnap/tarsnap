@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "insecure_memzero.h"
 #include "sysendian.h"
 
 #include "sha256.h"
@@ -156,9 +157,10 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 		state[i] += S[i];
 
 	/* Clean the stack. */
-	memset(W, 0, 256);
-	memset(S, 0, 32);
-	t0 = t1 = 0;
+	insecure_memzero(W, 256);
+	insecure_memzero(S, 32);
+	insecure_memzero(&t0, sizeof(uint32_t));
+	insecure_memzero(&t1, sizeof(uint32_t));
 }
 
 static uint8_t PAD[64] = {
@@ -270,7 +272,7 @@ SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx)
 	be32enc_vect(digest, ctx->state, 32);
 
 	/* Clear the context state. */
-	memset((void *)ctx, 0, sizeof(*ctx));
+	insecure_memzero(ctx, sizeof(SHA256_CTX));
 }
 
 /**
@@ -324,8 +326,8 @@ HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
 	SHA256_Update(&ctx->octx, pad, 64);
 
 	/* Clean the stack. */
-	memset(khash, 0, 32);
-	memset(pad, 0, 64);
+	insecure_memzero(khash, 32);
+	insecure_memzero(pad, 64);
 }
 
 /**
@@ -360,7 +362,7 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	SHA256_Final(digest, &ctx->octx);
 
 	/* Clean the stack. */
-	memset(ihash, 0, 32);
+	insecure_memzero(ihash, 32);
 }
 
 /**
@@ -436,5 +438,5 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 	}
 
 	/* Clean PShctx, since we never called _Final on it. */
-	memset(&PShctx, 0, sizeof(HMAC_SHA256_CTX));
+	insecure_memzero(&PShctx, sizeof(HMAC_SHA256_CTX));
 }

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <wmmintrin.h>
 
+#include "insecure_memzero.h"
 #include "warnp.h"
 
 #include "crypto_aes_aesni.h"
@@ -226,9 +227,9 @@ crypto_aes_key_free_aesni(void * key)
 {
 
 	/* Attempt to zero the expanded key. */
-	memset(key, 0, sizeof(struct crypto_aes_key_aesni));
+	insecure_memzero(key, sizeof(struct crypto_aes_key_aesni));
 
-	/* Free the key -- doesn't matter what type it was. */
+	/* Free the key. */
 	free(key);
 }
 
