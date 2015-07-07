@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <openssl/aes.h>
-
+#include "crypto_aes.h"
 #include "crypto_aesctr.h"
 #include "crypto_dh.h"
 #include "crypto_verify_bytes.h"
@@ -18,11 +17,11 @@
 
 struct crypto_session_internal {
 	struct crypto_aesctr * encr_write_stream;
-	AES_KEY encr_write;
+	struct crypto_aes_key * encr_write;
 	uint8_t auth_write[32];
 	uint64_t auth_write_nonce;
 	struct crypto_aesctr * encr_read_stream;
-	AES_KEY encr_read;
+	struct crypto_aes_key * encr_read;
 	uint8_t auth_read[32];
 	uint64_t auth_read_nonce;
 };
@@ -70,20 +69,16 @@ crypto_session_init(uint8_t pub[CRYPTO_DH_PUBLEN],
 	    (const uint8_t *)auth_read, strlen(auth_read), CS->auth_read);
 
 	/* Expand AES keys and set up streams. */
-	if (AES_set_encrypt_key(aes_write, 256, &CS->encr_write)) {
-		warn0("error in AES_set_encrypt_key");
+	if ((CS->encr_write = crypto_aes_key_expand(aes_write, 32)) == NULL)
 		goto err1;
-	}
-	if (AES_set_encrypt_key(aes_read, 256, &CS->encr_read)) {
-		warn0("error in AES_set_encrypt_key");
-		goto err1;
-	}
-	if ((CS->encr_write_stream =
-	    crypto_aesctr_init(&CS->encr_write, 0)) == NULL)
-		goto err1;
-	if ((CS->encr_read_stream =
-	    crypto_aesctr_init(&CS->encr_read, 0)) == NULL)
+	if ((CS->encr_read = crypto_aes_key_expand(aes_read, 32)) == NULL)
 		goto err2;
+	if ((CS->encr_write_stream =
+	    crypto_aesctr_init(CS->encr_write, 0)) == NULL)
+		goto err3;
+	if ((CS->encr_read_stream =
+	    crypto_aesctr_init(CS->encr_read, 0)) == NULL)
+		goto err4;
 
 	/* Initialize parameters. */
 	CS->auth_write_nonce = CS->auth_read_nonce = 0;
@@ -91,8 +86,12 @@ crypto_session_init(uint8_t pub[CRYPTO_DH_PUBLEN],
 	/* Success! */
 	return (CS);
 
-err2:
+err4:
 	crypto_aesctr_free(CS->encr_write_stream);
+err3:
+	crypto_aes_key_free(CS->encr_read);
+err2:
+	crypto_aes_key_free(CS->encr_write);
 err1:
 	free(CS);
 err0:
@@ -184,5 +183,7 @@ crypto_session_free(CRYPTO_SESSION * CS)
 
 	crypto_aesctr_free(CS->encr_write_stream);
 	crypto_aesctr_free(CS->encr_read_stream);
+	crypto_aes_key_free(CS->encr_write);
+	crypto_aes_key_free(CS->encr_read);
 	free(CS);
 }

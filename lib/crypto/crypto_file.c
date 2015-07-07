@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <openssl/aes.h>
-
+#include "crypto_aes.h"
 #include "crypto_aesctr.h"
 #include "crypto_entropy.h"
 #include "crypto_verify_bytes.h"
@@ -16,13 +15,13 @@
 
 #include "crypto.h"
 
-struct crypto_aes_key {
-	AES_KEY key;			/* Expanded key. */
+struct crypto_file_aes_key {
+	struct crypto_aes_key * key;	/* Expanded key. */
 	uint64_t nonce;			/* Nonce, used only for encryption. */
 	uint8_t key_encrypted[256];	/* AES key encrypted with encr_pub. */
 };
 
-static struct crypto_aes_key * encr_aes;
+static struct crypto_file_aes_key * encr_aes;
 static RWHASHTAB * decr_aes_cache;
 
 static int keygen(void);
@@ -40,7 +39,7 @@ crypto_file_init_keys(void)
 
 	/* Create encrypted key -> AES key mapping table. */
 	if ((decr_aes_cache =
-	    rwhashtab_init(offsetof(struct crypto_aes_key, key_encrypted),
+	    rwhashtab_init(offsetof(struct crypto_file_aes_key, key_encrypted),
 	    256)) == NULL)
 		goto err0;
 
@@ -59,7 +58,7 @@ keygen(void)
 	uint8_t aeskey[32];
 
 	/* Allocate memory. */
-	if ((encr_aes = malloc(sizeof(struct crypto_aes_key))) == NULL)
+	if ((encr_aes = malloc(sizeof(struct crypto_file_aes_key))) == NULL)
 		goto err0;
 
 	/* Generate random key. */
@@ -67,10 +66,8 @@ keygen(void)
 		goto err1;
 
 	/* Expand the key. */
-	if (AES_set_encrypt_key(aeskey, 256, &encr_aes->key)) {
-		warn0("error in AES_set_encrypt_key");
+	if ((encr_aes->key = crypto_aes_key_expand(aeskey, 32)) == NULL)
 		goto err1;
-	}
 
 	/* We start with a nonce of zero. */
 	encr_aes->nonce = 0;
@@ -78,11 +75,13 @@ keygen(void)
 	/* RSA encrypt the key. */
 	if (crypto_rsa_encrypt(CRYPTO_KEY_ENCR_PUB, aeskey, 32,
 	    encr_aes->key_encrypted, 256))
-		goto err1;
+		goto err2;
 
 	/* Success! */
 	return (0);
 
+err2:
+	crypto_aes_key_free(encr_aes->key);
 err1:
 	free(encr_aes);
 	encr_aes = NULL;
@@ -113,7 +112,7 @@ crypto_file_enc(const uint8_t * buf, size_t len, uint8_t * filebuf)
 
 	/* Encrypt the data. */
 	if ((stream =
-	    crypto_aesctr_init(&encr_aes->key, encr_aes->nonce++)) == NULL)
+	    crypto_aesctr_init(encr_aes->key, encr_aes->nonce++)) == NULL)
 		goto err0;
 	crypto_aesctr_stream(stream, buf, filebuf + CRYPTO_FILE_HLEN, len);
 	crypto_aesctr_free(stream);
@@ -140,7 +139,7 @@ int
 crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 {
 	uint8_t hash[CRYPTO_FILE_TLEN];
-	struct crypto_aes_key * key;
+	struct crypto_file_aes_key * key;
 	struct crypto_aesctr * stream;
 	uint64_t nonce;
 
@@ -168,7 +167,7 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 	/* If it's not in the hash table, construct it the hard way. */
 	if (key == NULL) {
 		/* Allocate memory. */
-		if ((key = malloc(sizeof(struct crypto_aes_key))) == NULL)
+		if ((key = malloc(sizeof(struct crypto_file_aes_key))) == NULL)
 			goto err0;
 
 		/* RSA decrypt key. */
@@ -188,10 +187,8 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 		}
 
 		/* Expand the AES key. */
-		if (AES_set_encrypt_key(aeskey, 256, &key->key)) {
-			warn0("error in AES_set_encrypt_key");
+		if ((key->key = crypto_aes_key_expand(aeskey, 32)) == NULL)
 			goto err1;
-		}
 
 		/* Copy the encrypted AES key. */
 		memcpy(key->key_encrypted, filebuf, 256);
@@ -199,7 +196,7 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 		/* Insert the key into the hash table. */
 		if (rwhashtab_insert(decr_aes_cache, key)) {
 			warnp("error inserting key into aes cache");
-			goto err1;
+			goto err2;
 		}
 	}
 
@@ -207,7 +204,7 @@ crypto_file_dec(const uint8_t * filebuf, size_t len, uint8_t * buf)
 	nonce = be64dec(&filebuf[256]);
 
 	/* Decrypt the data. */
-	if ((stream = crypto_aesctr_init(&key->key, nonce)) == NULL)
+	if ((stream = crypto_aesctr_init(key->key, nonce)) == NULL)
 		goto err0;
 	crypto_aesctr_stream(stream, &filebuf[CRYPTO_FILE_HLEN], buf, len);
 	crypto_aesctr_free(stream);
@@ -221,6 +218,8 @@ bad0:
 	/* File is not authentic. */
 	return (1);
 
+err2:
+	crypto_aes_key_free(key->key);
 err1:
 	free(key);
 err0:
