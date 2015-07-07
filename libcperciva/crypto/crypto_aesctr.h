@@ -4,7 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <openssl/aes.h>
+/* Opaque type. */
+struct crypto_aes_key;
 
 /**
  * crypto_aesctr_init(key, nonce):
@@ -12,7 +13,8 @@
  * expanded key and nonce.  The key provided must remain valid for the
  * lifetime of the stream.
  */
-struct crypto_aesctr * crypto_aesctr_init(const AES_KEY *, uint64_t);
+struct crypto_aesctr * crypto_aesctr_init(const struct crypto_aes_key *,
+    uint64_t);
 
 /**
  * crypto_aesctr_stream(stream, inbuf, outbuf, buflen):
@@ -33,7 +35,7 @@ void crypto_aesctr_free(struct crypto_aesctr *);
  * crypto_aesctr_buf(key, nonce, inbuf, outbuf, buflen):
  * Equivalent to init(key, nonce); stream(inbuf, outbuf, buflen); free.
  */
-void crypto_aesctr_buf(const AES_KEY *, uint64_t,
+void crypto_aesctr_buf(const struct crypto_aes_key *, uint64_t,
     const uint8_t *, uint8_t *, size_t);
 
 #endif /* !_CRYPTO_AESCTR_H_ */
