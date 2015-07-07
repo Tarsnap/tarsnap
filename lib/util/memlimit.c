@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 
 #ifdef DEBUG
@@ -75,7 +76,7 @@ memlimit_sysctl_hw_usermem(size_t * memlimit)
 	 * have returned to us.
 	 */
 	if (usermemlen == sizeof(uint64_t))
-		usermem = *(uint64_t *)usermembuf;
+		memcpy(&usermem, usermembuf, sizeof(uint64_t));
 	else if (usermemlen == sizeof(uint32_t))
 		usermem = SIZE_MAX;
 	else
