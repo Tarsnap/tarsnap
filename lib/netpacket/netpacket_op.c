@@ -32,6 +32,9 @@ static int reconnect_wait[MAXRECONNECTS + 1] = {
     0, 0, 1, 2, 4, 8, 15, 30, 60, 90, 90
 };
 
+/* Global tarsnap option declared in tarsnap_opt.h. */
+int tarsnap_opt_retry_forever = 0;
+
 /* Time before which we shouldn't print a "connection lost" warning. */
 static struct timeval next_connlost_warning = { 0, 0};
 
@@ -241,6 +244,8 @@ reconnect(NETPACKET_CONNECTION * NPC)
 
 	/* Have we lost our connection / failed to connect too many times? */
 	NPC->ndrops += 1;
+	if (tarsnap_opt_retry_forever && NPC->ndrops > MAXRECONNECTS)
+		NPC->ndrops = MAXRECONNECTS;
 	if ((NPC->ndrops > MAXRECONNECTS) ||
 	    (NPC->serveralive == 0 && NPC->ndrops > MAXRECONNECTS_AWOL)) {
 		warn0("Too many network failures");

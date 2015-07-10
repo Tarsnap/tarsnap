@@ -469,6 +469,9 @@ main(int argc, char **argv)
 		case OPTION_NO_QUIET:
 			optq_push(bsdtar, "no-quiet", NULL);
 			break;
+		case OPTION_NO_RETRY_FOREVER:
+			optq_push(bsdtar, "no-retry-forever", NULL);
+			break;
 		case OPTION_NO_SAME_OWNER: /* GNU tar */
 			bsdtar->extract_flags &= ~ARCHIVE_EXTRACT_OWNER;
 			break;
@@ -530,6 +533,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_RECOVER:
 			set_mode(bsdtar, opt, "--recover");
+			break;
+		case OPTION_RETRY_FOREVER:
+			optq_push(bsdtar, "retry-forever", NULL);
 			break;
 		case OPTION_SNAPTIME: /* multitar */
 			optq_push(bsdtar, "snaptime", bsdtar->optarg);
@@ -1448,6 +1454,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_quiet_set = 1;
+	} else if (strcmp(conf_opt, "no-retry-forever") == 0) {
+		if (bsdtar->option_retry_forever_set)
+			goto optset;
+
+		bsdtar->option_retry_forever_set = 1;
 	} else if (strcmp(conf_opt, "no-snaptime") == 0) {
 		if (bsdtar->option_snaptime_set)
 			goto optset;
@@ -1477,6 +1488,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_quiet = 1;
 		bsdtar->option_quiet_set = 1;
+	} else if (strcmp(conf_opt, "retry-forever") == 0) {
+		if (bsdtar->option_retry_forever_set)
+			goto optset;
+
+		tarsnap_opt_retry_forever = 1;
+		bsdtar->option_retry_forever_set = 1;
 	} else if (strcmp(conf_opt, "snaptime") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;

@@ -4,6 +4,9 @@
 /* Use multiple TCP connections when writing an archive. */
 extern int tarsnap_opt_aggressive_networking;
 
+/* Keep trying forever if connection lost. */
+extern int tarsnap_opt_retry_forever;
+
 /* Print statistics using "human-readable" SI prefixes. */
 extern int tarsnap_opt_humanize_numbers;
 
