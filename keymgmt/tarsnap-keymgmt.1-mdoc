@@ -80,3 +80,13 @@ bytes of RAM will be used in the scrypt key derivation function to
 encrypt the key file; it may be necessary to set this option if a key
 file is being created on a system with far more RAM than the system
 on which the key file will be used.
+.Pp
+Note that if none of the
+.Fl w ,
+.Fl r ,
+.Fl d ,
+or
+.Fl -nuke
+options are specified, a key file will be produced which does not
+contain any keys.
+This is probably not very useful.
