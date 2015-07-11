@@ -166,6 +166,11 @@ documented in
 (c mode only)
 The specified archive file is read and the entries
 in it will be appended to the current archive.
+If
+.Pa archive-file
+is
+.Qq -
+then the archive will be read from the standard input.
 As an example,
 .Dl Nm Fl c Fl -keyfile Ar key-file Fl -cachedir Ar cache-dir Fl f Ar mybackup Cm @ Ns Pa backup.tar
 reads the archive file
@@ -748,7 +753,7 @@ deleted archive can be printed using the
 option.
 In either case,
 .Nm
-will print to the standard output a table in the following format:
+will print a table in the following format:
 .Bd -literal
                                        Total size  Compressed size
 All archives                         104491640436      51510524844
@@ -767,6 +772,15 @@ thus be paid for.)
 The newly created archive is 808 MB in size (compressible to 289 MB), but
 only 17.8 MB of the data is new, and after compression only 5.6 MB is
 uploaded to the Tarsnap server.
+.Pp
+When
+.Nm
+.Fl -print-stats
+is executed as a command, the table is printed to the standard output;
+when the
+.Fl -print-stats
+option is used while creating or deleting archives, the table is printed
+to the standard error device.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
