@@ -71,6 +71,9 @@ AC_GNU_SOURCE
 # Don't rebuild the configure script.  I'm distributing a perfectly good one.
 AM_MAINTAINER_MODE
 
+# Tarsnap has some of its own configure functions
+m4_include([actarsnap.m4])
+
 #
 # Locate some specific link objects for cygwin
 #
