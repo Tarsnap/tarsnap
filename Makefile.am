@@ -183,6 +183,8 @@ lib_libtarsnap_a_CFLAGS=				\
 		-D CPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-DPOSIXFAIL_MSG_NOSIGNAL
 
+LIBTARSNAP_A=	lib/libtarsnap.a
+
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
 BUILT_SOURCES=	cpusupport-config.h
@@ -192,6 +194,8 @@ lib_libtarsnap_aesni_a_SOURCES=				\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
 #
 #
@@ -257,10 +261,9 @@ endif
 tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
 		libarchive/archive_entry.h	\
 		libarchive/archive.h		\
-		lib/libtarsnap.a		\
-		lib/libtarsnap_aesni.a
+		$(LIBTARSNAP_A)
 
-tarsnap_LDADD= -lcrypto libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a
+tarsnap_LDADD= -lcrypto libarchive/libarchive.a $(LIBTARSNAP_A)
 tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/libarchive		\
 		-DLIBARCHIVE_STATIC			\
@@ -290,7 +293,7 @@ tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 
 tarsnap_keygen_SOURCES=	keygen/keygen.c
 
-tarsnap_keygen_LDADD= -lcrypto lib/libtarsnap.a lib/libtarsnap_aesni.a
+tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keygen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -314,7 +317,7 @@ tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 
 tarsnap_keyregen_SOURCES=	keyregen/keyregen.c
 
-tarsnap_keyregen_LDADD= -lcrypto lib/libtarsnap.a lib/libtarsnap_aesni.a
+tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keyregen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -352,7 +355,7 @@ tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_transaction.c
 
-tarsnap_recrypt_LDADD= -lcrypto lib/libtarsnap.a lib/libtarsnap_aesni.a
+tarsnap_recrypt_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_recrypt_CFLAGS=						\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
@@ -379,7 +382,7 @@ tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
 
 tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 
-tarsnap_keymgmt_LDADD= -lcrypto lib/libtarsnap.a lib/libtarsnap_aesni.a
+tarsnap_keymgmt_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keymgmt_CFLAGS=					\
 		-I$(top_srcdir)/tar			\
 		-I${top_srcdir}/libarchive		\
