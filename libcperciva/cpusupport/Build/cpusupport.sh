@@ -34,4 +34,5 @@ feature() {
 }
 
 feature X86 CPUID ""
+feature X86 SSE2 "" "-msse2" "-msse2 -Wno-cast-align"
 feature X86 AESNI "" "-maes" "-maes -Wno-cast-align" "-maes -Wno-missing-prototypes -Wno-cast-qual"
