@@ -42,7 +42,6 @@
 #include "sha256.h"
 #include "sysendian.h"
 
-#include "crypto.h"
 #include "crypto_scrypt.h"
 #include "memlimit.h"
 #include "scryptenc_cpuperf.h"
