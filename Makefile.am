@@ -95,6 +95,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto_keys_subr.c			\
 		lib/crypto/crypto_passwd_to_dh.c		\
 		lib/crypto/crypto_rsa.c				\
+		lib/crypto/crypto_scrypt.c			\
 		lib/crypto/crypto_scrypt-@SCRYPTVER@.c		\
 		lib/crypto/crypto_session.c			\
 		lib/datastruct/patricia.c			\
