@@ -166,15 +166,6 @@ CHECK_BROKEN_TCP_NOPUSH
 # Check if we have FreeBSD's randomized TCP source port bug
 CHECK_FREEBSD_PORTRANGE_BUG
 
-# Figure out whether we want to use the SSE version of the scrypt code or not.
-AC_ARG_ENABLE([sse2],
-    [AS_HELP_STRING([--enable-sse2],
-	[use optimized SSE2 code])],
-    [],
-    [enable_sse2=no])
-AS_IF([test "x$enable_sse2" != xno], [SCRYPTVER=sse], [SCRYPTVER=nosse])
-AC_SUBST([SCRYPTVER])
-
 # Check if the compiler supports -msse2.
 save_CFLAGS=$CFLAGS
 CFLAGS="-msse2"

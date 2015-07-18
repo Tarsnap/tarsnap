@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a
+noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
 
@@ -96,7 +96,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto_passwd_to_dh.c		\
 		lib/crypto/crypto_rsa.c				\
 		lib/crypto/crypto_scrypt.c			\
-		lib/crypto/crypto_scrypt-@SCRYPTVER@.c		\
+		lib/crypto/crypto_scrypt_smix.c			\
 		lib/crypto/crypto_session.c			\
 		lib/datastruct/patricia.c			\
 		lib/datastruct/rwhashtab.c			\
@@ -196,6 +196,14 @@ lib_libtarsnap_aesni_a_SOURCES=				\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
+
+lib_libtarsnap_sse2_a_SOURCES=				\
+		lib/crypto/crypto_scrypt_smix_sse2.c	\
+		cpusupport-config.h
+lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
+	`. cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 

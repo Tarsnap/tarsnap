@@ -37,23 +37,19 @@
 
 #include "sha256.h"
 
-#include "crypto_scrypt_internal.h"
+#include "crypto_scrypt_smix.h"
 
 #include "crypto_scrypt.h"
 
 /**
- * crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen):
- * Compute scrypt(passwd[0 .. passwdlen - 1], salt[0 .. saltlen - 1], N, r,
- * p, buflen) and write the result into buf.  The parameters r, p, and buflen
- * must satisfy r * p < 2^30 and buflen <= (2^32 - 1) * 32.  The parameter N
- * must be a power of 2 greater than 1.
- *
- * Return 0 on success; or -1 on error.
+ * _crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen, smix):
+ * Perform the requested scrypt computation, using ${smix} as the smix routine.
  */
-int
-crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
+static int
+_crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
     const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t _r, uint32_t _p,
-    uint8_t * buf, size_t buflen)
+    uint8_t * buf, size_t buflen,
+    void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
 {
 	void * B0, * V0, * XY0;
 	uint8_t * B;
@@ -130,7 +126,7 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 	/* 2: for i = 0 to p - 1 do */
 	for (i = 0; i < p; i++) {
 		/* 3: B_i <-- MF(B_i, N) */
-		crypto_scrypt_smix(&B[i * 128 * r], r, N, V, XY);
+		(smix)(&B[i * 128 * r], r, N, V, XY);
 	}
 
 	/* 5: DK <-- PBKDF2(P, B, 1, dkLen) */
@@ -156,4 +152,23 @@ err1:
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen):
+ * Compute scrypt(passwd[0 .. passwdlen - 1], salt[0 .. saltlen - 1], N, r,
+ * p, buflen) and write the result into buf.  The parameters r, p, and buflen
+ * must satisfy r * p < 2^30 and buflen <= (2^32 - 1) * 32.  The parameter N
+ * must be a power of 2 greater than 1.
+ *
+ * Return 0 on success; or -1 on error.
+ */
+int
+crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
+    const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t _r, uint32_t _p,
+    uint8_t * buf, size_t buflen)
+{
+
+	return (_crypto_scrypt(passwd, passwdlen, salt, saltlen, N, _r, _p,
+	    buf, buflen, crypto_scrypt_smix));
 }
