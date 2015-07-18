@@ -26,6 +26,9 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
+#include "cpusupport.h"
+#ifdef CPUSUPPORT_X86_SSE2
+
 #include <emmintrin.h>
 #include <stdint.h>
 
@@ -240,3 +243,5 @@ crypto_scrypt_smix_sse2(uint8_t * B, size_t r, uint64_t N, void * V, void * XY)
 		}
 	}
 }
+
+#endif /* CPUSUPPORT_X86_SSE2 */
