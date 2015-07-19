@@ -252,19 +252,19 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	if (memlimit_sysctl_hw(&usermem_memlimit, HW_USERMEM))
 		return (1);
 #else
-	usermem_memlimit = (size_t)(-1);
+	usermem_memlimit = SIZE_MAX;
 #endif
 #ifdef HW_MEMSIZE
 	if (memlimit_sysctl_hw(&memsize_memlimit, HW_MEMSIZE))
 		return (1);
 #else
-	memsize_memlimit = (size_t)(-1);
+	memsize_memlimit = SIZE_MAX;
 #endif
 #ifdef HAVE_SYSINFO
 	if (memlimit_sysinfo(&sysinfo_memlimit))
 		return (1);
 #else
-	sysinfo_memlimit = (size_t)(-1);
+	sysinfo_memlimit = SIZE_MAX;
 #endif
 	if (memlimit_rlimit(&rlimit_memlimit))
 		return (1);
@@ -272,7 +272,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	if (memlimit_sysconf(&sysconf_memlimit))
 		return (1);
 #else
-	sysconf_memlimit = (size_t)(-1);
+	sysconf_memlimit = SIZE_MAX;
 #endif
 
 #ifdef DEBUG
@@ -283,7 +283,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 #endif
 
 	/* Find the smallest of them. */
-	memlimit_min = (size_t)(-1);
+	memlimit_min = SIZE_MAX;
 	if (memlimit_min > usermem_memlimit)
 		memlimit_min = usermem_memlimit;
 	if (memlimit_min > memsize_memlimit)
