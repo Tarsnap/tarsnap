@@ -58,19 +58,19 @@
 #undef HW_USERMEM
 #endif
 
-#ifdef HW_USERMEM
+#ifdef CTL_HW
 static int
-memlimit_sysctl_hw_usermem(size_t * memlimit)
+memlimit_sysctl_hw(size_t * memlimit, int mibleaf)
 {
 	int mib[2];
-	uint8_t usermembuf[8];
-	size_t usermemlen = 8;
-	uint64_t usermem;
+	uint8_t sysctlbuf[8];
+	size_t sysctlbuflen = 8;
+	uint64_t sysctlval;
 
 	/* Ask the kernel how much RAM we have. */
 	mib[0] = CTL_HW;
-	mib[1] = HW_USERMEM;
-	if (sysctl(mib, 2, usermembuf, &usermemlen, NULL, 0))
+	mib[1] = mibleaf;
+	if (sysctl(mib, 2, sysctlbuf, &sysctlbuflen, NULL, 0))
 		return (1);
 
 	/*
@@ -80,21 +80,21 @@ memlimit_sysctl_hw_usermem(size_t * memlimit)
 	 * it's probably truncating, and we really can't trust the value we
 	 * have returned to us.
 	 */
-	if (usermemlen == sizeof(uint64_t))
-		memcpy(&usermem, usermembuf, sizeof(uint64_t));
-	else if (usermemlen == sizeof(uint32_t))
-		usermem = SIZE_MAX;
+	if (sysctlbuflen == sizeof(uint64_t))
+		memcpy(&sysctlval, sysctlbuf, sizeof(uint64_t));
+	else if (sysctlbuflen == sizeof(uint32_t))
+		sysctlval = SIZE_MAX;
 	else
 		return (1);
 
 	/* Return the sysctl value, but clamp to SIZE_MAX if necessary. */
 #if UINT64_MAX > SIZE_MAX
-	if (usermem > SIZE_MAX)
+	if (sysctlval > SIZE_MAX)
 		*memlimit = SIZE_MAX;
 	else
-		*memlimit = usermem;
+		*memlimit = sysctlval;
 #else
-	*memlimit = usermem;
+	*memlimit = sysctlval;
 #endif
 
 	/* Success! */
@@ -248,7 +248,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 
 	/* Get memory limits. */
 #ifdef HW_USERMEM
-	if (memlimit_sysctl_hw_usermem(&sysctl_memlimit))
+	if (memlimit_sysctl_hw(&sysctl_memlimit, HW_USERMEM))
 		return (1);
 #else
 	sysctl_memlimit = (size_t)(-1);
