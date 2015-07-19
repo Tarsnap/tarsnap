@@ -34,7 +34,7 @@
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
-#ifdef HAVE_SYSCTL_HW_USERMEM
+#ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
 #endif
 #ifdef HAVE_SYS_SYSINFO_H
@@ -53,7 +53,12 @@
 
 #include "memlimit.h"
 
-#ifdef HAVE_SYSCTL_HW_USERMEM
+/* If we don't have CTL_HW, we can't use HW_USERMEM. */
+#ifndef CTL_HW
+#undef HW_USERMEM
+#endif
+
+#ifdef HW_USERMEM
 static int
 memlimit_sysctl_hw_usermem(size_t * memlimit)
 {
@@ -242,7 +247,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	size_t memavail;
 
 	/* Get memory limits. */
-#ifdef HAVE_SYSCTL_HW_USERMEM
+#ifdef HW_USERMEM
 	if (memlimit_sysctl_hw_usermem(&sysctl_memlimit))
 		return (1);
 #else

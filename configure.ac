@@ -115,15 +115,16 @@ AC_CHECK_TYPES([struct sysinfo], [], [], [[#include <sys/sysinfo.h>]])
 AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit], [], [],
     [[#include <sys/sysinfo.h>]])
 
-# Check if we have a hw.usermem sysctl.
-CHECK_SYSCTL_HW_USERMEM
-
 # Check for <sys/mount.h>, <sys/statvfs.h>, <sys/vfs.h>, and <sys/statfs.h>,
 # which are used on various OSes to provide statfs(2) and statvfs(2).
 AC_CHECK_HEADERS([sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h], [], [],
 [#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif])
+
+# Check for <sys/sysctl.h>.  If it exists and it defines HW_USERMEM
+# and/or HW_MEMSIZE, we'll try using those as memory limits.
+AC_CHECK_HEADERS([sys/sysctl.h])
 
 # Check for members of struct statfs and struct statvfs.
 AC_CHECK_MEMBERS([struct statfs.f_fstypename, struct statfs.f_type,
