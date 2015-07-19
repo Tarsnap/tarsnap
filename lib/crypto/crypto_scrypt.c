@@ -192,8 +192,9 @@ testsmix(void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
 	uint8_t hbuf[TESTLEN];
 
 	/* Perform the computation. */
-	if (_crypto_scrypt(testcase.passwd, strlen(testcase.passwd),
-	    testcase.salt, strlen(testcase.salt),
+	if (_crypto_scrypt(
+	    (const uint8_t *)testcase.passwd, strlen(testcase.passwd),
+	    (const uint8_t *)testcase.salt, strlen(testcase.salt),
 	    testcase.N, testcase.r, testcase.p, hbuf, TESTLEN, smix))
 		return (-1);
 
