@@ -241,17 +241,24 @@ memlimit_sysconf(size_t * memlimit)
 int
 memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 {
-	size_t sysctl_memlimit, sysinfo_memlimit, rlimit_memlimit;
+	size_t usermem_memlimit, memsize_memlimit;
+	size_t sysinfo_memlimit, rlimit_memlimit;
 	size_t sysconf_memlimit;
 	size_t memlimit_min;
 	size_t memavail;
 
 	/* Get memory limits. */
 #ifdef HW_USERMEM
-	if (memlimit_sysctl_hw(&sysctl_memlimit, HW_USERMEM))
+	if (memlimit_sysctl_hw(&usermem_memlimit, HW_USERMEM))
 		return (1);
 #else
-	sysctl_memlimit = (size_t)(-1);
+	usermem_memlimit = (size_t)(-1);
+#endif
+#ifdef HW_MEMSIZE
+	if (memlimit_sysctl_hw(&memsize_memlimit, HW_MEMSIZE))
+		return (1);
+#else
+	memsize_memlimit = (size_t)(-1);
 #endif
 #ifdef HAVE_SYSINFO
 	if (memlimit_sysinfo(&sysinfo_memlimit))
@@ -269,15 +276,18 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 #endif
 
 #ifdef DEBUG
-	fprintf(stderr, "Memory limits are %zu %zu %zu %zu\n",
-	    sysctl_memlimit, sysinfo_memlimit, rlimit_memlimit,
+	fprintf(stderr, "Memory limits are %zu %zu %zu %zu %zu\n",
+	    usermem_memlimit, memsize_memlimit,
+	    sysinfo_memlimit, rlimit_memlimit,
 	    sysconf_memlimit);
 #endif
 
 	/* Find the smallest of them. */
 	memlimit_min = (size_t)(-1);
-	if (memlimit_min > sysctl_memlimit)
-		memlimit_min = sysctl_memlimit;
+	if (memlimit_min > usermem_memlimit)
+		memlimit_min = usermem_memlimit;
+	if (memlimit_min > memsize_memlimit)
+		memlimit_min = memsize_memlimit;
 	if (memlimit_min > sysinfo_memlimit)
 		memlimit_min = sysinfo_memlimit;
 	if (memlimit_min > rlimit_memlimit)
