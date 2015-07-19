@@ -34,12 +34,18 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "cpusupport.h"
 #include "sha256.h"
+#include "warnp.h"
 
 #include "crypto_scrypt_smix.h"
+#include "crypto_scrypt_smix_sse2.h"
 
 #include "crypto_scrypt.h"
+
+static void (*smix_func)(uint8_t *, size_t, uint64_t, void *, void *) = NULL;
 
 /**
  * _crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen, smix):
@@ -154,6 +160,74 @@ err0:
 	return (-1);
 }
 
+#define TESTLEN 64
+static struct scrypt_test {
+	const char * passwd;
+	const char * salt;
+	uint64_t N;
+	uint32_t r;
+	uint32_t p;
+	uint8_t result[TESTLEN];
+} testcase = {
+	.passwd = "pleaseletmein",
+	.salt = "SodiumChloride",
+	.N = 16,
+	.r = 8,
+	.p = 1,
+	.result = {
+		0x25, 0xa9, 0xfa, 0x20, 0x7f, 0x87, 0xca, 0x09, 
+		0xa4, 0xef, 0x8b, 0x9f, 0x77, 0x7a, 0xca, 0x16, 
+		0xbe, 0xb7, 0x84, 0xae, 0x18, 0x30, 0xbf, 0xbf, 
+		0xd3, 0x83, 0x25, 0xaa, 0xbb, 0x93, 0x77, 0xdf, 
+		0x1b, 0xa7, 0x84, 0xd7, 0x46, 0xea, 0x27, 0x3b, 
+		0xf5, 0x16, 0xa4, 0x6f, 0xbf, 0xac, 0xf5, 0x11, 
+		0xc5, 0xbe, 0xba, 0x4c, 0x4a, 0xb3, 0xac, 0xc7, 
+		0xfa, 0x6f, 0x46, 0x0b, 0x6c, 0x0f, 0x47, 0x7b, 
+	}
+};
+
+static int
+testsmix(void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
+{
+	uint8_t hbuf[TESTLEN];
+
+	/* Perform the computation. */
+	if (_crypto_scrypt(testcase.passwd, strlen(testcase.passwd),
+	    testcase.salt, strlen(testcase.salt),
+	    testcase.N, testcase.r, testcase.p, hbuf, TESTLEN, smix))
+		return (-1);
+
+	/* Does it match? */
+	return (memcmp(testcase.result, hbuf, TESTLEN));
+}
+
+static void
+selectsmix(void)
+{
+
+#ifdef CPUSUPPORT_X86_SSE2
+	/* If we're running on an SSE2-capable CPU, try that code. */
+	if (cpusupport_x86_sse2()) {
+		/* If SSE2ized smix works, use it. */
+		if (!testsmix(crypto_scrypt_smix_sse2)) {
+			smix_func = crypto_scrypt_smix_sse2;
+			return;
+		}
+		warn0("Disabling broken SSE2 scrypt support - please report bug!");
+	}
+#endif
+
+	/* If generic smix works, use it. */
+	if (!testsmix(crypto_scrypt_smix)) {
+		smix_func = crypto_scrypt_smix;
+		return;
+	}
+	warn0("Generic scrypt code is broken - please report bug!");
+
+	/* If we get here, something really bad happened. */
+	abort();
+}
+
 /**
  * crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen):
  * Compute scrypt(passwd[0 .. passwdlen - 1], salt[0 .. saltlen - 1], N, r,
@@ -169,6 +243,9 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
     uint8_t * buf, size_t buflen)
 {
 
+	if (smix_func == NULL)
+		selectsmix();
+
 	return (_crypto_scrypt(passwd, passwdlen, salt, saltlen, N, _r, _p,
-	    buf, buflen, crypto_scrypt_smix));
+	    buf, buflen, smix_func));
 }
