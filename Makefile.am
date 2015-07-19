@@ -282,7 +282,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util	\
-		-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\"	\
+		"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
 tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 
