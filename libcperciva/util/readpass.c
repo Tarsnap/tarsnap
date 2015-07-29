@@ -24,11 +24,11 @@ static const int badsigs[] = {
 #define MAX2(a, b) ((a) > (b) ? (a) : (b))
 #define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
 #define MAX8(a, b, c, d, e, f, g, h) MAX2(MAX4(a, b, c, d), MAX4(e, f, g, h))
-#define MAXSIG	MAX2(SIGALRM, MAX8(SIGHUP, SIGINT, SIGPIPE, SIGQUIT, \
-		    SIGTERM, SIGTSTP, SIGTTIN, SIGTTOU))
+#define MAXBADSIG	MAX2(SIGALRM, MAX8(SIGHUP, SIGINT, SIGPIPE, SIGQUIT, \
+			    SIGTERM, SIGTSTP, SIGTTIN, SIGTTOU))
 
 /* Has a signal of this type been received? */
-static volatile sig_atomic_t gotsig[MAXSIG + 1];
+static volatile sig_atomic_t gotsig[MAXBADSIG + 1];
 
 /* Signal handler. */
 static void
@@ -68,7 +68,7 @@ readpass(char ** passwd, const char * prompt,
 		readfrom = stdin;
 
 	/* We have not received any signals yet. */
-	for (i = 0; i <= MAXSIG; i++)
+	for (i = 0; i <= MAXBADSIG; i++)
 		gotsig[i] = 0;
 
 	/*
