@@ -77,6 +77,7 @@ static struct option {
 	{ "configfile",		  1, OPTION_CONFIGFILE },
 	{ "confirmation",         0, 'w' },
 	{ "create",               0, 'c' },
+	{ "creationtime",         1, OPTION_CREATIONTIME },
 	{ "dereference",	  0, 'L' },
 	{ "directory",            1, 'C' },
 	{ "disk-pause",		  1, OPTION_DISK_PAUSE },
