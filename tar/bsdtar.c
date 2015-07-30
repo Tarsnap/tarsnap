@@ -704,7 +704,8 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cannot create an archive with an empty name");
 	if ((bsdtar->cachedir == NULL) &&
-	    (bsdtar->mode == 'c' || bsdtar->mode == 'd' ||
+	    (((bsdtar->mode == 'c') && (!bsdtar->option_dryrun)) ||
+	     bsdtar->mode == 'd' ||
 	     bsdtar->mode == OPTION_RECOVER ||
 	     bsdtar->mode == OPTION_FSCK ||
 	     bsdtar->mode == OPTION_FSCK_PRUNE ||
@@ -811,9 +812,25 @@ main(int argc, char **argv)
 	}
 
 	/* Make sure we have whatever keys we're going to need. */
-	if (bsdtar->have_keys == 0)
-		bsdtar_errc(bsdtar, 1, 0,
-		    "Keys must be provided via --keyfile option");
+	if (bsdtar->have_keys == 0) {
+		if (!bsdtar->option_dryrun) {
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Keys must be provided via --keyfile option");
+		} else {
+			if (bsdtar->cachedir != NULL) {
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Option mismatch for --dry-run: cachedir"
+				    " specified but no keyfile");
+			}
+			if (crypto_keys_generate(CRYPTO_KEYMASK_USER))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Error generating keys");
+			bsdtar_warnc(bsdtar, 0,
+			    "Performing dry-run archival without keys\n"
+			    "         (sizes may be slightly inaccurate)");
+		}
+	}
+
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':

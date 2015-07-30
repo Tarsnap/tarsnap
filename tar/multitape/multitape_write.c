@@ -382,8 +382,12 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Copy the tape directory, cache directory, and tape name. */
 	if ((d->tapename = strdup(tapename)) == NULL)
 		goto err1;
-	if ((d->cachedir = strdup(cachedir)) == NULL)
-		goto err2;
+	if (cachedir == NULL) {
+		d->cachedir = NULL;
+	} else {
+		if ((d->cachedir = strdup(cachedir)) == NULL)
+			goto err2;
+	}
 
 	/* Record a pointer to the argument vector. */
 	d->argv = argv;
@@ -412,12 +416,12 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Record whether this is a dry run. */
 	d->dryrun = dryrun;
 
-	/* Make sure ${cachedir} exists. */
-	if (dirutil_needdir(cachedir))
+	/* If we're using a cache, make sure ${cachedir} exists. */
+	if ((cachedir != NULL) && (dirutil_needdir(cachedir)))
 		goto err3;
 
-	/* Lock the cache directory. */
-	if ((d->lockfd = multitape_lock(cachedir)) == -1)
+	/* If we're using a cache, lock the cache directory. */
+	if ((cachedir != NULL) && ((d->lockfd = multitape_lock(cachedir)) == -1))
 		goto err3;
 
 	/* If this isn't a dry run, finish any pending commit. */

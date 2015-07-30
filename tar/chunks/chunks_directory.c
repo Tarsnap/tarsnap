@@ -127,6 +127,12 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	if (HT == NULL)
 		goto err0;
 
+	/* Bail if we're not using a cache directory. */
+	if (cachepath == NULL) {
+		*dir = NULL;
+		return (HT);
+	}
+
 	/* Construct the string "${cachepath}/directory". */
 	if (asprintf(&s, "%s/directory", cachepath) == -1) {
 		warnp("asprintf");
