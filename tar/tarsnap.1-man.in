@@ -243,6 +243,12 @@ This option can be specified multiple times, in which case all the files
 will be read; where settings conflict, the earlier configuration file will
 take priority.
 .TP
+\fB\--creationtime\fP \fIX\fP
+(c mode only)
+Manually specify a creation time (a unix timestamp) for the
+archive.  This is unlikely to be useful when tarsnap is being
+invoked directly from the command line.
+.TP
 \fB\--disk-pause\fP \fIX\fP
 (c mode only)
 Pause for
