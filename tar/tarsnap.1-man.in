@@ -159,6 +159,11 @@ documented in
 (c mode only)
 The specified archive file is read and the entries
 in it will be appended to the current archive.
+If
+\fIarchive-file\fP
+is
+Qq -
+then the archive will be read from the standard input.
 As an example,
 .RS 4
 \fB\%tarsnap\fP \fB\-c\fP \fB\--keyfile\fP \fIkey-file\fP \fB\--cachedir\fP \fIcache-dir\fP \fB\-f\fP \fImybackup\fP \fB@\fP\fIbackup.tar\fP
@@ -826,7 +831,7 @@ deleted archive can be printed using the
 option.
 In either case,
 \fB\%tarsnap\fP
-will print to the standard output a table in the following format:
+will print a table in the following format:
 .RS 4
 .nf
                                        Total size  Compressed size
@@ -846,6 +851,15 @@ thus be paid for.)
 The newly created archive is 808 MB in size (compressible to 289 MB), but
 only 17.8 MB of the data is new, and after compression only 5.6 MB is
 uploaded to the Tarsnap server.
+.PP
+When
+\fB\%tarsnap\fP
+\fB\--print-stats\fP
+is executed as a command, the table is printed to the standard output;
+when the
+\fB\--print-stats\fP
+option is used while creating or deleting archives, the table is printed
+to the standard error device.
 .SH INTERRUPTING ARCHIVAL
 .ad l
 Upon receipt of the
