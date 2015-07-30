@@ -355,14 +355,14 @@ err0:
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun):
+ *     dryrun, creationtime):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
     const char * tapename, int argc, char ** argv, int printstats,
-    int dryrun)
+    int dryrun, time_t creationtime)
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -403,12 +403,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	}
 
 	/* Record the archive creation time. */
-	/*-
-	 * XXX POSIX is dumb
-	 * XXX Failure is indistinguishable from the valid time (time_t)(-1).
-	 * XXX We resolve this by treating the time (time_t)(-1) as invalid.
-	 */
-	d->ctime = time(NULL);
+	d->ctime = creationtime;
 
 	/* Record whether we should print archive statistics on close. */
 	d->stats_enabled = printstats;

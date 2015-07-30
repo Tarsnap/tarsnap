@@ -53,6 +53,7 @@ struct bsdtar {
 	ino_t		  cachedir_ino;
 	int		  cachecrunch; /* --lowmem / --verylowmem */
 	time_t		  snaptime; /* --snaptime */
+	time_t		  creationtime; /* --creationtime */
 	char		 *pending_chdir; /* -C dir */
 	const char	 *names_from_file; /* -T file */
 	time_t		  newer_ctime_sec; /* --newer/--newer-than */

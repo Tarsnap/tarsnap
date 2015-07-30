@@ -180,6 +180,7 @@ main(int argc, char **argv)
 	bsdtar->nconfigfiles = 0;
 
 	time(&now);
+	bsdtar->creationtime = now;
 
 	if (setlocale(LC_ALL, "") == NULL)
 		bsdtar_warnc(bsdtar, 0, "Failed to set default locale");
