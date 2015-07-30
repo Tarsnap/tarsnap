@@ -205,7 +205,7 @@ lib_libtarsnap_sse2_a_SOURCES=				\
 lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 
-LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
+LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 
 #
 #
