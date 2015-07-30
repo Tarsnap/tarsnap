@@ -130,6 +130,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/tvmath.c				\
 		libcperciva/alg/sha256.c			\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
+		libcperciva/cpusupport/cpusupport_x86_sse2.c	\
 		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aesctr.c		\
 		libcperciva/crypto/crypto_dh.c			\
