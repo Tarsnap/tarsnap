@@ -169,7 +169,7 @@ storage_read_init(uint64_t machinenum)
 	S->cache_lru = NULL;
 	S->cache_mru = NULL;
 	S->cachesz = 0;
-	S->cachemaxsz = (size_t)(-1);
+	S->cachemaxsz = SIZE_MAX;
 
 	/* Open netpacket connection. */
 	if ((S->NPC = netpacket_open(USERAGENT)) == NULL)
