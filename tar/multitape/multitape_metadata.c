@@ -78,12 +78,6 @@ multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
 	buflen += 8;				/* index length */
 	buflen += 256;				/* 2048-bit RSA signature */
 
-	/* Guard against API ambiguity. */
-	if (buflen == (size_t)(-1)) {
-		errno = ENOMEM;
-		goto err0;
-	}
-
 	/* Allocate memory. */
 	if ((p = buf = malloc(buflen)) == NULL)
 		goto err0;
