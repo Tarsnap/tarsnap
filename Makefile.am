@@ -8,6 +8,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
+CLEANFILES=	$(dist_man_MANS)
 
 #
 # Libarchive headers, source, etc.
@@ -188,8 +189,9 @@ lib_libtarsnap_a_CFLAGS=				\
 LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
-	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
+	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd $(top_srcdir)/libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
 BUILT_SOURCES=	cpusupport-config.h
+CLEANFILES+=	cpusupport-config.h
 
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
@@ -432,6 +434,8 @@ recrypt/tarsnap-recrypt.1: recrypt/tarsnap-recrypt.1-@MANVER@
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
+
+CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 
 #
 # Misc helper scripts
