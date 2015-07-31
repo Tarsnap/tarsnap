@@ -641,7 +641,7 @@ main(int argc, char **argv)
 	 * is included in the metadata.
 	 */
 	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0))
-		bsdtar->tapenames[bsdtar->ntapes++] = "";
+		bsdtar->tapenames[bsdtar->ntapes++] = "(dry-run)";
 
 	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')
@@ -704,7 +704,8 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cannot create an archive with an empty name");
 	if ((bsdtar->cachedir == NULL) &&
-	    (bsdtar->mode == 'c' || bsdtar->mode == 'd' ||
+	    (((bsdtar->mode == 'c') && (!bsdtar->option_dryrun)) ||
+	     bsdtar->mode == 'd' ||
 	     bsdtar->mode == OPTION_RECOVER ||
 	     bsdtar->mode == OPTION_FSCK ||
 	     bsdtar->mode == OPTION_FSCK_PRUNE ||
@@ -811,9 +812,25 @@ main(int argc, char **argv)
 	}
 
 	/* Make sure we have whatever keys we're going to need. */
-	if (bsdtar->have_keys == 0)
-		bsdtar_errc(bsdtar, 1, 0,
-		    "Keys must be provided via --keyfile option");
+	if (bsdtar->have_keys == 0) {
+		if (!bsdtar->option_dryrun) {
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Keys must be provided via --keyfile option");
+		} else {
+			if (bsdtar->cachedir != NULL) {
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Option mismatch for --dry-run: cachedir"
+				    " specified but no keyfile");
+			}
+			if (crypto_keys_generate(CRYPTO_KEYMASK_USER))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Error generating keys");
+			bsdtar_warnc(bsdtar, 0,
+			    "Performing dry-run archival without keys\n"
+			    "         (sizes may be slightly inaccurate)");
+		}
+	}
+
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':
@@ -1135,6 +1152,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	char * conf_arg;
 	size_t optlen;
 	char * conf_arg_malloced;
+	size_t len;
 
 	/* Skip any leading whitespace. */
 	while ((line[0] == ' ') || (line[0] == '\t'))
@@ -1147,6 +1165,19 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Duplicate line. */
 	if ((conf_opt = strdup(line)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+	/*
+	 * Detect any trailing whitespace.  This could happen before string
+	 * duplication, but to reduce the number of diffs to a later version,
+	 * we'll do it here.
+	 */
+	len = strlen(conf_opt);
+	if ((len > 0) &&
+	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+		bsdtar_warnc(bsdtar, 0,
+		    "option contains trailing whitespace; future behaviour"
+		    " may change for:\n    %s", line);
+	}
 
 	/* Split line into option and argument if possible. */
 	optlen = strcspn(conf_opt, " \t");

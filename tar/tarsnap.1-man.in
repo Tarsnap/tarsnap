@@ -546,6 +546,11 @@ Ignore any
 \fBquiet\fP
 option specified in a configuration file.
 .TP
+\fB\--no-retry-forever\fP
+Ignore any
+\fBretry-forever\fP
+option specified in a configuration file.
+.TP
 \fB\--no-snaptime\fP
 Ignore any
 \fBsnaptime\fP
@@ -655,6 +660,15 @@ and
 but it is likely that other
 warnings will be silenced by this option in future versions of
 \fB\%tarsnap\fP.
+.TP
+\fB\--retry-forever\fP
+This option causes tarsnap to continue trying to reconnect to the
+tarsnap server forever, instead of giving up after 5-10 minutes.
+This may be useful for people with excessively flaky networks, or
+on mobile devices which regularly lose their internet connections
+for extended periods of time.  This is not enabled by default
+since continued failures generally indicate a problem which should
+be investigated by the user.
 .TP
 \fB\-S\fP
 (x mode only)

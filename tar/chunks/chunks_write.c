@@ -68,8 +68,12 @@ chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
 	C->dryrun = dryrun;
 
 	/* Create a copy of the path. */
-	if ((C->path = strdup(cachepath)) == NULL)
-		goto err2;
+	if (cachepath == NULL) {
+		C->path = NULL;
+	} else {
+		if ((C->path = strdup(cachepath)) == NULL)
+			goto err2;
+	}
 
 	/* Read the existing chunk directory (if one exists). */
 	if ((C->HT = chunks_directory_read(cachepath, &C->dir,

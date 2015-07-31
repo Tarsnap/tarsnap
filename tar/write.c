@@ -146,6 +146,16 @@ getdevino(struct archive * a, const char * path, dev_t * d, ino_t * i)
 {
 	struct stat sb;
 
+	if (path == NULL) {
+		/* 
+		 * Return bogus values to avoid comparing against
+		 * uninitialized data later on.
+		 */
+		*d = -1;
+		*i = -1;
+		return 0;
+	}
+
 	if (stat(path, &sb)) {
 		archive_set_error(a, errno, "%s", path);
 		return (-1);

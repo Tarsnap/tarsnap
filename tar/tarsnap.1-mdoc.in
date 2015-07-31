@@ -503,6 +503,10 @@ option specified in a configuration file.
 Ignore any
 .Cm quiet
 option specified in a configuration file.
+.It Fl -no-retry-forever
+Ignore any
+.Cm retry-forever
+option specified in a configuration file.
 .It Fl -no-snaptime
 Ignore any
 .Cm snaptime
@@ -600,6 +604,14 @@ and
 but it is likely that other
 warnings will be silenced by this option in future versions of
 .Nm .
+.It Fl -retry-forever
+This option causes tarsnap to continue trying to reconnect to the
+tarsnap server forever, instead of giving up after 5-10 minutes.
+This may be useful for people with excessively flaky networks, or
+on mobile devices which regularly lose their internet connections
+for extended periods of time.  This is not enabled by default
+since continued failures generally indicate a problem which should
+be investigated by the user.
 .It Fl S
 (x mode only)
 Extract files as sparse files.
