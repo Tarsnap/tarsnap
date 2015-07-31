@@ -1260,17 +1260,21 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 
 	/*
-	 * Detect any trailing whitespace.  This could happen before string
-	 * duplication, but to reduce the number of diffs to a later version,
-	 * we'll do it here.
+	 * Skip any following whitespace.  We cannot modify 'line' because it
+	 * is const, so we perform this step on the duplicated string.
 	 */
 	len = strlen(conf_opt);
 	if ((len > 0) &&
 	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
 		bsdtar_warnc(bsdtar, 0,
-		    "option contains trailing whitespace; future behaviour"
-		    " may change for:\n    %s", line);
+		    "Automatically stripping trailing whitespace"
+		    " in config file");
 	}
+	while ((len > 0) &&
+	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+		len--;
+	}
+	conf_opt[len] = '\0';
 
 	/* Split line into option and argument if possible. */
 	optlen = strcspn(conf_opt, " \t");
