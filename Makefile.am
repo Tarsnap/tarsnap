@@ -197,7 +197,7 @@ lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
-	`. cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+	`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
@@ -205,7 +205,7 @@ lib_libtarsnap_sse2_a_SOURCES=				\
 		lib/crypto/crypto_scrypt_smix_sse2.c	\
 		cpusupport-config.h
 lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
-	`. cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
+	`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 
