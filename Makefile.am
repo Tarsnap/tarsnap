@@ -189,9 +189,9 @@ lib_libtarsnap_a_CFLAGS=				\
 LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
-	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; cd $(top_srcdir)/libcperciva/cpusupport/Build && command -p sh cpusupport.sh ) > cpusupport-config.h
+	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
 BUILT_SOURCES=	cpusupport-config.h
-CLEANFILES+=	cpusupport-config.h
+CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
