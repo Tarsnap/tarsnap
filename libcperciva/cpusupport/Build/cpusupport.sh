@@ -9,6 +9,9 @@ feature() {
 	ARCH=$1
 	FEATURE=$2
 	shift 2;
+	if ! [ -f ${SRCDIR}/cpusupport-$ARCH-$FEATURE.c ]; then
+		return
+	fi
 	printf "Checking if compiler supports $ARCH $FEATURE feature..." 1>&2
 	for CFLAG in "$@"; do
 		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CFLAG}	\
