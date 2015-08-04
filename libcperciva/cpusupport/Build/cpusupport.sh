@@ -27,11 +27,11 @@ feature() {
 		;;
 	"")
 		echo " yes" 1>&2
-		echo "#define CPUSUPPORT_${ARCH}_${FEATURE}"
+		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		;;
 	*)
 		echo " yes, via $CFLAG" 1>&2
-		echo "#define CPUSUPPORT_${ARCH}_${FEATURE}"
+		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		echo "#ifdef cpusupport_dummy"
 		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CFLAG}\""
 		echo "#endif"
