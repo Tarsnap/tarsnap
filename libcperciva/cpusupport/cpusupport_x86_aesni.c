@@ -22,7 +22,7 @@ CPUSUPPORT_FEATURE_DECL(x86, aesni)
 		goto unsupported;
 
 	/* Return the relevant feature bit. */
-	return (ecx & CPUID_AESNI_BIT);
+	return ((ecx & CPUID_AESNI_BIT) ? 1 : 0);
 
 unsupported:
 #endif
