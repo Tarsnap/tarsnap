@@ -716,9 +716,11 @@ main(int argc, char **argv)
 	if (tarsnap_opt_aggressive_networking != 0) {
 		if ((bsdtar->bwlimit_rate_up != 0) ||
 		    (bsdtar->bwlimit_rate_down != 0)) {
-			bsdtar_errc(bsdtar, 1, 0,
+			bsdtar_warnc(bsdtar, 0,
 			    "--aggressive-networking is incompatible with"
-			    " --maxbw-rate options");
+			    " --maxbw-rate options;\n"
+			    "         disabling --aggressive-networking");
+			tarsnap_opt_aggressive_networking = 0;
 		}
 	}
 
