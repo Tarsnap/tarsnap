@@ -239,6 +239,11 @@ priority over the default configuration files.
 This option can be specified multiple times, in which case all the files
 will be read; where settings conflict, the earlier configuration file will
 take priority.
+.It Fl -creationtime Ar X
+(c mode only)
+Manually specify a creation time (a unix timestamp) for the
+archive.  This is unlikely to be useful when tarsnap is being
+invoked directly from the command line.
 .It Fl -disk-pause Ar X
 (c mode only)
 Pause for

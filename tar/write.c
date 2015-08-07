@@ -281,7 +281,8 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	bsdtar->write_cookie = archive_write_open_multitape(a,
 	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapenames[0],
 	    bsdtar->argc_orig, bsdtar->argv_orig,
-	    bsdtar->option_print_stats, bsdtar->option_dryrun);
+	    bsdtar->option_print_stats, bsdtar->option_dryrun,
+	    bsdtar->creationtime);
 	if (bsdtar->write_cookie == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
 

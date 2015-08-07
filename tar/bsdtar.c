@@ -180,6 +180,7 @@ main(int argc, char **argv)
 	bsdtar->nconfigfiles = 0;
 
 	time(&now);
+	bsdtar->creationtime = now;
 
 	if (setlocale(LC_ALL, "") == NULL)
 		bsdtar_warnc(bsdtar, 0, "Failed to set default locale");
@@ -290,6 +291,15 @@ main(int argc, char **argv)
 		case OPTION_CONFIGFILE:
 			bsdtar->configfiles[bsdtar->nconfigfiles++] =
 			    bsdtar->optarg;
+			break;
+		case OPTION_CREATIONTIME: /* tarsnap */
+			errno = 0;
+			bsdtar->creationtime = strtol(bsdtar->optarg,
+			    NULL, 0);
+			if ((errno) || (bsdtar->creationtime == 0))
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Invalid --creationtime argument: %s",
+				    bsdtar->optarg);
 			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");

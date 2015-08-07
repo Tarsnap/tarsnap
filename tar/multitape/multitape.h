@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <time.h>
 #include <unistd.h>
 
 typedef struct multitape_read_internal TAPE_R;
@@ -49,12 +50,12 @@ int readtape_close(TAPE_R *);
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun):
+ *     dryrun, creationtime):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W * writetape_open(uint64_t, const char *, const char *, int, char **,
-    int, int);
+    int, int, time_t);
 
 /**
  * writetape_setcallbacks(d, callback_chunk, callback_trailer,

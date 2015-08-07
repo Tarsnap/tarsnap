@@ -53,6 +53,7 @@ struct bsdtar {
 	ino_t		  cachedir_ino;
 	int		  cachecrunch; /* --lowmem / --verylowmem */
 	time_t		  snaptime; /* --snaptime */
+	time_t		  creationtime; /* --creationtime */
 	char		 *pending_chdir; /* -C dir */
 	const char	 *names_from_file; /* -T file */
 	time_t		  newer_ctime_sec; /* --newer/--newer-than */
@@ -163,6 +164,7 @@ enum {
 	OPTION_CHECKPOINT_BYTES,
 	OPTION_CHROOT,
 	OPTION_CONFIGFILE,
+	OPTION_CREATIONTIME,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
