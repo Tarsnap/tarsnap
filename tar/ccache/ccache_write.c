@@ -263,3 +263,40 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * ccache_remove(path):
+ * Delete the chunkification cache from the directory ${path}.
+ */
+int
+ccache_remove(const char * path)
+{
+	char * s;
+
+	/* Construct the name of the cache file. */
+	if (asprintf(&s, "%s/cache", path) == -1) {
+		warnp("asprintf");
+		goto err1;
+	}
+
+	/* Delete the file if it exists. */
+	if (unlink(s)) {
+		if (errno != ENOENT) {
+			warnp("unlink(%s)", s);
+			free(s);
+			goto err1;
+		}
+	}
+
+	/* Free string allocated by asprintf. */
+	free(s);
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(s);
+
+	/* Failure! */
+	return (-1);
+}

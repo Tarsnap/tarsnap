@@ -71,4 +71,10 @@ int ccache_write(CCACHE *, const char *);
  */
 void ccache_free(CCACHE *);
 
+/**
+ * ccache_remove(path):
+ * Delete the chunkification cache from the directory ${path}.
+ */
+int ccache_remove(const char *);
+
 #endif /* !_CCACHE_H_ */

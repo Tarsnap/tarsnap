@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "archive.h"
+#include "ccache.h"
 #include "multitape.h"
 
 #include "bsdtar.h"
@@ -182,16 +183,25 @@ void
 tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey)
 {
 
-	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey))
-		goto err1;
+	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey)) {
+		bsdtar_warnc(bsdtar, 0, "Error fscking archives");
+		exit(1);
+	}
+
+	/*
+	 * Remove the chunkification cache in case whatever caused the fsck to
+	 * be necessary (e.g., disk corruption) also damaged that cache.  The
+	 * chunkification cache is purely a performance optimization; since
+	 * we're dealing with backups here it makes sense to sacrifice some
+	 * performance to prevent possible data loss.
+	 */
+	if (ccache_remove(bsdtar->cachedir)) {
+		bsdtar_warnc(bsdtar, 0, "Error removing chunkification cache");
+		exit(1);
+	}
 
 	/* Success! */
 	return;
-
-err1:
-	/* Failure! */
-	bsdtar_warnc(bsdtar, 0, "Error fscking archives");
-	exit(1);
 }
 
 /*
