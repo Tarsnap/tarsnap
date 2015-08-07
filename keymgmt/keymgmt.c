@@ -19,9 +19,10 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: tarsnap-keymgmt %s %s %s %s key-file ...\n",
+	fprintf(stderr, "usage: tarsnap-keymgmt %s %s %s %s %s key-file ...\n",
 	    "--outkeyfile new-key-file", "[--passphrased]",
-	    "[--passphrase-mem maxmem]", "[-r] [-w] [-d] [--nuke]");
+	    "[--passphrase-mem maxmem]", "[--passphrase-time maxtime]",
+	    "[-r] [-w] [-d] [--nuke]");
 	exit(1);
 
 	/* NOTREACHED */
@@ -39,6 +40,7 @@ main(int argc, char **argv)
 	const char * missingkey;
 	int passphrased = 0;
 	uint64_t maxmem = 0;
+	double maxtime = 1.0;
 	char * passphrase;
 
 	WARNP_INIT;
@@ -102,6 +104,16 @@ main(int argc, char **argv)
 			if (humansize_parse(argv[1], &maxmem)) {
 				warnp("Cannot parse --passphrase-mem"
 				    " argument: %s", argv[1]);
+				exit(1);
+			}
+			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrase-time") == 0) {
+			if ((maxtime != 1.0) || (argc < 2))
+				usage();
+			maxtime = strtod(argv[1], NULL);
+			if ((maxtime < 0.05) || (maxtime > 86400)) {
+				warn0("Invalid --passphrase-time argument: %s",
+				    argv[1]);
 				exit(1);
 			}
 			argv++; argc--;
@@ -180,7 +192,7 @@ main(int argc, char **argv)
 
 	/* Write out new key file. */
 	if (keyfile_write(newkeyfile, machinenum, keyswanted,
-	    passphrase, maxmem, 1.0))
+	    passphrase, maxmem, maxtime))
 		exit(1);
 
 	/* Success! */
