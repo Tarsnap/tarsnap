@@ -58,7 +58,7 @@ _tarsnap ()
 		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
 		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
 		  --insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune \
-		  --retry-forever --no-retry-forever"
+		  --retry-forever --no-retry-forever --creationtime"
 
 	# Availible short options
 	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X -q"
