@@ -160,7 +160,7 @@ netproto_connect(const char * useragent,
 	C->cookie = cookie;
 
 	/* Look up the server's IP address. */
-	if ((C->sas = getserveraddr())== NULL)
+	if ((C->sas = getserveraddr()) == NULL)
 		goto err2;
 
 	/* Try to connect to server, waiting up to 5 seconds per address. */
