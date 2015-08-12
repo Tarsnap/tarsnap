@@ -283,7 +283,6 @@ ccache_remove(const char * path)
 	if (unlink(s)) {
 		if (errno != ENOENT) {
 			warnp("unlink(%s)", s);
-			free(s);
 			goto err1;
 		}
 	}
