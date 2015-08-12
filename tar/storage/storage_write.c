@@ -121,7 +121,8 @@ raisesigs(struct storage_write_internal * S)
  * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
+ * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run
+ * (which ignores ${lastseq} and sets ${seqnum} to 32 0s).
  */
 STORAGE_W *
 storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
@@ -155,11 +156,16 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 			goto err1;
 	}
 
-	/* If this isn't a dry run, start a write transaction. */
-	if ((S->dryrun == 0) &&
-	    storage_transaction_start_write(S->NPC[0], machinenum,
-	    lastseq, S->nonce))
-		goto err2;
+	/*
+	 * If this isn't a dry run, start a write transaction.
+	 * Otherwise, initialize the nonce to 0.
+	 */
+	if (S->dryrun == 0) {
+		if (storage_transaction_start_write(S->NPC[0], machinenum,
+		    lastseq, S->nonce))
+			goto err2;
+	} else
+		memset(S->nonce, 0, 32);
 
 	/* Copy the transaction nonce out. */
 	memcpy(seqnum, S->nonce, 32);
