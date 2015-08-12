@@ -263,7 +263,8 @@ The list of paths added to an archive (if the
 .Fl v
 option is used) and statistics printed (if the
 .Fl -print-stats
-option is used) will be identical to if
+option is used) will be almost identical (typically
+within a few kB or a fraction of a percent) to if
 .Nm
 is run without the
 .Fl -dry-run

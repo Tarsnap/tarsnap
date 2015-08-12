@@ -269,7 +269,8 @@ The list of paths added to an archive (if the
 \fB\-v\fP
 option is used) and statistics printed (if the
 \fB\--print-stats\fP
-option is used) will be identical to if
+option is used) will be almost identical (typically
+within a few kB or a fraction of a percent) to if
 \fB\%tarsnap\fP
 is run without the
 \fB\--dry-run\fP
