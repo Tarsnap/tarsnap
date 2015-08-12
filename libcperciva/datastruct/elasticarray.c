@@ -267,6 +267,12 @@ elasticarray_export(struct elasticarray * EA, void ** buf, size_t * nrec,
 	*buf = EA->buf;
 	*nrec = elasticarray_getsize(EA, reclen);
 
+	/*
+	 * Free the elastic array structure -- but not its buffer, since we've
+	 * passed the buffer out to the caller.
+	 */
+	free(EA);
+
 	/* Success! */
 	return (0);
 
