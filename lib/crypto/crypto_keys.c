@@ -127,6 +127,9 @@ crypto_keys_init(void)
 	/* No keys yet. */
 	memset(&keycache, 0, sizeof(keycache));
 
+	/* It's now safe to call crypto_keys_free() upon exit. */
+	atexit(crypto_keys_free);
+
 	/* Load OpenSSL error strings. */
 	ERR_load_crypto_strings();
 
@@ -151,6 +154,41 @@ crypto_keys_init(void)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+
+/**
+ * crypto_keys_free(void):
+ * Free the key cache.
+ */
+void crypto_keys_free(void)
+{
+
+	/* Free keys owned by crypto_file. */
+	crypto_file_free_keys();
+
+	/* Free all RSA keys. */
+	RSA_free(keycache.sign_priv);
+	RSA_free(keycache.sign_pub);
+	RSA_free(keycache.encr_priv);
+	RSA_free(keycache.encr_pub);
+	RSA_free(keycache.root_pub);
+
+	/* Free all HMAC keys. */
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file_write);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_chunk);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_name);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_cparams);
+	crypto_keys_subr_free_HMAC(&keycache.auth_put);
+	crypto_keys_subr_free_HMAC(&keycache.auth_get);
+	crypto_keys_subr_free_HMAC(&keycache.auth_delete);
+
+	/* Free OpenSSL error strings. */
+	ERR_free_strings();
+
+	/* A more general OpenSSL cleanup function. */
+	CRYPTO_cleanup_all_ex_data();
 }
 
 /**

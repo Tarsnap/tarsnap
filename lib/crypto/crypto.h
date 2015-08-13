@@ -95,6 +95,12 @@ typedef struct crypto_session_internal CRYPTO_SESSION;
 int crypto_keys_init(void);
 
 /**
+ * crypto_keys_free(void):
+ * Free the key cache.
+ */
+void crypto_keys_free(void);
+
+/**
  * crypto_keys_import(buf, buflen, keys):
  * Import keys from the provided buffer into the key cache.  Ignore any keys
  * not specified in the mask ${keys}.
