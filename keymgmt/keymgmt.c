@@ -130,10 +130,10 @@ main(int argc, char **argv)
 		usage();
 
 	/*
-	 * It doesn't make sense to specify --passphrase-mem if we're not
-	 * using a passphrase.
+	 * It doesn't make sense to specify --passphrase-mem or
+	 * --passphrase-time if we're not using a passphrase.
 	 */
-	if ((maxmem != 0) && (passphrased == 0))
+	if (((maxmem != 0) || (maxtime != 1.0)) && (passphrased == 0))
 		usage();
 
 	/* Warn the user if they're being silly. */
