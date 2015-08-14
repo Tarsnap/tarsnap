@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
@@ -210,6 +211,7 @@ ccache_read(const char * path)
 		goto err1;
 
 	/* Construct the name of cache file. */
+	assert(path != NULL);
 	if (asprintf(&R.s, "%s/cache", path) == -1) {
 		warnp("asprintf");
 		goto err2;
