@@ -223,7 +223,8 @@ main(int argc, char **argv)
 
 	/* Look up the current user and his home directory. */
 	if ((pws = getpwuid(geteuid())) != NULL)
-		bsdtar->homedir = strdup(pws->pw_dir);
+		if ((bsdtar->homedir = strdup(pws->pw_dir)) == NULL)
+			bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
 
 	/* Look up uid of current user for future reference */
 	bsdtar->user_uid = geteuid();
