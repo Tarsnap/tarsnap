@@ -423,8 +423,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if ((d->dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
 		goto err4;
 
-	/* Get sequence number. */
-	if (multitape_sequence(cachedir, lastseq))
+	/* If this isn't a dry run, get the sequence number. */
+	if ((d->dryrun == 0) && (multitape_sequence(cachedir, lastseq)))
 		goto err4;
 
 	/* Obtain write cookies from the storage and chunk layers. */

@@ -78,7 +78,8 @@ void storage_read_free(STORAGE_R *);
  * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
+ * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run
+ * (which ignores ${lastseq} and sets ${seqnum} to 32 0s).
  */
 STORAGE_W * storage_write_start(uint64_t, const uint8_t[32], uint8_t[32],
     int);
