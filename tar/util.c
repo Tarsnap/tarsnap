@@ -228,6 +228,23 @@ bsdtar_warnc(struct bsdtar *bsdtar, int code, const char *fmt, ...)
 	va_end(ap);
 }
 
+/*
+ * Free any allocated memory within the bsdtar structure.
+ */
+void
+bsdtar_free_allocated(struct bsdtar *bsdtar)
+{
+
+	/* These come from malloc(). */
+	free(bsdtar->tapenames);
+	free(bsdtar->configfiles);
+
+	/* These come from strdup(). */
+	free(bsdtar->cachedir);
+	/* free() doesn't accept const, so we cast it away. */
+	free((char*)bsdtar->homedir);
+}
+
 void
 bsdtar_errc(struct bsdtar *bsdtar, int eval, int code, const char *fmt, ...)
 {
@@ -236,6 +253,7 @@ bsdtar_errc(struct bsdtar *bsdtar, int eval, int code, const char *fmt, ...)
 	va_start(ap, fmt);
 	bsdtar_vwarnc(bsdtar, code, fmt, ap);
 	va_end(ap);
+	bsdtar_free_allocated(bsdtar);
 	exit(eval);
 }
 

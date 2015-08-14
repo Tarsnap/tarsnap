@@ -115,7 +115,7 @@ static void		 optq_push(struct bsdtar *, const char *,
 			     const char *);
 static void		 optq_pop(struct bsdtar *);
 static void		 set_mode(struct bsdtar *, int opt, const char *optstr);
-static void		 version(void);
+static void		 version(struct bsdtar *);
 
 /* A basic set of security flags to request from libarchive. */
 #define	SECURITY					\
@@ -595,7 +595,7 @@ main(int argc, char **argv)
 			bsdtar->verbose++;
 			break;
 		case OPTION_VERSION: /* GNU convention */
-			version();
+			version(bsdtar);
 			break;
 		case OPTION_VERYLOWMEM: /* tarsnap */
 			optq_push(bsdtar, "verylowmem", NULL);
@@ -796,7 +796,12 @@ main(int argc, char **argv)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
 		free(bsdtar->cachedir);
-		bsdtar->cachedir = cachedir;
+		/*
+		 * Copy this string so that bsdtar->cachedir
+		 * is consistently the owner of allocated memory
+		 */
+		if ((bsdtar->cachedir = strdup(cachedir)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	}
 
 	/* If we're running --fsck, figure out which key to use. */
@@ -961,6 +966,7 @@ main(int argc, char **argv)
 	if (bsdtar->return_value != 0)
 		bsdtar_warnc(bsdtar, 0,
 		    "Error exit delayed from previous errors.");
+	bsdtar_free_allocated(bsdtar);
 	return (bsdtar->return_value);
 }
 
@@ -1008,12 +1014,14 @@ usage(struct bsdtar *bsdtar)
 	fprintf(stderr, "  List archives: %s [options...] --list-archives\n", p);
 	fprintf(stderr, "  Print stats:   %s [options...] --print-stats\n", p);
 	fprintf(stderr, "  Help:    %s --help\n", p);
+	bsdtar_free_allocated(bsdtar);
 	exit(1);
 }
 
 static void
-version(void)
+version(struct bsdtar *bsdtar)
 {
+	bsdtar_free_allocated(bsdtar);
 	printf("tarsnap %s\n", PACKAGE_VERSION);
 	exit(0);
 }
@@ -1066,7 +1074,7 @@ long_help(struct bsdtar *bsdtar)
 		} else
 			putchar(*p);
 	}
-	version();
+	version(bsdtar);
 }
 
 static void

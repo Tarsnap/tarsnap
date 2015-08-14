@@ -230,6 +230,7 @@ enum {
 };
 
 
+void	bsdtar_free_allocated(struct bsdtar *);
 void	bsdtar_errc(struct bsdtar *, int _eval, int _code,
 	    const char *fmt, ...) __LA_DEAD;
 int	bsdtar_getopt(struct bsdtar *);
