@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/stat.h>
 
 #include <errno.h>
@@ -233,6 +234,7 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 	cce->mtime_new = sb->st_mtime;
 
 	/* Look up cache entry. */
+	assert(C != NULL);
 	if ((cce->ccrp = (struct ccache_record **)patricia_lookup(C->tree,
 	    (const uint8_t *)path, strlen(path))) == NULL) {
 		/* No cache entry for this path.  Create an empty record. */
