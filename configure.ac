@@ -460,15 +460,15 @@ AS_IF([test "x$with_bash_completion_dir" != "xno"],
 
 # should we set the value automatically?
 if test "x$with_bash_completion_dir" == "xyes"; then
-    # default guess for automatic
-    BASH_COMPLETION_DIR="$datadir/bash-completion/completions"
-
     # try to use pkg-config
     AC_CHECK_PROG(HAS_PKG_CONFIG, pkg-config, yes)
-    if test "x$HAS_PKG_CONFIG" != "xno"; then
+    if test "x$HAS_PKG_CONFIG" != "xyes"; then
+        AC_MSG_ERROR([Automatic detection of bash-completion directory requires pkg-config.])
+    else
         # find the actual value from the system
         PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
-            [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"])
+            [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"],
+            [AC_MSG_ERROR([Automatic detection of bash-completion directory requires bash-completion >= 2.0.])])
 	AC_MSG_CHECKING([bash completions directory])
 	AC_MSG_RESULT([$BASH_COMPLETION_DIR])
     fi
