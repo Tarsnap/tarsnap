@@ -15,7 +15,7 @@ m4_define([LIBARCHIVE_VERSION_N],[2007000])
 # Now starts the "real" configure script.
 #
 
-AC_INIT([tarsnap],TAR_VERS(),[cperciva@tarsnap.com])
+AC_INIT([tarsnap],[TAR_VERS()],[cperciva@tarsnap.com])
 # Make sure the srcdir contains "libarchive" directory
 AC_CONFIG_SRCDIR([libarchive])
 # Use auxiliary subscripts from this subdirectory (cleans up root)
