@@ -294,8 +294,8 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
 		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
 
-	/* Read the chunkification cache. */
-	if (bsdtar->cachecrunch < 2) {
+	/* If the chunkification cache is enabled, read it. */
+	if ((bsdtar->cachecrunch < 2) && (bsdtar->cachedir != NULL)) {
 		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
 		if (bsdtar->chunk_cache == NULL)
 			bsdtar_errc(bsdtar, 1, errno, "Error reading cache");
@@ -993,8 +993,9 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	 * the chunkification cache to find the entry for the file (if one
 	 * already exists) and tell us if it can provide the entire file.
 	 */
-	if ((st != NULL) && S_ISREG(st->st_mode) && rpath != NULL &&
-	    archive_entry_size(entry) > 0 && bsdtar->cachecrunch < 2) {
+	if ((st != NULL) && S_ISREG(st->st_mode) && (rpath != NULL) &&
+	    (archive_entry_size(entry) > 0) && (bsdtar->cachecrunch < 2) &&
+	    (bsdtar->chunk_cache != NULL)) {
 		cce = ccache_entry_lookup(bsdtar->chunk_cache, rpath, st,
 		    bsdtar->write_cookie, &filecached);
 	}
