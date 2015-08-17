@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -134,6 +135,7 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	}
 
 	/* Construct the string "${cachepath}/directory". */
+	assert(cachepath != NULL);
 	if (asprintf(&s, "%s/directory", cachepath) == -1) {
 		warnp("asprintf");
 		goto err1;
@@ -299,6 +301,8 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 	int fd;
 
 	/* Construct the path to the new chunk directory. */
+	assert(cachepath != NULL);
+	assert(suff != NULL);
 	if (asprintf(&s, "%s/directory%s", cachepath, suff) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -387,10 +391,13 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 	char * t;
 
 	/* Construct file names. */
+	assert(cachepath != NULL);
+	assert(nsuff != NULL);
 	if (asprintf(&s, "%s/directory%s", cachepath, nsuff) == -1) {
 		warnp("asprintf");
 		goto err0;
 	}
+	assert(osuff != NULL);
 	if (asprintf(&t, "%s/directory%s", cachepath, osuff) == -1) {
 		warnp("asprintf");
 		goto err1;

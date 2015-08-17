@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 
@@ -68,6 +69,7 @@ multitape_docheckpoint(const char * cachedir, uint64_t machinenum,
 		goto err0;
 
 	/* Read ${cachedir}/ckpt_m if it exists. */
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/ckpt_m", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -162,6 +164,7 @@ multitape_checkpoint(const char * cachedir, uint64_t machinenum,
 	/* Create symlink from ckpt_m to [seqnum][ckptnonce]. */
 	memcpy(seqnum_ckptnonce, seqnum, 32);
 	memcpy(&seqnum_ckptnonce[32], ckptnonce, 32);
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/ckpt_m", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -202,6 +205,7 @@ multitape_docommit(const char * cachedir, uint64_t machinenum, uint8_t key)
 		goto err0;
 
 	/* Read ${cachedir}/commit_m if it exists. */
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/commit_m", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -284,6 +288,7 @@ multitape_commit(const char * cachedir, uint64_t machinenum,
 	char * s;
 
 	/* Make ${cachedir}/commit_m point to ${seqnum}. */
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/commit_m", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -318,6 +323,7 @@ multitape_lock(const char * cachedir)
 	int fd;
 
 	/* Open ${cachedir}/lockf. */
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/lockf", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -385,6 +391,7 @@ multitape_sequence(const char * cachedir, uint8_t seqnum[32])
 	char * s;
 
 	/* Read the link ${cachedir}/cseq. */
+	assert(cachedir != NULL);
 	if (asprintf(&s, "%s/cseq", cachedir) == -1) {
 		warnp("asprintf");
 		goto err0;

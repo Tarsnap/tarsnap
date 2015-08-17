@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -726,6 +727,7 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 		goto err0;
 
 	/* Construct tape name. */
+	assert(d->tapename != NULL);
 	if (isapart) {
 		if (asprintf(&tapename, "%s.part", d->tapename) == -1)
 			goto err0;

@@ -75,6 +75,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include <zlib.h>
 #endif
 
+#include <assert.h>
+
 #include "bsdtar.h"
 #include "crypto.h"
 #include "keyfile.h"
@@ -1083,6 +1085,7 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 			dirseppos = dir + strlen(dir);
 
 		/* Generate a string containing the parent directory. */
+		assert(dir != NULL);
 		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "No Memory");
 
@@ -1221,6 +1224,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
 	    (bsdtar->homedir != NULL)) {
 		/* Construct expanded argument string. */
+		assert(&conf_arg[1] != NULL);
 		if (asprintf(&conf_arg_malloced, "%s%s",
 		    bsdtar->homedir, &conf_arg[1]) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "Out of memory");

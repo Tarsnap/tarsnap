@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -129,6 +130,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	}
 
 	/* Prompt the user for a password. */
+	assert(filename != NULL);
 	if (asprintf(&pwprompt, "Please enter passphrase for keyfile %s",
 	    filename) == -1)
 		goto err0;

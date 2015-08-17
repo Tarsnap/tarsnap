@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/stat.h>
 
 #include <errno.h>
@@ -174,6 +175,7 @@ ccache_write(CCACHE * cache, const char * path)
 	char * s_old;
 
 	/* Construct name of temporary cache file. */
+	assert(path != NULL);
 	if (asprintf(&W.s, "%s/cache.new", path) == -1) {
 		warnp("asprintf");
 		goto err0;
@@ -228,6 +230,7 @@ ccache_write(CCACHE * cache, const char * path)
 	fclose(W.f);
 
 	/* Construct the name of the old cache file. */
+	assert(path != NULL);
 	if (asprintf(&s_old, "%s/cache", path) == -1) {
 		warnp("asprintf");
 		goto err1;
@@ -274,6 +277,7 @@ ccache_remove(const char * path)
 	char * s;
 
 	/* Construct the name of the cache file. */
+	assert(path != NULL);
 	if (asprintf(&s, "%s/cache", path) == -1) {
 		warnp("asprintf");
 		goto err1;

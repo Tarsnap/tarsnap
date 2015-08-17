@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -567,10 +568,12 @@ main(int argc, char **argv)
 	free(nblist);
 
 	/* Construct paths to chunk directories. */
+	assert(ncachedir != NULL);
 	if (asprintf(&ndirpath, "%s/directory", ncachedir) == -1) {
 		warnp("asprintf");
 		exit(1);
 	}
+	assert(ocachedir != NULL);
 	if (asprintf(&odirpath, "%s/directory", ocachedir) == -1) {
 		warnp("asprintf");
 		exit(1);
