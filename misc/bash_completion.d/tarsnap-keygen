@@ -1,11 +1,5 @@
 # bash-completion for tarsnap-keygen
 #
-# Besides supplying options it will also try to determine
-# when it is suitible to complete what.
-#
-# Feel free to send comments or suggestions.
-#
-#
 # Copyright (c) 2009-2012 Andreas Olsson
 # 
 # Permission is hereby granted, free of charge, to any person
