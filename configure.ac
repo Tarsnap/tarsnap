@@ -459,7 +459,7 @@ AS_IF([test "x$with_bash_completion_dir" != "xno"],
     [AC_MSG_RESULT([no])])
 
 # should we set the value automatically?
-if test "x$with_bash_completion_dir" == "xyes"; then
+if test "x$with_bash_completion_dir" = "xyes"; then
     # try to use pkg-config
     AC_CHECK_PROG(HAS_PKG_CONFIG, pkg-config, yes)
     if test "x$HAS_PKG_CONFIG" != "xyes"; then
