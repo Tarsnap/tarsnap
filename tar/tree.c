@@ -214,7 +214,7 @@ tree_append(struct tree *t, const char *name, size_t name_length)
 		name_length--;
 
 	/* Resize pathname buffer as needed. */
-	size_needed = name_length + 1 + t->dirname_length;
+	size_needed = name_length + 1 + t->dirname_length + 1;
 	if (t->buff_length < size_needed) {
 		if (t->buff_length < 1024)
 			t->buff_length = 1024;
