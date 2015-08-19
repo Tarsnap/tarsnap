@@ -228,6 +228,37 @@ bsdtar_warnc(struct bsdtar *bsdtar, int code, const char *fmt, ...)
 	va_end(ap);
 }
 
+void bsdtar_init(struct bsdtar *bsdtar)
+{
+	memset(bsdtar, 0, sizeof(*bsdtar));
+	/* Set pointers to NULL for non-0 NULL platforms. */
+	bsdtar->tapenames = NULL;
+	bsdtar->homedir = NULL;
+	bsdtar->cachedir = NULL;
+	bsdtar->pending_chdir = NULL;
+	bsdtar->names_from_file = NULL;
+	bsdtar->modestr = NULL;
+	bsdtar->configfiles = NULL;
+	bsdtar->archive = NULL;
+	bsdtar->progname = NULL;
+	bsdtar->argv = NULL;
+	bsdtar->optarg = NULL;
+	bsdtar->write_cookie = NULL;
+	bsdtar->chunk_cache = NULL;
+	bsdtar->argv_orig = NULL;
+	bsdtar->delopt = NULL;
+	bsdtar->delopt_tail = NULL;
+	bsdtar->diskreader = NULL;
+	bsdtar->resolver = NULL;
+	bsdtar->gname_cache = NULL;
+	bsdtar->buff = NULL;
+	bsdtar->matching = NULL;
+	bsdtar->security = NULL;
+	bsdtar->uname_cache = NULL;
+	bsdtar->siginfo = NULL;
+	bsdtar->substitution = NULL;
+}
+
 void
 bsdtar_errc(struct bsdtar *bsdtar, int eval, int code, const char *fmt, ...)
 {

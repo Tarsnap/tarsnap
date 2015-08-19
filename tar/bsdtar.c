@@ -143,7 +143,7 @@ main(int argc, char **argv)
 	 * for ease of cleanup.
 	 */
 	bsdtar = &bsdtar_storage;
-	memset(bsdtar, 0, sizeof(*bsdtar));
+	bsdtar_init(bsdtar);
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	/* Make sure open() function will be used with a binary mode. */
 	/* on cygwin, we need something similar, but instead link against */
