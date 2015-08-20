@@ -1,3 +1,16 @@
+tarsnap (1.0.36) unstable; urgency=high
+
+  * New version of tarsnap fixes two security vulnerabilities: a corrupt
+    archive could result in tarsnap allocating a large amount of memory or
+    crashing; and very long object paths can result in a potentially
+    exploitable one-byte buffer overflow.
+  * A bug which caused tarsnap to crash if its first DNS lookup fails is fixed.
+  * A bug which caused tarsnap to exit with "Callbacks uninitialized" when
+    running on a dual-stack network if the first IP stack it attempted to use
+    failed to connect is fixed.
+  * tarsnap -c --dry-run can now run without a keyfile.
+  * tarsnap now automatically detects and uses AESNI and SSE2 cpu features.
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 20 Aug 2015 14:55:16 +0000
 tarsnap (1.0.35) unstable; urgency=medium
 
   * New version of tarsnap fixes a networking bug, introduced by the
