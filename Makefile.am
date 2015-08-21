@@ -184,7 +184,8 @@ lib_libtarsnap_a_CFLAGS=				\
 		-I$(top_srcdir)/libcperciva/util	\
 		-I.					\
 		-D CPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
-		-DPOSIXFAIL_MSG_NOSIGNAL
+		-DPOSIXFAIL_MSG_NOSIGNAL \
+		-DPOSIXFAIL_CLOCK_REALTIME
 
 LIBTARSNAP_A=	lib/libtarsnap.a
 
