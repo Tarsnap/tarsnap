@@ -31,6 +31,8 @@ static struct {
 	struct crypto_hmac_key * auth_delete;
 } keycache;
 
+static void crypto_keys_atexit(void);
+
 /*
  * External key data format:
  * 4 byte little-endian integer = length of key data
@@ -142,6 +144,12 @@ crypto_keys_init(void)
 	keycache.auth_get = NULL;
 	keycache.auth_delete = NULL;
 
+	/* It's now safe to call crypto_keys_atexit() upon exit. */
+	if (atexit(crypto_keys_atexit)) {
+		warnp("Could not initialize atexit");
+		goto err0;
+	}
+
 	/* Load OpenSSL error strings. */
 	ERR_load_crypto_strings();
 
@@ -166,6 +174,31 @@ crypto_keys_init(void)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * crypto_keys_atexit(void):
+ * Free the key cache.
+ */
+static void crypto_keys_atexit(void)
+{
+
+	/* Free all RSA keys. */
+	RSA_free(keycache.sign_priv);
+	RSA_free(keycache.sign_pub);
+	RSA_free(keycache.encr_priv);
+	RSA_free(keycache.encr_pub);
+	RSA_free(keycache.root_pub);
+
+	/* Free all HMAC keys. */
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file_write);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_chunk);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_name);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_cparams);
+	crypto_keys_subr_free_HMAC(&keycache.auth_put);
+	crypto_keys_subr_free_HMAC(&keycache.auth_get);
+	crypto_keys_subr_free_HMAC(&keycache.auth_delete);
 }
 
 /**
