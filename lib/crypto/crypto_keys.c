@@ -124,8 +124,23 @@ crypto_keys_init(void)
 {
 	uint8_t randbuf[RANDBUFLEN];
 
-	/* No keys yet. */
-	memset(&keycache, 0, sizeof(keycache));
+	/*
+	 * No keys yet.  memset() is insufficient since NULL is not required
+	 * to be represented in memory by zeroes.
+	 */
+	keycache.sign_priv = NULL;
+	keycache.sign_pub = NULL;
+	keycache.encr_priv = NULL;
+	keycache.encr_pub = NULL;
+	keycache.root_pub = NULL;
+	keycache.hmac_file = NULL;
+	keycache.hmac_file_write = NULL;
+	keycache.hmac_chunk = NULL;
+	keycache.hmac_name = NULL;
+	keycache.hmac_cparams = NULL;
+	keycache.auth_put = NULL;
+	keycache.auth_get = NULL;
+	keycache.auth_delete = NULL;
 
 	/* Load OpenSSL error strings. */
 	ERR_load_crypto_strings();
