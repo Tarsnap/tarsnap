@@ -796,7 +796,8 @@ main(int argc, char **argv)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
 		free(bsdtar->cachedir);
-		bsdtar->cachedir = cachedir;
+		if ((bsdtar->cachedir = strdup(cachedir)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	}
 
 	/* If we're running --fsck, figure out which key to use. */
