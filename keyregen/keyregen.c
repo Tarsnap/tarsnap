@@ -55,10 +55,11 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: tarsnap-keyregen %s %s %s %s %s %s\n",
+	fprintf(stderr, "usage: tarsnap-keyregen %s %s %s %s %s %s %s\n",
 	    "--keyfile key-file", "--oldkey old-key-file",
 	    "--user user-name", "--machine machine-name",
-	    "[--passphrased]", "[--passphrase-mem maxmem]");
+	    "[--passphrased]", "[--passphrase-mem maxmem]",
+	    "[--passphrase-time maxtime]");
 	exit(1);
 
 	/* NOTREACHED */
@@ -74,6 +75,7 @@ main(int argc, char **argv)
 	NETPACKET_CONNECTION * NPC;
 	int passphrased;
 	uint64_t maxmem;
+	double maxtime = 1.0;
 	char * passphrase;
 	uint64_t dummy;
 
@@ -124,6 +126,16 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			argv++; argc--;
+		} else if (strcmp(argv[0], "--passphrase-time") == 0) {
+			if ((maxtime != 1.0) || (argc < 2))
+				usage();
+			maxtime = strtod(argv[1], NULL);
+			if ((maxtime < 0.05) || (maxtime > 86400)) {
+				warn0("Invalid --passphrase-time argument: %s",
+				    argv[1]);
+				exit(1);
+			}
+			argv++; argc--;
 		} else if (strcmp(argv[0], "--passphrased") == 0) {
 			passphrased = 1;
 		} else {
@@ -140,10 +152,10 @@ main(int argc, char **argv)
 		usage();
 
 	/*
-	 * It doesn't make sense to specify --passphrase-mem if we're not
-	 * using a passphrase.
+	 * It doesn't make sense to specify --passphrase-mem or
+	 * --passphrase-time if we're not using a passphrase.
 	 */
-	if ((maxmem != 0) && (passphrased == 0))
+	if (((maxmem != 0) || (maxtime != 1.0)) && (passphrased == 0))
 		usage();
 
 	/* Sanity-check the user name. */
@@ -296,7 +308,7 @@ main(int argc, char **argv)
 
 	/* Write keys to file. */
 	if (keyfile_write_file(keyfile, C.machinenum,
-	    CRYPTO_KEYMASK_USER, passphrase, maxmem, 1.0))
+	    CRYPTO_KEYMASK_USER, passphrase, maxmem, maxtime))
 		goto err1;
 
 	/* Close the key file. */
