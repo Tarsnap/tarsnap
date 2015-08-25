@@ -842,6 +842,7 @@ archive_write_disk_new(void)
 		free(a);
 		return (NULL);
 	}
+	archive_strcpy(&a->path_safe, "");
 	return (&a->archive);
 }
 
