@@ -83,10 +83,22 @@ int crypto_keys_subr_generate_RSA(RSA **, RSA **);
 int crypto_keys_subr_generate_HMAC(struct crypto_hmac_key **);
 
 /**
+ * crypto_keys_subr_free_HMAC(key):
+ * Free an HMAC key.
+ */
+void crypto_keys_subr_free_HMAC(struct crypto_hmac_key **);
+
+/**
  * crypto_file_init_keys(void):
  * Initialize the keys cached by crypto_file.
  */
 int crypto_file_init_keys(void);
+
+/**
+ * crypto_file_free_keys(void):
+ * Free the keys cached by crypto_file.
+ */
+void crypto_file_free_keys(void);
 
 /**
  * crypto_MGF1(seed, seedlen, buf, buflen):

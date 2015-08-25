@@ -51,6 +51,22 @@ err0:
 	return (-1);
 }
 
+/**
+ * crypto_file_free_keys(void):
+ * Free the keys cached by crypto_file.
+ */
+void crypto_file_free_keys(void)
+{
+
+	/* Clean up decryption cache. */
+	rwhashtab_free(decr_aes_cache);
+
+	/* Clean up encryption key. */
+	if (encr_aes != NULL)
+		crypto_aes_key_free(encr_aes->key);
+	free(encr_aes);
+}
+
 /* Generate encr_aes. */
 static int
 keygen(void)
