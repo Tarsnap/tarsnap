@@ -1,6 +1,10 @@
 #!/bin/sh
 
 VERSION=$1
+if [ -z $VERSION ]; then
+	echo "Please specify the version number"
+	exit 1
+fi
 DESTDIR=tarsnap-autoconf-${VERSION}
 
 # Copy bits in
