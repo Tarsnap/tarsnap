@@ -259,6 +259,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if (*bsdtar->argv == NULL && bsdtar->names_from_file == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "no files or directories specified");
 
+	/* Warn if "--" appears at the beginning of a file or dir to archive. */
 	for (i = 0; bsdtar->argv[i] != NULL; i++) {
 		if (bsdtar->argv[i][0] == '-' && bsdtar->argv[i][1] == '-') {
 			bsdtar_warnc(bsdtar, 0,
@@ -288,7 +289,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 
 	/*
 	 * Remember the device and inode numbers of the cache directory, so
-	 * that we can skip is in write_hierarchy().
+	 * that we can skip it in write_hierarchy().
 	 */
 	if (getdevino(a, bsdtar->cachedir,
 	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
