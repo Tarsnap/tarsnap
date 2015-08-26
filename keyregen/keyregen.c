@@ -75,7 +75,7 @@ main(int argc, char **argv)
 	NETPACKET_CONNECTION * NPC;
 	int passphrased;
 	uint64_t maxmem;
-	double maxtime = 1.0;
+	double maxtime;
 	char * passphrase;
 	uint64_t dummy;
 
@@ -89,9 +89,13 @@ main(int argc, char **argv)
 	keyfilename = NULL;
 	oldkeyfilename = NULL;
 
-	/* We're not using a passphrase, and have unlimited RAM so far. */
+	/*
+	 * So far we're not using a passphrase, have unlimited RAM, and allow
+	 * up to 1 second of CPU time.
+	 */
 	passphrased = 0;
 	maxmem = 0;
+	maxtime = 1.0;
 
 	/* Parse arguments. */
 	while (--argc > 0) {
