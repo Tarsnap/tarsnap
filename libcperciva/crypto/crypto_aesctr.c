@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "crypto_aes.h"
+#include "insecure_memzero.h"
 #include "sysendian.h"
 
 #include "crypto_aesctr.h"
@@ -89,9 +90,7 @@ crypto_aesctr_free(struct crypto_aesctr * stream)
 		return;
 
 	/* Zero potentially sensitive information. */
-	for (i = 0; i < 16; i++)
-		stream->buf[i] = 0;
-	stream->bytectr = stream->nonce = 0;
+	insecure_memzero(stream, sizeof(struct crypto_aesctr));
 
 	/* Free the stream. */
 	free(stream);
@@ -118,7 +117,5 @@ crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
 	crypto_aesctr_stream(stream, inbuf, outbuf, buflen);
 
 	/* Zero potentially sensitive information. */
-	for (i = 0; i < 16; i++)
-		stream->buf[i] = 0;
-	stream->bytectr = stream->nonce = 0;
+	insecure_memzero(stream, sizeof(struct crypto_aesctr));
 }
