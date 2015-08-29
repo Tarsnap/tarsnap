@@ -930,6 +930,10 @@ void
 writetape_free(TAPE_W * d)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (d == NULL)
+		return;
+
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 	close(d->lockfd);
