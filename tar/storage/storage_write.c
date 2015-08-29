@@ -524,6 +524,10 @@ storage_write_free(STORAGE_W * S)
 {
 	size_t i;
 
+	/* Behave consistently with free(NULL). */
+	if (S == NULL)
+		return;
+
 	/* Close netpacket connections. */
 	for (i = S->numconns - 1; i < S->numconns; i--)
 		netpacket_close(S->NPC[i]);
