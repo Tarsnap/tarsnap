@@ -241,7 +241,7 @@ void
 elasticarray_free(struct elasticarray * EA)
 {
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (EA == NULL)
 		return;
 

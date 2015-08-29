@@ -319,7 +319,7 @@ void
 multitape_metaindex_free(struct tapemetaindex * mind)
 {
 
-	/* Compatibility with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (mind == NULL)
 		return;
 
