@@ -85,7 +85,7 @@ crypto_aesctr_free(struct crypto_aesctr * stream)
 {
 	int i;
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (stream == NULL)
 		return;
 

@@ -325,7 +325,7 @@ void
 ptrheap_free(struct ptrheap * H)
 {
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (H == NULL)
 		return;
 

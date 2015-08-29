@@ -432,7 +432,7 @@ multitape_metadata_free(struct tapemetadata * mdat)
 {
 	int arg;
 
-	/* Be consistent with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (mdat == NULL)
 		return;
 

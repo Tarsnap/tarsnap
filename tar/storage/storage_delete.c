@@ -344,6 +344,10 @@ void
 storage_delete_free(STORAGE_D * S)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (S == NULL)
+		return;
+
 	/* Close netpacket connection. */
 	netpacket_close(S->NPC);
 

@@ -631,6 +631,10 @@ void
 storage_read_free(STORAGE_R * S)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (S == NULL)
+		return;
+
 	/* Close netpacket connection. */
 	netpacket_close(S->NPC);
 

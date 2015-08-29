@@ -234,6 +234,10 @@ network_writeq_free(NETWORK_WRITEQ * Q)
 {
 	struct network_writeq_buf * head_old;
 
+	/* Behave consistently with free(NULL). */
+	if (Q == NULL)
+		return;
+
 	/* Repeat until the queue is empty. */
 	while (Q->head != NULL) {
 		/* Unlink the current buffer from the queue. */

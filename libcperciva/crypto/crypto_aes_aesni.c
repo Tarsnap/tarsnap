@@ -226,6 +226,10 @@ void
 crypto_aes_key_free_aesni(void * key)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (key == NULL)
+		return;
+
 	/* Attempt to zero the expanded key. */
 	insecure_memzero(key, sizeof(struct crypto_aes_key_aesni));
 
