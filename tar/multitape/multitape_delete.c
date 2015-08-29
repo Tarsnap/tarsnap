@@ -163,6 +163,10 @@ void
 deletetape_free(TAPE_D * d)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (d == NULL)
+		return;
+
 	/* Close the storage layer read cookie. */
 	storage_read_free(d->S);
 
