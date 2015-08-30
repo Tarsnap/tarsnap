@@ -341,6 +341,9 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 		goto err1;
 	}
 
+	/* Free string allocated by asprintf. */
+	free(s);
+
 	/* Success! */
 	return (0);
 
