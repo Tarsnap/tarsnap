@@ -223,7 +223,8 @@ main(int argc, char **argv)
 
 	/* Look up the current user and his home directory. */
 	if ((pws = getpwuid(geteuid())) != NULL)
-		bsdtar->homedir = strdup(pws->pw_dir);
+		if ((bsdtar->homedir = strdup(pws->pw_dir)) == NULL)
+			bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
 
 	/* Look up uid of current user for future reference */
 	bsdtar->user_uid = geteuid();
@@ -796,7 +797,8 @@ main(int argc, char **argv)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
 		free(bsdtar->cachedir);
-		bsdtar->cachedir = cachedir;
+		if ((bsdtar->cachedir = strdup(cachedir)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	}
 
 	/* If we're running --fsck, figure out which key to use. */
