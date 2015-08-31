@@ -36,11 +36,11 @@ _tarsnap_keyregen ()
 	# These options will be completed by the path to a filename.
 	wfilearg="--keyfile|--oldkey"
 
-	# These options requires a non-completable argument.
+	# These options require a non-completable argument.
 	# They won't be completed at all.
 	wotherarg="--user|--machine|--passphrase-mem"
 
-	# Availible long options
+	# Available long options
 	longopts="--user --machine --keyfile --oldkey --passphrased --passphrase-mem"
 
 	case "$prev" in

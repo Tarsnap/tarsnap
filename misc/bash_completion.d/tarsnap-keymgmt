@@ -36,14 +36,14 @@ _tarsnap_keymgmt ()
 	# These options will be completed by the path to a filename.
 	wfilearg="--outkeyfile"
 
-	# These options requires a non-completable argument.
+	# These options require a non-completable argument.
 	# They won't be completed at all.
 	wotherarg="--passphrase-mem"
 
-	# Availible long options
+	# Available long options
 	longopts="--outkeyfile --nuke --passphrased --passphrase-mem"
 
-	# Availible short options
+	# Available short options
 	shortopts="-r -w -d"
 
 	options=${longopts}" "${shortopts}
