@@ -31,6 +31,8 @@ static struct {
 	struct crypto_hmac_key * auth_delete;
 } keycache;
 
+static void crypto_keys_atexit(void);
+
 /*
  * External key data format:
  * 4 byte little-endian integer = length of key data
@@ -124,8 +126,29 @@ crypto_keys_init(void)
 {
 	uint8_t randbuf[RANDBUFLEN];
 
-	/* No keys yet. */
-	memset(&keycache, 0, sizeof(keycache));
+	/*
+	 * No keys yet.  memset() is insufficient since NULL is not required
+	 * to be represented in memory by zeroes.
+	 */
+	keycache.sign_priv = NULL;
+	keycache.sign_pub = NULL;
+	keycache.encr_priv = NULL;
+	keycache.encr_pub = NULL;
+	keycache.root_pub = NULL;
+	keycache.hmac_file = NULL;
+	keycache.hmac_file_write = NULL;
+	keycache.hmac_chunk = NULL;
+	keycache.hmac_name = NULL;
+	keycache.hmac_cparams = NULL;
+	keycache.auth_put = NULL;
+	keycache.auth_get = NULL;
+	keycache.auth_delete = NULL;
+
+	/* It's now safe to call crypto_keys_atexit() upon exit. */
+	if (atexit(crypto_keys_atexit)) {
+		warnp("Could not initialize atexit");
+		goto err0;
+	}
 
 	/* Load OpenSSL error strings. */
 	ERR_load_crypto_strings();
@@ -151,6 +174,37 @@ crypto_keys_init(void)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * crypto_keys_atexit(void):
+ * Free the key cache.
+ */
+static void crypto_keys_atexit(void)
+{
+
+	/* Free all RSA keys. */
+	RSA_free(keycache.sign_priv);
+	RSA_free(keycache.sign_pub);
+	RSA_free(keycache.encr_priv);
+	RSA_free(keycache.encr_pub);
+	RSA_free(keycache.root_pub);
+
+	/* Free all HMAC keys. */
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_file_write);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_chunk);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_name);
+	crypto_keys_subr_free_HMAC(&keycache.hmac_cparams);
+	crypto_keys_subr_free_HMAC(&keycache.auth_put);
+	crypto_keys_subr_free_HMAC(&keycache.auth_get);
+	crypto_keys_subr_free_HMAC(&keycache.auth_delete);
+
+	/* Free OpenSSL error strings. */
+	ERR_free_strings();
+
+	/* A more general OpenSSL cleanup function. */
+	CRYPTO_cleanup_all_ex_data();
 }
 
 /**

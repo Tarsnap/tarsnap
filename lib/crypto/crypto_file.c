@@ -25,6 +25,8 @@ static struct crypto_file_aes_key * encr_aes;
 static RWHASHTAB * decr_aes_cache;
 
 static int keygen(void);
+static void crypto_file_atexit(void);
+static int callback_free_rwhashtab_aes_key(void * rec, void * cookie);
 
 /**
  * crypto_file_init_keys(void):
@@ -43,12 +45,55 @@ crypto_file_init_keys(void)
 	    256)) == NULL)
 		goto err0;
 
+	if (atexit(crypto_file_atexit)) {
+		warnp("Could not initialize atexit");
+		goto err1;
+	}
+
 	/* Success! */
 	return (0);
 
+err1:
+	rwhashtab_free(decr_aes_cache);
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+static int
+callback_free_rwhashtab_aes_key(void * rec, void * cookie)
+{
+	struct crypto_file_aes_key * key = rec;
+
+	(void)cookie;	/* UNUSED */
+
+	/* Free expanded AES key and encrypted key lookup record. */
+	crypto_aes_key_free(key->key);
+	free(key);
+
+	/* Success! */
+	return 0;
+}
+
+/**
+ * crypto_file_atexit(void):
+ * Free the keys cached by crypto_file.
+ */
+static void crypto_file_atexit(void)
+{
+
+	/* Iterate through encrypted key -> AES key table freeing records. */
+	rwhashtab_foreach(decr_aes_cache, callback_free_rwhashtab_aes_key,
+	    NULL);
+
+	/* Free decryption cache. */
+	rwhashtab_free(decr_aes_cache);
+
+	/* Free encryption key, if we have one. */
+	if (encr_aes != NULL) {
+		crypto_aes_key_free(encr_aes->key);
+		free(encr_aes);
+	}
 }
 
 /* Generate encr_aes. */
