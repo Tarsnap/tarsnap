@@ -36,7 +36,7 @@
  * NOTE: This file provides prototypes for routines which encrypt/decrypt data
  * using a key derived from a password by using the scrypt key derivation
  * function.  If you are just trying to "hash" a password for user logins,
- * this is not the code you are looking for.  You want to use the crypt_scrypt
+ * this is not the code you are looking for.  You want to use the crypto_scrypt
  * function directly.
  */
 
