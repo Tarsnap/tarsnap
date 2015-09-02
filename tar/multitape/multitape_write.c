@@ -898,6 +898,10 @@ writetape_close(TAPE_W * d)
 	chunkify_free(d->t.c);
 	chunkify_free(d->c.c);
 	chunkify_free(d->h.c);
+	free(d->t.index);
+	free(d->c.index);
+	free(d->h.index);
+	free(d->hbuf);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -914,6 +918,10 @@ err1:
 	chunkify_free(d->t.c);
 	chunkify_free(d->c.c);
 	chunkify_free(d->h.c);
+	free(d->t.index);
+	free(d->c.index);
+	free(d->h.index);
+	free(d->hbuf);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -941,6 +949,16 @@ writetape_free(TAPE_W * d)
 	chunkify_free(d->t.c);
 	chunkify_free(d->c.c);
 	chunkify_free(d->h.c);
+	/*
+	 * The .index and hbuf are not allocated yet (since
+	 * writetape_free is only called from
+	 * archive_write_open_multitape()), but I imitate the
+	 * cleanup of writetable_close().
+	 */
+	free(d->t.index);
+	free(d->c.index);
+	free(d->h.index);
+	free(d->hbuf);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
