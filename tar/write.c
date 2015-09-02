@@ -270,7 +270,8 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 		}
 	}
 
-	a = archive_write_new();
+	if ((a = archive_write_new()) == NULL)
+		bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
 
 	/* We only support the pax restricted format. */
 	archive_write_set_format_pax_restricted(a);
