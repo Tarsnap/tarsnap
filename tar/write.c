@@ -284,22 +284,28 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    bsdtar->argc_orig, bsdtar->argv_orig,
 	    bsdtar->option_print_stats, bsdtar->option_dryrun,
 	    bsdtar->creationtime);
-	if (bsdtar->write_cookie == NULL)
-		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
+	if (bsdtar->write_cookie == NULL) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		goto err_pre_write_archive;
+	}
 
 	/*
 	 * Remember the device and inode numbers of the cache directory, so
 	 * that we can skip it in write_hierarchy().
 	 */
 	if (getdevino(a, bsdtar->cachedir,
-	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
-		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
+	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino)) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		goto err_pre_write_archive;
+	}
 
 	/* If the chunkification cache is enabled, read it. */
 	if ((bsdtar->cachecrunch < 2) && (bsdtar->cachedir != NULL)) {
 		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
-		if (bsdtar->chunk_cache == NULL)
-			bsdtar_errc(bsdtar, 1, errno, "Error reading cache");
+		if (bsdtar->chunk_cache == NULL) {
+			bsdtar_warnc(bsdtar, errno, "Error reading cache");
+			goto err_pre_write_archive;
+		}
 	}
 
 	write_archive(a, bsdtar);
@@ -309,13 +315,32 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	 * cache enabled, write the cache back to disk.
 	 */
 	if ((bsdtar->option_dryrun == 0) && (bsdtar->cachecrunch < 2)) {
-		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir))
-			bsdtar_errc(bsdtar, 1, errno, "Error writing cache");
+		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir)) {
+			bsdtar_warnc(bsdtar, errno, "Error writing cache");
+			goto err_post_write_archive;
+		}
 	}
 
 	/* Free the chunkification cache. */
 	if (bsdtar->cachecrunch < 2)
 		ccache_free(bsdtar->chunk_cache);
+
+	/* Success */
+	return;
+
+err_pre_write_archive:
+	archive_write_finish(a);
+
+	/* Failure */
+	bsdtar->return_value = 1;
+	return;
+
+err_post_write_archive:
+	ccache_free(bsdtar->chunk_cache);
+
+	/* Failure */
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
