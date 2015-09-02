@@ -100,6 +100,9 @@ struct delayedopt {
 /* External function to parse a date/time string (from getdate.y) */
 time_t get_date(time_t, const char *);
 
+static struct bsdtar	*bsdtar_init(void);
+static void		 bsdtar_atexit(void);
+
 static void		 build_dir(struct bsdtar *, const char *dir,
 			     const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
@@ -122,10 +125,74 @@ static void		 version(void);
 	(ARCHIVE_EXTRACT_SECURE_SYMLINKS		\
 	 | ARCHIVE_EXTRACT_SECURE_NODOTDOT)
 
+static struct bsdtar bsdtar_storage;
+
+static struct bsdtar *
+bsdtar_init(void)
+{
+	struct bsdtar * bsdtar = &bsdtar_storage;
+
+	memset(bsdtar, 0, sizeof(*bsdtar));
+
+	/*
+	 * Initialize pointers.  memset() is insufficient since NULL is not
+	 * required to be represented in memory by zeroes.
+	 */
+	bsdtar->tapenames = NULL;
+	bsdtar->homedir = NULL;
+	bsdtar->cachedir = NULL;
+	bsdtar->pending_chdir = NULL;
+	bsdtar->names_from_file = NULL;
+	bsdtar->modestr = NULL;
+	bsdtar->configfiles = NULL;
+	bsdtar->archive = NULL;
+	bsdtar->progname = NULL;
+	bsdtar->argv = NULL;
+	bsdtar->optarg = NULL;
+	bsdtar->write_cookie = NULL;
+	bsdtar->chunk_cache = NULL;
+	bsdtar->argv_orig = NULL;
+	bsdtar->delopt = NULL;
+	bsdtar->delopt_tail = NULL;
+	bsdtar->diskreader = NULL;
+	bsdtar->resolver = NULL;
+	bsdtar->gname_cache = NULL;
+	bsdtar->buff = NULL;
+	bsdtar->matching = NULL;
+	bsdtar->security = NULL;
+	bsdtar->uname_cache = NULL;
+	bsdtar->siginfo = NULL;
+	bsdtar->substitution = NULL;
+
+	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
+	if (atexit(bsdtar_atexit)) {
+		fprintf(stderr, "tarsnap: Could not register atexit.\n");
+		exit(1);
+	}
+
+	return (bsdtar);
+}
+
+static void
+bsdtar_atexit(void)
+{
+	struct bsdtar *bsdtar;
+
+	bsdtar = &bsdtar_storage;
+
+	/* Free arrays allocated by malloc. */
+	free(bsdtar->tapenames);
+	free(bsdtar->configfiles);
+
+	/* Free strings allocated by strdup. */
+	free(bsdtar->cachedir);
+	free(bsdtar->homedir);
+}
+
 int
 main(int argc, char **argv)
 {
-	struct bsdtar		*bsdtar, bsdtar_storage;
+	struct bsdtar		*bsdtar;
 	int			 opt;
 	char			 possible_help_request;
 	char			 buff[16];
@@ -138,12 +205,9 @@ main(int argc, char **argv)
 
 	WARNP_INIT;
 
-	/*
-	 * Use a pointer for consistency, but stack-allocated storage
-	 * for ease of cleanup.
-	 */
-	bsdtar = &bsdtar_storage;
-	memset(bsdtar, 0, sizeof(*bsdtar));
+	/* Use a pointer for consistency. */
+	bsdtar = bsdtar_init();
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	/* Make sure open() function will be used with a binary mode. */
 	/* on cygwin, we need something similar, but instead link against */
