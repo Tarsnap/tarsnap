@@ -66,6 +66,7 @@ cache_lru_remove(STORAGE_R * S, struct read_file_cached * CF)
 {
 
 	/* Sanity check: We should be in the queue. */
+	assert(CF != NULL);
 	assert(CF->inqueue);
 
 	/* Our LRU file is now someone else's LRU file. */

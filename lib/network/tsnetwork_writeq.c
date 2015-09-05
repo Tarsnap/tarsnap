@@ -2,6 +2,7 @@
 
 #include <sys/time.h>
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,6 +35,9 @@ dowrite(struct network_writeq_internal * Q)
 {
 	struct network_writeq_buf * QB = Q->head;
 	struct timeval timeo;
+
+	/* Sanity check that the queue is non-empty */
+	assert(Q->head != NULL);
 
 	/* Figure out how long to allow for this buffer write. */
 	memcpy(&timeo, &QB->timeo, sizeof(struct timeval));
