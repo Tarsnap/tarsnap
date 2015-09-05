@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +61,10 @@ build_dir(const char *dir, const char *diropt)
 	struct stat sb;
 	char * s;
 	const char * dirseppos;
+
+	/* We need a directory name and the config option. */
+	assert(dir != NULL);
+	assert(diropt != NULL);
 
 	/* Move through *dir and build all parent directories. */
 	for (dirseppos = dir; *dirseppos != '\0'; ) {

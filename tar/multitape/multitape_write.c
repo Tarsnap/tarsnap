@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -729,6 +730,12 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	struct tapemetadata tmd;
 	struct tapemetaindex tmi;
 	char * tapename;
+
+	/*
+	 * We need a tapename.  Anonymous dry runs are assigned a fake name
+	 * before this point.
+	 */
+	assert(d->tapename != NULL);
 
 	/* Tell the chunkifiers that there will be no more data. */
 	if (chunkify_end(d->c_file))

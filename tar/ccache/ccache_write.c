@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -173,6 +174,9 @@ ccache_write(CCACHE * cache, const char * path)
 	uint8_t N[4];
 	char * s_old;
 
+	/* The caller must pass a file name to be written. */
+	assert(path != NULL);
+
 	/* Construct name of temporary cache file. */
 	if (asprintf(&W.s, "%s/cache.new", path) == -1) {
 		warnp("asprintf");
@@ -272,6 +276,9 @@ int
 ccache_remove(const char * path)
 {
 	char * s;
+
+	/* The caller must pass a file name to be deleted. */
+	assert(path != NULL);
 
 	/* Construct the name of the cache file. */
 	if (asprintf(&s, "%s/cache", path) == -1) {

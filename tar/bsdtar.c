@@ -75,6 +75,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include <zlib.h>
 #endif
 
+#include <assert.h>
+
 #include "bsdtar.h"
 #include "crypto.h"
 #include "keyfile.h"
@@ -1141,6 +1143,10 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 	struct stat sb;
 	char * s;
 	const char * dirseppos;
+
+	/* We need a directory name and the config option. */
+	assert(dir != NULL);
+	assert(diropt != NULL); 
 
 	/* Move through *dir and build all parent directories. */
 	for (dirseppos = dir; *dirseppos != '\0'; ) {
