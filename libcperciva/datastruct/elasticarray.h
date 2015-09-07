@@ -90,6 +90,14 @@ void elasticarray_free(struct elasticarray *);
 int elasticarray_export(struct elasticarray *, void **, size_t *, size_t);
 
 /**
+ * elasticarray_exportdup(EA, buf, nrec, reclen):
+ * Duplicate the data in the elastic array ${EA} into a buffer ${buf}
+ * containing ${nrec} records of length ${reclen}.  (Same as _export, except
+ * that the elastic array remains intact.)
+ */
+int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
+
+/**
  * ELASTICARRAY_DECL(type, prefix, rectype):
  * Declare the type ${type} and the following functions:
  * ${type} ${prefix}_init(size_t nrec);
@@ -160,6 +168,14 @@ int elasticarray_export(struct elasticarray *, void **, size_t *, size_t);
 	    size_t * nrec)						\
 	{								\
 		return (elasticarray_export((struct elasticarray *)EA,	\
+		    (void **)buf, nrec, sizeof(rectype)));		\
+	}								\
+	static inline int						\
+	prefix##_exportdup(struct prefix##_struct * EA, rectype ** buf,	\
+	    size_t * nrec)						\
+	{								\
+		return (						\
+		    elasticarray_exportdup((struct elasticarray *)EA,	\
 		    (void **)buf, nrec, sizeof(rectype)));		\
 	}								\
 	typedef struct prefix##_struct * type

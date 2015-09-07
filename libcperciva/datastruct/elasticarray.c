@@ -280,3 +280,32 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * elasticarray_exportdup(EA, buf, nrec, reclen):
+ * Duplicate the data in the elastic array ${EA} into a buffer ${buf}
+ * containing ${nrec} records of length ${reclen}.  (Same as _export, except
+ * that the elastic array remains intact.)
+ */
+int
+elasticarray_exportdup(struct elasticarray * EA, void ** buf, size_t * nrec,
+    size_t reclen)
+{
+
+	/* Allocate buffer for the caller's copy of the data. */
+	if ((*buf = malloc(EA->size)) == NULL)
+		goto err0;
+
+	/* Copy the data in. */
+	memcpy(*buf, EA->buf, EA->size);
+
+	/* Tell the caller how many records we have. */
+	*nrec = elasticarray_getsize(EA, reclen);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
