@@ -9,6 +9,7 @@
 #include "chunks.h"
 #include "crypto.h"
 #include "dirutil.h"
+#include "elasticarray.h"
 #include "storage.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -29,11 +30,12 @@
  */
 #define	MINCHUNK	4096
 
+/* Elastic array of chunk headers. */
+ELASTICARRAY_DECL(CHUNKLIST, chunklist, struct chunkheader);
+
 /* Stream parameters. */
 struct stream {
-	uint8_t * index;	/* Stream chunk index. */
-	size_t indexlen;	/* Length of chunk index. */
-	size_t indexalloc;	/* Storage allocated for chunk index. */
+	CHUNKLIST index;	/* Stream chunk index. */
 	CHUNKIFIER * c;		/* Chunkifier for stream. */
 };
 
@@ -89,6 +91,42 @@ static chunkify_callback callback_c;
 static chunkify_callback callback_file;
 static int endentry(TAPE_W *);
 static int flushtape(TAPE_W *, int, int);
+
+/* Initialize stream. */
+static int
+stream_init(struct stream * S, chunkify_callback callback, void * cookie)
+{
+
+	/* Create chunkfier. */
+	if ((S->c =
+	    chunkify_init(MEANCHUNK, MAXCHUNK, callback, cookie)) == NULL)
+		goto err0;
+
+	/* Allocate elastic array to hold chunk headers. */
+	if ((S->index = chunklist_init(0)) == NULL)
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	chunkify_free(S->c);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/* Free stream. */
+static void
+stream_free(struct stream * S)
+{
+
+	/* Free the elastic array of chunk headers. */
+	chunklist_free(S->index);
+
+	/* Free the chunkifier. */
+	chunkify_free(S->c);
+}
 
 /**
  * tapepresent(S, fmt, s):
@@ -187,30 +225,9 @@ handle_chunk(uint8_t * buf, size_t buflen, struct stream * S, CHUNKS_W * C)
 	if (store_chunk(buf, buflen, &ch, C))
 		goto err0;
 
-	/* Enlarge index if needed. */
-	while (S->indexalloc - S->indexlen < sizeof(struct chunkheader)) {
-		if (S->indexalloc == 0)
-			indexalloc_new = sizeof(struct chunkheader);
-		else
-			indexalloc_new = S->indexalloc * 2;
-
-		/* Handle integer overflows. */
-		if (indexalloc_new < S->indexalloc) {
-			errno = ENOMEM;
-			goto err0;
-		}
-
-		index_new = realloc(S->index, indexalloc_new);
-		if (index_new == NULL)
-			goto err0;
-
-		S->index = index_new;
-		S->indexalloc = indexalloc_new;
-	}
-
-	/* Copy chunk header into buffer. */
-	memcpy(S->index + S->indexlen, &ch, sizeof(struct chunkheader));
-	S->indexlen += sizeof(struct chunkheader);
+	/* Add chunk header to elastic array. */
+	if (chunklist_append(S->index, &ch, 1))
+		goto err0;
 
 	/* Success! */
 	return (0);
@@ -445,20 +462,18 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if ((d->dryrun == 0) && tapepresent(d->S, "%s.part", tapename))
 		goto err6;
 
-	/* Create chunkifiers. */
-	d->h.c = d->c.c = d->t.c = d->c_file = NULL;
-	if ((d->h.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_h,
-	    (void *)d)) == NULL)
+	/* Initialize streams. */
+	if (stream_init(&d->h, &callback_h, (void *)d))
+		goto err6;
+	if (stream_init(&d->c, &callback_c, (void *)d))
 		goto err7;
-	if ((d->c.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_c,
-	    (void *)d)) == NULL)
-		goto err7;
-	if ((d->t.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_t,
-	    (void *)d)) == NULL)
-		goto err7;
+	if (stream_init(&d->t, &callback_t, (void *)d))
+		goto err8;
+
+	/* Iinitialize file chunkifier. */
 	if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_file,
 	    (void *)d)) == NULL)
-		goto err7;
+		goto err9;
 
 	/* No data has entered or exited c_file. */
 	d->c_file_in = d->c_file_out = 0;
@@ -466,12 +481,12 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Success! */
 	return (d);
 
+err9:
+	stream_free(&d->t);
+err8:
+	stream_free(&d->c);
 err7:
-	warnp("Error initializing chunkifier");
-	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	stream_free(&d->h);
 err6:
 	chunks_write_free(d->C);
 err5:
@@ -739,12 +754,17 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	tmd.ctime = d->ctime;
 	tmd.argc = d->argc;
 	tmd.argv = d->argv;
-	tmi.hindex = d->h.index;
-	tmi.hindexlen = d->h.indexlen;
-	tmi.cindex = d->c.index;
-	tmi.cindexlen = d->c.indexlen;
-	tmi.tindex = d->t.index;
-	tmi.tindexlen = d->t.indexlen;
+	if (chunklist_exportdup(d->h.index, &tmi.hindex, &tmi.hindexlen))
+		goto err1;
+	if (chunklist_exportdup(d->c.index, &tmi.cindex, &tmi.cindexlen))
+		goto err2;
+	if (chunklist_exportdup(d->t.index, &tmi.tindex, &tmi.tindexlen))
+		goto err3;
+
+	/* Convert index lengths to bytes. */
+	tmi.hindexlen *= sizeof(struct chunkheader);
+	tmi.cindexlen *= sizeof(struct chunkheader);
+	tmi.tindexlen *= sizeof(struct chunkheader);
 
 	/*
 	 * Store archive metaindex.  Note that this must be done before the
@@ -752,11 +772,16 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	 * metadata concerning the index length and hash.
 	 */
 	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd, extrastats))
-		goto err1;
+		goto err4;
 
 	/* Store archive metadata. */
 	if (multitape_metadata_put(d->S, d->C, &tmd, extrastats))
-		goto err1;
+		goto err4;
+
+	/* Free duplicated chunk indexes. */
+	free(tmi.hindex);
+	free(tmi.cindex);
+	free(tmi.tindex);
 
 	/* Free string allocated by asprintf. */
 	free(tapename);
@@ -768,6 +793,12 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	/* Success! */
 	return (0);
 
+err4:
+	free(d->t.index);
+err3:
+	free(d->c.index);
+err2:
+	free(d->h.index);
 err1:
 	free(tapename);
 err0:
@@ -895,9 +926,9 @@ writetape_close(TAPE_W * d)
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -911,9 +942,9 @@ err2:
 err1:
 	close(d->lockfd);
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -938,9 +969,9 @@ writetape_free(TAPE_W * d)
 	storage_write_free(d->S);
 	close(d->lockfd);
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);

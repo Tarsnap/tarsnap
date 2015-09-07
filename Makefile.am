@@ -294,6 +294,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/datastruct	\
 		-I$(top_srcdir)/libcperciva/util	\
 		"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
