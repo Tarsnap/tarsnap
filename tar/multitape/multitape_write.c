@@ -745,11 +745,14 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	tmd.ctime = d->ctime;
 	tmd.argc = d->argc;
 	tmd.argv = d->argv;
-	if (chunklist_exportdup(d->h.index, &tmi.hindex, &tmi.hindexlen))
+	if (chunklist_exportdup(d->h.index,
+	    (struct chunkheader **)&tmi.hindex, &tmi.hindexlen))
 		goto err1;
-	if (chunklist_exportdup(d->c.index, &tmi.cindex, &tmi.cindexlen))
+	if (chunklist_exportdup(d->c.index,
+	    (struct chunkheader **)&tmi.cindex, &tmi.cindexlen))
 		goto err2;
-	if (chunklist_exportdup(d->t.index, &tmi.tindex, &tmi.tindexlen))
+	if (chunklist_exportdup(d->t.index,
+	    (struct chunkheader **)&tmi.tindex, &tmi.tindexlen))
 		goto err3;
 
 	/* Convert index lengths to bytes. */
