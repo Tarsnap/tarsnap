@@ -33,6 +33,9 @@
 /* Elastic array of chunk headers. */
 ELASTICARRAY_DECL(CHUNKLIST, chunklist, struct chunkheader);
 
+/* Elastic array of bytes. */
+ELASTICARRAY_DECL(BYTEBUF, bytebuf, uint8_t);
+
 /* Stream parameters. */
 struct stream {
 	CHUNKLIST index;	/* Stream chunk index. */
@@ -70,9 +73,7 @@ struct multitape_write_internal {
 	int mode;		/* Tape mode (header, data, end of entry). */
 
 	/* Header buffering. */
-	uint8_t * hbuf;		/* Pending archive header. */
-	size_t hbufalloc;	/* Length of hbuf memory allocation. */
-	size_t hlen;		/* Pending header length. */
+	BYTEBUF	hbuf;		/* Pending archive header. */
 	off_t clen;		/* Length of chunkified file data. */
 	size_t tlen;		/* Length of file trailer. */
 
@@ -344,9 +345,19 @@ static int
 endentry(TAPE_W * d)
 {
 	struct entryheader eh;
+	uint8_t * hbuf;
+	size_t hlen;
+
+	/* Export the archive header as a static buffer. */
+	if (bytebuf_export(d->hbuf, &hbuf, &hlen))
+		goto err0;
+
+	/* Create a new elastic archive header buffer. */
+	if ((d->hbuf = bytebuf_init(0)) == NULL)
+		goto err0;
 
 	/* Construct entry header. */
-	le32enc(eh.hlen, d->hlen);
+	le32enc(eh.hlen, hlen);
 	le64enc(eh.clen, d->clen);
 	le32enc(eh.tlen, d->tlen);
 
@@ -356,11 +367,11 @@ endentry(TAPE_W * d)
 		goto err0;
 
 	/* Write archive header to header stream. */
-	if (chunkify_write(d->h.c, d->hbuf, d->hlen))
+	if (chunkify_write(d->h.c, hbuf, hlen))
 		goto err0;
 
 	/* Reset pending write lengths. */
-	d->hlen = d->clen = d->tlen = 0;
+	d->clen = d->tlen = 0;
 
 	/* Success! */
 	return (0);
@@ -470,10 +481,14 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if (stream_init(&d->t, &callback_t, (void *)d))
 		goto err8;
 
+	/* Initialize header buffer. */
+	if ((d->hbuf = bytebuf_init(0)) == NULL)
+		goto err9;
+
 	/* Iinitialize file chunkifier. */
 	if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_file,
 	    (void *)d)) == NULL)
-		goto err9;
+		goto err10;
 
 	/* No data has entered or exited c_file. */
 	d->c_file_in = d->c_file_out = 0;
@@ -481,6 +496,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Success! */
 	return (d);
 
+err10:
+	bytebuf_free(d->hbuf);
 err9:
 	stream_free(&d->t);
 err8:
@@ -533,8 +550,6 @@ writetape_setcallback(TAPE_W * d,
 ssize_t
 writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 {
-	uint8_t * hbuf_new;
-	size_t hbufalloc_new;
 
 	/* Don't write anything if we're truncating the archive. */
 	if (d->eof)
@@ -557,31 +572,7 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 		/* FALLTHROUGH */
 	case 0:
 		/* We're in header mode.  Append the data to d->hbuf. */
-
-		/* Enlarge the buffer if necessary. */
-		while (d->hbufalloc - d->hlen < nbytes) {
-			if (d->hbufalloc == 0)
-				hbufalloc_new = nbytes;
-			else
-				hbufalloc_new = d->hbufalloc * 2;
-
-			/* Handle integer overflows. */
-			if (hbufalloc_new < d->hbufalloc) {
-				errno = ENOMEM;
-				goto err0;
-			}
-
-			hbuf_new = realloc(d->hbuf, hbufalloc_new);
-			if (hbuf_new == NULL)
-				goto err0;
-
-			d->hbuf = hbuf_new;
-			d->hbufalloc = hbufalloc_new;
-		}
-
-		/* Buffer is large enough; copy the data. */
-		memcpy(d->hbuf + d->hlen, buffer, nbytes);
-		d->hlen += nbytes;
+		bytebuf_append(d->hbuf, buffer, nbytes);
 	}
 
 	/* Success! */
@@ -926,6 +917,7 @@ writetape_close(TAPE_W * d)
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
+	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
 	stream_free(&d->c);
 	stream_free(&d->h);
@@ -942,6 +934,7 @@ err2:
 err1:
 	close(d->lockfd);
 	chunkify_free(d->c_file);
+	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
 	stream_free(&d->c);
 	stream_free(&d->h);
@@ -969,6 +962,7 @@ writetape_free(TAPE_W * d)
 	storage_write_free(d->S);
 	close(d->lockfd);
 	chunkify_free(d->c_file);
+	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
 	stream_free(&d->c);
 	stream_free(&d->h);
