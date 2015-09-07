@@ -354,7 +354,7 @@ endentry(TAPE_W * d)
 
 	/* Create a new elastic archive header buffer. */
 	if ((d->hbuf = bytebuf_init(0)) == NULL)
-		goto err0;
+		goto err1;
 
 	/* Construct entry header. */
 	le32enc(eh.hlen, hlen);
@@ -364,11 +364,14 @@ endentry(TAPE_W * d)
 	/* Write entry header to header stream. */
 	if (chunkify_write(d->h.c, (uint8_t *)(&eh),
 	    sizeof(struct entryheader)))
-		goto err0;
+		goto err1;
 
 	/* Write archive header to header stream. */
 	if (chunkify_write(d->h.c, hbuf, hlen))
-		goto err0;
+		goto err1;
+
+	/* Free header buffer. */
+	free(hbuf);
 
 	/* Reset pending write lengths. */
 	d->clen = d->tlen = 0;
@@ -376,6 +379,8 @@ endentry(TAPE_W * d)
 	/* Success! */
 	return (0);
 
+err1:
+	free(hbuf);
 err0:
 	/* Failure! */
 	return (-1);
