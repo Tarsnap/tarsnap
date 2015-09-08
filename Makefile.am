@@ -311,6 +311,7 @@ tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keygen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -335,6 +336,7 @@ tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keyregen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
