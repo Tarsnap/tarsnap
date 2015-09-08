@@ -17,6 +17,7 @@
 #include "crypto_verify_bytes.h"
 #include "humansize.h"
 #include "keyfile.h"
+#include "keygen.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "tsnetwork.h"
@@ -24,24 +25,6 @@
 #include "sysendian.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
-
-struct register_internal {
-	/* Parameters provided from main() to network code. */
-	const char * user;
-	char * passwd;
-	const char * name;
-
-	/* State information. */
-	int donechallenge;
-	int done;
-
-	/* Key used to send challenge response and verify server response. */
-	uint8_t register_key[32];
-
-	/* Data returned by server. */
-	uint8_t status;
-	uint64_t machinenum;
-};
 
 static sendpacket_callback callback_register_send;
 static handlepacket_callback callback_register_challenge;
