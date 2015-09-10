@@ -154,8 +154,10 @@ archive_read_support_compression_program_signature(struct archive *_a,
 	 */
 	state = (struct program_bidder *)calloc(sizeof (*state), 1);
 	if (state == NULL)
-		return (ARCHIVE_FATAL);
+		goto memerr;
 	state->cmd = strdup(cmd);
+	if (state->cmd == NULL)
+		goto memerr;
 	if (signature != NULL && signature_len > 0) {
 		state->signature_len = signature_len;
 		state->signature = malloc(signature_len);
@@ -171,6 +173,11 @@ archive_read_support_compression_program_signature(struct archive *_a,
 	bidder->options = NULL;
 	bidder->free = program_bidder_free;
 	return (ARCHIVE_OK);
+
+memerr:
+	free(state);
+	archive_set_error(_a, ENOMEM, "Can't allocate memory");
+	return (ARCHIVE_FATAL);
 }
 
 static int
