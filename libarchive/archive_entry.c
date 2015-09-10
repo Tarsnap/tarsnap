@@ -1712,7 +1712,10 @@ archive_entry_xattr_add_entry(struct archive_entry *entry,
 		/* XXX Error XXX */
 		return;
 
-	xp->name = strdup(name);
+	if ((xp->name = strdup(name)) == NULL)
+		/* XXX Error XXX */
+		return;
+
 	if ((xp->value = malloc(size)) != NULL) {
 		memcpy(xp->value, value, size);
 		xp->size = size;
