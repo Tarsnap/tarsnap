@@ -472,8 +472,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		d->S = NULL;
 
 	/* Obtain a write cookie from the chunk layer. */
-	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK,
-	    d->dryrun)) == NULL)
+	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK)) == NULL)
 		goto err5;
 
 	/*
