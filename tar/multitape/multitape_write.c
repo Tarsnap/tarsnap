@@ -56,10 +56,9 @@ struct multitape_write_internal {
 	char ** argv;		/* Command-line arguments. */
 	int stats_enabled;	/* Stats printed on close. */
 	int eof;		/* Tape is truncated at current position. */
-	int dryrun;		/* A dry run is being performed. */
 
 	/* Lower level cookies. */
-	STORAGE_W * S;		/* Storage layer write cookie. */
+	STORAGE_W * S;		/* Storage layer write cookie; NULL=dryrun. */
 	CHUNKS_W * C;		/* Chunk layer write cookie. */
 	int lockfd;		/* Lock on cache directory. */
 	uint8_t seqnum[32];	/* Transaction sequence number. */
@@ -440,9 +439,6 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Record whether we should print archive statistics on close. */
 	d->stats_enabled = printstats;
 
-	/* Record whether this is a dry run. */
-	d->dryrun = dryrun;
-
 	/* If we're using a cache, make sure ${cachedir} exists. */
 	if ((cachedir != NULL) && (dirutil_needdir(cachedir)))
 		goto err3;
@@ -452,11 +448,11 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err3;
 
 	/* If this isn't a dry run, finish any pending commit. */
-	if ((d->dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
+	if ((dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
 		goto err4;
 
 	/* If this isn't a dry run, get the sequence number. */
-	if ((d->dryrun == 0) && (multitape_sequence(cachedir, lastseq)))
+	if ((dryrun == 0) && (multitape_sequence(cachedir, lastseq)))
 		goto err4;
 
 	/*
@@ -464,7 +460,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	 * layer.  If it is a dry run, set the storage cookie to NULL to
 	 * denote this fact.
 	 */
-	if (d->dryrun == 0) {
+	if (dryrun == 0) {
 		if ((d->S = storage_write_start(machinenum, lastseq,
 		    d->seqnum)) == NULL)
 			goto err4;
@@ -480,9 +476,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	 * the specified name or that plus ".part" (in case the user decides
 	 * to truncate the archive).
 	 */
-	if ((d->dryrun == 0) && tapepresent(d->S, "%s", tapename))
+	if (tapepresent(d->S, "%s", tapename))
 		goto err6;
-	if ((d->dryrun == 0) && tapepresent(d->S, "%s.part", tapename))
+	if (tapepresent(d->S, "%s.part", tapename))
 		goto err6;
 
 	/* Initialize streams. */
@@ -859,7 +855,7 @@ writetape_checkpoint(TAPE_W * d)
 		goto err0;
 
 	/* If this isn't a dry run, create a checkpoint. */
-	if ((d->dryrun == 0) &&
+	if ((d->S != NULL) &&
 	    multitape_checkpoint(d->cachedir, d->machinenum, d->seqnum))
 		goto err0;
 
@@ -925,7 +921,7 @@ writetape_close(TAPE_W * d)
 	 * If this isn't a dry run, create a checkpoint and commit the
 	 * write transaction.
 	 */
-	if (d->dryrun == 0) {
+	if (d->S != NULL) {
 		if (multitape_checkpoint(d->cachedir, d->machinenum,
 		    d->seqnum))
 			goto err1;
