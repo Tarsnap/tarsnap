@@ -32,9 +32,6 @@ struct storage_write_internal {
 	uint64_t machinenum;
 	uint8_t nonce[32];
 
-	/* Is this a dry run? */
-	int dryrun;
-
 	/* Number of connections to use. */
 	size_t numconns;
 
@@ -117,16 +114,15 @@ raisesigs(struct storage_write_internal * S)
 }
 
 /**
- * storage_write_start(machinenum, lastseq, seqnum, dryrun):
+ * storage_write_start(machinenum, lastseq, seqnum):
  * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run
- * (which ignores ${lastseq} and sets ${seqnum} to 32 0s).
+ * into ${seqnum}.
  */
 STORAGE_W *
 storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
-    uint8_t seqnum[32], int dryrun)
+    uint8_t seqnum[32])
 {
 	struct storage_write_internal * S;
 	size_t i;
@@ -137,9 +133,6 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 
 	/* Store machine number. */
 	S->machinenum = machinenum;
-
-	/* Record whether this is a dry run. */
-	S->dryrun = dryrun;
 
 	/* Figure out how many connections to use. */
 	S->numconns = tarsnap_opt_aggressive_networking ? AGGRESSIVE_CNUM : 1;
@@ -156,16 +149,10 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 			goto err1;
 	}
 
-	/*
-	 * If this isn't a dry run, start a write transaction.
-	 * Otherwise, initialize the nonce to 0.
-	 */
-	if (S->dryrun == 0) {
-		if (storage_transaction_start_write(S->NPC[0], machinenum,
-		    lastseq, S->nonce))
-			goto err2;
-	} else
-		memset(S->nonce, 0, 32);
+	/* Start a write transaction. */
+	if (storage_transaction_start_write(S->NPC[0], machinenum,
+	    lastseq, S->nonce))
+		goto err2;
 
 	/* Copy the transaction nonce out. */
 	memcpy(seqnum, S->nonce, 32);
@@ -314,10 +301,6 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 
 	/* No-op on NULL. */
 	if (S == NULL)
-		return (0);
-
-	/* If this is a dry run, return without doing anything. */
-	if (S->dryrun)
 		return (0);
 
 	/* Create write cookie. */

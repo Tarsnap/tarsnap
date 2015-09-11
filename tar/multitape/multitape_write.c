@@ -466,7 +466,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	 */
 	if (d->dryrun == 0) {
 		if ((d->S = storage_write_start(machinenum, lastseq,
-		    d->seqnum, d->dryrun)) == NULL)
+		    d->seqnum)) == NULL)
 			goto err4;
 	} else
 		d->S = NULL;
