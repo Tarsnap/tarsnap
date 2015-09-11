@@ -459,10 +459,12 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if ((d->dryrun == 0) && (multitape_sequence(cachedir, lastseq)))
 		goto err4;
 
-	/* Obtain write cookies from the storage and chunk layers. */
+	/* Obtain a write cookie from the storage layer. */
 	if ((d->S = storage_write_start(machinenum, lastseq,
 	    d->seqnum, d->dryrun)) == NULL)
 		goto err4;
+
+	/* Obtain a write cookie from the chunk layer. */
 	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK,
 	    d->dryrun)) == NULL)
 		goto err5;
