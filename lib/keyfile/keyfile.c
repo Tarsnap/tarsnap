@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -121,6 +122,9 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	uint8_t * deckeybuf;
 	size_t deckeylen;
 	int rc;
+
+	/* The caller must pass a file name to be read. */
+	assert(filename != NULL);
 
 	/* Sanity-check size. */
 	if (keylen == 0) {

@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -298,6 +299,10 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 	char * s;
 	int fd;
 
+	/* The caller must pass the cachepath, and a suffix to use. */
+	assert(cachepath != NULL);
+	assert(suff != NULL);
+
 	/* Construct the path to the new chunk directory. */
 	if (asprintf(&s, "%s/directory%s", cachepath, suff) == -1) {
 		warnp("asprintf");
@@ -388,6 +393,11 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 	struct stat sbt;
 	char * s;
 	char * t;
+
+	/* The caller must pass the cachepath, and suffices to use. */
+	assert(cachepath != NULL);
+	assert(nsuff != NULL);
+	assert(osuff != NULL);
 
 	/* Construct file names. */
 	if (asprintf(&s, "%s/directory%s", cachepath, nsuff) == -1) {
