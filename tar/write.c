@@ -450,6 +450,16 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		archive_entry_linkify(bsdtar->resolver, &entry, &sparse_entry);
 	}
 
+	/*
+	 * Check whether the archive is empty; this is unaffected by
+	 * deduplication.  Must be done before the archive is closed since
+	 * even empty archives end up with nonzero size due to tar EOF blocks.
+	 */
+	if ((!bsdtar->option_quiet) &&
+	    (archive_position_compressed(a) == 0)) {
+		bsdtar_warnc(bsdtar, 0, "Warning: Archive contains no files");
+	}
+
 	if (archive_write_close(a)) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
 		bsdtar->return_value = 1;
