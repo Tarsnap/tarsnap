@@ -188,12 +188,17 @@ err0:
  * storage_write_fexist(S, class, name):
  * Test if a file ${name} exists in class ${class}, as part of the write
  * transaction associated with the cookie ${S}; return 1 if the file
- * exists, 0 if not, and -1 on error.
+ * exists, 0 if not, and -1 on error.  If ${S} is NULL, return 0 without doing
+ * anything.
  */
 int
 storage_write_fexist(STORAGE_W * S, char class, const uint8_t name[32])
 {
 	struct write_fexist_internal C;
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Initialize structure. */
 	C.machinenum = S->machinenum;
@@ -298,13 +303,18 @@ err0:
 /**
  * storage_write_file(S, buf, len, class, name):
  * Write ${len} bytes from ${buf} to the file ${name} in class ${class} as
- * part of the write transaction associated with the cookie ${S}.
+ * part of the write transaction associated with the cookie ${S}.  If ${S} is
+ * NULL, return 0 without doing anything.
  */
 int
 storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
     char class, const uint8_t name[32])
 {
 	struct write_file_internal  * C;
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* If this is a dry run, return without doing anything. */
 	if (S->dryrun)
@@ -458,10 +468,15 @@ err1:
  * storage_write_flush(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being committed.
+ * If ${S} is NULL, return 0 without doing anything.
  */
 int
 storage_write_flush(STORAGE_W * S)
 {
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Wait until all pending writes have been completed. */
 	while (S->nbytespending > 0) {
@@ -481,12 +496,17 @@ err0:
  * storage_write_end(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being
- * committed; and close the transaction and free associated memory.
+ * committed; and close the transaction and free associated memory.  If ${S}
+ * is NULL, return 0 without doing anything.
  */
 int
 storage_write_end(STORAGE_W * S)
 {
 	size_t i;
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Flush any pending writes. */
 	if (storage_write_flush(S))
