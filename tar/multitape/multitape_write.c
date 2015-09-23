@@ -221,8 +221,6 @@ static int
 handle_chunk(uint8_t * buf, size_t buflen, struct stream * S, CHUNKS_W * C)
 {
 	struct chunkheader ch;
-	uint8_t * index_new;
-	size_t indexalloc_new;
 
 	if (store_chunk(buf, buflen, &ch, C))
 		goto err0;
