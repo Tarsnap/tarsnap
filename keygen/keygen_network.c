@@ -7,11 +7,10 @@
 #include "sysendian.h"
 #include "warnp.h"
 
-static sendpacket_callback callback_register_send;
 static handlepacket_callback callback_register_challenge;
 static handlepacket_callback callback_register_response;
 
-static int
+int
 callback_register_send(void * cookie, NETPACKET_CONNECTION * NPC)
 {
 	struct register_internal * C = cookie;
