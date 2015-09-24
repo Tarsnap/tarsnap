@@ -42,12 +42,12 @@ int chunks_read_chunk(CHUNKS_R *, const uint8_t *, size_t, size_t,
 void chunks_read_free(CHUNKS_R *);
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize, dryrun):
+ * chunks_write_start(cachepath, S, maxchunksize):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.  If ${dryrun} is non-zero, perform a dry run.
+ * ${maxchunksize}.
  */
-CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t, int);
+CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t);
 
 /**
  * chunks_write_chunk(C, hash, buf, buflen):

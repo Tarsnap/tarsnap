@@ -32,9 +32,6 @@ struct storage_write_internal {
 	uint64_t machinenum;
 	uint8_t nonce[32];
 
-	/* Is this a dry run? */
-	int dryrun;
-
 	/* Number of connections to use. */
 	size_t numconns;
 
@@ -117,16 +114,15 @@ raisesigs(struct storage_write_internal * S)
 }
 
 /**
- * storage_write_start(machinenum, lastseq, seqnum, dryrun):
+ * storage_write_start(machinenum, lastseq, seqnum):
  * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run
- * (which ignores ${lastseq} and sets ${seqnum} to 32 0s).
+ * into ${seqnum}.
  */
 STORAGE_W *
 storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
-    uint8_t seqnum[32], int dryrun)
+    uint8_t seqnum[32])
 {
 	struct storage_write_internal * S;
 	size_t i;
@@ -137,9 +133,6 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 
 	/* Store machine number. */
 	S->machinenum = machinenum;
-
-	/* Record whether this is a dry run. */
-	S->dryrun = dryrun;
 
 	/* Figure out how many connections to use. */
 	S->numconns = tarsnap_opt_aggressive_networking ? AGGRESSIVE_CNUM : 1;
@@ -156,16 +149,10 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 			goto err1;
 	}
 
-	/*
-	 * If this isn't a dry run, start a write transaction.
-	 * Otherwise, initialize the nonce to 0.
-	 */
-	if (S->dryrun == 0) {
-		if (storage_transaction_start_write(S->NPC[0], machinenum,
-		    lastseq, S->nonce))
-			goto err2;
-	} else
-		memset(S->nonce, 0, 32);
+	/* Start a write transaction. */
+	if (storage_transaction_start_write(S->NPC[0], machinenum,
+	    lastseq, S->nonce))
+		goto err2;
 
 	/* Copy the transaction nonce out. */
 	memcpy(seqnum, S->nonce, 32);
@@ -188,12 +175,17 @@ err0:
  * storage_write_fexist(S, class, name):
  * Test if a file ${name} exists in class ${class}, as part of the write
  * transaction associated with the cookie ${S}; return 1 if the file
- * exists, 0 if not, and -1 on error.
+ * exists, 0 if not, and -1 on error.  If ${S} is NULL, return 0 without doing
+ * anything.
  */
 int
 storage_write_fexist(STORAGE_W * S, char class, const uint8_t name[32])
 {
 	struct write_fexist_internal C;
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Initialize structure. */
 	C.machinenum = S->machinenum;
@@ -298,7 +290,8 @@ err0:
 /**
  * storage_write_file(S, buf, len, class, name):
  * Write ${len} bytes from ${buf} to the file ${name} in class ${class} as
- * part of the write transaction associated with the cookie ${S}.
+ * part of the write transaction associated with the cookie ${S}.  If ${S} is
+ * NULL, return 0 without doing anything.
  */
 int
 storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
@@ -306,8 +299,8 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 {
 	struct write_file_internal  * C;
 
-	/* If this is a dry run, return without doing anything. */
-	if (S->dryrun)
+	/* No-op on NULL. */
+	if (S == NULL)
 		return (0);
 
 	/* Create write cookie. */
@@ -458,10 +451,15 @@ err1:
  * storage_write_flush(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being committed.
+ * If ${S} is NULL, return 0 without doing anything.
  */
 int
 storage_write_flush(STORAGE_W * S)
 {
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Wait until all pending writes have been completed. */
 	while (S->nbytespending > 0) {
@@ -481,12 +479,17 @@ err0:
  * storage_write_end(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being
- * committed; and close the transaction and free associated memory.
+ * committed; and close the transaction and free associated memory.  If ${S}
+ * is NULL, return 0 without doing anything.
  */
 int
 storage_write_end(STORAGE_W * S)
 {
 	size_t i;
+
+	/* No-op on NULL. */
+	if (S == NULL)
+		return (0);
 
 	/* Flush any pending writes. */
 	if (storage_write_flush(S))

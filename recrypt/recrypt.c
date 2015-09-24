@@ -622,7 +622,7 @@ main(int argc, char **argv)
 
 		/* Start a write transaction. */
 		if ((SW = storage_write_start(nmachinenum, nlastseq,
-		    nseqnum, 0)) == NULL) {
+		    nseqnum)) == NULL) {
 			warnp("Cannot start write transaction");
 			exit(1);
 		}
