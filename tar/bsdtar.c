@@ -121,6 +121,7 @@ static void		 optq_push(struct bsdtar *, const char *,
 static void		 optq_pop(struct bsdtar *);
 static void		 set_mode(struct bsdtar *, int opt, const char *optstr);
 static void		 version(void);
+static int		 argv_has_archive_directive(struct bsdtar *bsdtar);
 
 /* A basic set of security flags to request from libarchive. */
 #define	SECURITY					\
@@ -914,6 +915,11 @@ main(int argc, char **argv)
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':
+		if (argv_has_archive_directive(bsdtar))
+			missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE | CRYPTO_KEYMASK_READ);
+		else
+			missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
+		break;
 	case OPTION_RECOVER_WRITE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
 		break;
@@ -1695,4 +1701,30 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Key file belongs to wrong machine: %s", path);
 	bsdtar->machinenum = machinenum;
+}
+
+static int
+argv_has_archive_directive(struct bsdtar *bsdtar)
+{
+	int i;
+	const char *arg;
+
+	/* Find "@@*", but don't trigger on "-C @@foo". */
+	for (i = 0; i < bsdtar->argc; i++) {
+		/* Improves code legibility. */
+		arg = bsdtar->argv[i];
+
+		/* Detect "-C" by itself. */
+		if ((arg[0] == '-') && (arg[1] == 'C') && (arg[2] == '\0')) {
+			i++;
+			continue;
+		}
+
+		/* Detect any remaining "@@*". */
+		if ((arg[0] == '@') && (arg[1] == '@')) {
+			return (1);
+		}
+	}
+
+	return (0);
 }
