@@ -24,19 +24,19 @@ keygen_network_register(struct register_internal * C)
 
 	/* Open netpacket connection. */
 	if ((NPC = netpacket_open(USERAGENT)) == NULL)
-		goto err2;
+		goto err1;
 
 	/* Ask the netpacket layer to send a request and get a response. */
 	if (netpacket_op(NPC, callback_register_send, C))
-		goto err2;
+		goto err1;
 
 	/* Run event loop until an error occurs or we're done. */
 	if (network_spin(&C->done))
-		goto err2;
+		goto err1;
 
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
-		goto err2;
+		goto err1;
 
 	/*
 	 * If we didn't respond to a challenge, the server's response must
@@ -44,14 +44,14 @@ keygen_network_register(struct register_internal * C)
 	 */
 	if ((C->donechallenge == 0) && (C->status != 1)) {
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		goto err1;
+		goto err0;
 	}
 
 	/* The machine number should be -1 iff the status is nonzero. */
 	if (((C->machinenum == (uint64_t)(-1)) && (C->status == 0)) ||
 	    ((C->machinenum != (uint64_t)(-1)) && (C->status != 0))) {
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		goto err1;
+		goto err0;
 	}
 
 	/* Parse status returned by server. */
@@ -71,15 +71,15 @@ keygen_network_register(struct register_internal * C)
 		break;
 	default:
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
-		goto err2;
+		goto err1;
 	}
 
 	/* Success! */
 	return (0);
 
-err2:
-	warnp("Error registering with server");
 err1:
+	warnp("Error registering with server");
+err0:
 	/* Failure! */
 	return (-1);
 }
