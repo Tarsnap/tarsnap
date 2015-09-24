@@ -83,7 +83,6 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 void
 crypto_aesctr_free(struct crypto_aesctr * stream)
 {
-	int i;
 
 	/* Behave consistently with free(NULL). */
 	if (stream == NULL)
@@ -106,7 +105,6 @@ crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
 {
 	struct crypto_aesctr stream_rec;
 	struct crypto_aesctr * stream = &stream_rec;
-	int i;
 
 	/* Initialize values. */
 	stream->key = key;
