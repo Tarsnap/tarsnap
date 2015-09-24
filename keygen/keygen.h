@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#include "netpacket.h" /* temporary for callback_register_send. */
-
 struct register_internal {
 	/* Parameters provided from main() to network code. */
 	const char * user;
@@ -23,6 +21,6 @@ struct register_internal {
 	uint64_t machinenum;
 };
 
-int callback_register_send(void * cookie, NETPACKET_CONNECTION * NPC);
+int keygen_network_register(struct register_internal * C);
 
 #endif /* !_KEYGEN_H_ */
