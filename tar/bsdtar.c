@@ -79,8 +79,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 
 #include "bsdtar.h"
 #include "crypto.h"
-#include "keyfile.h"
 #include "humansize.h"
+#include "keyfile.h"
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
 #include "warnp.h"
