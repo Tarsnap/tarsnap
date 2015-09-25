@@ -81,8 +81,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "crypto.h"
 #include "keyfile.h"
 #include "humansize.h"
-#include "tsnetwork.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 /* Global tarsnap options declared in tarsnap_opt.h. */
