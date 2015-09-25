@@ -5,8 +5,8 @@
 #include "keygen.h"
 #include "netpacket.h"
 #include "netproto.h"
-#include "tsnetwork.h"
 #include "sysendian.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 static sendpacket_callback callback_register_send;

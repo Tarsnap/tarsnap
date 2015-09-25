@@ -12,9 +12,9 @@
 #include "crypto.h"
 #include "multitape.h"
 #include "multitape_internal.h"
-#include "tsnetwork.h"
 #include "patricia.h"
 #include "sysendian.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "ccache.h"

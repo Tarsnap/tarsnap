@@ -12,8 +12,8 @@
 #include "keyfile.h"
 #include "multitape_internal.h"
 #include "storage.h"
-#include "tsnetwork.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 /* Copy batches of 16384 blocks; print a . per 512 blocks. */
