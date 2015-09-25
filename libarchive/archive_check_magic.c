@@ -50,7 +50,16 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_check_magic.c,v 1.9 2008/12/06 05
 static void
 errmsg(const char *m)
 {
-	write(2, m, strlen(m));
+	size_t s = strlen(m);
+	ssize_t written;
+
+	while (s > 0) {
+		written = write(2, m, strlen(m));
+		if (written <= 0)
+			return;
+		m += written;
+		s -= written;
+	}
 }
 
 static void
@@ -60,8 +69,7 @@ diediedie(void)
 	/* Cause a breakpoint exception  */
 	DebugBreak();
 #endif
-	*(volatile char *)0 = 1;	/* Deliberately segfault and force a coredump. */
-	_exit(1);	/* If that didn't work, just exit with an error. */
+	abort();        /* Terminate the program abnormally. */
 }
 
 static const char *
