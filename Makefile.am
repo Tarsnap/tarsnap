@@ -305,12 +305,14 @@ tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 #
 #
 
-tarsnap_keygen_SOURCES=	keygen/keygen.c
+tarsnap_keygen_SOURCES=	keygen/keygen.c			\
+		keygen/keygen_network.c
 
 tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keygen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -329,12 +331,14 @@ tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 #
 #
 
-tarsnap_keyregen_SOURCES=	keyregen/keyregen.c
+tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
+		keygen/keygen_network.c
 
 tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keyregen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
