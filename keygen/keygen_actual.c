@@ -22,9 +22,16 @@
 #include "warnp.h"
 
 int
+keygen_actual(struct register_internal * C, const char * keyfilename,
+	const int passphrased, const uint64_t maxmem,
+	const double maxtime,
+	const char *oldkeyfilename)
 {
 	FILE * keyfile;
 	char * passphrase;
+
+	/* We are not using this during the keygen-only refactoring. */
+	(void)oldkeyfilename;
 
 	/* Sanity-check the user name. */
 	if (strlen(C->user) > 255) {
@@ -75,7 +82,7 @@ int
 	}
 
 	/* Register the keys with the server. */
-	if (keygen_network_register(&C) != 0)
+	if (keygen_network_register(C) != 0)
 		goto err1;
 
 	/* Shut down the network event loop. */
