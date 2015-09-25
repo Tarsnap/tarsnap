@@ -55,7 +55,7 @@ main(int argc, char **argv)
 	WARNP_INIT;
 
 	/* We have no username, machine name, or key filename yet. */
-	C.user = C.name = NULL;
+	C->user = C->name = NULL;
 	keyfilename = NULL;
 
 	/*
@@ -71,14 +71,14 @@ main(int argc, char **argv)
 		argv++;
 
 		if (strcmp(argv[0], "--user") == 0) {
-			if ((C.user != NULL) || (argc < 2))
+			if ((C->user != NULL) || (argc < 2))
 				usage();
-			C.user = argv[1];
+			C->user = argv[1];
 			argv++; argc--;
 		} else if (strcmp(argv[0], "--machine") == 0) {
-			if ((C.name != NULL) || (argc < 2))
+			if ((C->name != NULL) || (argc < 2))
 				usage();
-			C.name = argv[1];
+			C->name = argv[1];
 			argv++; argc--;
 		} else if (strcmp(argv[0], "--keyfile") == 0) {
 			if ((keyfilename != NULL) || (argc < 2))
@@ -112,7 +112,7 @@ main(int argc, char **argv)
 	}
 
 	/* We must have a user name, machine name, and key file specified. */
-	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
+	if ((C->user == NULL) || (C->name == NULL) || (keyfilename == NULL))
 		usage();
 
 	/*
@@ -123,27 +123,27 @@ main(int argc, char **argv)
 		usage();
 
 	/* Sanity-check the user name. */
-	if (strlen(C.user) > 255) {
-		fprintf(stderr, "User name too long: %s\n", C.user);
+	if (strlen(C->user) > 255) {
+		fprintf(stderr, "User name too long: %s\n", C->user);
 		exit(1);
 	}
-	if (strlen(C.user) == 0) {
+	if (strlen(C->user) == 0) {
 		fprintf(stderr, "User name must be non-empty\n");
 		exit(1);
 	}
 
 	/* Sanity-check the machine name. */
-	if (strlen(C.name) > 255) {
-		fprintf(stderr, "Machine name too long: %s\n", C.name);
+	if (strlen(C->name) > 255) {
+		fprintf(stderr, "Machine name too long: %s\n", C->name);
 		exit(1);
 	}
-	if (strlen(C.name) == 0) {
+	if (strlen(C->name) == 0) {
 		fprintf(stderr, "Machine name must be non-empty\n");
 		exit(1);
 	}
 
 	/* Get a password. */
-	if (readpass(&C.passwd, "Enter tarsnap account password", NULL, 0)) {
+	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
 		warnp("Error reading password");
 		exit(1);
 	}
@@ -178,7 +178,7 @@ main(int argc, char **argv)
 	network_fini();
 
 	/* Exit with a code of 1 if we couldn't register. */
-	if (C.machinenum == (uint64_t)(-1))
+	if (C->machinenum == (uint64_t)(-1))
 		goto err1;
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
@@ -194,7 +194,7 @@ main(int argc, char **argv)
 	}
 
 	/* Write keys to file. */
-	if (keyfile_write_file(keyfile, C.machinenum,
+	if (keyfile_write_file(keyfile, C->machinenum,
 	    CRYPTO_KEYMASK_USER, passphrase, maxmem, maxtime))
 		goto err1;
 
