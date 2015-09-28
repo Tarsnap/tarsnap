@@ -227,23 +227,25 @@ tarsnap_mode_nuke(struct bsdtar *bsdtar)
 	if (fgets(s, 100, stdin) == NULL) {
 		bsdtar_warnc(bsdtar, 0,
 		    "Error reading string from standard input");
-		exit(1);
+		goto err0;
 	}
 	if (strcmp(s, "No Tomorrow\n")) {
 		bsdtar_warnc(bsdtar, 0, "You didn't type 'No Tomorrow'");
-		exit(1);
+		goto err0;
 	}
 
-	if (nuketape(bsdtar->machinenum))
-		goto err1;
+	if (nuketape(bsdtar->machinenum)) {
+		bsdtar_warnc(bsdtar, 0, "Error nuking archives");
+		goto err0;
+	}
 
 	/* Success! */
 	return;
 
-err1:
+err0:
 	/* Failure! */
-	bsdtar_warnc(bsdtar, 0, "Error nuking archives");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
