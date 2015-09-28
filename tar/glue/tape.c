@@ -32,7 +32,7 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 		if (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
 		    bsdtar->ntapes > 1 ? 1 : 0))
-			goto err1;
+			goto err2;
 	}
 
 	/* We've finished deleting archives. */
@@ -41,10 +41,13 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 	/* Success! */
 	return;
 
+err2:
+	deletetape_free(d);
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error deleting archive");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
