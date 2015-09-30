@@ -354,6 +354,10 @@ name of the option.
 Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
+.It Fl -keep-going
+(d and print-stats mode only)
+Continue deleting or printing statistics after finding that one
+of the archives specified does not exist.
 .It Fl -keep-newer-files
 (x mode only)
 Do not overwrite existing files that are newer than the
