@@ -155,7 +155,8 @@ err0:
  * metaindex file does not exist, 2 if the metaindex file is corrupt, or -1
  * on error.
  */
-int multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
+int
+multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
     struct tapemetaindex * mind, const struct tapemetadata * mdat,
     int quiet)
 {
@@ -334,7 +335,8 @@ multitape_metaindex_free(struct tapemetaindex * mind)
  * chnks_delete_extrastats on ${C} and the length(s) of file(s) containing
  * the metaindex.
  */
-int multitape_metaindex_delete(STORAGE_D * S, CHUNKS_D * C,
+int
+multitape_metaindex_delete(STORAGE_D * S, CHUNKS_D * C,
     struct tapemetadata * mdat)
 {
 	uint8_t hbuf[32];

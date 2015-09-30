@@ -48,7 +48,8 @@ err0:
  * given access keys and user-friendly name, signed using the shared key
  * ${register_key} computed by hashing the Diffie-Hellman shared secret K.
  */
-int netpacket_register_cha_response(NETPACKET_CONNECTION * NPC,
+int
+netpacket_register_cha_response(NETPACKET_CONNECTION * NPC,
     const uint8_t keys[96], const char * name,
     const uint8_t register_key[32], handlepacket_callback * callback)
 {

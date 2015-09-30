@@ -180,7 +180,8 @@ err0:
  * crypto_keys_atexit(void):
  * Free the key cache.
  */
-static void crypto_keys_atexit(void)
+static void
+crypto_keys_atexit(void)
 {
 
 	/* Free all RSA keys. */

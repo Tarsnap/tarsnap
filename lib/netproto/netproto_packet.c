@@ -300,7 +300,8 @@ err0:
  * the packet is read or fails, call callback_done(cookie, status), where
  * status is a NETPROTO_STATUS_* value.
  */
-int netproto_readpacket(NETPROTO_CONNECTION * C,
+int
+netproto_readpacket(NETPROTO_CONNECTION * C,
     int (* callback_getbuf)(void *, uint8_t, uint8_t **, size_t),
     network_callback * callback_done, void * cookie)
 {

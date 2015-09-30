@@ -340,7 +340,8 @@ err0:
  * ${buflen} to the length of the buffer.  Return 0, 1, 2, or -1 as per
  * storage_read_file.
  */
-int storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
+int
+storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
     size_t * buflen, char class, const uint8_t name[32])
 {
 	struct read_file_internal C;
