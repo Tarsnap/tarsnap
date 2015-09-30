@@ -135,7 +135,8 @@ TAPE_D * deletetape_init(uint64_t);
  * deletetape(d, machinenum, cachedir, tapename, printstats, withname):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
- * just as "This archive".
+ * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
+ * or -1 on other errors.
  */
 int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int);
 
@@ -174,7 +175,8 @@ int statstape_printlist(TAPE_S *, int);
 
 /**
  * statstape_print(d, tapename):
- * Print statistics relating to a specific archive in a set.
+ * Print statistics relating to a specific archive in a set.  Return 0 on
+ * success, 1 if the tape does not exist, or -1 on other errors.
  */
 int statstape_print(TAPE_S *, const char *);
 
