@@ -6,8 +6,8 @@
 
 #include "warnp.h"
 
-#include "crypto_entropy.h"
 #include "crypto_dh_group14.h"
+#include "crypto_entropy.h"
 
 #include "crypto_dh.h"
 

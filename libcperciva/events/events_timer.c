@@ -6,8 +6,8 @@
 #include "monoclock.h"
 #include "timerqueue.h"
 
-#include "events_internal.h"
 #include "events.h"
+#include "events_internal.h"
 
 struct timerrec {
 	struct eventrec * r;

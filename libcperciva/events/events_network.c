@@ -6,8 +6,8 @@
 #include "elasticarray.h"
 #include "warnp.h"
 
-#include "events_internal.h"
 #include "events.h"
+#include "events_internal.h"
 
 /* Structure for holding readability and writability events for a socket. */
 struct socketrec {

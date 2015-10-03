@@ -11,8 +11,8 @@
 #include "asprintf.h"
 #include "sock.h"
 
-#include "sock_util.h"
 #include "sock_internal.h"
+#include "sock_util.h"
 
 /**
  * sock_addr_cmp(sa1, sa2):

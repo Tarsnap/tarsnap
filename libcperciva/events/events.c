@@ -5,8 +5,8 @@
 
 #include "mpool.h"
 
-#include "events_internal.h"
 #include "events.h"
+#include "events_internal.h"
 
 /* Event structure. */
 struct eventrec {
