@@ -8,8 +8,8 @@
 #include <string.h>
 
 #include "crypto.h"
-#include "keyfile.h"
 #include "humansize.h"
+#include "keyfile.h"
 #include "readpass.h"
 #include "warnp.h"
 

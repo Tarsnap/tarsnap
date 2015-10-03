@@ -12,8 +12,8 @@
 #include "sysendian.h"
 #include "warnp.h"
 
-#include "crypto_internal.h"
 #include "crypto.h"
+#include "crypto_internal.h"
 
 static struct {
 	RSA * sign_priv;

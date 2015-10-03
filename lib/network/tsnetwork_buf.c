@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tsnetwork_internal.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork_internal.h"
 #include "tvmath.h"
 #include "warnp.h"
 

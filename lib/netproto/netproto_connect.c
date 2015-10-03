@@ -8,9 +8,9 @@
 #include <time.h>
 
 #include "netproto_internal.h"
+#include "network.h"
 #include "sock.h"
 #include "sock_util.h"
-#include "network.h"
 #include "warnp.h"
 
 #include "netproto.h"

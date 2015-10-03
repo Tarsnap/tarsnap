@@ -3,8 +3,8 @@
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "chunks.h"
 #include "crypto.h"

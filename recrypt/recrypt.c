@@ -4,9 +4,9 @@
 #include <sys/stat.h>
 
 #include <assert.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "crypto.h"
 #include "keyfile.h"
