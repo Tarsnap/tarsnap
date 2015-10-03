@@ -131,7 +131,11 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	if (bsdtar->names_from_file != NULL)
 		include_from_file(bsdtar, bsdtar->names_from_file);
 
-	a = archive_read_new();
+	if ((a = archive_read_new()) == NULL) {
+		bsdtar_warnc(bsdtar, ENOMEM, "Cannot allocate memory");
+		goto err0;
+	}
+
 	archive_read_support_compression_none(a);
 	archive_read_support_format_tar(a);
 	if (archive_read_open_multitape(a, bsdtar->machinenum,
@@ -309,6 +313,14 @@ read_archive(struct bsdtar *bsdtar, char mode)
 		    archive_format_name(a), archive_compression_name(a));
 
 	archive_read_finish(a);
+
+	/* Success! */
+	return;
+
+err0:
+	/* Failure! */
+	bsdtar->return_value = 1;
+	return;
 }
 
 
