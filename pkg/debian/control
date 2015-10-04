@@ -1,13 +1,17 @@
 Source: tarsnap
 Section: net
 Priority: extra
-Maintainer: Mads Sulau Joergensen <mads@sulau.dk>
-Build-Depends: debhelper (>= 5), e2fslibs-dev, zlib1g-dev, libssl-dev, libbz2-dev, libattr1-dev, libacl1-dev
-Standards-Version: 3.7.2
+Maintainer: Graham Percival <gperciva@tarsnap.com>
+Build-Depends: debhelper (>= 9.0.0), e2fslibs-dev, zlib1g-dev, libssl-dev, libbz2-dev, libattr1-dev, libacl1-dev, pkg-config, bash-completion
+Standards-Version: 3.9.5
 
 Package: tarsnap
 Architecture: any
-Depends: ${shlibs:Depends}
-Description: tarsnap is an online encrypted snapshotted backup service
- Tarsnap is an encrypted snapshotted online backup service for BSD,
- Linux, OpenSolaris, and OS X.
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: secure, efficient online backup service
+ This package contains the client for Tarsnap: a secure, efficient online
+ backup service.
+  - Your data is encrypted with your personal keys.
+  - The client source code is available.
+  - Deduplication finds unique data between your current data and encrypted
+    archives.
