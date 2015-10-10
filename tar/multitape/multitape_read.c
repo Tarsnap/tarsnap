@@ -83,7 +83,7 @@ stream_get_chunkheader(struct stream * S, CHUNKS_R * C)
 		readlen = stream_read(S->istr, (uint8_t *)&S->ch,
 		    sizeof(struct chunkheader), C);
 
-		switch(readlen) {
+		switch (readlen) {
 		case -1:
 			/* Error in stream_read. */
 			goto err0;
@@ -232,7 +232,7 @@ get_entryheader(TAPE_R * d)
 	readlen = stream_read(&d->h, (uint8_t *)&eh,
 	    sizeof(struct entryheader), d->C);
 
-	switch(readlen) {
+	switch (readlen) {
 	case -1:
 		/* Error in stream_read. */
 		return (-1);
