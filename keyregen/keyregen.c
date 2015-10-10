@@ -5,8 +5,8 @@
 #include <sys/stat.h>
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
@@ -16,10 +16,10 @@
 #include "humansize.h"
 #include "keyfile.h"
 #include "keygen.h"
-#include "tsnetwork.h"
 #include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 static void usage(void);

@@ -1,0 +1,177 @@
+Code style
+==========
+
+In general, FreeBSD style(9) should be followed unless it is irrelevant
+(e.g., $FreeBSD$ tags).
+
+Functions with external linkage are declared like this:
+	/**
+	 * module_func(arg1, arg2):
+	 * Description of what the function does, referring to arguments as
+	 * ${arg1} or suchlike.
+	 */
+	int module_func(void *, int);
+
+The identical comment appears in the C file where the function is defined.
+
+Static functions may have the above form of comment, or simply a
+/* Brief description of what the function does. */
+line before the function.
+
+In general, functions should return (int)(-1) or NULL to indicate error.
+
+Errors should be printed via warnp (if errno is relevant) or warn0 (if errno
+is not relevant) when they are first detected and also at higher levels where
+useful.  As an exception to this, malloc failures (i.e., errno = ENOMEM) can
+result in failure being passed back up the call chain without being printed
+immediately.  (Naturally, other errors can be passed back where a function
+definition so specifies; e.g., ENOENT in cases where a file not existing is
+not erronous.)
+
+The first statement in main(), after variable declarations, should be
+"WARNP_INIT;" in order to set the program name used for printing warnings.
+
+In general, functions should be structured with one return statement per
+status, e.g., one return() for success and one return() for failure.  Errors
+should be handled by using goto to enter the error return path, e.g.,
+	int
+	foo(int bar)
+	{
+
+		if (something fails)
+			goto err0;
+		/* ... */
+		if (something else fails)
+			goto err1;
+		/* ... */
+		if (yet another operation fails)
+			goto err2;
+
+		/* Success! */
+		return (0);
+
+	err2:
+		/* Clean up something. */
+	err1:
+		/* Clean up something else. */
+	err0:
+		/* Failure! */
+		return (-1);
+	}
+
+As an exception to the above, if there is only one way for the function to
+fail, the idioms
+	return (baz(bar));
+and
+	int rc;
+
+	rc = baz(bar);
+	/* ... cleanup code here ... */
+	return (rc);
+are allowed; furthermore, in cases such as foo_free(), the idiom
+	if (we shouldn't do anything)
+		return;
+is preferred over
+	if (we shouldn't do anything)
+		goto done;
+at the start of a function.
+
+Headers should be included in the following groups, with a blank line after
+each (non-empty) group:
+1. <sys/*.h>, with <sys/types.h> first followed by others alphabetically.
+2. <net/*.h>, in alphabetical order.
+3. <*.h>, in alphabetical order.
+4. header files from /lib/, in alphabetical order.
+5. header files from the program being built, in alphabetical order.
+6. header files (usually just one) defining the interface for this C file.
+
+If ssize_t is needed, <unistd.h> should be included to provide it.
+
+If size_t is needed, <stddef.h> should be included to provide it unless
+<stdio.h>, <stdlib.h>, <string.h>, or <unistd.h> is already required.
+
+If the C99 integer types (uint8_t, int64_t, etc.) are required, <stdint.h>
+should be included to provide them unless <inttypes.h> is already required.
+
+The type 'char' should only be used to represent human-readable characters
+(input from users, output to users, pathnames, et cetera).  The type
+'char *' should normally be a NUL-terminated string.  The types 'signed
+char' and 'unsigned char' should never be used; C99 integer types should
+be used instead.
+
+When a variable is declared to have a pointer type, there should be a space
+between the '*' and the variable name, e.g.,
+	int
+	main(int argc, char * argv[])
+	{
+		char * opt_p = NULL;
+Note that this is inconsistent with FreeBSD style(9).  When used as a unary
+operator, '*' is not separated from its argument, e.g.,
+	while (*p != '\0')
+		p++;
+
+When a struct is referenced, the idiom
+	/* Opaque types. */
+	struct foo;
+
+	struct bar * bar_from_foo(struct foo *);
+is preferable to
+	#include "foo.h"	/* needed for struct foo */
+
+	struct bar * bar_from_foo(struct foo *);
+unless there is some reason why the internal layout of struct foo is needed
+(e.g., if struct bar contains a struct foo rather than a struct foo *).  Such
+struct declarations should be sorted alphabetically.
+
+The file foo.c should only export symbols of the following forms:
+	foo_*	-- most symbols should be of this form.
+	FOO_* / BAR_FOO_*
+		-- allowed in cases where FOO or BAR_FOO is idiomatic (e.g.,
+		   MD5, HMAC_SHA256).
+	foo() / defoo() / unfoo()
+		-- where "foo" is a verb and this improves code clarity.
+
+Functions named foo_free should return void, and foo_free(NULL) should have
+no effect.  The right way to spell a comment about this is
+	/* Behave consistently with free(NULL). */
+
+If static variables need to be initialized to 0 (or NULL) then they should be
+explicitly declared that way; implicit initialization should not be used.
+
+In non-trivial code, comments should be included which describe in English
+what is being done by the surrounding code with sufficient detail that if the
+code were removed, it could be replaced based on reading the comments without
+requiring any significant creativity.
+
+Comments and documentation should be written in en-GB-oed; i.e., with
+the 'u' included in words such as "honour", "colour", and "neighbour",
+and the ending '-ize' in words such as "organize" and "realize".  The
+Oxford (aka. serial) comma should be used in lists.  Quotation marks
+should be placed logically, i.e., not including punctuation marks which
+do not form a logical part of the quoted text.  Two spaces should be used
+after a period which ends a sentence.
+
+When versions of functions are written to exploit special CPU features
+(using the cpusupport framework), that code should be placed into a
+separate file (e.g., crypto_aes_aesni.c) so that it can be compiled with
+different compiler flags.  Such a file should start with
+	#include "cpusupport.h"
+	#ifdef CPUSUPPORT_FOO_BAR
+and end with
+	#endif /* CPUSUPPORT_FOO_BAR */
+
+Functions for which special CPU-feature-exploiting variants exist should
+take the form
+	{
+		/* Variable declarations here. */
+
+		/* Asserts here, if any. */
+
+	#ifdef CPUSUPPORT_FOO_BAR
+		if (/* We've decided we can use the variant code */) {
+			/* Call variant code and return. */
+		}
+	#endif
+
+		/* Normal implementation of the function. */
+	}

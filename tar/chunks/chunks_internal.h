@@ -1,8 +1,8 @@
 #ifndef _CHUNKS_INTERNAL_H_
 #define _CHUNKS_INTERNAL_H_
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 

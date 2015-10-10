@@ -97,8 +97,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #include "archive_multitape.h"
 #include "ccache.h"
 #include "getfstype.h"
-#include "tsnetwork.h"
 #include "sigquit.h"
+#include "tsnetwork.h"
 
 /* Size of buffer for holding file data prior to writing. */
 #define FILEDATABUFLEN	65536
