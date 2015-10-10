@@ -74,6 +74,21 @@ static int		 has_non_ASCII(const wchar_t *);
 static char		*url_encode(const char *in);
 static int		 write_nulls(struct archive_write *, size_t);
 
+static void
+errmsg(const char *m)
+{
+	size_t s = strlen(m);
+	ssize_t written;
+
+	while (s > 0) {
+		written = write(2, m, strlen(m));
+		if (written <= 0)
+			return;
+		m += written;
+		s -= written;
+	}
+}
+
 /*
  * Set output format to 'restricted pax' format.
  *
@@ -945,7 +960,7 @@ archive_write_pax_header(struct archive_write *a,
 		if (r != 0) {
 			const char *msg = "archive_write_pax_header: "
 			    "'x' header failed?!  This can't happen.\n";
-			write(2, msg, strlen(msg));
+			errmsg(msg);
 			exit(1);
 		}
 		r = (a->compressor.write)(a, paxbuff, 512);
