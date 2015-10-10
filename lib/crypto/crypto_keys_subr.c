@@ -474,7 +474,8 @@ err0:
  * crypto_keys_subr_free_HMAC(key):
  * Free an HMAC key.
  */
-void crypto_keys_subr_free_HMAC(struct crypto_hmac_key ** key)
+void
+crypto_keys_subr_free_HMAC(struct crypto_hmac_key ** key)
 {
 
 	if (*key != NULL) {

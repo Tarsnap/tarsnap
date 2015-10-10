@@ -1,6 +1,7 @@
 #include <cpuid.h>
 
-int main(void)
+int
+main(void)
 {
 	unsigned int a, b, c, d;
 

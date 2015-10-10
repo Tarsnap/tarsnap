@@ -79,7 +79,8 @@ callback_free_rwhashtab_aes_key(void * rec, void * cookie)
  * crypto_file_atexit(void):
  * Free the keys cached by crypto_file.
  */
-static void crypto_file_atexit(void)
+static void
+crypto_file_atexit(void)
 {
 
 	/* Iterate through encrypted key -> AES key table freeing records. */
