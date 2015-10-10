@@ -32,7 +32,7 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 		if (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
 		    bsdtar->ntapes > 1 ? 1 : 0))
-			goto err1;
+			goto err2;
 	}
 
 	/* We've finished deleting archives. */
@@ -41,10 +41,13 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 	/* Success! */
 	return;
 
+err2:
+	deletetape_free(d);
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error deleting archive");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -90,11 +93,11 @@ tarsnap_mode_r(struct bsdtar *bsdtar)
 
 err2:
 	readtape_close(d);
-
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error reading archive");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -142,7 +145,8 @@ err2:
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error generating archive statistics");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -173,7 +177,8 @@ err2:
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error listing archives");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -185,7 +190,7 @@ tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey)
 
 	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey)) {
 		bsdtar_warnc(bsdtar, 0, "Error fscking archives");
-		exit(1);
+		goto err0;
 	}
 
 	/*
@@ -197,10 +202,15 @@ tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey)
 	 */
 	if (ccache_remove(bsdtar->cachedir)) {
 		bsdtar_warnc(bsdtar, 0, "Error removing chunkification cache");
-		exit(1);
+		goto err0;
 	}
 
 	/* Success! */
+	return;
+
+err0:
+	/* Failure! */
+	bsdtar->return_value = 1;
 	return;
 }
 
@@ -217,23 +227,25 @@ tarsnap_mode_nuke(struct bsdtar *bsdtar)
 	if (fgets(s, 100, stdin) == NULL) {
 		bsdtar_warnc(bsdtar, 0,
 		    "Error reading string from standard input");
-		exit(1);
+		goto err0;
 	}
 	if (strcmp(s, "No Tomorrow\n")) {
 		bsdtar_warnc(bsdtar, 0, "You didn't type 'No Tomorrow'");
-		exit(1);
+		goto err0;
 	}
 
-	if (nuketape(bsdtar->machinenum))
-		goto err1;
+	if (nuketape(bsdtar->machinenum)) {
+		bsdtar_warnc(bsdtar, 0, "Error nuking archives");
+		goto err0;
+	}
 
 	/* Success! */
 	return;
 
-err1:
+err0:
 	/* Failure! */
-	bsdtar_warnc(bsdtar, 0, "Error nuking archives");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -252,5 +264,6 @@ tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey)
 err1:
 	/* Failure! */
 	bsdtar_warnc(bsdtar, 0, "Error recovering archive");
-	exit(1);
+	bsdtar->return_value = 1;
+	return;
 }

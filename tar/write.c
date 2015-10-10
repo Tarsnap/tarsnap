@@ -333,7 +333,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if (bsdtar->cachecrunch < 2)
 		ccache_free(bsdtar->chunk_cache);
 
-	/* Success */
+	/* Success! */
 	return;
 
 err2:
@@ -341,7 +341,7 @@ err2:
 err1:
 	archive_write_finish(a);
 err0:
-	/* Failure */
+	/* Failure! */
 	bsdtar->return_value = 1;
 	return;
 }
