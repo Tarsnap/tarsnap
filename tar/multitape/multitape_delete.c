@@ -63,7 +63,8 @@ err0:
  * deletetape(d, machinenum, cachedir, tapename, printstats, withname):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
- * just as "This archive".
+ * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
+ * or -1 on other errors.
  */
 int
 deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
@@ -72,10 +73,11 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 	struct tapemetadata tmd;
 	CHUNKS_D * C;		/* Chunk layer delete cookie. */
 	STORAGE_D * S;		/* Storage layer delete cookie. */
-	STORAGE_R * SR = d->S;		/* Storage layer read cookie. */
+	STORAGE_R * SR = d->S;	/* Storage layer read cookie. */
 	int lockfd;
 	uint8_t lastseq[32];
 	uint8_t seqnum[32];
+	int rc = -1;		/* Presume error was not !found. */
 
 	/* Lock the cache directory. */
 	if ((lockfd = multitape_lock(cachedir)) == -1)
@@ -99,8 +101,15 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 	storage_read_cache_limit(SR, 100 * chunks_delete_getdirsz(C));
 
 	/* Read archive metadata. */
-	if (multitape_metadata_get_byname(SR, NULL, &tmd, tapename, 0))
+	switch (multitape_metadata_get_byname(SR, NULL, &tmd, tapename, 0)) {
+	case 0:
+		break;
+	case 1:
+		rc = 1;
+		/* FALLTHROUGH */
+	default:
 		goto err3;
+	}
 
 	/* Delete chunks. */
 	if (multitape_chunkiter_tmd(SR, NULL, &tmd, callback_delete, C, 0))
@@ -152,7 +161,7 @@ err1:
 	close(lockfd);
 err0:
 	/* Failure! */
-	return (-1);
+	return (rc);
 }
 
 /**

@@ -256,12 +256,14 @@ err0:
 
 /**
  * statstape_print(d, tapename):
- * Print statistics relating to a specific archive in a set.
+ * Print statistics relating to a specific archive in a set.  Return 0 on
+ * success, 1 if the tape does not exist, or -1 on other errors.
  */
 int
 statstape_print(TAPE_S * d, const char * tapename)
 {
 	struct tapemetadata tmd;
+	int rc = -1;	/* Presume error was not !found. */
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
 	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
@@ -270,8 +272,15 @@ statstape_print(TAPE_S * d, const char * tapename)
 	chunks_stats_zeroarchive(d->C);
 
 	/* Read the tape metadata. */
-	if (multitape_metadata_get_byname(d->SR, d->C, &tmd, tapename, 0))
+	switch (multitape_metadata_get_byname(d->SR, d->C, &tmd, tapename, 0)) {
+	case 0:
+		break;
+	case 1:
+		rc = 1;
+		/* FALLTHROUGH */
+	default:
 		goto err0;
+	}
 
 	if (multitape_chunkiter_tmd(d->SR, d->C, &tmd,
 	    callback_print, d->C, 0))
@@ -291,7 +300,7 @@ err1:
 	multitape_metadata_free(&tmd);
 err0:
 	/* Failure! */
-	return (-1);
+	return (rc);
 }
 
 /**

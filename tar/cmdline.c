@@ -96,6 +96,7 @@ static struct option {
 	{ "insane-filesystems",	  0, OPTION_INSANE_FILESYSTEMS },
 	{ "insecure",             0, 'P' },
 	{ "interactive",          0, 'w' },
+	{ "keep-going",           0, OPTION_KEEP_GOING },
 	{ "keep-newer-files",     0, OPTION_KEEP_NEWER_FILES },
 	{ "keep-old-files",       0, 'k' },
 	{ "keyfile",		  1, OPTION_KEYFILE },

@@ -73,6 +73,7 @@ struct bsdtar {
 	char		  option_fast_read; /* --fast-read */
 	char		  option_honor_nodump; /* --nodump */
 	char		  option_interactive; /* -w */
+	char		  option_keep_going; /* --keep-going */
 	char		  option_no_owner; /* -o */
 	char		  option_no_subdirs; /* -n */
 	char		  option_null; /* --null */
@@ -177,6 +178,7 @@ enum {
 	OPTION_INSANE_FILESYSTEMS,
 	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
+	OPTION_KEEP_GOING,
 	OPTION_KEEP_NEWER_FILES,
 	OPTION_LIST_ARCHIVES,
 	OPTION_LOWMEM,

@@ -427,6 +427,9 @@ main(int argc, char **argv)
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
 			break;
+		case OPTION_KEEP_GOING: /* tarsnap */
+			bsdtar->option_keep_going = 1;
+			break;
 		case OPTION_KEEP_NEWER_FILES: /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER;
 			break;

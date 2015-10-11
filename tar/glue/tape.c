@@ -29,10 +29,18 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 		if (bsdtar->verbose && (bsdtar->ntapes > 1))
 			fprintf(stderr, "Deleting archive \"%s\"\n",
 			    bsdtar->tapenames[i]);
-		if (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
+		switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
-		    bsdtar->ntapes > 1 ? 1 : 0))
+		    bsdtar->ntapes > 1 ? 1 : 0)) {
+		case 0:
+			break;
+		case 1:
+			if (bsdtar->option_keep_going)
+				break;
+			/* FALLTHROUGH */
+		default:
 			goto err2;
+		}
 	}
 
 	/* We've finished deleting archives. */
@@ -128,8 +136,16 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	} else {
 		/* User wants statistics about specific archive(s). */
 		for (i = 0; i < bsdtar->ntapes; i++) {
-			if (statstape_print(d, bsdtar->tapenames[i]))
+			switch (statstape_print(d, bsdtar->tapenames[i])) {
+			case 0:
+				break;
+			case 1:
+				if (bsdtar->option_keep_going)
+					break;
+				/* FALLTHROUGH */
+			default:
 				goto err2;
+			}
 		}
 	}
 
