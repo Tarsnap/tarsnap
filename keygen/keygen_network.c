@@ -114,7 +114,9 @@ callback_register_challenge(void * cookie, NETPACKET_CONNECTION * NPC,
 	/*
 	 * Make sure we received the right type of packet.  It is legal for
 	 * the server to send back a NETPACKET_REGISTER_RESPONSE at this
-	 * point; call callback_register_response to handle those.
+	 * point; call callback_register_response to handle those.  Note that
+	 * NETPACKET_REGISTER_RESPONSE at this point must be a "no such user"
+	 * response; we verify this in callback_register_response.
 	 */
 	if (packettype == NETPACKET_REGISTER_RESPONSE)
 		return (callback_register_response(cookie, NPC, status,
@@ -179,6 +181,14 @@ callback_register_response(void * cookie, NETPACKET_CONNECTION * NPC,
 
 	/* Make sure we received the right type of packet. */
 	if (packettype != NETPACKET_REGISTER_RESPONSE)
+		goto err1;
+
+	/*
+	 * If the challenge has not been responded to (i.e. this packet
+	 * arrived in response to a NETPACKET_REGISTER_REQUEST packet), this
+	 * should be a "no such user" response.
+	 */
+	if ((C->donechallenge == 0) && (packetbuf[0] != 1))
 		goto err1;
 
 	/* Verify packet hmac. */
