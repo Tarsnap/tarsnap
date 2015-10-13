@@ -71,7 +71,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
-		goto err1;
+		goto err2;
 	}
 
 	/* keyregen (with oldkeyfilename) only regenerates certain keys. */
@@ -89,7 +89,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		    CRYPTO_KEYMASK_HMAC_NAME |
 		    CRYPTO_KEYMASK_HMAC_CPARAMS)) {
 			warnp("Error reading old key file");
-			goto err1;
+			goto err2;
 		}
 
 		/*
@@ -104,19 +104,19 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Generate keys. */
 	if (crypto_keys_generate(keymask)) {
 		warnp("Error generating keys");
-		goto err1;
+		goto err2;
 	}
 
 	/* Register the keys with the server. */
 	if (keygen_network_register(C) != 0)
-		goto err1;
+		goto err2;
 
 	/* Shut down the network event loop. */
 	network_fini();
 
 	/* Exit with a code of 1 if we couldn't register. */
 	if (C->machinenum == (uint64_t)(-1))
-		goto err1;
+		goto err2;
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
 	if (passphrased != 0) {
@@ -124,7 +124,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		    "Please enter passphrase for keyfile encryption",
 		    "Please confirm passphrase for keyfile encryption", 1)) {
 			warnp("Error reading password");
-			goto err1;
+			goto err2;
 		}
 	} else {
 		passphrase = NULL;
@@ -133,18 +133,18 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Write keys to file. */
 	if (keyfile_write_file(keyfile, C->machinenum,
 	    CRYPTO_KEYMASK_USER, passphrase, maxmem, maxtime))
-		goto err1;
+		goto err2;
 
 	/* Close the key file. */
 	if (fclose(keyfile)) {
 		warnp("Error closing key file");
-		goto err1;
+		goto err2;
 	}
 
 	/* Success! */
 	return (0);
 
-err1:
+err2:
 	unlink(keyfilename);
 err0:
 	/* Failure! */
