@@ -148,6 +148,7 @@ static struct option {
 	{ "one-file-system",	  0, OPTION_ONE_FILE_SYSTEM },
 	{ "preserve-permissions", 0, 'p' },
 	{ "print-stats",	  0, OPTION_PRINT_STATS },
+	{ "probability-check-file",	1, OPTION_PROBABILITY_CHECK_FILE },
 	{ "quiet",		  0, OPTION_QUIET },
 	{ "read-full-blocks",	  0, 'B' },
 	{ "recover",		  0, OPTION_RECOVER },
