@@ -36,27 +36,27 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Sanity-check the user name. */
 	if (strlen(C->user) > 255) {
 		fprintf(stderr, "User name too long: %s\n", C->user);
-		exit(1);
+		goto err0;
 	}
 	if (strlen(C->user) == 0) {
 		fprintf(stderr, "User name must be non-empty\n");
-		exit(1);
+		goto err0;
 	}
 
 	/* Sanity-check the machine name. */
 	if (strlen(C->name) > 255) {
 		fprintf(stderr, "Machine name too long: %s\n", C->name);
-		exit(1);
+		goto err0;
 	}
 	if (strlen(C->name) == 0) {
 		fprintf(stderr, "Machine name must be non-empty\n");
-		exit(1);
+		goto err0;
 	}
 
 	/* Get a password. */
 	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
 		warnp("Error reading password");
-		exit(1);
+		goto err0;
 	}
 
 	/*
@@ -66,7 +66,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	 */
 	if ((keyfile = keyfile_write_open(keyfilename)) == NULL) {
 		warnp("Cannot create %s", keyfilename);
-		exit(1);
+		goto err0;
 	}
 
 	/* Initialize key cache. */
@@ -120,7 +120,9 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 
 err1:
 	unlink(keyfilename);
-	exit(1);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 
