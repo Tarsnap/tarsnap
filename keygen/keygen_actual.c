@@ -30,9 +30,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	FILE * keyfile;
 	char * passphrase;
 	int keymask = CRYPTO_KEYMASK_USER;
-
-	/* We are not using this during the keygen-only refactoring. */
-	(void)oldkeyfilename;
+	uint64_t dummy;
 
 	/* Sanity-check the user name. */
 	if (strlen(C->user) > 255) {
@@ -74,6 +72,33 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
 		goto err1;
+	}
+
+	/* keyregen (with oldkeyfilename) only regenerates certain keys. */
+	if (oldkeyfilename != NULL) {
+		/*
+		 * Load the keys CRYPTO_KEY_HMAC_{CHUNK, NAME, CPARAMS}
+		 * from the old key file, since these are the keys which need
+		 * to be consistent in order for two key sets to be
+		 * compatible.  (CHUNK and NAME are used to compute the
+		 * 32-byte keys for blocks; CPARAMS is used to compute
+		 * parameters used to split a stream of bytes into chunks.)
+		 */
+		if (keyfile_read(oldkeyfilename, &dummy,
+		    CRYPTO_KEYMASK_HMAC_CHUNK |
+		    CRYPTO_KEYMASK_HMAC_NAME |
+		    CRYPTO_KEYMASK_HMAC_CPARAMS)) {
+			warnp("Error reading old key file");
+			goto err1;
+		}
+
+		/*
+		 * Adjust the keymask to avoid regenerating keys we read from
+		 * the old keyfile.
+		 */
+		keymask &= ~CRYPTO_KEYMASK_HMAC_CHUNK &
+		    ~CRYPTO_KEYMASK_HMAC_NAME &
+		    ~CRYPTO_KEYMASK_HMAC_CPARAMS;
 	}
 
 	/* Generate keys. */
