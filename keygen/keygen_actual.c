@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "crypto.h"
+#include "insecure_memzero.h"
 #include "keyfile.h"
 #include "keygen.h"
 #include "readpass.h"
@@ -65,7 +66,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	 */
 	if ((keyfile = keyfile_write_open(keyfilename)) == NULL) {
 		warnp("Cannot create %s", keyfilename);
-		goto err0;
+		goto err1;
 	}
 
 	/* Initialize key cache. */
@@ -141,11 +142,18 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err2;
 	}
 
+	/* Free allocated memory.  C->passwd is a NUL-terminated string. */
+	insecure_memzero(C->passwd, strlen(C->passwd));
+	free(C->passwd);
+
 	/* Success! */
 	return (0);
 
 err2:
 	unlink(keyfilename);
+err1:
+	insecure_memzero(C->passwd, strlen(C->passwd));
+	free(C->passwd);
 err0:
 	/* Failure! */
 	return (-1);
