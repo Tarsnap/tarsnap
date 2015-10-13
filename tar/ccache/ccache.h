@@ -28,6 +28,15 @@ CCACHE_ENTRY * ccache_entry_lookup(CCACHE *, const char *,
     const struct stat *, TAPE_W *, int *);
 
 /**
+ * ccache_entry_check_file(cce, fd):
+ * Check the chunk hashes and trailer in ${cce} by reading and hashing data
+ * from ${fd}.  Assumes that the file that ${fd} points to is fully available
+ * in the cache.  Return 0 if file matches, 1 if it does not match, or -1 if
+ * an error occurred.
+ */
+int ccache_entry_check_file(CCACHE_ENTRY *, int);
+
+/**
  * ccache_entry_write(cce, cookie):
  * Write the cached archive entry ${cce} to the multitape with write cookie
  * ${cookie}.  Note that this may only be called if ${cce} was returned by

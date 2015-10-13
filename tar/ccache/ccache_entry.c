@@ -366,6 +366,152 @@ err0:
 }
 
 /**
+ * ccache_entry_check_file(cce, fd):
+ * Check the chunk hashes and trailer in ${cce} by reading and hashing data
+ * from ${fd}.  Assumes that the file that ${fd} points to is fully available
+ * in the cache.  Return 0 if file matches, 1 if it does not match, or -1 if
+ * an error occurred.
+ */
+int ccache_entry_check_file(CCACHE_ENTRY * cce, int fd)
+{
+	char * file_buf;
+	size_t chunklen, cpos;
+	size_t cnum;
+	ssize_t bytes_read, remaining;
+	off_t skiplen;
+	ssize_t lenread;
+	uint8_t hbuf[32];
+	uint8_t * chunkbuf;
+	size_t zeropadding;
+
+	/* Initialize chunk and file data. */
+	zeropadding = 0;
+	skiplen = 0;
+
+	/* If we have some chunks, allocate a buffer for verification. */
+	if (cce->ccr->nch) {
+		if ((chunkbuf = malloc(MAXCHUNK)) == NULL) {
+			warn0("Out of memory");
+			goto err0;
+		}
+	} else {
+		chunkbuf = NULL;
+	}
+
+	/* Read chunk-sized blocks and compare them with file-read data. */
+	for (cnum = 0; cnum < cce->ccr->nch; cnum++) {
+		/* Decode a chunk. */
+		chunklen = le32dec((cce->ccr->chp + cnum)->len);
+
+		/* Sanity check. */
+		if (chunklen > MAXCHUNK) {
+			warn0("Cache entry is corrupt");
+			goto err1;
+		}
+
+		/*
+		 * In the last chunk, libarchive might have added some
+		 * padding.  However, we know that the sum of chunk lengths
+		 * cannot be larger than the original file (it will be
+		 * less if the file has a trailer).  So if skip+chunklen would
+		 * be too large, the excess must be zero padding.
+		 */
+		if ((cnum == cce->ccr->nch - 1) &&
+		    ((off_t)(skiplen + chunklen) > cce->size_new)) {
+			zeropadding = chunklen - (cce->size_new - skiplen);
+		}
+
+		/* Read until we've got the whole (non-zeropadded) chunk. */
+		for (cpos = 0; cpos < chunklen - zeropadding; cpos += lenread) {
+			lenread = read(fd, chunkbuf + cpos, chunklen - cpos);
+			if (lenread < 0) {
+				warnp("Error reading file");
+				goto err1;
+			} else if (lenread == 0) {
+				/* File should be exactly the same length. */
+				warn0("Could not read expected length.");
+				goto err1;
+			}
+		}
+
+		/* If we hit EOF, we can't use this chunk. */
+		if (cpos < chunklen - zeropadding) {
+			warn0("File is shorter than expected.");
+			goto err1;
+		}
+
+		/* Append any zero-padding to the buffer. */
+		if (zeropadding > 0) {
+			memset(chunkbuf + cpos, 0, zeropadding);
+		}
+
+		/* Compute the hash of the data we've read. */
+		if (crypto_hash_data(CRYPTO_KEY_HMAC_CHUNK,
+		    chunkbuf, chunklen, hbuf)) {
+			warn0("Failure while computing hash.");
+			goto err1;
+		}
+
+		/* Is it different? */
+		if (memcmp(hbuf, (cce->ccr->chp + cnum)->hash, 32)) {
+			goto bad1;
+		}
+
+		/* Track how much we have read so far. */
+		skiplen += chunklen;
+	}
+
+	/* Free chunk buffer. */
+	free(chunkbuf);
+
+	/* If we have a trailer, check it. */
+	if (cce->trailer != NULL) {
+		/*
+		 * Allocate memory to read remaining data.  cce->ccr->tlen may
+		 * include libarchive zero-padding, so we cannot trust it to
+		 * tell us how many bytes to read from the file.  Again, we
+		 * rely on the assumption that the filesize equals the sum of
+		 * chunklengths + trailer.
+		 */
+		remaining = cce->ccr->size - skiplen;
+		file_buf = malloc(remaining * sizeof(char));
+
+		/* Read remaining part of file. */
+		bytes_read = read(fd, file_buf, remaining);
+		if (bytes_read != remaining) {
+			warn0("Could not read expected length from file.");
+			free(file_buf);
+			goto err0;
+		}
+
+		/* Compare data directly. */
+		if (memcmp(file_buf, cce->trailer, bytes_read)) {
+			/* Free memory. */
+			free(file_buf);
+			goto bad0;
+		}
+
+		/* Free memory. */
+		free(file_buf);
+	}
+
+	/* Success! */
+	return (0);
+
+bad1:
+	free(chunkbuf);
+bad0:
+	/* Chunk or trailer does not match! */
+	return (1);
+
+err1:
+	free(chunkbuf);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
  * ccache_entry_write(cce, cookie):
  * Write the cached archive entry ${cce} to the multitape with write cookie
  * ${cookie}.  Note that this may only be called if ${cce} was returned by
