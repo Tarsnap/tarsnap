@@ -1,7 +1,7 @@
 .\" Copyright 2011 Colin Percival
 .\" All rights reserved.
 .\"
-.Dd February 1, 2011
+.Dd November 17, 2011
 .Dt TARSNAP-RECRYPT 1
 .Os
 .Sh NAME
