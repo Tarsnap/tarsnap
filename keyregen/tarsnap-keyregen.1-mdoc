@@ -1,7 +1,7 @@
 .\" Copyright 2011 Colin Percival
 .\" All rights reserved.
 .\"
-.Dd January 23, 2011
+.Dd August 13, 2015
 .Dt TARSNAP-KEYREGEN 1
 .Os
 .Sh NAME

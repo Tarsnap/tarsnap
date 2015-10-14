@@ -29,7 +29,7 @@
 .\"
 .\" $FreeBSD: src/usr.bin/tar/bsdtar.1,v 1.46 2008/12/06 07:37:55 kientzle Exp $
 .\"
-.Dd July 10, 2009
+.Dd September 30, 2015
 .Dt TARSNAP 1
 .Os
 .Sh NAME
