@@ -30,6 +30,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -51,12 +52,28 @@
 #define ENCBLOCK 65536
 
 static int pickparams(size_t, double, double,
-    int *, uint32_t *, uint32_t *);
-static int checkparams(size_t, double, double, int, uint32_t, uint32_t);
+    int *, uint32_t *, uint32_t *, int);
+static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int);
+
+static void
+display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
+    double opps, double maxtime)
+{
+	uint64_t N = (uint64_t)(1) << logN;
+	uint64_t mem_minimum = 128 * r * N;
+	double expected_seconds = 4 * N * p / opps;
+
+	fprintf(stderr, "Parameters used: N = %" PRIu64 "; r = %" PRIu32
+	    "; p = %" PRIu32 ";\n", N, r, p);
+	fprintf(stderr, "    This requires at least %" PRIu64 " bytes "
+	    "of memory (%zu available),\n", mem_minimum, memlimit);
+	fprintf(stderr, "    and will take approximately %.1f seconds "
+	    "(limit: %.1f seconds).\n", expected_seconds, maxtime);
+}
 
 static int
 pickparams(size_t maxmem, double maxmemfrac, double maxtime,
-    int * logN, uint32_t * r, uint32_t * p)
+    int * logN, uint32_t * r, uint32_t * p, int verbose)
 {
 	size_t memlimit;
 	double opps;
@@ -112,10 +129,8 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		*p = (uint32_t)(maxrp) / *r;
 	}
 
-#ifdef DEBUG
-	fprintf(stderr, "N = %zu r = %d p = %d\n",
-	    (size_t)(1) << *logN, (int)(*r), (int)(*p));
-#endif
+	if (verbose)
+		display_params(*logN, *r, *p, memlimit, opps, maxtime);
 
 	/* Success! */
 	return (0);
@@ -123,7 +138,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 
 static int
 checkparams(size_t maxmem, double maxmemfrac, double maxtime,
-    int logN, uint32_t r, uint32_t p)
+    int logN, uint32_t r, uint32_t p, int verbose)
 {
 	size_t memlimit;
 	double opps;
@@ -153,6 +168,9 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 	if ((opslimit / N) / (r * p) < 4)
 		return (10);
 
+	if (verbose)
+		display_params(logN, r, p, memlimit, opps, maxtime);
+
 	/* Success! */
 	return (0);
 }
@@ -160,7 +178,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 static int
 scryptenc_setup(uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
@@ -175,7 +193,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 
 	/* Pick values for N, r, p. */
 	if ((rc = pickparams(maxmem, maxmemfrac, maxtime,
-	    &logN, &r, &p)) != 0)
+	    &logN, &r, &p, verbose)) != 0)
 		return (rc);
 	N = (uint64_t)(1) << logN;
 
@@ -214,7 +232,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 static int
 scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
@@ -245,7 +263,8 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	 * key derivation function can be computed within the allowed memory
 	 * and CPU time.
 	 */
-	if ((rc = checkparams(maxmem, maxmemfrac, maxtime, logN, r, p)) != 0)
+	if ((rc = checkparams(maxmem, maxmemfrac, maxtime, logN, r, p,
+	    verbose)) != 0)
 		return (rc);
 
 	/* Compute the derived keys. */
@@ -266,14 +285,14 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Encrypt inbuflen bytes from inbuf, writing the resulting inbuflen + 128
  * bytes to outbuf.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t dk[64];
 	uint8_t hbuf[32];
@@ -287,7 +306,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
 		return (rc);
 
 	/* Copy header into output buffer. */
@@ -317,7 +336,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
  * decrypted data length to outlen.  The allocated length of outbuf must
  * be at least inbuflen.
@@ -325,7 +344,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
     size_t * outlen, const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t hbuf[32];
 	uint8_t dk[64];
@@ -353,7 +372,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(inbuf, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
 		return (rc);
 
 	/* Decrypt data. */
@@ -382,14 +401,14 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Read a stream from infile and encrypt it, writing the resulting stream to
  * outfile.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t buf[ENCBLOCK];
 	uint8_t dk[64];
@@ -405,7 +424,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
 		return (rc);
 
 	/* Hash and write the header. */
@@ -453,14 +472,14 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Read a stream from infile and decrypt it, writing the resulting stream to
  * outfile.
  */
 int
 scryptdec_file(FILE * infile, FILE * outfile,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
 {
 	uint8_t buf[ENCBLOCK + 32];
 	uint8_t header[96];
@@ -505,7 +524,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
 		return (rc);
 
 	/* Start hashing with the header. */
