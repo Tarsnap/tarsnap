@@ -29,6 +29,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 {
 	FILE * keyfile;
 	char * passphrase;
+	int keymask = CRYPTO_KEYMASK_USER;
 
 	/* We are not using this during the keygen-only refactoring. */
 	(void)oldkeyfilename;
@@ -76,7 +77,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	}
 
 	/* Generate keys. */
-	if (crypto_keys_generate(CRYPTO_KEYMASK_USER)) {
+	if (crypto_keys_generate(keymask)) {
 		warnp("Error generating keys");
 		goto err1;
 	}
