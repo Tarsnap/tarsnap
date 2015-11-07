@@ -1,0 +1,5 @@
+language: C
+sudo: required
+dist: trusty
+before_install:
+  - autoreconf -i
