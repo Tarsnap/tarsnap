@@ -89,7 +89,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 	fprintf(stderr, "Requiring 128Nr <= %zu, 4Nrp <= %f\n",
 	    memlimit, opslimit);
 #endif
-	if (opslimit < memlimit/32) {
+	if (opslimit < (double)memlimit / 32) {
 		/* Set p = 1 and choose N based on the CPU limit. */
 		*p = 1;
 		maxN = opslimit / (*r * 4);
