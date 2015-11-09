@@ -600,6 +600,9 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
 			break;
+		case OPTION_PRINT_KEY_ID: /* tarsnap */
+			set_mode(bsdtar, opt, "--print-key-id");
+			break;
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
 			break;
@@ -763,6 +766,7 @@ main(int argc, char **argv)
 	/* Continue with more sanity-checking. */
 	if ((bsdtar->ntapes == 0) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS &&
+	     bsdtar->mode != OPTION_PRINT_KEY_ID &&
 	     bsdtar->mode != OPTION_LIST_ARCHIVES &&
 	     bsdtar->mode != OPTION_RECOVER &&
 	     bsdtar->mode != OPTION_FSCK &&
@@ -939,6 +943,9 @@ main(int argc, char **argv)
 	case OPTION_NUKE:
 	case OPTION_RECOVER_DELETE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE);
+		break;
+	case OPTION_PRINT_KEY_ID:
+		fprintf(stdout, "%li\n", bsdtar->machinenum);
 		break;
 	case OPTION_PRINT_STATS:
 		/* We don't need keys for printing global stats. */
