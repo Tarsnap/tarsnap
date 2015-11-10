@@ -625,6 +625,14 @@ option is also specified.
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
+.It Fl -probability-check-file Ar p
+(c mode only)
+If a file has not changed, read it anyway (with the given probability
+.Ar p
+from 0.0 to 1.0) and compare its hash(es) and trailer to the cached values.
+This might provide a warning about a failing disk if other detection methods
+fail.  However, this operation will make Tarsnap run considerably slower, so
+we do not recommend using a high probability with large archives.
 .It Fl q ( Fl -fast-read )
 (x and t modes only)
 Extract or list only the first archive entry that matches each pattern
