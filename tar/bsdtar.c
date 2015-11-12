@@ -196,6 +196,9 @@ bsdtar_atexit(void)
 #if HAVE_REGEX_H
 	cleanup_substitution(bsdtar);
 #endif
+
+	/* Clean up network layer. */
+	network_fini();
 }
 
 int
@@ -1023,9 +1026,6 @@ main(int argc, char **argv)
 	    "va = %12g ms^2  max = %12g ms\n",
 	    N, mu * 1000, va * 1000000, max * 1000);
 #endif
-
-	/* Clean up network layer. */
-	network_fini();
 
 #ifdef PROFILE
 	/*
