@@ -190,6 +190,12 @@ bsdtar_atexit(void)
 	/* Free strings allocated by strdup. */
 	free(bsdtar->cachedir);
 	free(bsdtar->homedir);
+
+	/* Free matching and (if applicable) substitution patterns. */
+	cleanup_exclusions(bsdtar);
+#if HAVE_REGEX_H
+	cleanup_substitution(bsdtar);
+#endif
 }
 
 int
@@ -1007,11 +1013,6 @@ main(int argc, char **argv)
 		tarsnap_mode_x(bsdtar);
 		break;
 	}
-
-	cleanup_exclusions(bsdtar);
-#if HAVE_REGEX_H
-	cleanup_substitution(bsdtar);
-#endif
 
 #ifdef DEBUG_SELECTSTATS
 	double N, mu, va, max;
