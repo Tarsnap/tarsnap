@@ -468,7 +468,8 @@ if test "x$with_bash_completion_dir" = "xyes"; then
         # find the actual value from the system
         PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
             [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"],
-            [AC_MSG_ERROR([Automatic detection of bash-completion directory requires bash-completion >= 2.0.])])
+            [BASH_COMPLETION_DIR="/etc/bash_completion.d/"; 
+	     AC_MSG_WARN([Automatic detection of bash-completion directory requires bash-completion >= 2.0; guessing a directory.])])
 	AC_MSG_CHECKING([bash completions directory])
 	AC_MSG_RESULT([$BASH_COMPLETION_DIR])
     fi
