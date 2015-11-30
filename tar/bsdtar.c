@@ -190,6 +190,15 @@ bsdtar_atexit(void)
 	/* Free strings allocated by strdup. */
 	free(bsdtar->cachedir);
 	free(bsdtar->homedir);
+
+	/* Free matching and (if applicable) substitution patterns. */
+	cleanup_exclusions(bsdtar);
+#if HAVE_REGEX_H
+	cleanup_substitution(bsdtar);
+#endif
+
+	/* Clean up network layer. */
+	network_fini();
 }
 
 int
@@ -1008,11 +1017,6 @@ main(int argc, char **argv)
 		break;
 	}
 
-	cleanup_exclusions(bsdtar);
-#if HAVE_REGEX_H
-	cleanup_substitution(bsdtar);
-#endif
-
 #ifdef DEBUG_SELECTSTATS
 	double N, mu, va, max;
 
@@ -1022,9 +1026,6 @@ main(int argc, char **argv)
 	    "va = %12g ms^2  max = %12g ms\n",
 	    N, mu * 1000, va * 1000000, max * 1000);
 #endif
-
-	/* Clean up network layer. */
-	network_fini();
 
 #ifdef PROFILE
 	/*
