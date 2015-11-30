@@ -802,11 +802,11 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	return (0);
 
 err4:
-	free(d->t.index);
+	free(tmi.tindex);
 err3:
-	free(d->c.index);
+	free(tmi.cindex);
 err2:
-	free(d->h.index);
+	free(tmi.hindex);
 err1:
 	free(tapename);
 err0:
