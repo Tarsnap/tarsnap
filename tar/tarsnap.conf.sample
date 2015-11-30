@@ -15,6 +15,11 @@ print-stats
 # Create a checkpoint once per GB of uploaded data.
 checkpoint-bytes 1G
 
+### Commonly useful options
+
+# Use SI prefixes to make numbers printed by --print-stats more readable
+#humanize-numbers
+
 ### Other options, not applicable to most systems
 
 # Aggressive network behaviour: Use multiple TCP connections when
