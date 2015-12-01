@@ -23,7 +23,70 @@ usage(void)
 	    "--outkeyfile new-key-file", "[--passphrased]",
 	    "[--passphrase-mem maxmem]", "[--passphrase-time maxtime]",
 	    "[-r] [-w] [-d] [--nuke]");
+	fprintf(stderr, "       tarsnap-keymgmt --print-key-id key-file\n");
+	fprintf(stderr, "       tarsnap-keymgmt --print-key-permissions "
+	    "key-file\n");
 	exit(1);
+
+	/* NOTREACHED */
+}
+
+static void
+print_id(const char *keyfilename)
+{
+	uint64_t machinenum = (uint64_t)(-1);
+
+	/* Read keyfile and machine name. */
+	if (keyfile_read(keyfilename, &machinenum, ~0)) {
+		warnp("Cannot read key file: %s", keyfilename);
+		exit(1);
+	}
+
+	/* Print key ID. */
+	fprintf(stdout, "%" PRIu64 "\n", machinenum);
+	exit(0);
+
+	/* NOTREACHED */
+}
+	
+static void
+print_permissions(const char *keyfilename)
+{
+	uint64_t machinenum = (uint64_t)(-1);
+	int has_read;
+	int has_write;
+	int has_delete;
+
+	/* Read keyfile and machine name. */
+	if (keyfile_read(keyfilename, &machinenum, ~0)) {
+		warnp("Cannot read key file: %s", keyfilename);
+		exit(1);
+	}
+
+	/* Determine permissions. */
+	has_read = (crypto_keys_missing(CRYPTO_KEYMASK_READ) == NULL);
+	has_write = (crypto_keys_missing(CRYPTO_KEYMASK_WRITE) == NULL);
+	has_delete = (crypto_keys_missing(CRYPTO_KEYMASK_AUTH_DELETE) == NULL);
+
+	/* Print key permissions. */
+	fprintf(stdout, "This key has permissions for: ");
+	if (has_read && has_write && has_delete)
+		fprintf(stdout, "reading, writing, and deleting.\n");
+	if (has_read && has_write && !has_delete)
+		fprintf(stdout, "reading and writing.\n");
+	if (has_read && !has_write && has_delete)
+		fprintf(stdout, "reading and deleting.\n");
+	if (has_read && !has_write && !has_delete)
+		fprintf(stdout, "reading.\n");
+	if (!has_read && has_write && has_delete)
+		fprintf(stdout, "writing and nuking.\n");
+	if (!has_read && has_write && !has_delete)
+		fprintf(stdout, "writing.\n");
+	if (!has_read && !has_write && has_delete)
+		fprintf(stdout, "nuking.\n");
+	if (!has_read && !has_write && !has_delete)
+		fprintf(stdout, "nothing.\n");
+	exit(0);
 
 	/* NOTREACHED */
 }
@@ -42,6 +105,8 @@ main(int argc, char **argv)
 	uint64_t maxmem = 0;
 	double maxtime = 1.0;
 	char * passphrase;
+	int print_key_id = 0;
+	int print_key_permissions = 0;
 
 	WARNP_INIT;
 
@@ -119,10 +184,34 @@ main(int argc, char **argv)
 			argv++; argc--;
 		} else if (strcmp(argv[0], "--passphrased") == 0) {
 			passphrased = 1;
+		} else if (strcmp(argv[0], "--print-key-id") == 0) {
+			print_key_id = 1;
+		} else if (strcmp(argv[0], "--print-key-permissions") == 0) {
+			print_key_permissions = 1;
 		} else {
 			/* Key files follow. */
 			break;
 		}
+	}
+
+	/* We can't print ID and permissions at the same time. */
+	if (print_key_id && print_key_permissions)
+		usage();
+
+	if ((print_key_id || print_key_permissions)) {
+		/* We can't combine printing info with generating a new key. */
+		if (newkeyfile != NULL)
+			usage();
+
+		/* We can only print one at once. */
+		if (argc != 1)
+			usage();
+
+		/* Print info. */
+		if (print_key_id)
+			print_id(argv[0]);
+		if (print_key_permissions)
+			print_permissions(argv[0]);
 	}
 
 	/* We should have an output key file. */
