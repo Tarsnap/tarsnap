@@ -20,6 +20,10 @@ key files
 .Op Fl -passphrase-mem Ar maxmem
 .Op Fl -passphrase-time Ar maxtime
 .Ar key-file ...
+.Nm
+.Fl -print-key-id Ar key-file
+.Nm
+.Fl -print-key-permissions Ar key-file
 .Sh DESCRIPTION
 .Nm
 reads the provided key files and writes a new key file
