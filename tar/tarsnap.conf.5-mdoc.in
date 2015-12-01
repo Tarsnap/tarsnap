@@ -2,7 +2,7 @@
 .\" Copyright 2008, 2009 Colin Percival
 .\" All rights reserved
 .\"
-.Dd July 10, 2009
+.Dd @DATE@
 .Dt TARSNAP.CONF 5
 .Os
 .Sh NAME
