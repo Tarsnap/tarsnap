@@ -175,11 +175,13 @@ int statstape_printall(TAPE_S *);
 int statstape_printlist(TAPE_S *, int);
 
 /**
- * statstape_print(d, tapename):
+ * statstape_print(d, tapename, csv_filename):
  * Print statistics relating to a specific archive in a set.  Return 0 on
- * success, 1 if the tape does not exist, or -1 on other errors.
+ * success, 1 if the tape does not exist, or -1 on other errors.  If
+ * ${csv_filename} is not NULL, output will be written in CSV format to that
+ * filename.
  */
-int statstape_print(TAPE_S *, const char *);
+int statstape_print(TAPE_S *, const char *, const char *);
 
 /**
  * statstape_close(d):

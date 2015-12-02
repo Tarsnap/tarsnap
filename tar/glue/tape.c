@@ -136,7 +136,7 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	} else {
 		/* User wants statistics about specific archive(s). */
 		for (i = 0; i < bsdtar->ntapes; i++) {
-			switch (statstape_print(d, bsdtar->tapenames[i])) {
+			switch (statstape_print(d, bsdtar->tapenames[i], NULL)) {
 			case 0:
 				break;
 			case 1:
