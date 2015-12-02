@@ -203,7 +203,7 @@ size_t chunks_stats_getdirsz(CHUNKS_S *);
 int chunks_stats_printglobal(FILE *, CHUNKS_S *);
 
 /**
- * chunks_stats_print(stream, C, name):
+ * chunks_stats_printarchive(stream, C, name):
  * Print accumulated statistics for an archive with the given name.
  */
 int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *);
