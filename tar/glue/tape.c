@@ -123,7 +123,7 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 		goto err1;
 
 	/* Print statistics about the archive set. */
-	if (statstape_printglobal(d))
+	if (statstape_printglobal(d, NULL))
 		goto err2;
 
 	if (bsdtar->ntapes == 0) {

@@ -154,10 +154,11 @@ void deletetape_free(TAPE_D *);
 TAPE_S * statstape_open(uint64_t, const char *);
 
 /**
- * statstape_printglobal(d):
- * Print global statistics relating to a set of archives.
+ * statstape_printglobal(d, csv_filename):
+ * Print global statistics relating to a set of archives.  If ${csv_filename}
+ * is not NULL, output will be written in CSV format to that filename.
  */
-int statstape_printglobal(TAPE_S *);
+int statstape_printglobal(TAPE_S *, const char *);
 
 /**
  * statstape_printall(d):
