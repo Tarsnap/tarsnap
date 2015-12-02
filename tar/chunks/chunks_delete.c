@@ -146,13 +146,14 @@ chunks_delete_extrastats(CHUNKS_D * C, size_t len)
 }
 
 /**
- * chunks_delete_printstats(stream, C, name):
+ * chunks_delete_printstats(stream, C, name, csv):
  * Print statistics for the delete transaction associated with the cookie
- * ${C} to ${stream}.  If ${name} is non-NULL, use it to identify the archive
- * being deleted.
+ * ${C} to ${stream}, optionally in ${csv} format.  If ${name} is non-NULL,
+ * use it to identify the archive being deleted.
  */
 int
-chunks_delete_printstats(FILE * stream, CHUNKS_D * C, const char * name)
+chunks_delete_printstats(FILE * stream, CHUNKS_D * C, const char * name,
+    int csv)
 {
 
 	/* If we don't have an archive name, call it "This archive". */
@@ -160,21 +161,21 @@ chunks_delete_printstats(FILE * stream, CHUNKS_D * C, const char * name)
 		name = "This archive";
 
 	/* Print header. */
-	if (chunks_stats_printheader(stream))
+	if (chunks_stats_printheader(stream, csv))
 		goto err0;
 
 	/* Print the statistics we have. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tape, name,
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_freed, "Deleted data",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 
 	/* Success! */

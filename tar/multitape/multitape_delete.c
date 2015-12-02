@@ -132,7 +132,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 
 	/* Print statistics if they were requested. */
 	if ((printstats != 0) &&
-	    chunks_delete_printstats(stderr, C, withname ? tapename : NULL))
+	    chunks_delete_printstats(stderr, C, withname ? tapename : NULL, 0))
 		goto err3;
 
 	/* Close storage and chunk layer cookies. */

@@ -53,11 +53,12 @@ chunks_stats_addstats(struct chunkstats * to, struct chunkstats * from)
 }
 
 /**
- * chunks_stats_printheader(stream):
- * Print a header line for statistics to ${stream}.
+ * chunks_stats_printheader(stream, csv):
+ * Print a header line for statistics to ${stream}, optionally in ${csv}
+ * format.
  */
 int
-chunks_stats_printheader(FILE * stream)
+chunks_stats_printheader(FILE * stream, int csv)
 {
 
 #ifdef STATS_WITH_CHUNKS
@@ -80,13 +81,13 @@ err0:
 }
 
 /**
- * chunks_stats_print(stream, stats, name, stats_extra):
+ * chunks_stats_print(stream, stats, name, stats_extra, csv):
  * Print a line with ${name} and combined statistics from ${stats} and
- * ${stats_extra} to ${stream}.
+ * ${stats_extra} to ${stream}, optionally in ${csv} format.
  */
 int
 chunks_stats_print(FILE * stream, struct chunkstats * stats,
-    const char * name, struct chunkstats * stats_extra)
+    const char * name, struct chunkstats * stats_extra, int csv)
 {
 	struct chunkstats s;
 	char * s_lenstr, * s_zlenstr;

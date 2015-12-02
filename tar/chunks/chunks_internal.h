@@ -97,17 +97,18 @@ void chunks_stats_add(struct chunkstats *, size_t len, size_t zlen,
 void chunks_stats_addstats(struct chunkstats *, struct chunkstats *);
 
 /**
- * chunks_stats_printheader(stream):
- * Print a header line for statistics to ${stream}.
+ * chunks_stats_printheader(stream, csv):
+ * Print a header line for statistics to ${stream}, optionally in ${csv}
+ * format.
  */
-int chunks_stats_printheader(FILE *);
+int chunks_stats_printheader(FILE *, int);
 
 /**
- * chunks_stats_print(stream, stats, name, stats_extra):
+ * chunks_stats_print(stream, stats, name, stats_extra, csv):
  * Print a line with ${name} and combined statistics from ${stats} and
- * ${stats_extra} to ${stream}.
+ * ${stats_extra} to ${stream}, optionally in ${csv} format.
  */
 int chunks_stats_print(FILE *, struct chunkstats *, const char *,
-    struct chunkstats *);
+    struct chunkstats *, int);
 
 #endif /* !_CHUNKS_INTERNAL_H_ */

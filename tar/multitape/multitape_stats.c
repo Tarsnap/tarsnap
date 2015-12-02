@@ -99,7 +99,7 @@ statstape_printglobal(TAPE_S * d)
 {
 
 	/* Ask the chunk storage layer to do this. */
-	if (chunks_stats_printglobal(stdout, d->C))
+	if (chunks_stats_printglobal(stdout, d->C, 0))
 		goto err0;
 
 	/* Success! */
@@ -145,7 +145,7 @@ statstape_printall(TAPE_S * d)
 			goto err2;
 
 		/* Print the statistics. */
-		if (chunks_stats_printarchive(stdout, d->C, tmd.name))
+		if (chunks_stats_printarchive(stdout, d->C, tmd.name, 0))
 			goto err2;
 
 		/* Free parsed metadata. */
@@ -290,7 +290,7 @@ statstape_print(TAPE_S * d, const char * tapename)
 	multitape_metadata_free(&tmd);
 
 	/* Print the statistics. */
-	if (chunks_stats_printarchive(stdout, d->C, tapename))
+	if (chunks_stats_printarchive(stdout, d->C, tapename, 0))
 		goto err0;
 
 	/* Success! */

@@ -274,23 +274,23 @@ chunks_stats_getdirsz(CHUNKS_S * C)
 }
 
 /**
- * chunks_stats_printglobal(stream, C):
- * Print global statistics relating to a set of archives.
+ * chunks_stats_printglobal(stream, C, csv):
+ * Print global statistics relating to a set of archives, optionally in ${csv}
+ * format.
  */
 int
-chunks_stats_printglobal(FILE * stream, CHUNKS_S * C)
+chunks_stats_printglobal(FILE * stream, CHUNKS_S * C, int csv)
 {
-
 	/* Print header. */
-	if (chunks_stats_printheader(stream))
+	if (chunks_stats_printheader(stream, csv))
 		goto err0;
 
 	/* Print the global statistics. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 
 	/* Success! */
@@ -371,18 +371,20 @@ chunks_stats_extrastats(CHUNKS_S * C, size_t len)
 }
 
 /**
- * chunks_stats_printarchive(stream, C, name):
- * Print accumulated statistics for an archive with the given name.
+ * chunks_stats_printarchive(stream, C, name, csv):
+ * Print accumulated statistics for an archive with the given name, optionally
+ * in ${csv} format.
  */
 int
-chunks_stats_printarchive(FILE * stream, CHUNKS_S * C, const char * name)
+chunks_stats_printarchive(FILE * stream, CHUNKS_S * C, const char * name,
+    int csv)
 {
-
 	/* Print statistics for this archive. */
-	if (chunks_stats_print(stream, &C->stats_tape, name, &C->stats_tapee))
+	if (chunks_stats_print(stream, &C->stats_tape, name,
+	    &C->stats_tapee, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tapeu, "  (unique data)",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 
 	/* Success! */

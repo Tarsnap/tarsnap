@@ -905,7 +905,7 @@ writetape_close(TAPE_W * d)
 		goto err2;
 
 	/* Print statistics, if we've been asked to do so. */
-	if (d->stats_enabled && chunks_write_printstats(stderr, d->C))
+	if (d->stats_enabled && chunks_write_printstats(stderr, d->C, 0))
 		goto err2;
 
 	/* Ask the chunks layer to prepare for a checkpoint. */
