@@ -28,11 +28,11 @@ keygen_network_register(struct register_internal * C)
 
 	/* Ask the netpacket layer to send a request and get a response. */
 	if (netpacket_op(NPC, callback_register_send, C))
-		goto err1;
+		goto err3;
 
 	/* Run event loop until an error occurs or we're done. */
 	if (network_spin(&C->done))
-		goto err1;
+		goto err3;
 
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
@@ -77,6 +77,8 @@ keygen_network_register(struct register_internal * C)
 	/* Success! */
 	return (0);
 
+err3:
+	netpacket_close(NPC);
 err1:
 	warnp("Error registering with server");
 err0:
