@@ -19,7 +19,6 @@
 #include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
-#include "tsnetwork.h"
 #include "warnp.h"
 
 int
@@ -111,9 +110,6 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Register the keys with the server. */
 	if (keygen_network_register(C) != 0)
 		goto err3;
-
-	/* Shut down the network event loop. */
-	network_fini();
 
 	/* Exit with a code of 1 if we couldn't register. */
 	if (C->machinenum == (uint64_t)(-1))
