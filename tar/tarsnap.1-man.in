@@ -162,7 +162,7 @@ in it will be appended to the current archive.
 If
 \fIarchive-file\fP
 is
-Qq -
+"-"
 then the archive will be read from the standard input.
 As an example,
 .RS 4
@@ -762,6 +762,11 @@ Note that
 \fB\--null\fP
 also disables the special handling of lines containing
 ``-C''.
+If
+\fIfilename\fP
+is
+"-"
+then the list of names will be read from the standard input.
 .TP
 \fB\--totals\fP
 (c mode only)
