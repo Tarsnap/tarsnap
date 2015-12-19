@@ -692,6 +692,11 @@ Note that
 .Fl -null
 also disables the special handling of lines containing
 .Dq -C .
+If
+.Pa filename
+is
+.Dq -
+then the list of names will be read from the standard input.
 .It Fl -totals
 (c mode only)
 Print the size of the archive after creating it.  This option is provided
