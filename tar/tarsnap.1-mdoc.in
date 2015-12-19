@@ -169,7 +169,7 @@ in it will be appended to the current archive.
 If
 .Pa archive-file
 is
-.Qq -
+.Dq -
 then the archive will be read from the standard input.
 As an example,
 .Dl Nm Fl c Fl -keyfile Ar key-file Fl -cachedir Ar cache-dir Fl f Ar mybackup Cm @ Ns Pa backup.tar

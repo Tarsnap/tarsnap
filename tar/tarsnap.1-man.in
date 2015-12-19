@@ -162,7 +162,7 @@ in it will be appended to the current archive.
 If
 \fIarchive-file\fP
 is
-Qq -
+``-''
 then the archive will be read from the standard input.
 As an example,
 .RS 4

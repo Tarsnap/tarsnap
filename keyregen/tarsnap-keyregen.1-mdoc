@@ -25,8 +25,7 @@ the tarsnap server, and writes a key file for use with
 .Xr tarsnap-recrypt 1
 and
 .Xr tarsnap 1 .
-The term
-.Qq compatible
+The term "compatible"
 here means that it is possible to re-encrypt archives stored with
 the first set of keys to be stored with the second set of keys.
 .Pp

@@ -24,8 +24,7 @@ the tarsnap server, and writes a key file for use with
 \fBtarsnap-recrypt\fP(1)
 and
 \fBtarsnap\fP(1).
-The term
-Qq compatible
+The term "compatible"
 here means that it is possible to re-encrypt archives stored with
 the first set of keys to be stored with the second set of keys.
 .PP
