@@ -18,6 +18,12 @@ key files
 [\fB\--passphrase-mem\fP \fImaxmem\fP]
 [\fB\--passphrase-time\fP \fImaxtime\fP]
 \fIkey-file\fP ...
+.br
+\fB\%tarsnap-keymgmt\fP
+\fB\--print-key-id\fP \fIkey-file\fP
+.br
+\fB\%tarsnap-keymgmt\fP
+\fB\--print-key-permissions\fP \fIkey-file\fP
 .SH DESCRIPTION
 .ad l
 \fB\%tarsnap-keymgmt\fP

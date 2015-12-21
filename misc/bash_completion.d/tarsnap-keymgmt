@@ -41,7 +41,8 @@ _tarsnap_keymgmt ()
 	wotherarg="--passphrase-mem"
 
 	# Available long options
-	longopts="--outkeyfile --nuke --passphrased --passphrase-mem"
+	longopts="--outkeyfile --nuke --passphrased --passphrase-mem \
+		--print-key-id --print-key-permissions"
 
 	# Available short options
 	shortopts="-r -w -d"
