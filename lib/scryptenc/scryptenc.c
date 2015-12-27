@@ -33,12 +33,14 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "crypto_aes.h"
 #include "crypto_aesctr.h"
 #include "crypto_entropy.h"
+#include "humansize.h"
 #include "insecure_memzero.h"
 #include "sha256.h"
 #include "sysendian.h"
@@ -62,13 +64,18 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 	uint64_t N = (uint64_t)(1) << logN;
 	uint64_t mem_minimum = 128 * r * N;
 	double expected_seconds = 4 * N * p / opps;
+	char * human_memlimit = humansize(memlimit);
+	char * human_mem_minimum = humansize(mem_minimum);
 
 	fprintf(stderr, "Parameters used: N = %" PRIu64 "; r = %" PRIu32
 	    "; p = %" PRIu32 ";\n", N, r, p);
-	fprintf(stderr, "    This requires at least %" PRIu64 " bytes "
-	    "of memory (%zu available),\n", mem_minimum, memlimit);
+	fprintf(stderr, "    This requires at least %s bytes of memory "
+	    "(%s available),\n", human_mem_minimum, human_memlimit);
 	fprintf(stderr, "    and will take approximately %.1f seconds "
 	    "(limit: %.1f seconds).\n", expected_seconds, maxtime);
+
+	free(human_memlimit);
+	free(human_mem_minimum);
 }
 
 static int
