@@ -132,13 +132,16 @@ void writetape_free(TAPE_W *);
 TAPE_D * deletetape_init(uint64_t);
 
 /**
- * deletetape(d, machinenum, cachedir, tapename, printstats, withname):
+ * deletetape(d, machinenum, cachedir, tapename, printstats, withname,
+ *     csv_filename):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
  * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
- * or -1 on other errors.
+ * or -1 on other errors.  If ${csv_filename} is specified, output in CSV
+ * format instead of to stderr.
  */
-int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int);
+int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int,
+    const char *);
 
 /**
  * deletetape_free(d):

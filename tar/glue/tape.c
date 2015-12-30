@@ -31,7 +31,7 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 			    bsdtar->tapenames[i]);
 		switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
-		    bsdtar->ntapes > 1 ? 1 : 0)) {
+		    bsdtar->ntapes > 1 ? 1 : 0, NULL)) {
 		case 0:
 			break;
 		case 1:
