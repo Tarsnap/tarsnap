@@ -161,10 +161,12 @@ TAPE_S * statstape_open(uint64_t, const char *);
 int statstape_printglobal(TAPE_S *, const char *);
 
 /**
- * statstape_printall(d):
- * Print statistics relating to each of the archives in a set.
+ * statstape_printall(d, csv_filename):
+ * Print statistics relating to each of the archives in a set.  If
+ * ${csv_filename} is not NULL, output will be written in CSV format to that
+ * filename.
  */
-int statstape_printall(TAPE_S *);
+int statstape_printall(TAPE_S *, const char *);
 
 /**
  * statstape_printlist(d, verbose):

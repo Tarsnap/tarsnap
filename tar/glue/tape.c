@@ -131,7 +131,7 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	} else if ((bsdtar->tapenames[0][0] == '*') &&
 	    (bsdtar->tapenames[0][1] == '\0')) {
 		/* User wants statistics on all archives. */
-		if (statstape_printall(d))
+		if (statstape_printall(d, NULL))
 			goto err2;
 	} else {
 		/* User wants statistics about specific archive(s). */

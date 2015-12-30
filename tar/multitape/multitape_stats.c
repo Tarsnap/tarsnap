@@ -132,19 +132,31 @@ err0:
 
 /**
  * statstape_printall(d):
- * Print statistics relating to each of the archives in a set.
+ * Print statistics relating to each of the archives in a set.  If
+ * ${csv_filename} is not NULL, output will be written in CSV format to that
+ * filename.
  */
 int
-statstape_printall(TAPE_S * d)
+statstape_printall(TAPE_S * d, const char * csv_filename)
 {
 	struct tapemetadata tmd;
 	uint8_t * flist;
 	size_t nfiles;
 	size_t file;
+	FILE * output = stdout;
+	int csv = 0;
+
+	/* Should we output to a CSV file? */
+	if (csv_filename != NULL)
+		csv = 1;
+
+	/* Open CSV output file, if requested. */
+	if (csv && (output = fopen(csv_filename, "a")) == NULL)
+		goto err0;
 
 	/* Get a list of the metadata files. */
 	if (storage_directory_read(d->machinenum, 'm', 0, &flist, &nfiles))
-		goto err0;
+		goto err1;
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
 	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
@@ -157,16 +169,16 @@ statstape_printall(TAPE_S * d)
 		/* Read the tape metadata. */
 		if (multitape_metadata_get_byhash(d->SR, d->C, &tmd,
 		    &flist[file * 32], 0))
-			goto err1;
+			goto err2;
 
 		/* Compute statistics. */
 		if (multitape_chunkiter_tmd(d->SR, d->C, &tmd,
 		    callback_print, d->C, 0))
-			goto err2;
+			goto err3;
 
 		/* Print the statistics. */
-		if (chunks_stats_printarchive(stdout, d->C, tmd.name, 0))
-			goto err2;
+		if (chunks_stats_printarchive(output, d->C, tmd.name, csv))
+			goto err3;
 
 		/* Free parsed metadata. */
 		multitape_metadata_free(&tmd);
@@ -175,13 +187,20 @@ statstape_printall(TAPE_S * d)
 	/* Free the list of files. */
 	free(flist);
 
+	/* Close CSV output file, if requested. */
+	if (csv && fclose(output))
+		goto err0;
+
 	/* Success! */
 	return (0);
 
-err2:
+err3:
 	multitape_metadata_free(&tmd);
-err1:
+err2:
 	free(flist);
+err1:
+	if (output != stdout)
+		fclose(output);
 err0:
 	/* Failure! */
 	return (-1);
