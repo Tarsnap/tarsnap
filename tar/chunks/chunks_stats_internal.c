@@ -61,15 +61,29 @@ int
 chunks_stats_printheader(FILE * stream, int csv)
 {
 
+	if (csv) {
 #ifdef STATS_WITH_CHUNKS
-	if (fprintf(stream, "%-25s  %12s  %15s  %15s\n",
-	    "", "# of chunks", "Total size", "Compressed size") < 0) {
+		if (fprintf(stream, "%s,%s,%s,%s\n",
+		    "Archive name", "# of chunks", "Total size",
+		    "Compressed size") < 0) {
 #else
-	if (fprintf(stream, "%-32s  %15s  %15s\n",
-	    "", "Total size", "Compressed size") < 0) {
+		if (fprintf(stream, "%s,%s,%s\n",
+		    "Archive name", "Total size", "Compressed size") < 0) {
 #endif
-		warnp("fprintf");
-		goto err0;
+			warnp("fprintf");
+			goto err0;
+		}
+	} else {
+#ifdef STATS_WITH_CHUNKS
+		if (fprintf(stream, "%-25s  %12s  %15s  %15s\n",
+		    "", "# of chunks", "Total size", "Compressed size") < 0) {
+#else
+		if (fprintf(stream, "%-32s  %15s  %15s\n",
+		    "", "Total size", "Compressed size") < 0) {
+#endif
+			warnp("fprintf");
+			goto err0;
+		}
 	}
 
 	/* Success! */
@@ -91,6 +105,7 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 {
 	struct chunkstats s;
 	char * s_lenstr, * s_zlenstr;
+	char * format_string;
 
 	/* Compute sum of stats and stats_extra. */
 	s.nchunks = stats->nchunks + stats_extra->nchunks;
@@ -105,11 +120,16 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 		    s.nchunks * STORAGE_FILE_OVERHEAD)) == NULL)
 			goto err1;
 	} else {
-		if (asprintf(&s_lenstr, "%15" PRIu64, s.s_len) == -1) {
+		if (csv)
+			format_string = "%" PRIu64;
+		else
+			format_string = "%15" PRIu64;
+
+		if (asprintf(&s_lenstr, format_string, s.s_len) == -1) {
 			warnp("asprintf");
 			goto err0;
 		}
-		if (asprintf(&s_zlenstr, "%15" PRIu64,
+		if (asprintf(&s_zlenstr, format_string,
 		    s.s_zlen + s.nchunks * STORAGE_FILE_OVERHEAD) == -1) {
 			warnp("asprintf");
 			goto err1;
@@ -117,17 +137,32 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 	}
 
 	/* Print output line. */
-	if (fprintf(stream,
+	if (csv) {
+		if (fprintf(stream,
 #ifdef STATS_WITH_CHUNKS
-	    "%-25s  %12" PRIu64 "  %15s  %15s\n",
-	    name, s.nchunks,
+		    "%s,%" PRIu64 ",%s,%s\n",
+		    name, s.nchunks,
 #else
-	    "%-32s  %15s  %15s\n",
-	    name,
+		    "%s,%s,%s\n",
+		    name,
 #endif
-	    s_lenstr, s_zlenstr) < 0) {
-		warnp("fprintf");
-		goto err2;
+		    s_lenstr, s_zlenstr) < 0) {
+			warnp("fprintf");
+			goto err2;
+		}
+	} else {
+		if (fprintf(stream,
+#ifdef STATS_WITH_CHUNKS
+		    "%-25s  %12" PRIu64 "  %15s  %15s\n",
+		    name, s.nchunks,
+#else
+		    "%-32s  %15s  %15s\n",
+		    name,
+#endif
+		    s_lenstr, s_zlenstr) < 0) {
+			warnp("fprintf");
+			goto err2;
+		}
 	}
 
 	/* Free strings allocated by asprintf or humansize. */
