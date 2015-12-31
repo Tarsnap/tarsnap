@@ -50,12 +50,12 @@ int readtape_close(TAPE_R *);
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime):
+ *     dryrun, creationtime, csv_filename):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W * writetape_open(uint64_t, const char *, const char *, int, char **,
-    int, int, time_t);
+    int, int, time_t, const char *);
 
 /**
  * writetape_setcallbacks(d, callback_chunk, callback_trailer,

@@ -114,17 +114,19 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 
 /**
  * archive_write_open_multitape(a, machinenum, cachedir, tapename, argc,
- *     argv, printstats, dryrun, creationtime):
+ *     argv, printstats, dryrun, creationtime, csv_filename):
  * Open the multitape tape ${tapename} for writing and associate it with the
  * archive $a$.  If ${printstats} is non-zero, print archive statistics when
  * the tape is closed.  If ${dryrun} is non-zero, perform a dry run.
  * Record ${creationtime} as the creation time in the archive metadata.
+ * If ${csv_filename} is given, write statistics in CSV format.
  * Return a cookie which can be passed to the multitape layer.
  */
 void *
 archive_write_open_multitape(struct archive * a, uint64_t machinenum,
     const char * cachedir, const char * tapename, int argc,
-    char ** argv, int printstats, int dryrun, time_t creationtime)
+    char ** argv, int printstats, int dryrun, time_t creationtime,
+    const char * csv_filename)
 {
 	struct multitape_write_internal * d;
 
@@ -132,7 +134,8 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 	archive_clear_error(a);
 
 	if ((d = writetape_open(machinenum, cachedir, tapename,
-	    argc, argv, printstats, dryrun, creationtime)) == NULL) {
+	    argc, argv, printstats, dryrun, creationtime,
+	    csv_filename)) == NULL) {
 		archive_set_error(a, errno, "Error creating new archive");
 		return (NULL);
 	}
