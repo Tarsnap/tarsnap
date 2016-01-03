@@ -15,6 +15,7 @@
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
 #include "warnp.h"
+#include "imalloc.h"
 
 /* Copy batches of 16384 blocks; print a . per 512 blocks. */
 #define BATCHLEN 16384
@@ -182,7 +183,7 @@ getblist(uint64_t mnum, struct block ** blist, size_t * blistlen)
 
 	/* Allocate array of blocks. */
 	*blistlen = nfiles_m + nfiles_i + nfiles_c;
-	if ((*blist = malloc(*blistlen * sizeof(struct block))) == NULL) {
+	if ((*blist = imalloc(*blistlen, sizeof(struct block))) == NULL) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
@@ -255,7 +256,7 @@ compareblists(const struct block * oblist, size_t oblistlen,
 
 	/* Allocate space for the blocks-to-copy list. */
 	*cblistlen = oblistlen - nblistlen;
-	if ((*cblist = malloc(*cblistlen * sizeof(struct block))) == NULL) {
+	if ((*cblist = imalloc(*cblistlen, sizeof(struct block))) == NULL) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
