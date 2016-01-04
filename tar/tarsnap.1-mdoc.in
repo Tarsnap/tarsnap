@@ -268,7 +268,13 @@ within a few kB or a fraction of a percent) to if
 .Nm
 is run without the
 .Fl -dry-run
-option.
+option.  Requires unsetting
+the  
+.Nm cachedir 
+and 
+.Nm keyfile
+entries in the configuration file if tarsnap-keygen was
+never run (i.e. there is no valid tarsnap key).
 .Pp
 Note that the
 .Fl -maxbw
