@@ -183,7 +183,7 @@ getblist(uint64_t mnum, struct block ** blist, size_t * blistlen)
 
 	/* Allocate array of blocks. */
 	*blistlen = nfiles_m + nfiles_i + nfiles_c;
-	if ((*blist = imalloc(*blistlen, sizeof(struct block))) == NULL) {
+	if (IMALLOC(*blist, *blistlen, struct block)) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
@@ -256,7 +256,7 @@ compareblists(const struct block * oblist, size_t oblistlen,
 
 	/* Allocate space for the blocks-to-copy list. */
 	*cblistlen = oblistlen - nblistlen;
-	if ((*cblist = imalloc(*cblistlen, sizeof(struct block))) == NULL) {
+	if (IMALLOC(*cblist, *cblistlen, struct block)) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
