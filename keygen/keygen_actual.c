@@ -19,7 +19,6 @@
 #include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
-#include "tsnetwork.h"
 #include "warnp.h"
 
 int
@@ -72,7 +71,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
-		goto err2;
+		goto err3;
 	}
 
 	/* keyregen (with oldkeyfilename) only regenerates certain keys. */
@@ -90,7 +89,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		    CRYPTO_KEYMASK_HMAC_NAME |
 		    CRYPTO_KEYMASK_HMAC_CPARAMS)) {
 			warnp("Error reading old key file");
-			goto err2;
+			goto err3;
 		}
 
 		/*
@@ -105,19 +104,16 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Generate keys. */
 	if (crypto_keys_generate(keymask)) {
 		warnp("Error generating keys");
-		goto err2;
+		goto err3;
 	}
 
 	/* Register the keys with the server. */
 	if (keygen_network_register(C) != 0)
-		goto err2;
-
-	/* Shut down the network event loop. */
-	network_fini();
+		goto err3;
 
 	/* Exit with a code of 1 if we couldn't register. */
 	if (C->machinenum == (uint64_t)(-1))
-		goto err2;
+		goto err3;
 
 	/* If the user wants to passphrase the keyfile, get the passphrase. */
 	if (passphrased != 0) {
@@ -125,7 +121,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		    "Please enter passphrase for keyfile encryption",
 		    "Please confirm passphrase for keyfile encryption", 1)) {
 			warnp("Error reading password");
-			goto err2;
+			goto err3;
 		}
 	} else {
 		passphrase = NULL;
@@ -134,7 +130,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Write keys to file. */
 	if (keyfile_write_file(keyfile, C->machinenum,
 	    CRYPTO_KEYMASK_USER, passphrase, maxmem, maxtime))
-		goto err2;
+		goto err3;
 
 	/* Close the key file. */
 	if (fclose(keyfile)) {
@@ -149,6 +145,8 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	/* Success! */
 	return (0);
 
+err3:
+	fclose(keyfile);
 err2:
 	unlink(keyfilename);
 err1:
