@@ -147,6 +147,7 @@ bsdtar_init(void)
 	bsdtar->pending_chdir = NULL;
 	bsdtar->names_from_file = NULL;
 	bsdtar->modestr = NULL;
+	bsdtar->option_csv_filename = NULL;
 	bsdtar->configfiles = NULL;
 	bsdtar->archive = NULL;
 	bsdtar->progname = NULL;
@@ -190,6 +191,7 @@ bsdtar_atexit(void)
 	/* Free strings allocated by strdup. */
 	free(bsdtar->cachedir);
 	free(bsdtar->homedir);
+	free(bsdtar->option_csv_filename);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -377,6 +379,14 @@ main(int argc, char **argv)
 				bsdtar_errc(bsdtar, 1, 0,
 				    "Invalid --creationtime argument: %s",
 				    bsdtar->optarg);
+			break;
+		case OPTION_CSV_FILE: /* tarsnap */
+			if (bsdtar->option_csv_filename != NULL)
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Two --csv-file options given.\n");
+			if ((bsdtar->option_csv_filename = strdup(
+			    bsdtar->optarg)) == NULL)
+				bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");

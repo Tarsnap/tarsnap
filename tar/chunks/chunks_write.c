@@ -244,30 +244,30 @@ chunks_write_extrastats(CHUNKS_W * C, size_t len)
 }
 
 /**
- * chunks_write_printstats(stream, C):
+ * chunks_write_printstats(stream, C, csv):
  * Print statistics for the write transaction associated with the cookie
- * ${C} to ${stream}.
+ * ${C} to ${stream}, optionally in ${csv} format.
  */
 int
-chunks_write_printstats(FILE * stream, CHUNKS_W * C)
+chunks_write_printstats(FILE * stream, CHUNKS_W * C, int csv)
 {
 
 	/* Print header. */
-	if (chunks_stats_printheader(stream))
+	if (chunks_stats_printheader(stream, csv))
 		goto err0;
 
 	/* Print the statistics we have. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tape, "This archive",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_new, "New data",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 
 	/* Success! */

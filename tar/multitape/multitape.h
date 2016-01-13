@@ -50,12 +50,12 @@ int readtape_close(TAPE_R *);
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime):
+ *     dryrun, creationtime, csv_filename):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W * writetape_open(uint64_t, const char *, const char *, int, char **,
-    int, int, time_t);
+    int, int, time_t, const char *);
 
 /**
  * writetape_setcallbacks(d, callback_chunk, callback_trailer,
@@ -132,13 +132,16 @@ void writetape_free(TAPE_W *);
 TAPE_D * deletetape_init(uint64_t);
 
 /**
- * deletetape(d, machinenum, cachedir, tapename, printstats, withname):
+ * deletetape(d, machinenum, cachedir, tapename, printstats, withname,
+ *     csv_filename):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
  * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
- * or -1 on other errors.
+ * or -1 on other errors.  If ${csv_filename} is specified, output in CSV
+ * format instead of to stderr.
  */
-int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int);
+int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int,
+    const char *);
 
 /**
  * deletetape_free(d):
@@ -154,16 +157,19 @@ void deletetape_free(TAPE_D *);
 TAPE_S * statstape_open(uint64_t, const char *);
 
 /**
- * statstape_printglobal(d):
- * Print global statistics relating to a set of archives.
+ * statstape_printglobal(d, csv_filename):
+ * Print global statistics relating to a set of archives.  If ${csv_filename}
+ * is not NULL, output will be written in CSV format to that filename.
  */
-int statstape_printglobal(TAPE_S *);
+int statstape_printglobal(TAPE_S *, const char *);
 
 /**
- * statstape_printall(d):
- * Print statistics relating to each of the archives in a set.
+ * statstape_printall(d, csv_filename):
+ * Print statistics relating to each of the archives in a set.  If
+ * ${csv_filename} is not NULL, output will be written in CSV format to that
+ * filename.
  */
-int statstape_printall(TAPE_S *);
+int statstape_printall(TAPE_S *, const char *);
 
 /**
  * statstape_printlist(d, verbose):
@@ -174,11 +180,13 @@ int statstape_printall(TAPE_S *);
 int statstape_printlist(TAPE_S *, int);
 
 /**
- * statstape_print(d, tapename):
+ * statstape_print(d, tapename, csv_filename):
  * Print statistics relating to a specific archive in a set.  Return 0 on
- * success, 1 if the tape does not exist, or -1 on other errors.
+ * success, 1 if the tape does not exist, or -1 on other errors.  If
+ * ${csv_filename} is not NULL, output will be written in CSV format to that
+ * filename.
  */
-int statstape_print(TAPE_S *, const char *);
+int statstape_print(TAPE_S *, const char *, const char *);
 
 /**
  * statstape_close(d):

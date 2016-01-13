@@ -249,6 +249,10 @@ Manually specify a creation time (a unix timestamp) for the
 archive.  This is unlikely to be useful when tarsnap is being
 invoked directly from the command line.
 .TP
+\fB\--csv-file\fP \fIX\fP
+(only relevant with --print-stats)
+Write statistics in CSV format to a file.
+.TP
 \fB\--disk-pause\fP \fIX\fP
 (c mode only)
 Pause for

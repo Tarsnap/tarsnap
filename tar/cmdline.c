@@ -78,6 +78,7 @@ static struct option {
 	{ "confirmation",         0, 'w' },
 	{ "create",               0, 'c' },
 	{ "creationtime",         1, OPTION_CREATIONTIME },
+	{ "csv-file",		  1, OPTION_CSV_FILE },
 	{ "dereference",	  0, 'L' },
 	{ "directory",            1, 'C' },
 	{ "disk-pause",		  1, OPTION_DISK_PAUSE },

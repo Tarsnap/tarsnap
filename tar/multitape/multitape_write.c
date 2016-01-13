@@ -56,6 +56,7 @@ struct multitape_write_internal {
 	char ** argv;		/* Command-line arguments. */
 	int stats_enabled;	/* Stats printed on close. */
 	int eof;		/* Tape is truncated at current position. */
+	const char * csv_filename;	/* Print statistics to a CSV file. */
 
 	/* Lower level cookies. */
 	STORAGE_W * S;		/* Storage layer write cookie; NULL=dryrun. */
@@ -386,14 +387,14 @@ err0:
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime):
+ *     dryrun, creationtime, csv_filename):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
     const char * tapename, int argc, char ** argv, int printstats,
-    int dryrun, time_t creationtime)
+    int dryrun, time_t creationtime, const char * csv_filename)
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -438,6 +439,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 
 	/* Record whether we should print archive statistics on close. */
 	d->stats_enabled = printstats;
+
+	/* Record whether to print statistics to a CSV file. */
+	d->csv_filename = csv_filename;
 
 	/* If we're using a cache, make sure ${cachedir} exists. */
 	if ((cachedir != NULL) && (dirutil_needdir(cachedir)))
@@ -880,6 +884,12 @@ err0:
 int
 writetape_close(TAPE_W * d)
 {
+	FILE * output = stderr;
+	int csv = 0;
+
+	/* Should we output to a CSV file? */
+	if (d->csv_filename != NULL)
+		csv = 1;
 
 	/* If the archive is truncated, end any current archive entry. */
 	if (d->eof && (d->mode < 2) && writetape_setmode(d, 2))
@@ -905,8 +915,14 @@ writetape_close(TAPE_W * d)
 		goto err2;
 
 	/* Print statistics, if we've been asked to do so. */
-	if (d->stats_enabled && chunks_write_printstats(stderr, d->C))
-		goto err2;
+	if (d->stats_enabled) {
+		if (csv && (output = fopen(d->csv_filename, "wt")) == NULL)
+			goto err2;
+		if (chunks_write_printstats(output, d->C, csv))
+			goto err3;
+		if (csv && fclose(output))
+			goto err2;
+	}
 
 	/* Ask the chunks layer to prepare for a checkpoint. */
 	if (chunks_write_checkpoint(d->C))
@@ -945,6 +961,9 @@ writetape_close(TAPE_W * d)
 	/* Success! */
 	return (0);
 
+err3:
+	if (output != stderr)
+		fclose(output);
 err2:
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
