@@ -27,7 +27,10 @@ and
 .Xr tarsnap 1 .
 The term "compatible"
 here means that it is possible to re-encrypt archives stored with
-the first set of keys to be stored with the second set of keys.
+the first set of keys to be stored with the second set of keys.  This is
+required because Tarsnap has some keys which need to stay the same when
+re-encrypting data; otherwise, existing archives will become unreadable and
+cannot be used for deduplication.
 .Pp
 The
 .Fl -keyfile ,
