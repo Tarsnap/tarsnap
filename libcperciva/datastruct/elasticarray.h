@@ -178,6 +178,24 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 		    elasticarray_exportdup((struct elasticarray *)EA,	\
 		    (void **)buf, nrec, sizeof(rectype)));		\
 	}								\
+	static void (* prefix##_dummyptr)(void);			\
+	static inline void						\
+	prefix##_dummy(void)						\
+	{								\
+									\
+		(void)prefix##_init;					\
+		(void)prefix##_resize;					\
+		(void)prefix##_getsize;					\
+		(void)prefix##_append;					\
+		(void)prefix##_shrink;					\
+		(void)prefix##_truncate;				\
+		(void)prefix##_get;					\
+		(void)prefix##_free;					\
+		(void)prefix##_export;					\
+		(void)prefix##_exportdup;				\
+		(void)prefix##_dummyptr;				\
+	}								\
+	static void (* prefix##_dummyptr)(void) = prefix##_dummy;	\
 	typedef struct prefix##_struct * type
 
 #endif /* !_ELASTICARRAY_H_ */

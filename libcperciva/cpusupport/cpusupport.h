@@ -57,6 +57,20 @@
 		cpusupport_ ## arch_feature ## _init_ ## enabled = 1;				\
 		return (cpusupport_ ## arch_feature ## _present_ ## enabled); 			\
 	}											\
+	static void (* cpusupport_ ## arch_feature ## _dummyptr)(void);				\
+	static inline void									\
+	cpusupport_ ## arch_feature ## _dummyfunc(void)						\
+	{											\
+												\
+		(void)cpusupport_ ## arch_feature ## _present ## _CPUSUPPORT_ ## enabler;	\
+		(void)cpusupport_ ## arch_feature ## _init ## _CPUSUPPORT_ ## enabler;		\
+		(void)cpusupport_ ## arch_feature ## _detect ## _CPUSUPPORT_ ## enabler;	\
+		(void)cpusupport_ ## arch_feature ## _present_ ## enabled;			\
+		(void)cpusupport_ ## arch_feature ## _init_ ## enabled;				\
+		(void)cpusupport_ ## arch_feature ## _detect_ ## enabled;			\
+		(void)cpusupport_ ## arch_feature ## _dummyptr;					\
+	}											\
+	static void (* cpusupport_ ## arch_feature ## _dummyptr)(void) = cpusupport_ ## arch_feature ## _dummyfunc;	\
 	struct cpusupport_ ## arch_feature ## _dummy
 #define CPUSUPPORT_FEATURE_(arch_feature, enabler, enabled)	\
 	CPUSUPPORT_FEATURE__(arch_feature, enabler, enabled)
