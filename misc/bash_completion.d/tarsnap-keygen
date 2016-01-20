@@ -38,10 +38,11 @@ _tarsnap_keygen ()
 
 	# These options require a non-completable argument.
 	# They won't be completed at all.
-	wotherarg="--user|--machine|--passphrase-mem"
+	wotherarg="--user|--machine|--passphrase-mem|--passphrase-time"
 
 	# Available long options
-	longopts="--user --machine --keyfile --passphrased --passphrase-mem"
+	longopts="--user --machine --keyfile --passphrased \
+		--passphrase-mem --passphrase-time"
 
 	case "$prev" in
 		@($wfilearg))
