@@ -28,7 +28,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	const char *oldkeyfilename)
 {
 	FILE * keyfile;
-	char * passphrase;
+	char * passphrase = NULL;
 	int keymask = CRYPTO_KEYMASK_USER;
 	uint64_t dummy;
 
@@ -123,8 +123,6 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 			warnp("Error reading password");
 			goto err3;
 		}
-	} else {
-		passphrase = NULL;
 	}
 
 	/* Write keys to file. */
@@ -142,6 +140,12 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	insecure_memzero(C->passwd, strlen(C->passwd));
 	free(C->passwd);
 
+	/* Free passphrase, if used.  passphrase is a NUL-terminated string. */
+	if (passphrase != NULL) {
+		insecure_memzero(passphrase, strlen(passphrase));
+		free(passphrase);
+	}
+
 	/* Success! */
 	return (0);
 
@@ -152,6 +156,10 @@ err2:
 err1:
 	insecure_memzero(C->passwd, strlen(C->passwd));
 	free(C->passwd);
+	if (passphrase != NULL) {
+		insecure_memzero(passphrase, strlen(passphrase));
+		free(passphrase);
+	}
 err0:
 	/* Failure! */
 	return (-1);
