@@ -14,6 +14,7 @@
 
 #include "crypto.h"
 #include "humansize.h"
+#include "getopt.h"
 #include "keyfile.h"
 #include "keygen.h"
 #include "readpass.h"
@@ -49,6 +50,7 @@ main(int argc, char **argv)
 	int passphrased;
 	uint64_t maxmem;
 	double maxtime;
+	const char * ch;
 
 	WARNP_INIT;
 
@@ -65,49 +67,54 @@ main(int argc, char **argv)
 	maxtime = 1.0;
 
 	/* Parse arguments. */
-	while (--argc > 0) {
-		argv++;
-
-		if (strcmp(argv[0], "--user") == 0) {
-			if ((C.user != NULL) || (argc < 2))
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("--user"):
+			if (C.user != NULL)
 				usage();
-			C.user = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--machine") == 0) {
-			if ((C.name != NULL) || (argc < 2))
+			C.user = optarg;
+			break;
+		GETOPT_OPTARG("--machine"):
+			if (C.name != NULL)
 				usage();
-			C.name = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--keyfile") == 0) {
-			if ((keyfilename != NULL) || (argc < 2))
+			C.name = optarg;
+			break;
+		GETOPT_OPTARG("--keyfile"):
+			if (keyfilename != NULL)
 				usage();
-			keyfilename = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrase-mem") == 0) {
-			if ((maxmem != 0) || (argc < 2))
+			keyfilename = optarg;
+			break;
+		GETOPT_OPTARG("--passphrase-mem"):
+			if (maxmem != 0)
 				usage();
-			if (humansize_parse(argv[1], &maxmem)) {
+			if (humansize_parse(optarg, &maxmem)) {
 				warnp("Cannot parse --passphrase-mem"
-				    " argument: %s", argv[1]);
+				    " argument: %s", optarg);
 				exit(1);
 			}
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrase-time") == 0) {
-			if ((maxtime != 1.0) || (argc < 2))
+			break;
+		GETOPT_OPTARG("--passphrase-time"):
+			if (maxtime != 1.0)
 				usage();
-			maxtime = strtod(argv[1], NULL);
+			maxtime = strtod(optarg, NULL);
 			if ((maxtime < 0.05) || (maxtime > 86400)) {
 				warn0("Invalid --passphrase-time argument: %s",
-				    argv[1]);
+				    optarg);
 				exit(1);
 			}
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrased") == 0) {
+			break;
+		GETOPT_OPT("--passphrased"):
 			passphrased = 1;
-		} else {
+			break;
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We must have a user name, machine name, and key file specified. */
 	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
