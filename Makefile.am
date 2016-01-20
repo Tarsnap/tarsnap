@@ -156,6 +156,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/asprintf.c			\
 		libcperciva/util/b64encode.c			\
 		libcperciva/util/entropy.c			\
+		libcperciva/util/getopt.c			\
 		libcperciva/util/hexify.c			\
 		libcperciva/util/humansize.c			\
 		libcperciva/util/insecure_memzero.c		\
