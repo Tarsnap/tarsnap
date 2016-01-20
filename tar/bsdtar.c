@@ -941,9 +941,11 @@ main(int argc, char **argv)
 			if (crypto_keys_generate(CRYPTO_KEYMASK_USER))
 				bsdtar_errc(bsdtar, 1, 0,
 				    "Error generating keys");
-			bsdtar_warnc(bsdtar, 0,
-			    "Performing dry-run archival without keys\n"
-			    "         (sizes may be slightly inaccurate)");
+			if (bsdtar->option_print_stats)
+				bsdtar_warnc(bsdtar, 0,
+				    "Performing dry-run archival without keys\n"
+				    "         (sizes may be slightly "
+				    "inaccurate)");
 		}
 	}
 
