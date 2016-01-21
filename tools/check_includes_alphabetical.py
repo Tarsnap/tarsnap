@@ -82,8 +82,8 @@ if __name__ == "__main__":
         print("Manual usage: specify the filename")
         print("Automatic usage:")
         print("    find . -name \"*.h\" | "
-              "xargs misc/checks/check_includes_alphabetical.py")
+              "xargs tools/check_includes_alphabetical.py")
         print("    find . -name \"*.c\" | "
-              "xargs misc/checks/check_includes_alphabetical.py")
+              "xargs tools/check_includes_alphabetical.py")
         exit(1)
     main(sys.argv[1:])
