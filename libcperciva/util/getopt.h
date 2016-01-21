@@ -1,8 +1,8 @@
 #ifndef _GETOPT_H_
 #define _GETOPT_H_
 
-#include <stddef.h>
 #include <setjmp.h>
+#include <stddef.h>
 
 /**
  * This getopt implementation parses options of the following forms:
