@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "getopt.h"
 #include "imalloc.h"
 #include "keyfile.h"
 #include "multitape_internal.h"
@@ -433,6 +434,7 @@ main(int argc, char **argv)
 	size_t bpos, copynum;
 	char *odirpath, *ndirpath;
 	FILE *odir, *ndir;
+	const char * ch;
 
 	WARNP_INIT;
 
@@ -449,35 +451,42 @@ main(int argc, char **argv)
 	ocachedir = ncachedir = NULL;
 	okeyfile = nkeyfile = NULL;
 
-	/* Look for command-line options. */
-	while (--argc > 0) {
-		argv++;
-
-		if (strcmp(argv[0], "--oldkey") == 0) {
-			if ((okeyfile != NULL) || (argc < 2))
+	/* Parse arguments. */
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("--oldkey"):
+			if (okeyfile != NULL)
 				usage();
-			okeyfile = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--oldcachedir") == 0) {
-			if ((ocachedir != NULL) || (argc < 2))
+			okeyfile = optarg;
+			break;
+		GETOPT_OPTARG("--oldcachedir"):
+			if (ocachedir != NULL)
 				usage();
-			ocachedir = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--newkey") == 0) {
-			if ((nkeyfile != NULL) || (argc < 2))
+			ocachedir = optarg;
+			break;
+		GETOPT_OPTARG("--newkey"):
+			if (nkeyfile != NULL)
 				usage();
-			nkeyfile = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--newcachedir") == 0) {
+			nkeyfile = optarg;
+			break;
+		GETOPT_OPTARG("--newcachedir"):
 			if ((ncachedir != NULL) || (argc < 2))
 				usage();
-			ncachedir = argv[1];
-			argv++; argc--;
-		} else {
-			/* Unrecognized option. */
+			ncachedir = optarg;
+			break;
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
+
+	/* We should have processed all the arguments. */
+	if (argc != 0)
+		usage();
 
 	/* Make sure we have the necessary options. */
 	if ((ocachedir == NULL) || (ncachedir == NULL) ||
