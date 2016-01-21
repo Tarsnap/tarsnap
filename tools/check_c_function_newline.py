@@ -57,6 +57,6 @@ if __name__ == "__main__":
         print("Manual usage: specify the filename of a .c file")
         print("Automatic usage:")
         print("  find . -name \"*.c\" | "
-              "xargs misc/checks/check_c_function_newline.py")
+              "xargs tools/check_c_function_newline.py")
         exit(1)
     main(sys.argv[1:])
