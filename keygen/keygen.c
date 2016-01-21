@@ -13,8 +13,8 @@
 #include <unistd.h>
 
 #include "crypto.h"
-#include "humansize.h"
 #include "getopt.h"
+#include "humansize.h"
 #include "keyfile.h"
 #include "keygen.h"
 #include "readpass.h"
