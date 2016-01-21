@@ -193,6 +193,8 @@ main(int argc, char **argv)
 			}
 			break;
 		GETOPT_OPT("--passphrased"):
+			if (passphrased != 0)
+				usage();
 			passphrased = 1;
 			break;
 		GETOPT_OPT("--print-key-id"):
