@@ -118,6 +118,10 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+	/* We should have processed all the arguments. */
+	if (argc != 0)
+		usage();
+
 	/* We must have a user name, machine name, and key file specified. */
 	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
 		usage();

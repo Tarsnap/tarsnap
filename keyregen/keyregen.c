@@ -126,6 +126,10 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+	/* We should have processed all the arguments. */
+	if (argc != 0)
+		usage();
+
 	/*
 	 * We must have a user name, machine name, key file, and old key
 	 * file specified.
