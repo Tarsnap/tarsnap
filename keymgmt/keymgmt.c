@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "getopt.h"
 #include "humansize.h"
 #include "keyfile.h"
 #include "readpass.h"
@@ -107,6 +108,8 @@ main(int argc, char **argv)
 	char * passphrase;
 	int print_key_id = 0;
 	int print_key_permissions = 0;
+	const char * ch;
+	char * optarg_copy;	/* for strtok_r. */
 
 	WARNP_INIT;
 
@@ -116,20 +119,21 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Look for command-line options. */
-	while (--argc > 0) {
-		argv++;
-
-		if (strcmp(argv[0], "--outkeyfile") == 0) {
-			if ((newkeyfile != NULL) || (argc < 2))
+	/* Parse arguments. */
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("--outkeyfile"):
+			if (newkeyfile != NULL)
 				usage();
-			newkeyfile = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "-r") == 0) {
+			newkeyfile = optarg;
+			break;
+		GETOPT_OPT("-r"):
 			keyswanted |= CRYPTO_KEYMASK_READ;
-		} else if (strcmp(argv[0], "-w") == 0) {
+			break;
+		GETOPT_OPT("-w"):
 			keyswanted |= CRYPTO_KEYMASK_WRITE;
-		} else if (strcmp(argv[0], "-d") == 0) {
+			break;
+		GETOPT_OPT("-d"):
 			/*
 			 * Deleting data requires both delete authorization
 			 * and being able to read archives -- we need to be
@@ -138,9 +142,11 @@ main(int argc, char **argv)
 			 */
 			keyswanted |= CRYPTO_KEYMASK_READ;
 			keyswanted |= CRYPTO_KEYMASK_AUTH_DELETE;
-		} else if (strcmp(argv[0], "--nuke") == 0) {
+			break;
+		GETOPT_OPT("--nuke"):
 			keyswanted |= CRYPTO_KEYMASK_AUTH_DELETE;
-		} else if (strcmp(argv[0], "--keylist") == 0) {
+			break;
+		GETOPT_OPTARG("--keylist"):
 			/*
 			 * This is a deliberately undocumented option used
 			 * mostly for testing purposes; it allows a list of
@@ -148,9 +154,11 @@ main(int argc, char **argv)
 			 * crypto/crypto.h instead of using the predefined
 			 * sets of "read", "write" and "delete" keys.
 			 */
-			if (argc < 2)
-				usage();
-			for (tok = strtok_r(argv[1], ",", &brkb);
+			if ((optarg_copy = strdup(optarg)) == NULL) {
+				warn0("Out of memory");
+				exit(0);
+			}
+			for (tok = strtok_r(optarg_copy, ",", &brkb);
 			     tok;
 			     tok = strtok_r(NULL, ",", &brkb)) {
 				keynum = strtol(tok, &eptr, 0);
@@ -158,41 +166,50 @@ main(int argc, char **argv)
 				    (keynum < 0) || (keynum > 31)) {
 					warn0("Not a valid key number: %s",
 					    tok);
+					free(optarg_copy);
 					exit(1);
 				}
 				keyswanted |= (uint32_t)(1) << keynum;
 			}
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrase-mem") == 0) {
-			if ((maxmem != 0) || (argc < 2))
+			free(optarg_copy);
+			break;
+		GETOPT_OPTARG("--passphrase-mem"):
+			if (maxmem != 0)
 				usage();
-			if (humansize_parse(argv[1], &maxmem)) {
+			if (humansize_parse(optarg, &maxmem)) {
 				warnp("Cannot parse --passphrase-mem"
-				    " argument: %s", argv[1]);
+				    " argument: %s", optarg);
 				exit(1);
 			}
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrase-time") == 0) {
-			if ((maxtime != 1.0) || (argc < 2))
+			break;
+		GETOPT_OPTARG("--passphrase-time"):
+			if (maxtime != 1.0)
 				usage();
-			maxtime = strtod(argv[1], NULL);
+			maxtime = strtod(optarg, NULL);
 			if ((maxtime < 0.05) || (maxtime > 86400)) {
 				warn0("Invalid --passphrase-time argument: %s",
-				    argv[1]);
+				    optarg);
 				exit(1);
 			}
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--passphrased") == 0) {
-			passphrased = 1;
-		} else if (strcmp(argv[0], "--print-key-id") == 0) {
-			print_key_id = 1;
-		} else if (strcmp(argv[0], "--print-key-permissions") == 0) {
-			print_key_permissions = 1;
-		} else {
-			/* Key files follow. */
 			break;
+		GETOPT_OPT("--passphrased"):
+			passphrased = 1;
+			break;
+		GETOPT_OPT("--print-key-id"):
+			print_key_id = 1;
+			break;
+		GETOPT_OPT("--print-key-permissions"):
+			print_key_permissions = 1;
+			break;
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
+			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We can't print ID and permissions at the same time. */
 	if (print_key_id && print_key_permissions)
