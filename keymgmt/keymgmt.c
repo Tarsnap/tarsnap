@@ -106,8 +106,8 @@ main(int argc, char **argv)
 	uint64_t maxmem = 0;
 	double maxtime = 1.0;
 	char * passphrase;
-	int print_key_id = 0;
-	int print_key_permissions = 0;
+	const char * print_key_id_file = NULL;
+	const char * print_key_permissions_file = NULL;
 	const char * ch;
 	char * optarg_copy;	/* for strtok_r. */
 
@@ -193,13 +193,19 @@ main(int argc, char **argv)
 			}
 			break;
 		GETOPT_OPT("--passphrased"):
+			if (passphrased != 0)
+				usage();
 			passphrased = 1;
 			break;
-		GETOPT_OPT("--print-key-id"):
-			print_key_id = 1;
+		GETOPT_OPTARG("--print-key-id"):
+			if (print_key_id_file != NULL)
+				usage();
+			print_key_id_file = optarg;
 			break;
-		GETOPT_OPT("--print-key-permissions"):
-			print_key_permissions = 1;
+		GETOPT_OPTARG("--print-key-permissions"):
+			if (print_key_permissions_file != NULL)
+				usage();
+			print_key_permissions_file = optarg;
 			break;
 		GETOPT_MISSING_ARG:
 			warn0("Missing argument to %s\n", ch);
@@ -212,23 +218,24 @@ main(int argc, char **argv)
 	argv += optind;
 
 	/* We can't print ID and permissions at the same time. */
-	if (print_key_id && print_key_permissions)
+	if ((print_key_id_file != NULL) && (print_key_permissions_file != NULL))
 		usage();
 
-	if ((print_key_id || print_key_permissions)) {
+	if ((print_key_id_file != NULL) ||
+	    (print_key_permissions_file != NULL)) {
 		/* We can't combine printing info with generating a new key. */
 		if (newkeyfile != NULL)
 			usage();
 
-		/* We can only print one at once. */
-		if (argc != 1)
+		/* We should have processed all arguments. */
+		if (argc != 0)
 			usage();
 
 		/* Print info. */
-		if (print_key_id)
-			print_id(argv[0]);
-		if (print_key_permissions)
-			print_permissions(argv[0]);
+		if (print_key_id_file != NULL)
+			print_id(print_key_id_file);
+		if (print_key_permissions_file != NULL)
+			print_permissions(print_key_permissions_file);
 	}
 
 	/* We should have an output key file. */
