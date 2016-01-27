@@ -15,6 +15,9 @@
 [\fB\--passphrased\fP]
 [\fB\--passphrase-mem\fP \fImaxmem\fP]
 [\fB\--passphrase-time\fP \fImaxtime\fP]
+.br
+\fB\%tarsnap-keyregen\fP
+\fB\--version\fP
 .SH DESCRIPTION
 .ad l
 \fB\%tarsnap-keyregen\fP

@@ -17,6 +17,8 @@
 .Op Fl -passphrased
 .Op Fl -passphrase-mem Ar maxmem
 .Op Fl -passphrase-time Ar maxtime
+.Nm
+.Fl -version
 .Sh DESCRIPTION
 .Nm
 generates a set of cryptographic keys which are compatible

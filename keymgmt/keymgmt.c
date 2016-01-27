@@ -27,6 +27,7 @@ usage(void)
 	fprintf(stderr, "       tarsnap-keymgmt --print-key-id key-file\n");
 	fprintf(stderr, "       tarsnap-keymgmt --print-key-permissions "
 	    "key-file\n");
+	fprintf(stderr, "       tarsnap-keymgmt --version\n");
 	exit(1);
 
 	/* NOTREACHED */
@@ -207,6 +208,10 @@ main(int argc, char **argv)
 				usage();
 			print_key_permissions_file = optarg;
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "tarsnap-keymgmt %s\n",
+			    PACKAGE_VERSION);
+			exit(0);
 		GETOPT_MISSING_ARG:
 			warn0("Missing argument to %s\n", ch);
 			/* FALLTHROUGH */

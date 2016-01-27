@@ -52,6 +52,7 @@ usage(void)
 	fprintf(stderr, "usage: tarsnap-recrypt %s %s %s %s\n",
 	    "--oldkey old-key-file", "--oldcachedir old-cache-dir",
 	    "--newkey new-key-file", "--newcachedir new-cache-dir");
+	fprintf(stderr, "       tarsnap-recrypt --version\n");
 	exit(1);
 
 	/* NOTREACHED */
@@ -474,6 +475,10 @@ main(int argc, char **argv)
 				usage();
 			ncachedir = optarg;
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "tarsnap-recrypt %s\n",
+			    PACKAGE_VERSION);
+			exit(0);
 		GETOPT_MISSING_ARG:
 			warn0("Missing argument to %s\n", ch);
 			/* FALLTHROUGH */

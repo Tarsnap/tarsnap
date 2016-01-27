@@ -24,6 +24,8 @@ key files
 .Fl -print-key-id Ar key-file
 .Nm
 .Fl -print-key-permissions Ar key-file
+.Nm
+.Fl -version
 .Sh DESCRIPTION
 .Nm
 reads the provided key files and writes a new key file
