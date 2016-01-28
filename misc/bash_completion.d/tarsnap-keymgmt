@@ -42,7 +42,7 @@ _tarsnap_keymgmt ()
 
 	# Available long options
 	longopts="--outkeyfile --nuke --passphrased --passphrase-mem \
-		--print-key-id --print-key-permissions"
+		--print-key-id --print-key-permissions --version"
 
 	# Available short options
 	shortopts="-r -w -d"

@@ -42,7 +42,7 @@ _tarsnap_keyregen ()
 
 	# Available long options
 	longopts="--user --machine --keyfile --oldkey --passphrased \
-		--passphrase-mem --passphrase-time"
+		--passphrase-mem --passphrase-time --version"
 
 	case "$prev" in
 		@($wfilearg))

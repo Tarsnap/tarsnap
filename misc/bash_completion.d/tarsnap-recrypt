@@ -39,7 +39,7 @@ _tarsnap_recrypt ()
 	# These options will be completed by the path to a directory.
 	wpatharg="--oldcachedir|--newcachedir"
 
-	longopts="--oldkey --newkey --oldcachedir --newcachedir"
+	longopts="--oldkey --newkey --oldcachedir --newcachedir --version"
 
 	case "$prev" in
 		@($wfilearg))
