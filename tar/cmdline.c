@@ -158,6 +158,7 @@ static struct option {
 	{ "totals",		  0, OPTION_TOTALS },
 	{ "unlink",		  0, 'U' },
 	{ "unlink-first",	  0, 'U' },
+	{ "verify-config",	  0, OPTION_VERIFY_CONFIG },
 	{ "verbose",              0, 'v' },
 	{ "version",              0, OPTION_VERSION },
 	{ "verylowmem",		  0, OPTION_VERYLOWMEM },

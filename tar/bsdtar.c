@@ -686,6 +686,9 @@ main(int argc, char **argv)
 		case 'v': /* SUSv2 */
 			bsdtar->verbose++;
 			break;
+		case OPTION_VERIFY_CONFIG:
+			set_mode(bsdtar, opt, "--verify-config");
+			break;
 		case OPTION_VERSION: /* GNU convention */
 			version();
 			break;
@@ -788,7 +791,8 @@ main(int argc, char **argv)
 	     bsdtar->mode != OPTION_RECOVER &&
 	     bsdtar->mode != OPTION_FSCK &&
 	     bsdtar->mode != OPTION_FSCK_PRUNE &&
-	     bsdtar->mode != OPTION_NUKE))
+	     bsdtar->mode != OPTION_NUKE &&
+	     bsdtar->mode != OPTION_VERIFY_CONFIG))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Archive name must be specified");
 	if ((bsdtar->ntapes > 1) &&
@@ -877,6 +881,10 @@ main(int argc, char **argv)
 	}
 	if (bsdtar->strip_components != 0)
 		only_mode(bsdtar, "--strip-components", "xt");
+
+	/* The configuration provided is syntactically correct. */
+	if (bsdtar->mode == OPTION_VERIFY_CONFIG)
+		exit(0);
 
 	/* Attempt to load keyfile. */
 	if (bsdtar->keyfile != NULL) {
