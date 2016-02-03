@@ -168,6 +168,7 @@ bsdtar_init(void)
 	bsdtar->siginfo = NULL;
 	bsdtar->substitution = NULL;
 	bsdtar->keyfile = NULL;
+	bsdtar->conffile = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -194,6 +195,7 @@ bsdtar_atexit(void)
 	free(bsdtar->homedir);
 	free(bsdtar->option_csv_filename);
 	free(bsdtar->keyfile);
+	free(bsdtar->conffile);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -214,7 +216,6 @@ main(int argc, char **argv)
 	char			 buff[16];
 	char			 cachedir[PATH_MAX + 1];
 	struct passwd		*pws;
-	char			*conffile;
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
@@ -770,14 +771,15 @@ main(int argc, char **argv)
 	if (bsdtar->option_no_default_config == 0) {
 		/* Process options from ~/.tarsnaprc. */
 		if (bsdtar->homedir != NULL) {
-			if (asprintf(&conffile, "%s/.tarsnaprc",
+			if (asprintf(&bsdtar->conffile, "%s/.tarsnaprc",
 			    bsdtar->homedir) == -1)
 				bsdtar_errc(bsdtar, 1, errno, "No memory");
 
-			configfile(bsdtar, conffile);
+			configfile(bsdtar, bsdtar->conffile);
 
 			/* Free string allocated by asprintf. */
-			free(conffile);
+			free(bsdtar->conffile);
+			bsdtar->conffile = NULL;
 		}
 
 		/* Process options from system-wide tarsnap.conf. */

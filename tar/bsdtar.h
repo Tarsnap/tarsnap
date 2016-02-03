@@ -130,6 +130,9 @@ struct bsdtar {
 	char		  warned_lead_slash; /* Already displayed warning */
 	char		  next_line_is_dir; /* Used for -C parsing in -cT */
 
+	/* Config-file parsing strings. */
+	char		 *conffile;
+
 	/* Used for --dryrun with tarsnap.conf.sample with a missing keyfile. */
 	int		  config_file_keyfile_failed;
 
