@@ -24,6 +24,9 @@ key files
 .br
 \fB\%tarsnap-keymgmt\fP
 \fB\--print-key-permissions\fP \fIkey-file\fP
+.br
+\fB\%tarsnap-keymgmt\fP
+\fB\--version\fP
 .SH DESCRIPTION
 .ad l
 \fB\%tarsnap-keymgmt\fP

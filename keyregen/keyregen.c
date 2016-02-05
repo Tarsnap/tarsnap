@@ -37,6 +37,7 @@ usage(void)
 	    "--user user-name", "--machine machine-name",
 	    "[--passphrased]", "[--passphrase-mem maxmem]",
 	    "[--passphrase-time maxtime]");
+	fprintf(stderr, "       tarsnap-keyregen --version\n");
 	exit(1);
 
 	/* NOTREACHED */
@@ -118,6 +119,10 @@ main(int argc, char **argv)
 				usage();
 			passphrased = 1;
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "tarsnap-keyregen %s\n",
+			    PACKAGE_VERSION);
+			exit(0);
 		GETOPT_MISSING_ARG:
 			warn0("Missing argument to %s\n", ch);
 			/* FALLTHROUGH */
