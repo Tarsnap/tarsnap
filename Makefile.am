@@ -2,6 +2,8 @@
 
 AUTOMAKE_OPTIONS= foreign subdir-objects
 
+CFLAGS += -Wno-unused-function
+
 #
 # What to build and install
 #
@@ -154,6 +156,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/asprintf.c			\
 		libcperciva/util/b64encode.c			\
 		libcperciva/util/entropy.c			\
+		libcperciva/util/getopt.c			\
 		libcperciva/util/hexify.c			\
 		libcperciva/util/humansize.c			\
 		libcperciva/util/insecure_memzero.c		\
@@ -161,6 +164,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/readpass.c			\
 		libcperciva/util/sock.c				\
 		libcperciva/util/sock_util.c			\
+		libcperciva/util/ttyfd.c			\
 		libcperciva/util/warnp.c			\
 		cpusupport-config.h
 
@@ -184,7 +188,8 @@ lib_libtarsnap_a_CFLAGS=				\
 		-I$(top_srcdir)/libcperciva/util	\
 		-I.					\
 		-D CPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
-		-DPOSIXFAIL_MSG_NOSIGNAL
+		-DPOSIXFAIL_MSG_NOSIGNAL \
+		-DPOSIXFAIL_CLOCK_REALTIME
 
 LIBTARSNAP_A=	lib/libtarsnap.a
 
@@ -293,6 +298,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/libcperciva/crypto	\
+		-I$(top_srcdir)/libcperciva/datastruct	\
 		-I$(top_srcdir)/libcperciva/util	\
 		"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
@@ -303,12 +309,15 @@ tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 #
 #
 
-tarsnap_keygen_SOURCES=	keygen/keygen.c
+tarsnap_keygen_SOURCES=	keygen/keygen.c			\
+		keygen/keygen_actual.c			\
+		keygen/keygen_network.c
 
 tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keygen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -327,12 +336,15 @@ tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 #
 #
 
-tarsnap_keyregen_SOURCES=	keyregen/keyregen.c
+tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
+		keygen/keygen_actual.c			\
+		keygen/keygen_network.c
 
 tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
 tarsnap_keyregen_CFLAGS=					\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
+		-I$(top_srcdir)/keygen			\
 		-I${top_srcdir}/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\

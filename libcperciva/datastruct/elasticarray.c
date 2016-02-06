@@ -36,10 +36,18 @@ resize(struct elasticarray * EA, size_t nsize)
 		nalloc = EA->alloc;
 	}
 
-	/* Reallocate if necessary. */
-	if (nalloc != EA->alloc) {
-		nbuf = realloc(EA->buf, nalloc);
-		if ((nbuf == NULL) && (nalloc > 0))
+	/*
+	 * Resizing to zero needs special handling due to some strange
+	 * interpretations of what realloc(p, 0) should do if it fails
+	 * to allocate zero bytes of memory.
+	 */
+	if (nalloc == 0) {
+		free(EA->buf);
+		EA->buf = NULL;
+		EA->alloc = 0;
+	} else if (nalloc != EA->alloc) {
+		/* Reallocate to a nonzero size if necessary. */
+		if ((nbuf = realloc(EA->buf, nalloc)) == NULL)
 			goto err0;
 		EA->buf = nbuf;
 		EA->alloc = nalloc;
@@ -204,10 +212,18 @@ elasticarray_truncate(struct elasticarray * EA)
 {
 	void * nbuf;
 
-	/* If there is spare space, reallocate. */
-	if (EA->alloc > EA->size) {
-		nbuf = realloc(EA->buf, EA->size);
-		if ((nbuf == NULL) && (EA->size > 0))
+	/*
+	 * Truncating down to zero needs special handling due to some strange
+	 * interpretations of what realloc(p, 0) should do if it fails to
+	 * allocate zero bytes of memory.
+	 */
+	if (EA->size == 0) {
+		free(EA->buf);
+		EA->buf = NULL;
+		EA->alloc = 0;
+	} else if (EA->alloc > EA->size) {
+		/* Reallocate to eliminate spare space if necessary. */
+		if ((nbuf = realloc(EA->buf, EA->size)) == NULL)
 			goto err0;
 		EA->buf = nbuf;
 		EA->alloc = EA->size;
@@ -241,7 +257,7 @@ void
 elasticarray_free(struct elasticarray * EA)
 {
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (EA == NULL)
 		return;
 
@@ -272,6 +288,35 @@ elasticarray_export(struct elasticarray * EA, void ** buf, size_t * nrec,
 	 * passed the buffer out to the caller.
 	 */
 	free(EA);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * elasticarray_exportdup(EA, buf, nrec, reclen):
+ * Duplicate the data in the elastic array ${EA} into a buffer ${buf}
+ * containing ${nrec} records of length ${reclen}.  (Same as _export, except
+ * that the elastic array remains intact.)
+ */
+int
+elasticarray_exportdup(struct elasticarray * EA, void ** buf, size_t * nrec,
+    size_t reclen)
+{
+
+	/* Allocate buffer for the caller's copy of the data. */
+	if ((*buf = malloc(EA->size)) == NULL)
+		goto err0;
+
+	/* Copy the data in. */
+	memcpy(*buf, EA->buf, EA->size);
+
+	/* Tell the caller how many records we have. */
+	*nrec = elasticarray_getsize(EA, reclen);
 
 	/* Success! */
 	return (0);

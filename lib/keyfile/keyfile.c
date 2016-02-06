@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -122,6 +123,9 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	size_t deckeylen;
 	int rc;
 
+	/* The caller must pass a file name to be read. */
+	assert(filename != NULL);
+
 	/* Sanity-check size. */
 	if (keylen == 0) {
 		warn0("Key file is corrupt or truncated: %s", filename);
@@ -149,7 +153,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Decrypt the key file. */
 	rc = scryptdec_buf(keybuf, keylen, deckeybuf, &deckeylen,
-	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0);
+	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0, 0);
 	if (rc != 0) {
 		switch (rc) {
 		case 1:
@@ -553,7 +557,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		/* Encrypt. */
 		switch ((rc = scryptenc_buf(tskeybuf, tskeylen, encrbuf,
 		    (uint8_t *)passphrase, strlen(passphrase),
-		    maxmem, (maxmem != 0) ? 0.5 : 0.125, cputime))) {
+		    maxmem, (maxmem != 0) ? 0.5 : 0.125, cputime, 0))) {
 		case 0:
 			/* Success! */
 			break;

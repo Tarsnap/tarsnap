@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "ttyfd.h"
 #include "warnp.h"
 
 #include "sigquit.h"
@@ -16,6 +17,7 @@ sig_atomic_t sigquit_received;
 
 /* Saved terminal settings. */
 static struct termios tc_saved;
+static int fd_terminal;
 
 static void sigquit_handler(int);
 static void termios_restore(void);
@@ -47,7 +49,15 @@ termios_restore(void)
 	 * that we can do to remedy the situation if the system cannot
 	 * restore the previous terminal settings.
 	 */
-	(void)tcsetattr_nostop(STDIN_FILENO, TCSANOW, &tc_saved);
+	(void)tcsetattr_nostop(fd_terminal, TCSANOW, &tc_saved);
+
+	/*
+	 * Close the terminal file descriptor we opened a long time ago.  We
+	 * had to hold it for the duration in case we find ourselves talking
+	 * to a different terminal; we don't want to restore settings to the
+	 * wrong terminal.
+	 */
+	close(fd_terminal);
 }
 
 /**
@@ -97,15 +107,25 @@ sigquit_init(void)
 		goto err0;
 	}
 
-	/* Get current terminal settings for stdin. */
-	if (tcgetattr(STDIN_FILENO, &tc_saved)) {
+	/* Try to get a file descriptor for the terminal. */
+	if ((fd_terminal = ttyfd()) == -1) {
 		/*
-		 * If stdin isn't a TTY, or doesn't exist (i.e., the other
-		 * end of the pipe was closed) we're not going to remap ^Q
-		 * to SIGQUIT, and we don't need to unmap it on exit.  For
-		 * some reason Linux returns EINVAL if stdin is not a
-		 * terminal, so handle this too.  Some OSes return ENODEV
-		 * here, although this doesn't seem to be documented.
+		 * This is normal for processes which don't have a terminal
+		 * attached (e.g., if running from cron), so we shouldn't
+		 * print a warning, even though ^Q is going to break.
+		 */
+		goto done;
+	}
+
+	/* Get current terminal settings for stdin. */
+	if (tcgetattr(fd_terminal, &tc_saved)) {
+		/*
+		 * Theoretically we should have a terminal now, but we can't
+		 * rule out the possibility of some weird "sort of a terminal
+		 * but not really" behaviour making tcgetattr even though we
+		 * were previously told that this was a terminal.  Check for
+		 * the common error codes operating systems return from
+		 * tcgetattr for non-terminals and ignore them.
 		 */
 		if ((errno == ENOTTY) || (errno == ENXIO) ||
 		    (errno == EBADF) || (errno == EINVAL) ||
@@ -135,7 +155,7 @@ sigquit_init(void)
 	tc_new.c_cc[VQUIT] = 'q' & 0x1f;
 
 	/* Set new terminal settings. */
-	if (tcsetattr_nostop(STDIN_FILENO, TCSANOW, &tc_new)) {
+	if (tcsetattr_nostop(fd_terminal, TCSANOW, &tc_new)) {
 		warnp("tcsetattr(stdin)");
 		goto err0;
 	}

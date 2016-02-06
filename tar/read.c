@@ -131,12 +131,18 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	if (bsdtar->names_from_file != NULL)
 		include_from_file(bsdtar, bsdtar->names_from_file);
 
-	a = archive_read_new();
+	if ((a = archive_read_new()) == NULL) {
+		bsdtar_warnc(bsdtar, ENOMEM, "Cannot allocate memory");
+		goto err0;
+	}
+
 	archive_read_support_compression_none(a);
 	archive_read_support_format_tar(a);
 	if (archive_read_open_multitape(a, bsdtar->machinenum,
-	    bsdtar->tapenames[0]) == NULL)
-		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
+	    bsdtar->tapenames[0]) == NULL) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		goto err1;
+	}
 
 	do_chdir(bsdtar);
 
@@ -148,11 +154,14 @@ read_archive(struct bsdtar *bsdtar, char mode)
 
 	if (mode == 'x' && bsdtar->option_chroot) {
 #if HAVE_CHROOT
-		if (chroot(".") != 0)
-			bsdtar_errc(bsdtar, 1, errno, "Can't chroot to \".\"");
+		if (chroot(".") != 0) {
+			bsdtar_warnc(bsdtar, errno, "Can't chroot to \".\"");
+			goto err1;
+		}
 #else
-		bsdtar_errc(bsdtar, 1, 0,
+		bsdtar_warnc(bsdtar, 0,
 		    "chroot isn't supported on this platform");
+		goto err1;
 #endif
 	}
 
@@ -309,6 +318,16 @@ read_archive(struct bsdtar *bsdtar, char mode)
 		    archive_format_name(a), archive_compression_name(a));
 
 	archive_read_finish(a);
+
+	/* Success! */
+	return;
+
+err1:
+	archive_read_finish(a);
+err0:
+	/* Failure! */
+	bsdtar->return_value = 1;
+	return;
 }
 
 

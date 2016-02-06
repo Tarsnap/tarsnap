@@ -1,7 +1,7 @@
 .\" Copyright 2008, 2009 Colin Percival
 .\" All rights reserved.
 .\"
-.Dd June 3, 2009
+.Dd @DATE@
 .Dt TARSNAP-KEYMGMT 1
 .Os
 .Sh NAME
@@ -18,7 +18,14 @@ key files
 .Op Fl -nuke
 .Op Fl -passphrased
 .Op Fl -passphrase-mem Ar maxmem
+.Op Fl -passphrase-time Ar maxtime
 .Ar key-file ...
+.Nm
+.Fl -print-key-id Ar key-file
+.Nm
+.Fl -print-key-permissions Ar key-file
+.Nm
+.Fl -version
 .Sh DESCRIPTION
 .Nm
 reads the provided key files and writes a new key file
@@ -80,6 +87,13 @@ bytes of RAM will be used in the scrypt key derivation function to
 encrypt the key file; it may be necessary to set this option if a key
 file is being created on a system with far more RAM than the system
 on which the key file will be used.
+.Pp
+If the
+.Fl -passphrase-time Ar maxtime
+option is specified, a maximum of approximately
+.Ar maxtime
+seconds will be used in the scrypt key derivation function to encrypt
+the key file.
 .Pp
 Note that if none of the
 .Fl w ,

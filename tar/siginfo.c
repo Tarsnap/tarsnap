@@ -122,7 +122,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
 		if (bsdtar->siginfo->size > 0) {
-			safe_fprintf(stderr, "%s %s (%ju / %" PRId64 ")",
+			safe_fprintf(stderr, "%s %s (%ju / %" PRId64 " bytes)",
 			    bsdtar->siginfo->oper, bsdtar->siginfo->path,
 			    (uintmax_t)progress, bsdtar->siginfo->size);
 		} else {

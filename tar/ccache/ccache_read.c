@@ -3,6 +3,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -199,6 +200,9 @@ ccache_read(const char * path)
 #endif
 	size_t i;
 	uint8_t N[4];
+
+	/* The caller must pass a file name to be read. */
+	assert(path != NULL);
 
 	/* Allocate memory for the cache. */
 	if ((C = malloc(sizeof(struct ccache_internal))) == NULL)

@@ -75,12 +75,14 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include <zlib.h>
 #endif
 
+#include <assert.h>
+
 #include "bsdtar.h"
 #include "crypto.h"
-#include "keyfile.h"
 #include "humansize.h"
-#include "tsnetwork.h"
+#include "keyfile.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 /* Global tarsnap options declared in tarsnap_opt.h. */
@@ -100,6 +102,9 @@ struct delayedopt {
 /* External function to parse a date/time string (from getdate.y) */
 time_t get_date(time_t, const char *);
 
+static struct bsdtar	*bsdtar_init(void);
+static void		 bsdtar_atexit(void);
+
 static void		 build_dir(struct bsdtar *, const char *dir,
 			     const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
@@ -107,7 +112,7 @@ static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
 static void		 dooption(struct bsdtar *, const char *,
 			     const char *, int);
-static void		 load_keys(struct bsdtar *, const char *path);
+static int		 load_keys(struct bsdtar *, const char *path);
 static void		 long_help(struct bsdtar *);
 static void		 only_mode(struct bsdtar *, const char *opt,
 			     const char *valid);
@@ -116,16 +121,92 @@ static void		 optq_push(struct bsdtar *, const char *,
 static void		 optq_pop(struct bsdtar *);
 static void		 set_mode(struct bsdtar *, int opt, const char *optstr);
 static void		 version(void);
+static int		 argv_has_archive_directive(struct bsdtar *bsdtar);
 
 /* A basic set of security flags to request from libarchive. */
 #define	SECURITY					\
 	(ARCHIVE_EXTRACT_SECURE_SYMLINKS		\
 	 | ARCHIVE_EXTRACT_SECURE_NODOTDOT)
 
+static struct bsdtar bsdtar_storage;
+
+static struct bsdtar *
+bsdtar_init(void)
+{
+	struct bsdtar * bsdtar = &bsdtar_storage;
+
+	memset(bsdtar, 0, sizeof(*bsdtar));
+
+	/*
+	 * Initialize pointers.  memset() is insufficient since NULL is not
+	 * required to be represented in memory by zeroes.
+	 */
+	bsdtar->tapenames = NULL;
+	bsdtar->homedir = NULL;
+	bsdtar->cachedir = NULL;
+	bsdtar->pending_chdir = NULL;
+	bsdtar->names_from_file = NULL;
+	bsdtar->modestr = NULL;
+	bsdtar->option_csv_filename = NULL;
+	bsdtar->configfiles = NULL;
+	bsdtar->archive = NULL;
+	bsdtar->progname = NULL;
+	bsdtar->argv = NULL;
+	bsdtar->optarg = NULL;
+	bsdtar->write_cookie = NULL;
+	bsdtar->chunk_cache = NULL;
+	bsdtar->argv_orig = NULL;
+	bsdtar->delopt = NULL;
+	bsdtar->delopt_tail = NULL;
+	bsdtar->diskreader = NULL;
+	bsdtar->resolver = NULL;
+	bsdtar->gname_cache = NULL;
+	bsdtar->buff = NULL;
+	bsdtar->matching = NULL;
+	bsdtar->security = NULL;
+	bsdtar->uname_cache = NULL;
+	bsdtar->siginfo = NULL;
+	bsdtar->substitution = NULL;
+
+	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
+	if (atexit(bsdtar_atexit)) {
+		fprintf(stderr, "tarsnap: Could not register atexit.\n");
+		exit(1);
+	}
+
+	return (bsdtar);
+}
+
+static void
+bsdtar_atexit(void)
+{
+	struct bsdtar *bsdtar;
+
+	bsdtar = &bsdtar_storage;
+
+	/* Free arrays allocated by malloc. */
+	free(bsdtar->tapenames);
+	free(bsdtar->configfiles);
+
+	/* Free strings allocated by strdup. */
+	free(bsdtar->cachedir);
+	free(bsdtar->homedir);
+	free(bsdtar->option_csv_filename);
+
+	/* Free matching and (if applicable) substitution patterns. */
+	cleanup_exclusions(bsdtar);
+#if HAVE_REGEX_H
+	cleanup_substitution(bsdtar);
+#endif
+
+	/* Clean up network layer. */
+	network_fini();
+}
+
 int
 main(int argc, char **argv)
 {
-	struct bsdtar		*bsdtar, bsdtar_storage;
+	struct bsdtar		*bsdtar;
 	int			 opt;
 	char			 possible_help_request;
 	char			 buff[16];
@@ -138,12 +219,9 @@ main(int argc, char **argv)
 
 	WARNP_INIT;
 
-	/*
-	 * Use a pointer for consistency, but stack-allocated storage
-	 * for ease of cleanup.
-	 */
-	bsdtar = &bsdtar_storage;
-	memset(bsdtar, 0, sizeof(*bsdtar));
+	/* Use a pointer for consistency. */
+	bsdtar = bsdtar_init();
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	/* Make sure open() function will be used with a binary mode. */
 	/* on cygwin, we need something similar, but instead link against */
@@ -223,7 +301,8 @@ main(int argc, char **argv)
 
 	/* Look up the current user and his home directory. */
 	if ((pws = getpwuid(geteuid())) != NULL)
-		bsdtar->homedir = strdup(pws->pw_dir);
+		if ((bsdtar->homedir = strdup(pws->pw_dir)) == NULL)
+			bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
 
 	/* Look up uid of current user for future reference */
 	bsdtar->user_uid = geteuid();
@@ -301,6 +380,14 @@ main(int argc, char **argv)
 				    "Invalid --creationtime argument: %s",
 				    bsdtar->optarg);
 			break;
+		case OPTION_CSV_FILE: /* tarsnap */
+			if (bsdtar->option_csv_filename != NULL)
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Two --csv-file options given.\n");
+			if ((bsdtar->option_csv_filename = strdup(
+			    bsdtar->optarg)) == NULL)
+				bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
 			break;
@@ -358,6 +445,9 @@ main(int argc, char **argv)
 			break;
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
+			break;
+		case OPTION_KEEP_GOING: /* tarsnap */
+			bsdtar->option_keep_going = 1;
 			break;
 		case OPTION_KEEP_NEWER_FILES: /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER;
@@ -787,6 +877,19 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--strip-components", "xt");
 
 	/*
+	 * If the keyfile in the config file is invalid but we're doing a
+	 * dryrun, continue anyway (and don't use a cachedir).
+	 */
+	if (bsdtar->config_file_keyfile_failed && bsdtar->option_dryrun &&
+	    bsdtar->cachedir != NULL) {
+		bsdtar_warnc(bsdtar, 0,
+		    "Ignoring cachedir due to missing or invalid "
+		    "keyfile in config file.");
+		free(bsdtar->cachedir);
+		bsdtar->cachedir = NULL;
+	}
+
+	/*
 	 * Canonicalize the path to the cache directories.  This is
 	 * necessary since the tar code can change directories.
 	 */
@@ -796,7 +899,8 @@ main(int argc, char **argv)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
 		free(bsdtar->cachedir);
-		bsdtar->cachedir = cachedir;
+		if ((bsdtar->cachedir = strdup(cachedir)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	}
 
 	/* If we're running --fsck, figure out which key to use. */
@@ -837,15 +941,22 @@ main(int argc, char **argv)
 			if (crypto_keys_generate(CRYPTO_KEYMASK_USER))
 				bsdtar_errc(bsdtar, 1, 0,
 				    "Error generating keys");
-			bsdtar_warnc(bsdtar, 0,
-			    "Performing dry-run archival without keys\n"
-			    "         (sizes may be slightly inaccurate)");
+			if (bsdtar->option_print_stats)
+				bsdtar_warnc(bsdtar, 0,
+				    "Performing dry-run archival without keys\n"
+				    "         (sizes may be slightly "
+				    "inaccurate)");
 		}
 	}
 
 	missingkey = NULL;
 	switch (bsdtar->mode) {
 	case 'c':
+		if (argv_has_archive_directive(bsdtar))
+			missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE | CRYPTO_KEYMASK_READ);
+		else
+			missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
+		break;
 	case OPTION_RECOVER_WRITE:
 		missingkey = crypto_keys_missing(CRYPTO_KEYMASK_WRITE);
 		break;
@@ -931,11 +1042,6 @@ main(int argc, char **argv)
 		break;
 	}
 
-	cleanup_exclusions(bsdtar);
-#if HAVE_REGEX_H
-	cleanup_substitution(bsdtar);
-#endif
-
 #ifdef DEBUG_SELECTSTATS
 	double N, mu, va, max;
 
@@ -945,9 +1051,6 @@ main(int argc, char **argv)
 	    "va = %12g ms^2  max = %12g ms\n",
 	    N, mu * 1000, va * 1000000, max * 1000);
 #endif
-
-	/* Clean up network layer. */
-	network_fini();
 
 #ifdef PROFILE
 	/*
@@ -1075,6 +1178,10 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 	struct stat sb;
 	char * s;
 	const char * dirseppos;
+
+	/* We need a directory name and the config option. */
+	assert(dir != NULL);
+	assert(diropt != NULL); 
 
 	/* Move through *dir and build all parent directories. */
 	for (dirseppos = dir; *dirseppos != '\0'; ) {
@@ -1371,8 +1478,16 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (conf_arg == NULL)
 			goto needarg;
 
-		load_keys(bsdtar, conf_arg);
-		bsdtar->have_keys = 1;
+		if (load_keys(bsdtar, conf_arg) == 0)
+			bsdtar->have_keys = 1;
+		else {
+			if (fromconffile && bsdtar->option_dryrun)
+				bsdtar->config_file_keyfile_failed = 1;
+			else {
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Cannot read key file: %s", conf_arg);
+			}
+		}
 	} else if (strcmp(conf_opt, "lowmem") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;
@@ -1606,16 +1721,15 @@ badopt:
 	    "Unrecognized configuration file option: \"%s\"", conf_opt);
 }
 
-/* Load keys from the specified file. */
-static void
+/* Load keys from the specified file.  Return success or failure. */
+static int
 load_keys(struct bsdtar *bsdtar, const char *path)
 {
 	uint64_t machinenum;
 
 	/* Load the key file. */
 	if (keyfile_read(path, &machinenum, ~0))
-		bsdtar_errc(bsdtar, 1, errno,
-		    "Cannot read key file: %s", path);
+		goto err0;
 
 	/* Check the machine number. */
 	if ((bsdtar->machinenum != (uint64_t)(-1)) &&
@@ -1623,4 +1737,37 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Key file belongs to wrong machine: %s", path);
 	bsdtar->machinenum = machinenum;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+static int
+argv_has_archive_directive(struct bsdtar *bsdtar)
+{
+	int i;
+	const char *arg;
+
+	/* Find "@@*", but don't trigger on "-C @@foo". */
+	for (i = 0; i < bsdtar->argc; i++) {
+		/* Improves code legibility. */
+		arg = bsdtar->argv[i];
+
+		/* Detect "-C" by itself. */
+		if ((arg[0] == '-') && (arg[1] == 'C') && (arg[2] == '\0')) {
+			i++;
+			continue;
+		}
+
+		/* Detect any remaining "@@*". */
+		if ((arg[0] == '@') && (arg[1] == '@')) {
+			return (1);
+		}
+	}
+
+	return (0);
 }

@@ -441,7 +441,7 @@ void
 sock_addr_free(struct sock_addr * sa)
 {
 
-	/* Compatibility with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (sa == NULL)
 		return;
 
@@ -459,7 +459,7 @@ sock_addr_freelist(struct sock_addr ** sas)
 {
 	struct sock_addr ** p;
 
-	/* Compatibility with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (sas == NULL)
 		return;
 

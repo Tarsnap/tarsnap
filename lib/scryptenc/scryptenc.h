@@ -36,7 +36,7 @@
  * NOTE: This file provides prototypes for routines which encrypt/decrypt data
  * using a key derived from a password by using the scrypt key derivation
  * function.  If you are just trying to "hash" a password for user logins,
- * this is not the code you are looking for.  You want to use the crypt_scrypt
+ * this is not the code you are looking for.  You want to use the crypto_scrypt
  * function directly.
  */
 
@@ -82,39 +82,39 @@
 
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Encrypt inbuflen bytes from inbuf, writing the resulting inbuflen + 128
  * bytes to outbuf.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
-    const uint8_t *, size_t, size_t, double, double);
+    const uint8_t *, size_t, size_t, double, double, int);
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
  * decrypted data length to outlen.  The allocated length of outbuf must
  * be at least inbuflen.
  */
 int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
-    const uint8_t *, size_t, size_t, double, double);
+    const uint8_t *, size_t, size_t, double, double, int);
 
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Read a stream from infile and encrypt it, writing the resulting stream to
  * outfile.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
-    size_t, double, double);
+    size_t, double, double, int);
 
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime):
+ *     maxmem, maxmemfrac, maxtime, verbose):
  * Read a stream from infile and decrypt it, writing the resulting stream to
  * outfile.
  */
 int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
-    size_t, double, double);
+    size_t, double, double, int);
 
 #endif /* !_SCRYPTENC_H_ */

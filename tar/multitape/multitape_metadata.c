@@ -389,7 +389,8 @@ err0:
  * metadata file does not exist, 2 if the metadata file is corrupt, or -1 on
  * error.
  */
-int multitape_metadata_get_byhash(STORAGE_R * S, CHUNKS_S * C,
+int
+multitape_metadata_get_byhash(STORAGE_R * S, CHUNKS_S * C,
     struct tapemetadata * mdat, const uint8_t tapehash[32], int quiet)
 {
 
@@ -405,7 +406,8 @@ int multitape_metadata_get_byhash(STORAGE_R * S, CHUNKS_S * C,
  * missing files.  Return 0 on success, 1 if the metadata file does not
  * exist, 2 if the metadata file is corrupt, or -1 on error.
  */
-int multitape_metadata_get_byname(STORAGE_R * S, CHUNKS_S * C,
+int
+multitape_metadata_get_byname(STORAGE_R * S, CHUNKS_S * C,
     struct tapemetadata * mdat, const char * tapename, int quiet)
 {
 	uint8_t hbuf[32];
@@ -432,7 +434,7 @@ multitape_metadata_free(struct tapemetadata * mdat)
 {
 	int arg;
 
-	/* Be consistent with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (mdat == NULL)
 		return;
 

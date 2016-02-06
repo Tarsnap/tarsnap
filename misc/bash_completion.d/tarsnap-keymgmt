@@ -1,11 +1,5 @@
 # bash-completion for tarsnap-keymgmt
 #
-# Besides supplying options it will also try to determine
-# when it is suitible to complete what.
-#
-# Feel free to send comments or suggestions.
-#
-#
 # Copyright (c) 2009-2012 Andreas Olsson
 # 
 # Permission is hereby granted, free of charge, to any person
@@ -42,14 +36,15 @@ _tarsnap_keymgmt ()
 	# These options will be completed by the path to a filename.
 	wfilearg="--outkeyfile"
 
-	# These options requires a non-completable argument.
+	# These options require a non-completable argument.
 	# They won't be completed at all.
 	wotherarg="--passphrase-mem"
 
-	# Availible long options
-	longopts="--outkeyfile --nuke --passphrased --passphrase-mem"
+	# Available long options
+	longopts="--outkeyfile --nuke --passphrased --passphrase-mem \
+		--print-key-id --print-key-permissions --version"
 
-	# Availible short options
+	# Available short options
 	shortopts="-r -w -d"
 
 	options=${longopts}" "${shortopts}

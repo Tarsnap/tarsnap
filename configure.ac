@@ -15,7 +15,7 @@ m4_define([LIBARCHIVE_VERSION_N],[2007000])
 # Now starts the "real" configure script.
 #
 
-AC_INIT([tarsnap],TAR_VERS(),[cperciva@tarsnap.com])
+AC_INIT([tarsnap],[TAR_VERS()],[cperciva@tarsnap.com])
 # Make sure the srcdir contains "libarchive" directory
 AC_CONFIG_SRCDIR([libarchive])
 # Use auxiliary subscripts from this subdirectory (cleans up root)
@@ -458,17 +458,29 @@ AS_IF([test "x$with_bash_completion_dir" != "xno"],
     [AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
 
-# should we set the value automatically?
-if test "x$with_bash_completion_dir" == "xyes"; then
-    # default guess for automatic
-    BASH_COMPLETION_DIR="$datadir/bash-completion/completions"
+# Check whether the user has requested to disable compiler warnings
+AC_MSG_CHECKING([compiler_warnings])
+AC_ARG_ENABLE(compiler_warnings,
+   AS_HELP_STRING([--disable-compiler-warnings],
+       [Do not request compiler warnings. @<:@default=enabled@:>@]),
+   [ac_compiler_warnings=$enableval],
+   [ac_compiler_warnings=yes])
+AC_MSG_RESULT([${ac_compiler_warnings}])
+AS_IF([test x${ac_compiler_warnings} = xyes],
+   [AX_CFLAGS_WARN_ALL])
 
+# should we set the value automatically?
+if test "x$with_bash_completion_dir" = "xyes"; then
     # try to use pkg-config
     AC_CHECK_PROG(HAS_PKG_CONFIG, pkg-config, yes)
-    if test "x$HAS_PKG_CONFIG" != "xno"; then
+    if test "x$HAS_PKG_CONFIG" != "xyes"; then
+        AC_MSG_ERROR([Automatic detection of bash-completion directory requires pkg-config.])
+    else
         # find the actual value from the system
         PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
-            [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"])
+            [BASH_COMPLETION_DIR="`pkg-config --variable=completionsdir bash-completion`"],
+            [BASH_COMPLETION_DIR="/etc/bash_completion.d/"; 
+	     AC_MSG_WARN([Automatic detection of bash-completion directory requires bash-completion >= 2.0; guessing a directory.])])
 	AC_MSG_CHECKING([bash completions directory])
 	AC_MSG_RESULT([$BASH_COMPLETION_DIR])
     fi

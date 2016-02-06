@@ -1,11 +1,5 @@
 # bash-completion for tarsnap-recrypt
 #
-# Besides supplying options it will also try to determine
-# when it is suitible to complete what.
-#
-# Feel free to send comments or suggestions.
-#
-#
 # Copyright (c) 2009-2012 Andreas Olsson
 # 
 # Permission is hereby granted, free of charge, to any person
@@ -45,7 +39,7 @@ _tarsnap_recrypt ()
 	# These options will be completed by the path to a directory.
 	wpatharg="--oldcachedir|--newcachedir"
 
-	longopts="--oldkey --newkey --oldcachedir --newcachedir"
+	longopts="--oldkey --newkey --oldcachedir --newcachedir --version"
 
 	case "$prev" in
 		@($wfilearg))

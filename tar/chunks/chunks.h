@@ -42,12 +42,12 @@ int chunks_read_chunk(CHUNKS_R *, const uint8_t *, size_t, size_t,
 void chunks_read_free(CHUNKS_R *);
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize, dryrun):
+ * chunks_write_start(cachepath, S, maxchunksize):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.  If ${dryrun} is non-zero, perform a dry run.
+ * ${maxchunksize}.
  */
-CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t, int);
+CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t);
 
 /**
  * chunks_write_chunk(C, hash, buf, buflen):
@@ -81,11 +81,11 @@ int chunks_write_chunkref(CHUNKS_W *, const uint8_t *);
 void chunks_write_extrastats(CHUNKS_W *, size_t);
 
 /**
- * chunks_write_printstats(stream, C):
+ * chunks_write_printstats(stream, C, csv):
  * Print statistics for the write transaction associated with the cookie
- * ${C} to ${stream}.
+ * ${C} to ${stream}, optionally in ${csv} format.
  */
-int chunks_write_printstats(FILE *, CHUNKS_W *);
+int chunks_write_printstats(FILE *, CHUNKS_W *, int);
 
 /**
  * chunks_write_checkpoint(C):
@@ -131,12 +131,12 @@ int chunks_delete_chunk(CHUNKS_D *, const uint8_t *);
 void chunks_delete_extrastats(CHUNKS_D *, size_t);
 
 /**
- * chunks_delete_printstats(stream, C, name):
+ * chunks_delete_printstats(stream, C, name, csv):
  * Print statistics for the delete transaction associated with the cookie
- * ${C} to ${stream}.  If ${name} is non-NULL, use it to identify the archive
- * being deleted.
+ * ${C} to ${stream}, optionally in ${csv} format.  If ${name} is non-NULL,
+ * use it to identify the archive being deleted.
  */
-int chunks_delete_printstats(FILE *, CHUNKS_D *, const char *);
+int chunks_delete_printstats(FILE *, CHUNKS_D *, const char *, int);
 
 /**
  * chunks_delete_end(C):
@@ -197,16 +197,18 @@ CHUNKS_S * chunks_stats_init(const char *);
 size_t chunks_stats_getdirsz(CHUNKS_S *);
 
 /**
- * chunks_stats_printglobal(stream, C):
- * Print global statistics relating to a set of archives.
+ * chunks_stats_printglobal(stream, C, csv):
+ * Print global statistics relating to a set of archives, optionally in ${csv}
+ * format.
  */
-int chunks_stats_printglobal(FILE *, CHUNKS_S *);
+int chunks_stats_printglobal(FILE *, CHUNKS_S *, int);
 
 /**
- * chunks_stats_print(stream, C, name):
- * Print accumulated statistics for an archive with the given name.
+ * chunks_stats_printarchive(stream, C, name, csv):
+ * Print accumulated statistics for an archive with the given name, optionally
+ * in ${csv} format.
  */
-int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *);
+int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *, int);
 
 /**
  * chunks_stats_free(C):

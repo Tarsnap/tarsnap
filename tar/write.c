@@ -97,8 +97,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #include "archive_multitape.h"
 #include "ccache.h"
 #include "getfstype.h"
-#include "tsnetwork.h"
 #include "sigquit.h"
+#include "tsnetwork.h"
 
 /* Size of buffer for holding file data prior to writing. */
 #define FILEDATABUFLEN	65536
@@ -259,6 +259,7 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if (*bsdtar->argv == NULL && bsdtar->names_from_file == NULL)
 		bsdtar_errc(bsdtar, 1, 0, "no files or directories specified");
 
+	/* Warn if "--" appears at the beginning of a file or dir to archive. */
 	for (i = 0; bsdtar->argv[i] != NULL; i++) {
 		if (bsdtar->argv[i][0] == '-' && bsdtar->argv[i][1] == '-') {
 			bsdtar_warnc(bsdtar, 0,
@@ -269,7 +270,10 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 		}
 	}
 
-	a = archive_write_new();
+	if ((a = archive_write_new()) == NULL) {
+		bsdtar_warnc(bsdtar, ENOMEM, "Cannot allocate memory");
+		goto err0;
+	}
 
 	/* We only support the pax restricted format. */
 	archive_write_set_format_pax_restricted(a);
@@ -282,39 +286,64 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapenames[0],
 	    bsdtar->argc_orig, bsdtar->argv_orig,
 	    bsdtar->option_print_stats, bsdtar->option_dryrun,
-	    bsdtar->creationtime);
-	if (bsdtar->write_cookie == NULL)
-		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
+	    bsdtar->creationtime, bsdtar->option_csv_filename);
+	if (bsdtar->write_cookie == NULL) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		goto err1;
+	}
 
 	/*
 	 * Remember the device and inode numbers of the cache directory, so
-	 * that we can skip is in write_hierarchy().
+	 * that we can skip it in write_hierarchy().
 	 */
 	if (getdevino(a, bsdtar->cachedir,
-	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino))
-		bsdtar_errc(bsdtar, 1, 0, "%s", archive_error_string(a));
-
-	/* Read the chunkification cache. */
-	if (bsdtar->cachecrunch < 2) {
-		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
-		if (bsdtar->chunk_cache == NULL)
-			bsdtar_errc(bsdtar, 1, errno, "Error reading cache");
+	    &bsdtar->cachedir_dev, &bsdtar->cachedir_ino)) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		goto err1;
 	}
 
+	/* If the chunkification cache is enabled, read it. */
+	if ((bsdtar->cachecrunch < 2) && (bsdtar->cachedir != NULL)) {
+		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
+		if (bsdtar->chunk_cache == NULL) {
+			bsdtar_warnc(bsdtar, errno, "Error reading cache");
+			goto err1;
+		}
+	}
+
+	/*
+	 * write_archive(a, bsdtar) calls archive_write_finish(a), so we set
+	 * a = NULL to avoid doing this again in err1.
+	 */
 	write_archive(a, bsdtar);
+	a = NULL;
 
 	/*
 	 * If this isn't a dry run and we're running with the chunkification
 	 * cache enabled, write the cache back to disk.
 	 */
 	if ((bsdtar->option_dryrun == 0) && (bsdtar->cachecrunch < 2)) {
-		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir))
-			bsdtar_errc(bsdtar, 1, errno, "Error writing cache");
+		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir)) {
+			bsdtar_warnc(bsdtar, errno, "Error writing cache");
+			goto err2;
+		}
 	}
 
 	/* Free the chunkification cache. */
 	if (bsdtar->cachecrunch < 2)
 		ccache_free(bsdtar->chunk_cache);
+
+	/* Success! */
+	return;
+
+err2:
+	ccache_free(bsdtar->chunk_cache);
+err1:
+	archive_write_finish(a);
+err0:
+	/* Failure! */
+	bsdtar->return_value = 1;
+	return;
 }
 
 /*
@@ -419,6 +448,16 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		archive_entry_free(entry);
 		entry = NULL;
 		archive_entry_linkify(bsdtar->resolver, &entry, &sparse_entry);
+	}
+
+	/*
+	 * Check whether the archive is empty; this is unaffected by
+	 * deduplication.  Must be done before the archive is closed since
+	 * even empty archives end up with nonzero size due to tar EOF blocks.
+	 */
+	if ((!bsdtar->option_quiet) &&
+	    (archive_position_compressed(a) == 0)) {
+		bsdtar_warnc(bsdtar, 0, "Warning: Archive contains no files");
 	}
 
 	if (archive_write_close(a)) {
@@ -993,8 +1032,9 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	 * the chunkification cache to find the entry for the file (if one
 	 * already exists) and tell us if it can provide the entire file.
 	 */
-	if ((st != NULL) && S_ISREG(st->st_mode) && rpath != NULL &&
-	    archive_entry_size(entry) > 0 && bsdtar->cachecrunch < 2) {
+	if ((st != NULL) && S_ISREG(st->st_mode) && (rpath != NULL) &&
+	    (archive_entry_size(entry) > 0) && (bsdtar->cachecrunch < 2) &&
+	    (bsdtar->chunk_cache != NULL)) {
 		cce = ccache_entry_lookup(bsdtar->chunk_cache, rpath, st,
 		    bsdtar->write_cookie, &filecached);
 	}

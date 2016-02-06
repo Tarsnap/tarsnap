@@ -3,16 +3,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <string.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "crypto.h"
+#include "getopt.h"
+#include "imalloc.h"
 #include "keyfile.h"
 #include "multitape_internal.h"
 #include "storage.h"
-#include "tsnetwork.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 /* Copy batches of 16384 blocks; print a . per 512 blocks. */
@@ -49,6 +52,7 @@ usage(void)
 	fprintf(stderr, "usage: tarsnap-recrypt %s %s %s %s\n",
 	    "--oldkey old-key-file", "--oldcachedir old-cache-dir",
 	    "--newkey new-key-file", "--newcachedir new-cache-dir");
+	fprintf(stderr, "       tarsnap-recrypt --version\n");
 	exit(1);
 
 	/* NOTREACHED */
@@ -60,6 +64,10 @@ build_dir(const char *dir, const char *diropt)
 	struct stat sb;
 	char * s;
 	const char * dirseppos;
+
+	/* We need a directory name and the config option. */
+	assert(dir != NULL);
+	assert(diropt != NULL);
 
 	/* Move through *dir and build all parent directories. */
 	for (dirseppos = dir; *dirseppos != '\0'; ) {
@@ -177,7 +185,7 @@ getblist(uint64_t mnum, struct block ** blist, size_t * blistlen)
 
 	/* Allocate array of blocks. */
 	*blistlen = nfiles_m + nfiles_i + nfiles_c;
-	if ((*blist = malloc(*blistlen * sizeof(struct block))) == NULL) {
+	if (IMALLOC(*blist, *blistlen, struct block)) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
@@ -250,7 +258,7 @@ compareblists(const struct block * oblist, size_t oblistlen,
 
 	/* Allocate space for the blocks-to-copy list. */
 	*cblistlen = oblistlen - nblistlen;
-	if ((*cblist = malloc(*cblistlen * sizeof(struct block))) == NULL) {
+	if (IMALLOC(*cblist, *cblistlen, struct block)) {
 		warnp("Cannot allocate memory");
 		exit(1);
 	}
@@ -427,6 +435,7 @@ main(int argc, char **argv)
 	size_t bpos, copynum;
 	char *odirpath, *ndirpath;
 	FILE *odir, *ndir;
+	const char * ch;
 
 	WARNP_INIT;
 
@@ -443,35 +452,46 @@ main(int argc, char **argv)
 	ocachedir = ncachedir = NULL;
 	okeyfile = nkeyfile = NULL;
 
-	/* Look for command-line options. */
-	while (--argc > 0) {
-		argv++;
-
-		if (strcmp(argv[0], "--oldkey") == 0) {
-			if ((okeyfile != NULL) || (argc < 2))
+	/* Parse arguments. */
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("--oldkey"):
+			if (okeyfile != NULL)
 				usage();
-			okeyfile = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--oldcachedir") == 0) {
-			if ((ocachedir != NULL) || (argc < 2))
+			okeyfile = optarg;
+			break;
+		GETOPT_OPTARG("--oldcachedir"):
+			if (ocachedir != NULL)
 				usage();
-			ocachedir = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--newkey") == 0) {
-			if ((nkeyfile != NULL) || (argc < 2))
+			ocachedir = optarg;
+			break;
+		GETOPT_OPTARG("--newkey"):
+			if (nkeyfile != NULL)
 				usage();
-			nkeyfile = argv[1];
-			argv++; argc--;
-		} else if (strcmp(argv[0], "--newcachedir") == 0) {
+			nkeyfile = optarg;
+			break;
+		GETOPT_OPTARG("--newcachedir"):
 			if ((ncachedir != NULL) || (argc < 2))
 				usage();
-			ncachedir = argv[1];
-			argv++; argc--;
-		} else {
-			/* Unrecognized option. */
+			ncachedir = optarg;
+			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "tarsnap-recrypt %s\n",
+			    PACKAGE_VERSION);
+			exit(0);
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
+
+	/* We should have processed all the arguments. */
+	if (argc != 0)
+		usage();
 
 	/* Make sure we have the necessary options. */
 	if ((ocachedir == NULL) || (ncachedir == NULL) ||
@@ -617,7 +637,7 @@ main(int argc, char **argv)
 
 		/* Start a write transaction. */
 		if ((SW = storage_write_start(nmachinenum, nlastseq,
-		    nseqnum, 0)) == NULL) {
+		    nseqnum)) == NULL) {
 			warnp("Cannot start write transaction");
 			exit(1);
 		}

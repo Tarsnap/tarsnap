@@ -1,7 +1,7 @@
 #include "bsdtar_platform.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <openssl/bn.h>
 #include <openssl/err.h>

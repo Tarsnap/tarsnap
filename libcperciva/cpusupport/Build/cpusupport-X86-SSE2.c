@@ -2,7 +2,8 @@
 
 static char a[16];
 
-int main(void)
+int
+main(void)
 {
 	__m128i x;
 

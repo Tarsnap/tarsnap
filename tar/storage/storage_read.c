@@ -66,6 +66,7 @@ cache_lru_remove(STORAGE_R * S, struct read_file_cached * CF)
 {
 
 	/* Sanity check: We should be in the queue. */
+	assert(CF != NULL);
 	assert(CF->inqueue);
 
 	/* Our LRU file is now someone else's LRU file. */
@@ -339,7 +340,8 @@ err0:
  * ${buflen} to the length of the buffer.  Return 0, 1, 2, or -1 as per
  * storage_read_file.
  */
-int storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
+int
+storage_read_file_alloc(STORAGE_R * S, uint8_t ** buf,
     size_t * buflen, char class, const uint8_t name[32])
 {
 	struct read_file_internal C;
@@ -630,6 +632,10 @@ callback_cache_free(void * record, void * cookie)
 void
 storage_read_free(STORAGE_R * S)
 {
+
+	/* Behave consistently with free(NULL). */
+	if (S == NULL)
+		return;
 
 	/* Close netpacket connection. */
 	netpacket_close(S->NPC);

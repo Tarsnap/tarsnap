@@ -8,9 +8,9 @@
 #include <time.h>
 
 #include "netproto_internal.h"
+#include "network.h"
 #include "sock.h"
 #include "sock_util.h"
-#include "network.h"
 #include "warnp.h"
 
 #include "netproto.h"
@@ -23,6 +23,16 @@ struct netproto_connect_cookie {
 	void * connect_cookie;
 	NETPROTO_CONNECTION * NC;
 };
+
+static struct sock_addr ** srv_addr = NULL;
+static void netproto_connect_atexit(void);
+
+static void
+netproto_connect_atexit(void)
+{
+
+	sock_addr_freelist(srv_addr);
+}
 
 static int
 callback_connect(void * cookie, int s)
@@ -105,7 +115,6 @@ callback_cancel(void * cookie)
 static struct sock_addr **
 getserveraddr(void)
 {
-	static struct sock_addr ** srv_addr = NULL;
 	static time_t srv_time = (time_t)(-1);
 	struct sock_addr ** tmp_addr;
 	time_t tmp_time;
@@ -129,6 +138,13 @@ getserveraddr(void)
 
 	/* If we have a new lookup, update the cache. */
 	if (tmp_addr != NULL) {
+		/* First time we have an address to cache, register atexit. */
+		if ((srv_addr == NULL) && (atexit(netproto_connect_atexit))) {
+			warnp("Could not initialize atexit");
+			return (NULL);
+		}
+
+		/* Update the cache. */
 		sock_addr_freelist(srv_addr);
 		srv_addr = tmp_addr;
 		srv_time = tmp_time;

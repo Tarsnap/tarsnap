@@ -21,8 +21,7 @@ struct chunks_write_internal {
 	RWHASHTAB * HT;			/* Hash table of struct chunkdata. */
 	void * dir;			/* On-disk directory entries. */
 	char * path;			/* Path to cache directory. */
-	STORAGE_W * S;			/* Storage layer cookie. */
-	int dryrun;			/* Nonzero if this is a dry run. */
+	STORAGE_W * S;			/* Storage layer cookie; NULL=dryrun. */
 	struct chunkstats stats_total;	/* All archives, w/ multiplicity. */
 	struct chunkstats stats_unique;	/* All archives, w/o multiplicity. */
 	struct chunkstats stats_extra;	/* Extra (non-chunked) data. */
@@ -32,14 +31,13 @@ struct chunks_write_internal {
 };
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize, dryrun):
+ * chunks_write_start(cachepath, S, maxchunksize):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.  If ${dryrun} is non-zero, perform a dry run.
+ * ${maxchunksize}.
  */
 CHUNKS_W *
-chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
-    int dryrun)
+chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize)
 {
 	struct chunks_write_internal * C;
 
@@ -63,9 +61,6 @@ chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
 
 	/* Record the storage cookie that we're using. */
 	C->S = S;
-
-	/* Record whether we're performing a dry run. */
-	C->dryrun = dryrun;
 
 	/* Create a copy of the path. */
 	if (cachepath == NULL) {
@@ -249,30 +244,30 @@ chunks_write_extrastats(CHUNKS_W * C, size_t len)
 }
 
 /**
- * chunks_write_printstats(stream, C):
+ * chunks_write_printstats(stream, C, csv):
  * Print statistics for the write transaction associated with the cookie
- * ${C} to ${stream}.
+ * ${C} to ${stream}, optionally in ${csv} format.
  */
 int
-chunks_write_printstats(FILE * stream, CHUNKS_W * C)
+chunks_write_printstats(FILE * stream, CHUNKS_W * C, int csv)
 {
 
 	/* Print header. */
-	if (chunks_stats_printheader(stream))
+	if (chunks_stats_printheader(stream, csv))
 		goto err0;
 
 	/* Print the statistics we have. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra))
+	    &C->stats_extra, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tape, "This archive",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_new, "New data",
-	    &C->stats_tapee))
+	    &C->stats_tapee, csv))
 		goto err0;
 
 	/* Success! */
@@ -293,7 +288,7 @@ chunks_write_checkpoint(CHUNKS_W * C)
 {
 
 	/* If this isn't a dry run, write the new chunk directory. */
-	if ((C->dryrun == 0) &&
+	if ((C->S != NULL) &&
 	    chunks_directory_write(C->path, C->HT, &C->stats_extra, ".ckpt"))
 		goto err0;
 

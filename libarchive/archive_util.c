@@ -41,6 +41,21 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_util.c,v 1.19 2008/10/21 12:10:30
 #include "archive_private.h"
 #include "archive_string.h"
 
+static void
+errmsg(const char *m)
+{
+	size_t s = strlen(m);
+	ssize_t written;
+
+	while (s > 0) {
+		written = write(2, m, strlen(m));
+		if (written <= 0)
+			return;
+		m += written;
+		s -= written;
+	}
+}
+
 #if ARCHIVE_VERSION_NUMBER < 3000000
 /* These disappear in libarchive 3.0 */
 /* Deprecated. */
@@ -182,9 +197,9 @@ void
 __archive_errx(int retvalue, const char *msg)
 {
 	static const char *msg1 = "Fatal Internal Error in libarchive: ";
-	write(2, msg1, strlen(msg1));
-	write(2, msg, strlen(msg));
-	write(2, "\n", 1);
+	errmsg(msg1);
+	errmsg(msg);
+	errmsg("\n");
 	exit(retvalue);
 }
 

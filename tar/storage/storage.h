@@ -74,27 +74,28 @@ int storage_read_file_callback(STORAGE_R *, uint8_t *, size_t, char,
 void storage_read_free(STORAGE_R *);
 
 /**
- * storage_write_start(machinenum, lastseq, seqnum, dryrun):
+ * storage_write_start(machinenum, lastseq, seqnum):
  * Start a write transaction, presuming that ${lastseq} is the sequence
  * number of the last committed transaction, or zeroes if there is no
  * previous transaction; and store the sequence number of the new transaction
- * into ${seqnum}.  If ${dryrun} is nonzero, perform a dry run.
+ * into ${seqnum}.
  */
-STORAGE_W * storage_write_start(uint64_t, const uint8_t[32], uint8_t[32],
-    int);
+STORAGE_W * storage_write_start(uint64_t, const uint8_t[32], uint8_t[32]);
 
 /**
  * storage_write_fexist(S, class, name):
  * Test if a file ${name} exists in class ${class}, as part of the write
  * transaction associated with the cookie ${S}; return 1 if the file
- * exists, 0 if not, and -1 on error.
+ * exists, 0 if not, and -1 on error.  If ${S} is NULL, return 0 without doing
+ * anything.
  */
 int storage_write_fexist(STORAGE_W *, char, const uint8_t[32]);
 
 /**
  * storage_write_file(S, buf, len, class, name):
  * Write ${len} bytes from ${buf} to the file ${name} in class ${class} as
- * part of the write transaction associated with the cookie ${S}.
+ * part of the write transaction associated with the cookie ${S}.  If ${S} is
+ * NULL, return 0 without doing anything.
  */
 int storage_write_file(STORAGE_W *, uint8_t *, size_t, char,
     const uint8_t[32]);
@@ -103,6 +104,7 @@ int storage_write_file(STORAGE_W *, uint8_t *, size_t, char,
  * storage_write_flush(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being committed.
+ * If ${S} is NULL, return 0 without doing anything.
  */
 int storage_write_flush(STORAGE_W *);
 
@@ -110,7 +112,8 @@ int storage_write_flush(STORAGE_W *);
  * storage_write_end(S):
  * Make sure all files written as part of the transaction associated with
  * the cookie ${S} have been safely stored in preparation for being
- * committed; and close the transaction and free associated memory.
+ * committed; and close the transaction and free associated memory.  If ${S}
+ * is NULL, return 0 without doing anything.
  */
 int storage_write_end(STORAGE_W *);
 

@@ -1,4 +1,4 @@
-.TH TARSNAP-RECRYPT 1 "February 1, 2011" ""
+.TH TARSNAP-RECRYPT 1 "@DATE@" ""
 .SH NAME
 .ad l
 \fB\%tarsnap-recrypt\fP
@@ -12,6 +12,9 @@
 \fB\--oldcachedir\fP \fIold-cache-dir\fP
 \fB\--newkey\fP \fInew-key-file\fP
 \fB\--newcachedir\fP \fInew-cache-dir\fP
+.br
+\fB\%tarsnap-recrypt\fP
+\fB\--version\fP
 .SH DESCRIPTION
 .ad l
 \fB\%tarsnap-recrypt\fP

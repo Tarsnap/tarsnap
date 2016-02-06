@@ -3,6 +3,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -62,6 +63,9 @@ multitape_docheckpoint(const char * cachedir, uint64_t machinenum,
 	uint8_t seqnum[32];
 	uint8_t ckptnonce[32];
 	uint8_t seqnum_ckptnonce[64];
+
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
 
 	/* Make sure ${cachedir} is flushed to disk. */
 	if (dirutil_fsyncdir(cachedir))
@@ -155,6 +159,9 @@ multitape_checkpoint(const char * cachedir, uint64_t machinenum,
 	uint8_t ckptnonce[32];
 	uint8_t seqnum_ckptnonce[64];
 
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
+
 	/* Generate random checkpoint nonce. */
 	if (crypto_entropy_read(ckptnonce, 32))
 		goto err0;
@@ -196,6 +203,9 @@ multitape_docommit(const char * cachedir, uint64_t machinenum, uint8_t key)
 {
 	char * s, * t;
 	uint8_t seqnum[32];
+
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
 
 	/* Make sure ${cachedir} is flushed to disk. */
 	if (dirutil_fsyncdir(cachedir))
@@ -283,6 +293,9 @@ multitape_commit(const char * cachedir, uint64_t machinenum,
 {
 	char * s;
 
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
+
 	/* Make ${cachedir}/commit_m point to ${seqnum}. */
 	if (asprintf(&s, "%s/commit_m", cachedir) == -1) {
 		warnp("asprintf");
@@ -316,6 +329,9 @@ multitape_lock(const char * cachedir)
 {
 	char * s;
 	int fd;
+
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
 
 	/* Open ${cachedir}/lockf. */
 	if (asprintf(&s, "%s/lockf", cachedir) == -1) {
@@ -383,6 +399,9 @@ int
 multitape_sequence(const char * cachedir, uint8_t seqnum[32])
 {
 	char * s;
+
+	/* We need a cachedir. */
+	assert(cachedir != NULL);
 
 	/* Read the link ${cachedir}/cseq. */
 	if (asprintf(&s, "%s/cseq", cachedir) == -1) {

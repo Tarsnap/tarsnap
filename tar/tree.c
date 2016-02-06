@@ -154,6 +154,21 @@ struct tree {
 #define D_NAMELEN(dp)	(strlen((dp)->d_name))
 #endif
 
+static void
+errmsg(const char *m)
+{
+	size_t s = strlen(m);
+	ssize_t written;
+
+	while (s > 0) {
+		written = write(2, m, strlen(m));
+		if (written <= 0)
+			return;
+		m += written;
+		s -= written;
+	}
+}
+
 #if 0
 #include <stdio.h>
 void
@@ -214,7 +229,7 @@ tree_append(struct tree *t, const char *name, size_t name_length)
 		name_length--;
 
 	/* Resize pathname buffer as needed. */
-	size_needed = name_length + 1 + t->dirname_length;
+	size_needed = name_length + 1 + t->dirname_length + 1;
 	if (t->buff_length < size_needed) {
 		if (t->buff_length < 1024)
 			t->buff_length = 1024;
@@ -358,7 +373,7 @@ tree_next(struct tree *t)
 	if (t->visit_type == TREE_ERROR_FATAL) {
 		const char *msg = "Unable to continue traversing"
 		    " directory hierarchy after a fatal error.\n";
-		write(2, msg, strlen(msg));
+		errmsg(msg);
 		*(volatile int *)0 = 1; /* Deliberate SEGV; NULL pointer dereference. */
 		exit(1); /* In case the SEGV didn't work. */
 	}

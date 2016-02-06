@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@
 #include "chunks.h"
 #include "crypto.h"
 #include "dirutil.h"
+#include "elasticarray.h"
 #include "storage.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -29,11 +31,15 @@
  */
 #define	MINCHUNK	4096
 
+/* Elastic array of chunk headers. */
+ELASTICARRAY_DECL(CHUNKLIST, chunklist, struct chunkheader);
+
+/* Elastic array of bytes. */
+ELASTICARRAY_DECL(BYTEBUF, bytebuf, uint8_t);
+
 /* Stream parameters. */
 struct stream {
-	uint8_t * index;	/* Stream chunk index. */
-	size_t indexlen;	/* Length of chunk index. */
-	size_t indexalloc;	/* Storage allocated for chunk index. */
+	CHUNKLIST index;	/* Stream chunk index. */
 	CHUNKIFIER * c;		/* Chunkifier for stream. */
 };
 
@@ -50,10 +56,10 @@ struct multitape_write_internal {
 	char ** argv;		/* Command-line arguments. */
 	int stats_enabled;	/* Stats printed on close. */
 	int eof;		/* Tape is truncated at current position. */
-	int dryrun;		/* A dry run is being performed. */
+	const char * csv_filename;	/* Print statistics to a CSV file. */
 
 	/* Lower level cookies. */
-	STORAGE_W * S;		/* Storage layer write cookie. */
+	STORAGE_W * S;		/* Storage layer write cookie; NULL=dryrun. */
 	CHUNKS_W * C;		/* Chunk layer write cookie. */
 	int lockfd;		/* Lock on cache directory. */
 	uint8_t seqnum[32];	/* Transaction sequence number. */
@@ -68,9 +74,7 @@ struct multitape_write_internal {
 	int mode;		/* Tape mode (header, data, end of entry). */
 
 	/* Header buffering. */
-	uint8_t * hbuf;		/* Pending archive header. */
-	size_t hbufalloc;	/* Length of hbuf memory allocation. */
-	size_t hlen;		/* Pending header length. */
+	BYTEBUF	hbuf;		/* Pending archive header. */
 	off_t clen;		/* Length of chunkified file data. */
 	size_t tlen;		/* Length of file trailer. */
 
@@ -89,6 +93,42 @@ static chunkify_callback callback_c;
 static chunkify_callback callback_file;
 static int endentry(TAPE_W *);
 static int flushtape(TAPE_W *, int, int);
+
+/* Initialize stream. */
+static int
+stream_init(struct stream * S, chunkify_callback callback, void * cookie)
+{
+
+	/* Create chunkfier. */
+	if ((S->c =
+	    chunkify_init(MEANCHUNK, MAXCHUNK, callback, cookie)) == NULL)
+		goto err0;
+
+	/* Allocate elastic array to hold chunk headers. */
+	if ((S->index = chunklist_init(0)) == NULL)
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	chunkify_free(S->c);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/* Free stream. */
+static void
+stream_free(struct stream * S)
+{
+
+	/* Free the elastic array of chunk headers. */
+	chunklist_free(S->index);
+
+	/* Free the chunkifier. */
+	chunkify_free(S->c);
+}
 
 /**
  * tapepresent(S, fmt, s):
@@ -181,36 +221,13 @@ static int
 handle_chunk(uint8_t * buf, size_t buflen, struct stream * S, CHUNKS_W * C)
 {
 	struct chunkheader ch;
-	uint8_t * index_new;
-	size_t indexalloc_new;
 
 	if (store_chunk(buf, buflen, &ch, C))
 		goto err0;
 
-	/* Enlarge index if needed. */
-	while (S->indexalloc - S->indexlen < sizeof(struct chunkheader)) {
-		if (S->indexalloc == 0)
-			indexalloc_new = sizeof(struct chunkheader);
-		else
-			indexalloc_new = S->indexalloc * 2;
-
-		/* Handle integer overflows. */
-		if (indexalloc_new < S->indexalloc) {
-			errno = ENOMEM;
-			goto err0;
-		}
-
-		index_new = realloc(S->index, indexalloc_new);
-		if (index_new == NULL)
-			goto err0;
-
-		S->index = index_new;
-		S->indexalloc = indexalloc_new;
-	}
-
-	/* Copy chunk header into buffer. */
-	memcpy(S->index + S->indexlen, &ch, sizeof(struct chunkheader));
-	S->indexlen += sizeof(struct chunkheader);
+	/* Add chunk header to elastic array. */
+	if (chunklist_append(S->index, &ch, 1))
+		goto err0;
 
 	/* Success! */
 	return (0);
@@ -327,27 +344,42 @@ static int
 endentry(TAPE_W * d)
 {
 	struct entryheader eh;
+	uint8_t * hbuf;
+	size_t hlen;
+
+	/* Export the archive header as a static buffer. */
+	if (bytebuf_export(d->hbuf, &hbuf, &hlen))
+		goto err0;
+
+	/* Create a new elastic archive header buffer. */
+	if ((d->hbuf = bytebuf_init(0)) == NULL)
+		goto err1;
 
 	/* Construct entry header. */
-	le32enc(eh.hlen, d->hlen);
+	le32enc(eh.hlen, hlen);
 	le64enc(eh.clen, d->clen);
 	le32enc(eh.tlen, d->tlen);
 
 	/* Write entry header to header stream. */
 	if (chunkify_write(d->h.c, (uint8_t *)(&eh),
 	    sizeof(struct entryheader)))
-		goto err0;
+		goto err1;
 
 	/* Write archive header to header stream. */
-	if (chunkify_write(d->h.c, d->hbuf, d->hlen))
-		goto err0;
+	if (chunkify_write(d->h.c, hbuf, hlen))
+		goto err1;
+
+	/* Free header buffer. */
+	free(hbuf);
 
 	/* Reset pending write lengths. */
-	d->hlen = d->clen = d->tlen = 0;
+	d->clen = d->tlen = 0;
 
 	/* Success! */
 	return (0);
 
+err1:
+	free(hbuf);
 err0:
 	/* Failure! */
 	return (-1);
@@ -355,14 +387,14 @@ err0:
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime):
+ *     dryrun, creationtime, csv_filename):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
     const char * tapename, int argc, char ** argv, int printstats,
-    int dryrun, time_t creationtime)
+    int dryrun, time_t creationtime, const char * csv_filename)
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -408,8 +440,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Record whether we should print archive statistics on close. */
 	d->stats_enabled = printstats;
 
-	/* Record whether this is a dry run. */
-	d->dryrun = dryrun;
+	/* Record whether to print statistics to a CSV file. */
+	d->csv_filename = csv_filename;
 
 	/* If we're using a cache, make sure ${cachedir} exists. */
 	if ((cachedir != NULL) && (dirutil_needdir(cachedir)))
@@ -420,19 +452,27 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err3;
 
 	/* If this isn't a dry run, finish any pending commit. */
-	if ((d->dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
+	if ((dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
 		goto err4;
 
-	/* Get sequence number. */
-	if (multitape_sequence(cachedir, lastseq))
+	/* If this isn't a dry run, get the sequence number. */
+	if ((dryrun == 0) && (multitape_sequence(cachedir, lastseq)))
 		goto err4;
 
-	/* Obtain write cookies from the storage and chunk layers. */
-	if ((d->S = storage_write_start(machinenum, lastseq,
-	    d->seqnum, d->dryrun)) == NULL)
-		goto err4;
-	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK,
-	    d->dryrun)) == NULL)
+	/*
+	 * If this isn't a dry run, obtain a write cookie from the storage
+	 * layer.  If it is a dry run, set the storage cookie to NULL to
+	 * denote this fact.
+	 */
+	if (dryrun == 0) {
+		if ((d->S = storage_write_start(machinenum, lastseq,
+		    d->seqnum)) == NULL)
+			goto err4;
+	} else
+		d->S = NULL;
+
+	/* Obtain a write cookie from the chunk layer. */
+	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK)) == NULL)
 		goto err5;
 
 	/*
@@ -440,25 +480,27 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	 * the specified name or that plus ".part" (in case the user decides
 	 * to truncate the archive).
 	 */
-	if ((d->dryrun == 0) && tapepresent(d->S, "%s", tapename))
+	if (tapepresent(d->S, "%s", tapename))
 		goto err6;
-	if ((d->dryrun == 0) && tapepresent(d->S, "%s.part", tapename))
+	if (tapepresent(d->S, "%s.part", tapename))
 		goto err6;
 
-	/* Create chunkifiers. */
-	d->h.c = d->c.c = d->t.c = d->c_file = NULL;
-	if ((d->h.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_h,
-	    (void *)d)) == NULL)
+	/* Initialize streams. */
+	if (stream_init(&d->h, &callback_h, (void *)d))
+		goto err6;
+	if (stream_init(&d->c, &callback_c, (void *)d))
 		goto err7;
-	if ((d->c.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_c,
-	    (void *)d)) == NULL)
-		goto err7;
-	if ((d->t.c = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_t,
-	    (void *)d)) == NULL)
-		goto err7;
+	if (stream_init(&d->t, &callback_t, (void *)d))
+		goto err8;
+
+	/* Initialize header buffer. */
+	if ((d->hbuf = bytebuf_init(0)) == NULL)
+		goto err9;
+
+	/* Iinitialize file chunkifier. */
 	if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_file,
 	    (void *)d)) == NULL)
-		goto err7;
+		goto err10;
 
 	/* No data has entered or exited c_file. */
 	d->c_file_in = d->c_file_out = 0;
@@ -466,12 +508,14 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	/* Success! */
 	return (d);
 
+err10:
+	bytebuf_free(d->hbuf);
+err9:
+	stream_free(&d->t);
+err8:
+	stream_free(&d->c);
 err7:
-	warnp("Error initializing chunkifier");
-	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	stream_free(&d->h);
 err6:
 	chunks_write_free(d->C);
 err5:
@@ -518,8 +562,6 @@ writetape_setcallback(TAPE_W * d,
 ssize_t
 writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 {
-	uint8_t * hbuf_new;
-	size_t hbufalloc_new;
 
 	/* Don't write anything if we're truncating the archive. */
 	if (d->eof)
@@ -542,31 +584,7 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 		/* FALLTHROUGH */
 	case 0:
 		/* We're in header mode.  Append the data to d->hbuf. */
-
-		/* Enlarge the buffer if necessary. */
-		while (d->hbufalloc - d->hlen < nbytes) {
-			if (d->hbufalloc == 0)
-				hbufalloc_new = nbytes;
-			else
-				hbufalloc_new = d->hbufalloc * 2;
-
-			/* Handle integer overflows. */
-			if (hbufalloc_new < d->hbufalloc) {
-				errno = ENOMEM;
-				goto err0;
-			}
-
-			hbuf_new = realloc(d->hbuf, hbufalloc_new);
-			if (hbuf_new == NULL)
-				goto err0;
-
-			d->hbuf = hbuf_new;
-			d->hbufalloc = hbufalloc_new;
-		}
-
-		/* Buffer is large enough; copy the data. */
-		memcpy(d->hbuf + d->hlen, buffer, nbytes);
-		d->hlen += nbytes;
+		bytebuf_append(d->hbuf, buffer, nbytes);
 	}
 
 	/* Success! */
@@ -715,6 +733,12 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	struct tapemetaindex tmi;
 	char * tapename;
 
+	/*
+	 * We need a tapename.  Anonymous dry runs are assigned a fake name
+	 * before this point.
+	 */
+	assert(d->tapename != NULL);
+
 	/* Tell the chunkifiers that there will be no more data. */
 	if (chunkify_end(d->c_file))
 		goto err0;
@@ -739,12 +763,20 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	tmd.ctime = d->ctime;
 	tmd.argc = d->argc;
 	tmd.argv = d->argv;
-	tmi.hindex = d->h.index;
-	tmi.hindexlen = d->h.indexlen;
-	tmi.cindex = d->c.index;
-	tmi.cindexlen = d->c.indexlen;
-	tmi.tindex = d->t.index;
-	tmi.tindexlen = d->t.indexlen;
+	if (chunklist_exportdup(d->h.index,
+	    (struct chunkheader **)&tmi.hindex, &tmi.hindexlen))
+		goto err1;
+	if (chunklist_exportdup(d->c.index,
+	    (struct chunkheader **)&tmi.cindex, &tmi.cindexlen))
+		goto err2;
+	if (chunklist_exportdup(d->t.index,
+	    (struct chunkheader **)&tmi.tindex, &tmi.tindexlen))
+		goto err3;
+
+	/* Convert index lengths to bytes. */
+	tmi.hindexlen *= sizeof(struct chunkheader);
+	tmi.cindexlen *= sizeof(struct chunkheader);
+	tmi.tindexlen *= sizeof(struct chunkheader);
 
 	/*
 	 * Store archive metaindex.  Note that this must be done before the
@@ -752,11 +784,16 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	 * metadata concerning the index length and hash.
 	 */
 	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd, extrastats))
-		goto err1;
+		goto err4;
 
 	/* Store archive metadata. */
 	if (multitape_metadata_put(d->S, d->C, &tmd, extrastats))
-		goto err1;
+		goto err4;
+
+	/* Free duplicated chunk indexes. */
+	free(tmi.hindex);
+	free(tmi.cindex);
+	free(tmi.tindex);
 
 	/* Free string allocated by asprintf. */
 	free(tapename);
@@ -768,6 +805,12 @@ flushtape(TAPE_W * d, int isapart, int extrastats)
 	/* Success! */
 	return (0);
 
+err4:
+	free(tmi.tindex);
+err3:
+	free(tmi.cindex);
+err2:
+	free(tmi.hindex);
 err1:
 	free(tapename);
 err0:
@@ -816,7 +859,7 @@ writetape_checkpoint(TAPE_W * d)
 		goto err0;
 
 	/* If this isn't a dry run, create a checkpoint. */
-	if ((d->dryrun == 0) &&
+	if ((d->S != NULL) &&
 	    multitape_checkpoint(d->cachedir, d->machinenum, d->seqnum))
 		goto err0;
 
@@ -841,6 +884,12 @@ err0:
 int
 writetape_close(TAPE_W * d)
 {
+	FILE * output = stderr;
+	int csv = 0;
+
+	/* Should we output to a CSV file? */
+	if (d->csv_filename != NULL)
+		csv = 1;
 
 	/* If the archive is truncated, end any current archive entry. */
 	if (d->eof && (d->mode < 2) && writetape_setmode(d, 2))
@@ -866,8 +915,14 @@ writetape_close(TAPE_W * d)
 		goto err2;
 
 	/* Print statistics, if we've been asked to do so. */
-	if (d->stats_enabled && chunks_write_printstats(stderr, d->C))
-		goto err2;
+	if (d->stats_enabled) {
+		if (csv && (output = fopen(d->csv_filename, "wt")) == NULL)
+			goto err2;
+		if (chunks_write_printstats(output, d->C, csv))
+			goto err3;
+		if (csv && fclose(output))
+			goto err2;
+	}
 
 	/* Ask the chunks layer to prepare for a checkpoint. */
 	if (chunks_write_checkpoint(d->C))
@@ -882,7 +937,7 @@ writetape_close(TAPE_W * d)
 	 * If this isn't a dry run, create a checkpoint and commit the
 	 * write transaction.
 	 */
-	if (d->dryrun == 0) {
+	if (d->S != NULL) {
 		if (multitape_checkpoint(d->cachedir, d->machinenum,
 		    d->seqnum))
 			goto err1;
@@ -895,9 +950,10 @@ writetape_close(TAPE_W * d)
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	bytebuf_free(d->hbuf);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -905,15 +961,19 @@ writetape_close(TAPE_W * d)
 	/* Success! */
 	return (0);
 
+err3:
+	if (output != stderr)
+		fclose(output);
 err2:
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 err1:
 	close(d->lockfd);
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	bytebuf_free(d->hbuf);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);
@@ -930,13 +990,18 @@ void
 writetape_free(TAPE_W * d)
 {
 
+	/* Behave consistently with free(NULL). */
+	if (d == NULL)
+		return;
+
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 	close(d->lockfd);
 	chunkify_free(d->c_file);
-	chunkify_free(d->t.c);
-	chunkify_free(d->c.c);
-	chunkify_free(d->h.c);
+	bytebuf_free(d->hbuf);
+	stream_free(&d->t);
+	stream_free(&d->c);
+	stream_free(&d->h);
 	free(d->cachedir);
 	free(d->tapename);
 	free(d);

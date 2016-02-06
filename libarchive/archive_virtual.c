@@ -46,6 +46,8 @@ archive_read_close(struct archive *a)
 int
 archive_write_finish(struct archive *a)
 {
+	if (a == NULL)
+		return (ARCHIVE_OK);
 	return ((a->vtable->archive_finish)(a));
 }
 #else
@@ -53,6 +55,8 @@ archive_write_finish(struct archive *a)
 void
 archive_write_finish(struct archive *a)
 {
+	if (a == NULL)
+		return (ARCHIVE_OK);
 	(void)(a->vtable->archive_finish)(a);
 }
 #endif
@@ -60,6 +64,8 @@ archive_write_finish(struct archive *a)
 int
 archive_read_finish(struct archive *a)
 {
+	if (a == NULL)
+		return (ARCHIVE_OK);
 	return ((a->vtable->archive_finish)(a));
 }
 

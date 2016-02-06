@@ -22,7 +22,7 @@ CPUSUPPORT_FEATURE_DECL(x86, sse2)
 		goto unsupported;
 
 	/* Return the relevant feature bit. */
-	return (edx & CPUID_SSE2_BIT);
+	return ((edx & CPUID_SSE2_BIT) ? 1 : 0);
 
 unsupported:
 #endif

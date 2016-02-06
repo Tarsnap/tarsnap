@@ -47,7 +47,7 @@ struct bsdtar {
 	/* Options */
 	const char	**tapenames; /* -f tapename */
 	size_t		  ntapes;
-	const char	 *homedir;
+	char		 *homedir;
 	char		 *cachedir; /* --cachedir */
 	dev_t		  cachedir_dev;
 	ino_t		  cachedir_ino;
@@ -68,11 +68,13 @@ struct bsdtar {
 	char		  symlink_mode; /* H or L, per BSD conventions */
 	char		  option_absolute_paths; /* -P */
 	char		  option_chroot; /* --chroot */
+	char		 *option_csv_filename; /* --csv-filename */
 	char		  option_dont_traverse_mounts; /* --one-file-system */
 	char		  option_dryrun; /* --dry-run */
 	char		  option_fast_read; /* --fast-read */
 	char		  option_honor_nodump; /* --nodump */
 	char		  option_interactive; /* -w */
+	char		  option_keep_going; /* --keep-going */
 	char		  option_no_owner; /* -o */
 	char		  option_no_subdirs; /* -n */
 	char		  option_null; /* --null */
@@ -126,6 +128,9 @@ struct bsdtar {
 	char		  warned_lead_slash; /* Already displayed warning */
 	char		  next_line_is_dir; /* Used for -C parsing in -cT */
 
+	/* Used for --dryrun with tarsnap.conf.sample with a missing keyfile. */
+	int		  config_file_keyfile_failed;
+
 	/* Used for communicating with multitape code. */
 	void		 *write_cookie;
 
@@ -165,6 +170,7 @@ enum {
 	OPTION_CHROOT,
 	OPTION_CONFIGFILE,
 	OPTION_CREATIONTIME,
+	OPTION_CSV_FILE,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
@@ -177,6 +183,7 @@ enum {
 	OPTION_INSANE_FILESYSTEMS,
 	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
+	OPTION_KEEP_GOING,
 	OPTION_KEEP_NEWER_FILES,
 	OPTION_LIST_ARCHIVES,
 	OPTION_LOWMEM,

@@ -1,0 +1,9 @@
+language: C
+sudo: required
+dist: trusty
+script: make
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libssl-dev zlib1g-dev e2fslibs-dev
+  - autoreconf -i
+  - ./configure

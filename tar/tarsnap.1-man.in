@@ -1,4 +1,4 @@
-.TH TARSNAP 1 "July 10, 2009" ""
+.TH TARSNAP 1 "@DATE@" ""
 .SH NAME
 .ad l
 \fB\%tarsnap\fP
@@ -162,7 +162,7 @@ in it will be appended to the current archive.
 If
 \fIarchive-file\fP
 is
-Qq -
+``-''
 then the archive will be read from the standard input.
 As an example,
 .RS 4
@@ -248,6 +248,10 @@ take priority.
 Manually specify a creation time (a unix timestamp) for the
 archive.  This is unlikely to be useful when tarsnap is being
 invoked directly from the command line.
+.TP
+\fB\--csv-file\fP \fIX\fP
+(only relevant with --print-stats)
+Write statistics in CSV format to a file.
 .TP
 \fB\--disk-pause\fP \fIX\fP
 (c mode only)
@@ -371,6 +375,11 @@ name of the option.
 Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
+.TP
+\fB\--keep-going\fP
+(d and print-stats mode only)
+Continue deleting or printing statistics after finding that one
+of the archives specified does not exist.
 .TP
 \fB\--keep-newer-files\fP
 (x mode only)
@@ -757,6 +766,11 @@ Note that
 \fB\--null\fP
 also disables the special handling of lines containing
 ``-C''.
+If
+\fIfilename\fP
+is
+``-''
+then the list of names will be read from the standard input.
 .TP
 \fB\--totals\fP
 (c mode only)
@@ -1169,3 +1183,10 @@ The limit specified by a
 option is not strictly enforced;
 in particular, due to the need to cleanly terminate an archive, the
 amount of bandwidth used may slightly exceed the limit.
+.PP
+If
+\fB\%tarsnap\fP
+is run with standard input, standard output, and standard error
+redirected and inside a chroot where terminal devices are not
+exposed, ^Q will not be mapped to SIGQUIT and will consequently not
+trigger the truncation of the current archive.

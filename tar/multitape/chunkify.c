@@ -137,8 +137,8 @@ chunkify_start(CHUNKIFIER * c)
 	uint32_t i;
 
 	/* No entries in the hash table. */
-	for (i = 0; i < c->htlen; i++)
-		c->ht[i * 2] = - c->htlen;
+	for (i = 0; i < 2 * c->htlen; i++)
+		c->ht[i] = - c->htlen;
 
 	/* Nothing in the queue waiting to be added to the table, either. */
 	for (i = 0; i < c->w; i++)
