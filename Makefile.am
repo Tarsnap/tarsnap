@@ -164,6 +164,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/readpass.c			\
 		libcperciva/util/sock.c				\
 		libcperciva/util/sock_util.c			\
+		libcperciva/util/ttyfd.c			\
 		libcperciva/util/warnp.c			\
 		cpusupport-config.h
 
