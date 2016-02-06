@@ -1067,3 +1067,10 @@ The limit specified by a
 option is not strictly enforced;
 in particular, due to the need to cleanly terminate an archive, the
 amount of bandwidth used may slightly exceed the limit.
+.Pp
+If
+.Nm
+is run with standard input, standard output, and standard error
+redirected and inside a chroot where terminal devices are not
+exposed, ^Q will not be mapped to SIGQUIT and will consequently not
+trigger the truncation of the current archive.
