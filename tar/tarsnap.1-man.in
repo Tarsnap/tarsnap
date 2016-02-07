@@ -61,6 +61,9 @@
 \fB\%tarsnap\fP
 {\fB\--nuke\fP}
 \fB\--keyfile\fP \fIkey-file\fP
+.br
+\fB\%tarsnap\fP
+\fB\--version\fP
 .SH DESCRIPTION
 .ad l
 \fB\%tarsnap\fP
@@ -132,6 +135,11 @@ To protect against accidental data loss,
 will ask you to type the text "No Tomorrow" when using the
 \fB\--nuke\fP
 command.
+.TP
+\fB\--version\fP
+Print version number of
+\fB\%tarsnap\fP,
+and exit.
 .RE
 .PP
 In
@@ -811,7 +819,7 @@ the memory usage when
 is specified, by not caching anything.
 .TP
 \fB\--version\fP
-Print version of
+Print version number of
 \fB\%tarsnap\fP,
 and exit.
 .TP

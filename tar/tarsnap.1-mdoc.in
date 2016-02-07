@@ -82,6 +82,8 @@
 .Nm
 .Brq Fl -nuke
 .Fl -keyfile Ar key-file
+.Nm
+.Fl -version
 .Sh DESCRIPTION
 .Nm
 creates, reads, deletes, and otherwise manages online backups.
@@ -141,6 +143,10 @@ To protect against accidental data loss,
 will ask you to type the text "No Tomorrow" when using the
 .Fl -nuke
 command.
+.It Fl -version
+Print version number of
+.Nm ,
+and exit.
 .El
 .Pp
 In
@@ -735,7 +741,7 @@ the memory usage when
 .Fl -lowmem
 is specified, by not caching anything.
 .It Fl -version
-Print version of
+Print version number of
 .Nm ,
 and exit.
 .It Fl w
