@@ -166,6 +166,10 @@ which items in the archive should be processed.
 Patterns are shell-style globbing patterns as
 documented in
 .Xr tcsh 1 .
+.Pp
+Two concurrent create or delete operations may not be performed with the same
+key.  Extracting or listing archives may be performed in parallel with any
+other operation.
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Cm @ Ns Pa archive-file
