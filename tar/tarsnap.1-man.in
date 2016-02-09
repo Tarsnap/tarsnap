@@ -159,6 +159,10 @@ which items in the archive should be processed.
 Patterns are shell-style globbing patterns as
 documented in
 \fBtcsh\fP(1).
+.PP
+Two concurrent create or delete operations may not be performed with the same
+key.  Extracting or listing archives may be performed in parallel with any
+other operation.
 .SH OPTIONS
 .ad l
 .RS 5
