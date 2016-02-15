@@ -83,6 +83,8 @@
 .Brq Fl -nuke
 .Fl -keyfile Ar key-file
 .Nm
+.Fl -verify-config
+.Nm
 .Fl -version
 .Sh DESCRIPTION
 .Nm
@@ -143,6 +145,8 @@ To protect against accidental data loss,
 will ask you to type the text "No Tomorrow" when using the
 .Fl -nuke
 command.
+.It Fl -verify-config
+Checks the configuration file(s) for syntactic errors.
 .It Fl -version
 Print version number of
 .Nm ,
@@ -744,6 +748,8 @@ Reduce memory usage, by approximately a factor of 2 beyond
 the memory usage when
 .Fl -lowmem
 is specified, by not caching anything.
+.It Fl -verify-config
+Checks the configuration file(s) for syntactic errors.
 .It Fl -version
 Print version number of
 .Nm ,
