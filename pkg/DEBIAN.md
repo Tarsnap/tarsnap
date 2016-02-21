@@ -18,12 +18,12 @@ To use source packages created in the above manner, set up:
 1. If you haven't already done so, install the above public key to your apt
    keychain, `gpg` keychain, and `gpgv` keychain:
 
-        wget https://www.tarsnap.com/tarsnap-signing-key-2015.asc
-        sudo apt-key add tarsnap-signing-key-2015.asc
+        wget https://www.tarsnap.com/tarsnap-signing-key-2016.asc
+        sudo apt-key add tarsnap-signing-key-2016.asc
         gpg --no-default-keyring --keyring ~/.gnupg/trustedkeys.gpg \
-          --import tarsnap-signing-key-2015.asc
+          --import tarsnap-signing-key-2016.asc
 
-   (adjust the filename of the Tarsnap signing key in 2016 or later years)
+   (adjust the filename of the Tarsnap signing key in 2017 or later years)
 
    > :warning: Setting up
    > [gpgv](https://www.gnupg.org/documentation/manuals/gnupg/gpgv.html) is
@@ -37,7 +37,7 @@ To use source packages created in the above manner, set up:
    probably want to install the signature to your regular `gpg` keyring (in
    addition to the `gpgv` keyring).
 
-        gpg --import tarsnap-signing-key-2015.asc
+        gpg --import tarsnap-signing-key-2016.asc
 
 3. Add the server to your `/etc/apt/sources.list`:
 
