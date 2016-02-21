@@ -167,6 +167,7 @@ bsdtar_init(void)
 	bsdtar->uname_cache = NULL;
 	bsdtar->siginfo = NULL;
 	bsdtar->substitution = NULL;
+	bsdtar->keyfile = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -192,6 +193,7 @@ bsdtar_atexit(void)
 	free(bsdtar->cachedir);
 	free(bsdtar->homedir);
 	free(bsdtar->option_csv_filename);
+	free(bsdtar->keyfile);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -876,6 +878,21 @@ main(int argc, char **argv)
 	if (bsdtar->strip_components != 0)
 		only_mode(bsdtar, "--strip-components", "xt");
 
+	/* Attempt to load keyfile. */
+	if (bsdtar->keyfile != NULL) {
+		if (load_keys(bsdtar, bsdtar->keyfile) == 0)
+			bsdtar->have_keys = 1;
+		else {
+			if (bsdtar->option_dryrun &&
+			    bsdtar->keyfile_from_config)
+				bsdtar->config_file_keyfile_failed = 1;
+			else {
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Cannot read key file: %s", bsdtar->keyfile);
+			}
+		}
+	}
+
 	/*
 	 * If the keyfile in the config file is invalid but we're doing a
 	 * dryrun, continue anyway (and don't use a cachedir).
@@ -1473,21 +1490,14 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		bsdtar->option_insane_filesystems = 1;
 		bsdtar->option_insane_filesystems_set = 1;
 	} else if (strcmp(conf_opt, "keyfile") == 0) {
-		if (bsdtar->have_keys)
+		if (bsdtar->keyfile != NULL)
 			goto optset;
 		if (conf_arg == NULL)
 			goto needarg;
 
-		if (load_keys(bsdtar, conf_arg) == 0)
-			bsdtar->have_keys = 1;
-		else {
-			if (fromconffile && bsdtar->option_dryrun)
-				bsdtar->config_file_keyfile_failed = 1;
-			else {
-				bsdtar_errc(bsdtar, 1, errno,
-				    "Cannot read key file: %s", conf_arg);
-			}
-		}
+		if ((bsdtar->keyfile = strdup(conf_arg)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+		bsdtar->keyfile_from_config = fromconffile;
 	} else if (strcmp(conf_opt, "lowmem") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;

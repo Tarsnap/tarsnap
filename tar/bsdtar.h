@@ -114,6 +114,8 @@ struct bsdtar {
 	const char	**configfiles;		/* --configfile */
 	size_t 		  nconfigfiles;
 	int		  option_no_default_config; /* --no-default-config */
+	char		 *keyfile;
+	int		  keyfile_from_config;
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;
