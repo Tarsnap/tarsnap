@@ -169,6 +169,7 @@ bsdtar_init(void)
 	bsdtar->substitution = NULL;
 	bsdtar->keyfile = NULL;
 	bsdtar->conffile = NULL;
+	bsdtar->conf_opt = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -196,6 +197,7 @@ bsdtar_atexit(void)
 	free(bsdtar->option_csv_filename);
 	free(bsdtar->keyfile);
 	free(bsdtar->conffile);
+	free(bsdtar->conf_opt);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -1294,7 +1296,6 @@ configfile(struct bsdtar *bsdtar, const char *fname)
 static int
 configfile_helper(struct bsdtar *bsdtar, const char *line)
 {
-	char * conf_opt;
 	char * conf_arg;
 	size_t optlen;
 	char * conf_arg_malloced;
@@ -1309,7 +1310,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		return (0);
 
 	/* Duplicate line. */
-	if ((conf_opt = strdup(line)) == NULL)
+	if ((bsdtar->conf_opt = strdup(line)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 
 	/*
@@ -1317,24 +1318,25 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	 * duplication, but to reduce the number of diffs to a later version,
 	 * we'll do it here.
 	 */
-	len = strlen(conf_opt);
+	len = strlen(bsdtar->conf_opt);
 	if ((len > 0) &&
-	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+	    ((bsdtar->conf_opt[len - 1] == ' ') ||
+	     (bsdtar->conf_opt[len - 1] == '\t'))) {
 		bsdtar_warnc(bsdtar, 0,
 		    "option contains trailing whitespace; future behaviour"
 		    " may change for:\n    %s", line);
 	}
 
 	/* Split line into option and argument if possible. */
-	optlen = strcspn(conf_opt, " \t");
+	optlen = strcspn(bsdtar->conf_opt, " \t");
 
 	/* Is there an argument? */
-	if (conf_opt[optlen]) {
+	if (bsdtar->conf_opt[optlen]) {
 		/* NUL-terminate the option name. */
-		conf_opt[optlen] = '\0';
+		bsdtar->conf_opt[optlen] = '\0';
 
 		/* Find the start of the argument. */
-		conf_arg = conf_opt + optlen + 1;
+		conf_arg = bsdtar->conf_opt + optlen + 1;
 		conf_arg += strspn(conf_arg, " \t");
 
 		/*
@@ -1366,13 +1368,14 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	}
 
 	/* Process the configuration option. */
-	dooption(bsdtar, conf_opt, conf_arg, 1);
+	dooption(bsdtar, bsdtar->conf_opt, conf_arg, 1);
 
 	/* Free expanded argument or NULL. */
 	free(conf_arg_malloced);
 
 	/* Free memory allocated by strdup. */
-	free(conf_opt);
+	free(bsdtar->conf_opt);
+	bsdtar->conf_opt = NULL;
 
 	return (0);
 }
