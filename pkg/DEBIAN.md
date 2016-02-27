@@ -1,7 +1,7 @@
-This method is suitable for those wishing to distribute Tarsnap packages with
-a view towards reproducibility and cryptographically signed packages.  If you
-simply want to create a binary deb package from this source code, please see
-[README.md](README.md).
+This method is suitable for those wishing to use or distribute Tarsnap
+packages with a view towards reproducibility and cryptographically signed
+packages.  If you simply want to create a binary deb package from the source
+code, please see [README.md](README.md).
 
 * [Debian - Users](#debian---users)
 * [Debian - Packaging](#debian---packaging)
@@ -13,7 +13,7 @@ Debian - Users
 Initial setup
 -------------
 
-To use source packages created in the above manner, set up:
+To use the official Tarsnap Debian source packages, set up:
 
 1. If you haven't already done so, install the above public key to your apt
    keychain, `gpg` keychain, and `gpgv` keychain:
@@ -33,17 +33,17 @@ To use source packages created in the above manner, set up:
    > adequate to cover the situation wherein `gpg` recognizes a key but `gpgv`
    > (which is called implicitly by `dpkg-source`) does not.
 
-2. (optional) If you would like to verify the signatures manually, you
-   probably want to install the signature to your regular `gpg` keyring (in
-   addition to the `gpgv` keyring).
+   > (optional) If you would like to verify the signatures manually, you
+   > probably want to install the signature to your regular `gpg` keyring (in
+   > addition to the `gpgv` keyring).
+   >
+   >     gpg --import tarsnap-signing-key-2016.asc
 
-        gpg --import tarsnap-signing-key-2016.asc
-
-3. Add the server to your `/etc/apt/sources.list`:
+2. Add the server to your `/etc/apt/sources.list`:
 
         deb-src https://pkg.tarsnap.com/deb-src/ ./
 
-4. Install required software for dealing with packages, and Tarsnap in
+3. Install required software for dealing with packages, and Tarsnap in
    particular:
 
         sudo apt-get update
