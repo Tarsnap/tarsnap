@@ -170,6 +170,7 @@ bsdtar_init(void)
 	bsdtar->keyfile = NULL;
 	bsdtar->conffile = NULL;
 	bsdtar->conf_opt = NULL;
+	bsdtar->conf_arg = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -198,6 +199,7 @@ bsdtar_atexit(void)
 	free(bsdtar->keyfile);
 	free(bsdtar->conffile);
 	free(bsdtar->conf_opt);
+	free(bsdtar->conf_arg);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -1298,7 +1300,6 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 {
 	char * conf_arg;
 	size_t optlen;
-	char * conf_arg_malloced;
 	size_t len;
 
 	/* Skip any leading whitespace. */
@@ -1357,21 +1358,22 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
 	    (bsdtar->homedir != NULL)) {
 		/* Construct expanded argument string. */
-		if (asprintf(&conf_arg_malloced, "%s%s",
+		if (asprintf(&bsdtar->conf_arg, "%s%s",
 		    bsdtar->homedir, &conf_arg[1]) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 
 		/* Use the expanded argument string hereafter. */
-		conf_arg = conf_arg_malloced;
+		conf_arg = bsdtar->conf_arg;
 	} else {
-		conf_arg_malloced = NULL;
+		bsdtar->conf_arg = NULL;
 	}
 
 	/* Process the configuration option. */
 	dooption(bsdtar, bsdtar->conf_opt, conf_arg, 1);
 
 	/* Free expanded argument or NULL. */
-	free(conf_arg_malloced);
+	free(bsdtar->conf_arg);
+	bsdtar->conf_arg = NULL;
 
 	/* Free memory allocated by strdup. */
 	free(bsdtar->conf_opt);
