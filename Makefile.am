@@ -222,7 +222,9 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/ttyfd.c			\
 		libcperciva/util/ttyfd.h			\
 		libcperciva/util/warnp.c			\
-		libcperciva/util/warnp.h			\
+		libcperciva/util/warnp.h
+
+nodist_lib_libtarsnap_a_SOURCES=				\
 		cpusupport-config.h
 
 lib_libtarsnap_a_CFLAGS=				\
@@ -252,11 +254,17 @@ LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+EXTRA_DIST=	\
+		libcperciva/cpusupport/Build/cpusupport.sh		\
+		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c
 BUILT_SOURCES=	cpusupport-config.h
 CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
 lib_libtarsnap_aesni_a_SOURCES=				\
-		libcperciva/crypto/crypto_aes_aesni.c	\
+		libcperciva/crypto/crypto_aes_aesni.c
+nodist_lib_libtarsnap_aesni_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
@@ -264,7 +272,8 @@ lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
-		lib/crypto/crypto_scrypt_smix_sse2.c	\
+		lib/crypto/crypto_scrypt_smix_sse2.c
+nodist_lib_libtarsnap_sse2_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
