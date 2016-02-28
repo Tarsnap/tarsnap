@@ -9,8 +9,8 @@ CFLAGS += -Wno-unused-function
 #
 noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
-dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
-CLEANFILES=	$(dist_man_MANS)
+man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
+CLEANFILES=	$(man_MANS)
 
 #
 # Libarchive headers, source, etc.
@@ -379,7 +379,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/libcperciva/util	\
 		"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
-tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
+tarsnap_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 
 #
 # tarsnap-keygen source, docs, etc.
@@ -407,7 +407,7 @@ tarsnap_keygen_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
-tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
+tarsnap_keygen_man_MANS=	keygen/tarsnap-keygen.1
 
 #
 # tarsnap-keyregen source, docs, etc.
@@ -435,7 +435,7 @@ tarsnap_keyregen_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keyregen-${VERSION}\"
 
-tarsnap_keyregen_dist_man_MANS=	keyregen/tarsnap-keyregen.1
+tarsnap_keyregen_man_MANS=	keyregen/tarsnap-keyregen.1
 
 #
 #
@@ -475,7 +475,7 @@ tarsnap_recrypt_CFLAGS=						\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-recrypt-${VERSION}\"
-tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
+tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 
 #
 #
@@ -496,7 +496,7 @@ tarsnap_keymgmt_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util
 
-tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
+tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
 #  Tarsnap sample configuration file
 sysconf_DATA	=	tar/tarsnap.conf.sample
