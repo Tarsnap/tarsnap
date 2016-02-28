@@ -526,6 +526,19 @@ keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
 
+EXTRA_DIST+=	tar/tarsnap.conf.sample			\
+		tar/tarsnap.1-man.in			\
+		tar/tarsnap.1-mdoc.in			\
+		tar/tarsnap.conf.5-man.in		\
+		tar/tarsnap.conf.5-mdoc.in		\
+		keygen/tarsnap-keygen.1-man		\
+		keygen/tarsnap-keygen.1-mdoc		\
+		keyregen/tarsnap-keyregen.1-man		\
+		keyregen/tarsnap-keyregen.1-mdoc	\
+		keymgmt/tarsnap-keymgmt.1-man		\
+		keymgmt/tarsnap-keymgmt.1-mdoc		\
+		recrypt/tarsnap-recrypt.1-man		\
+		recrypt/tarsnap-recrypt.1-mdoc
 CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 
 #
