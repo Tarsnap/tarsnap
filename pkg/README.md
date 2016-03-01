@@ -41,6 +41,20 @@ There may be a newer version of the PKGBUILD file at
 (in fact, those probably have identical PKGBUILD files).
 
 
+Fedora
+------
+
+To build a Fedora package:
+
+    rpmdev-setuptree
+    cp .../tarsnap-autoconf-<version>.tgz ~/rpmbuild/SOURCES
+    rpmbuild -bb pkg/fedora/tarsnap.spec
+
+Then to install it:
+
+    sudo dnf install ~/rpmbuild/RPMS/<arch>/tarsnap-<version>-*.rpm
+
+
 Slackware
 ---------
 
