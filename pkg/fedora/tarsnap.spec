@@ -1,6 +1,6 @@
 Name:           tarsnap
 Version:        1.0.36.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Secure, efficient online backup service
 
 License:        Proprietary
@@ -14,6 +14,8 @@ BuildRequires:  pkgconfig(ext2fs)
 BuildRequires:  pkgconfig(libcrypto)
 BuildRequires:  pkgconfig(liblzma)
 BuildRequires:  pkgconfig(zlib)
+BuildRequires:  libacl-devel
+BuildRequires:  libattr-devel
 
 %description
 This package contains the client for Tarsnap: a secure, efficient online
@@ -50,5 +52,8 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
+* Tue Mar  1 2016 Benjamin Gilbert <bgilbert@backtick.net> 1.0.36.1-2
+- Link against libacl and libattr
+
 * Tue Mar  1 2016 Benjamin Gilbert <bgilbert@backtick.net> 1.0.36.1-1
 - Initial package
