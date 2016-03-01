@@ -1,3 +1,24 @@
+tarsnap (1.0.37~a-1) unstable; urgency=low
+
+  * New version of tarsnap brings several new features and warnings.
+  * tarsnap-key(gen|mgmt|regen) now accept a --passphrase-time option,
+    which specifies the duration to be spent on computing the derived
+    keys used for encrypting the tarsnap key file.
+  * tarsnap now accepts a --keep-going option when deleting or printing
+    statistics about multiple archives.
+  * tarsnap-keymgmt now accepts a --print-key-permissions option for
+    listing the permissions contained in a key file.
+  * tarsnap --print-stats now accepts a --csv-file option for printing
+    statistics in comma-separated-value format.
+  * tarsnap now accepts a --verify-config command which exits silently
+    after checking the configuration file(s) for syntax errors.
+  * tarsnap now looks for a server named "v1-0-0-server.tarsnap.com"
+    instead of the historic "betatest-server.tarsnap.com" hostname.
+    This should have no user-visible effect in most configurations.
+  * tarsnap now correctly warns if a sparse extract fails due to hardlinks.
+  * tarsnap now prints a warning if creating an empty archive.
+  * Many minor bug fixes.
+ -- Colin Percival <cperciva@tarsnap.com>  Tue, 1 Mar 2016 23:28:38 +0000
 tarsnap (1.0.36) unstable; urgency=high
 
   * New version of tarsnap fixes two security vulnerabilities: a corrupt
