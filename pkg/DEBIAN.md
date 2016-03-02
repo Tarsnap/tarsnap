@@ -15,8 +15,8 @@ Initial setup
 
 To use the official Tarsnap Debian source packages, set up:
 
-1. If you haven't already done so, install the above public key to your apt
-   keychain, `gpg` keychain, and `gpgv` keychain:
+1. If you haven't already done so, install the Tarsnap signing key to your apt
+   keychain and `gpgv` keychain:
 
         wget https://www.tarsnap.com/tarsnap-signing-key-2016.asc
         sudo apt-key add tarsnap-signing-key-2016.asc
