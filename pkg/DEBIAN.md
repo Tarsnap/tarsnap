@@ -41,7 +41,7 @@ To use the official Tarsnap Debian source packages, set up:
 
 2. Add the server to your `/etc/apt/sources.list`:
 
-        deb-src https://pkg.tarsnap.com/deb-src/ ./
+        deb-src http://pkg.tarsnap.com/deb-src/ ./
 
 3. Install required software for dealing with packages, and Tarsnap in
    particular:
