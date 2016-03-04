@@ -1,6 +1,6 @@
 Name:           tarsnap
 Version:        1.0.36.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Secure, efficient online backup service
 
 License:        Proprietary
@@ -8,14 +8,13 @@ URL:            http://www.tarsnap.com/
 Source0:        http://www.tarsnap.com/download/tarsnap-autoconf-%{version}.tgz
 
 BuildRequires:  gcc
-BuildRequires:  pkgconfig(bash-completion)
-BuildRequires:  pkgconfig(bzip2)
-BuildRequires:  pkgconfig(ext2fs)
-BuildRequires:  pkgconfig(libcrypto)
-BuildRequires:  pkgconfig(liblzma)
-BuildRequires:  pkgconfig(zlib)
+BuildRequires:  bzip2-devel
+BuildRequires:  e2fsprogs-devel
 BuildRequires:  libacl-devel
-BuildRequires:  libattr-devel
+BuildRequires:  openssl-devel
+BuildRequires:  xz-devel
+BuildRequires:  zlib-devel
+BuildRequires:  pkgconfig(bash-completion)
 
 %description
 This package contains the client for Tarsnap: a secure, efficient online
@@ -52,6 +51,10 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
+* Fri Mar  4 2016 Benjamin Gilbert <bgilbert@backtick.net> 1.0.36.1-3
+- Drop unneeded libattr dependency
+- Only use pkgconfig() BuildRequires for packages detected via pkg-config
+
 * Tue Mar  1 2016 Benjamin Gilbert <bgilbert@backtick.net> 1.0.36.1-2
 - Link against libacl and libattr
 
