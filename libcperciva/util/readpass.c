@@ -104,7 +104,10 @@ retry:
 
 	/* Read the password. */
 	if (fgets(passbuf, MAXPASSLEN, readfrom) == NULL) {
-		warnp("Cannot read password");
+		if (feof(readfrom))
+			warn0("EOF reading password");
+		else
+			warnp("Cannot read password");
 		goto err3;
 	}
 
@@ -113,7 +116,10 @@ retry:
 		if (usingtty)
 			fprintf(stderr, "%s: ", confirmprompt);
 		if (fgets(confpassbuf, MAXPASSLEN, readfrom) == NULL) {
-			warnp("Cannot read password");
+			if (feof(readfrom))
+				warn0("EOF reading password");
+			else
+				warnp("Cannot read password");
 			goto err3;
 		}
 		if (strcmp(passbuf, confpassbuf)) {
