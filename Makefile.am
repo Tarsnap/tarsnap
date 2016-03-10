@@ -84,7 +84,7 @@ libarchive_libarchive_a_SOURCES+=						\
 	libarchive/filter_fork_windows.c
 endif
 
-libarchive_libarchive_a_CFLAGS=-I $(top_builddir)/libarchive
+libarchive_libarchive_a_CPPFLAGS=-I $(top_builddir)/libarchive
 
 #
 # Tarsnap internal library code
@@ -168,7 +168,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/warnp.c			\
 		cpusupport-config.h
 
-lib_libtarsnap_a_CFLAGS=				\
+lib_libtarsnap_a_CPPFLAGS=				\
 		-I${top_srcdir}/tar			\
 		-I$(top_srcdir)/libarchive		\
 		-I${top_srcdir}/lib/crypto		\
@@ -201,16 +201,16 @@ CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
 		cpusupport-config.h
-lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
-	`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
 		lib/crypto/crypto_scrypt_smix_sse2.c	\
 		cpusupport-config.h
-lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
-	`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
+lib_libtarsnap_sse2_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_sse2_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 
@@ -281,7 +281,7 @@ tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
 		$(LIBTARSNAP_A)
 
 tarsnap_LDADD= -lcrypto libarchive/libarchive.a $(LIBTARSNAP_A)
-tarsnap_CFLAGS=						\
+tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/libarchive		\
 		-DLIBARCHIVE_STATIC			\
 		-I$(top_srcdir)/tar			\
@@ -314,7 +314,7 @@ tarsnap_keygen_SOURCES=	keygen/keygen.c			\
 		keygen/keygen_network.c
 
 tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
-tarsnap_keygen_CFLAGS=					\
+tarsnap_keygen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
@@ -341,7 +341,7 @@ tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
 		keygen/keygen_network.c
 
 tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
-tarsnap_keyregen_CFLAGS=					\
+tarsnap_keyregen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
@@ -380,7 +380,7 @@ tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
 		tar/storage/storage_transaction.c
 
 tarsnap_recrypt_LDADD= -lcrypto $(LIBTARSNAP_A)
-tarsnap_recrypt_CFLAGS=						\
+tarsnap_recrypt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
 		-I$(top_srcdir)/tar/chunks		\
@@ -407,7 +407,7 @@ tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
 tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 
 tarsnap_keymgmt_LDADD= -lcrypto $(LIBTARSNAP_A)
-tarsnap_keymgmt_CFLAGS=					\
+tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I${top_srcdir}/libarchive		\
 		-I${top_srcdir}/lib/crypto		\
