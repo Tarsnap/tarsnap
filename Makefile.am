@@ -186,7 +186,6 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/events	\
 		-I$(top_srcdir)/libcperciva/network	\
 		-I$(top_srcdir)/libcperciva/util	\
-		-I.					\
 		-D CPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-DPOSIXFAIL_MSG_NOSIGNAL \
 		-DPOSIXFAIL_CLOCK_REALTIME
