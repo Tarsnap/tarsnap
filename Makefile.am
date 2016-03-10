@@ -84,7 +84,7 @@ libarchive_libarchive_a_SOURCES+=						\
 	libarchive/filter_fork_windows.c
 endif
 
-libarchive_libarchive_a_CPPFLAGS=-I $(top_builddir)/libarchive
+libarchive_libarchive_a_CPPFLAGS=-I$(top_builddir)/libarchive
 
 #
 # Tarsnap internal library code
@@ -186,7 +186,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/events	\
 		-I$(top_srcdir)/libcperciva/network	\
 		-I$(top_srcdir)/libcperciva/util	\
-		-D CPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
+		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-DPOSIXFAIL_MSG_NOSIGNAL \
 		-DPOSIXFAIL_CLOCK_REALTIME
 
