@@ -1,4 +1,4 @@
-tarsnap (1.0.37~a-1) unstable; urgency=low
+tarsnap (1.0.37-1) unstable; urgency=low
 
   * New version of tarsnap brings several new features and warnings.
   * tarsnap-key(gen|mgmt|regen) now accept a --passphrase-time option,
@@ -18,7 +18,7 @@ tarsnap (1.0.37~a-1) unstable; urgency=low
   * tarsnap now correctly warns if a sparse extract fails due to hardlinks.
   * tarsnap now prints a warning if creating an empty archive.
   * Many minor bug fixes.
- -- Colin Percival <cperciva@tarsnap.com>  Tue, 1 Mar 2016 23:28:38 +0000
+ -- Colin Percival <cperciva@tarsnap.com>  Thu, 10 Mar 2016 00:49:14 +0000
 tarsnap (1.0.36) unstable; urgency=high
 
   * New version of tarsnap fixes two security vulnerabilities: a corrupt
