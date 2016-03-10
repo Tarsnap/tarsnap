@@ -7,3 +7,30 @@ config.log
 configure
 confinc
 confmf
+
+# ignore build-generated files
+*.a
+*.o
+.deps
+.dirstamp
+/Makefile
+/a.out.dSYM
+/config.h
+/config.status
+/cpusupport-config.h
+/stamp-h1
+
+# ignore installed files
+/keygen/tarsnap-keygen.1
+/keymgmt/tarsnap-keymgmt.1
+/keyregen/tarsnap-keyregen.1
+/recrypt/tarsnap-recrypt.1
+/tar/tarsnap.1
+/tar/tarsnap.1-mdoc
+/tar/tarsnap.conf.5
+/tar/tarsnap.conf.5-mdoc
+/tarsnap
+/tarsnap-keygen
+/tarsnap-keymgmt
+/tarsnap-keyregen
+/tarsnap-recrypt
