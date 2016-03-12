@@ -5,6 +5,12 @@ Tarsnap is a secure, efficient online backup service: "Online
 backups for the truly paranoid".  https://tarsnap.com
 
 
+News
+----
+
+A list of major changes in each version is given in [NEWS.md](NEWS.md).
+
+
 Building from git
 -----------------
 
