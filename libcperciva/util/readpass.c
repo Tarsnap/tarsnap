@@ -153,6 +153,7 @@ retry:
 	if (usingtty)
 		tcsetattr(fileno(readfrom), TCSANOW, &term_old);
 
+	/* Restore old signals and re-issue intercepted signals. */
 	resetsigs(savedsa);
 
 	/* Close /dev/tty if we opened it. */
@@ -189,6 +190,9 @@ err2:
 	/* Close /dev/tty if we opened it. */
 	if (readfrom != stdin)
 		fclose(readfrom);
+
+	/* Restore old signals and re-issue intercepted signals. */
+	resetsigs(savedsa);
 err1:
 	/* Zero any stored passwords. */
 	insecure_memzero(passbuf, MAXPASSLEN);
