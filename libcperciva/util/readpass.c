@@ -38,6 +38,23 @@ handle(int sig)
 	gotsig[sig] = 1;
 }
 
+/* Restore old signals and re-issue intercepted signals. */
+static void
+resetsigs(struct sigaction savedsa[NSIGS])
+{
+	size_t i;
+
+	/* Restore old signals. */
+	for (i = 0; i < NSIGS; i++)
+		sigaction(badsigs[i], &savedsa[i], NULL);
+
+	/* If we intercepted a signal, re-issue it. */
+	for (i = 0; i < NSIGS; i++) {
+		if (gotsig[badsigs[i]])
+			raise(badsigs[i]);
+	}
+}
+
 /**
  * readpass(passwd, prompt, confirmprompt, devtty)
  * If ${devtty} is non-zero, read a password from /dev/tty if possible; if
@@ -136,15 +153,7 @@ retry:
 	if (usingtty)
 		tcsetattr(fileno(readfrom), TCSANOW, &term_old);
 
-	/* Restore old signals. */
-	for (i = 0; i < NSIGS; i++)
-		sigaction(badsigs[i], &savedsa[i], NULL);
-
-	/* If we intercepted a signal, re-issue it. */
-	for (i = 0; i < NSIGS; i++) {
-		if (gotsig[badsigs[i]])
-			raise(badsigs[i]);
-	}
+	resetsigs(savedsa);
 
 	/* Close /dev/tty if we opened it. */
 	if (readfrom != stdin)
