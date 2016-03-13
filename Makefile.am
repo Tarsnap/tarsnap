@@ -9,14 +9,15 @@ CFLAGS += -Wno-unused-function
 #
 noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
-dist_man_MANS=$(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
-CLEANFILES=	$(dist_man_MANS)
+man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
+CLEANFILES=	$(man_MANS)
 
 #
 # Libarchive headers, source, etc.
 #
 #
-libarchive_libarchive_a_SOURCES=						\
+libarchive_libarchive_a_SOURCES=				\
+	libarchive/archive.h					\
 	libarchive/archive_check_magic.c			\
 	libarchive/archive_endian.h				\
 	libarchive/archive_entry.c				\
@@ -91,81 +92,139 @@ libarchive_libarchive_a_CFLAGS=-I $(top_builddir)/libarchive
 #
 #
 lib_libtarsnap_a_SOURCES=					\
+		lib/crypto/crypto.h				\
 		lib/crypto/crypto_file.c			\
 		lib/crypto/crypto_hash.c			\
+		lib/crypto/crypto_internal.h			\
 		lib/crypto/crypto_keys.c			\
 		lib/crypto/crypto_keys_server.c			\
 		lib/crypto/crypto_keys_subr.c			\
 		lib/crypto/crypto_passwd_to_dh.c		\
 		lib/crypto/crypto_rsa.c				\
+		lib/crypto/crypto_scrypt.h			\
 		lib/crypto/crypto_scrypt.c			\
+		lib/crypto/crypto_scrypt_internal.h		\
 		lib/crypto/crypto_scrypt_smix.c			\
+		lib/crypto/crypto_scrypt_smix.h			\
+		lib/crypto/crypto_scrypt_smix_sse2.h		\
 		lib/crypto/crypto_session.c			\
 		lib/datastruct/patricia.c			\
+		lib/datastruct/patricia.h			\
 		lib/datastruct/rwhashtab.c			\
+		lib/datastruct/rwhashtab.h			\
 		lib/keyfile/keyfile.c				\
+		lib/keyfile/keyfile.h				\
+		lib/netpacket/netpacket.h			\
 		lib/netpacket/netpacket_delete.c		\
 		lib/netpacket/netpacket_directory.c		\
 		lib/netpacket/netpacket_hmac.c			\
+		lib/netpacket/netpacket_internal.h		\
 		lib/netpacket/netpacket_op.c			\
 		lib/netpacket/netpacket_read.c			\
 		lib/netpacket/netpacket_register.c		\
 		lib/netpacket/netpacket_transaction.c		\
 		lib/netpacket/netpacket_write.c			\
 		lib/netproto/netproto.c				\
+		lib/netproto/netproto.h				\
 		lib/netproto/netproto_connect.c			\
+		lib/netproto/netproto_internal.h		\
 		lib/netproto/netproto_keyexchange.c		\
 		lib/netproto/netproto_packet.c			\
+		lib/network/tsnetwork.h				\
 		lib/network/tsnetwork_buf.c			\
 		lib/network/tsnetwork_bwlimit.c			\
 		lib/network/tsnetwork_connect.c			\
 		lib/network/tsnetwork_cork.c			\
+		lib/network/tsnetwork_internal.h		\
 		lib/network/tsnetwork_register.c		\
 		lib/network/tsnetwork_select.c			\
 		lib/network/tsnetwork_sleep.c			\
 		lib/network/tsnetwork_writeq.c			\
 		lib/scryptenc/scryptenc.c			\
+		lib/scryptenc/scryptenc.h			\
 		lib/scryptenc/scryptenc_cpuperf.c		\
+		lib/scryptenc/scryptenc_cpuperf.h		\
 		lib/util/dirutil.c				\
+		lib/util/dirutil.h				\
 		lib/util/getfstype.c				\
+		lib/util/getfstype.h				\
 		lib/util/hexlink.c				\
+		lib/util/hexlink.h				\
 		lib/util/memlimit.c				\
+		lib/util/memlimit.h				\
 		lib/util/sigquit.c				\
+		lib/util/sigquit.h				\
 		lib/util/tvmath.c				\
+		lib/util/tvmath.h				\
 		libcperciva/alg/sha256.c			\
+		libcperciva/alg/sha256.h			\
+		libcperciva/cpusupport/cpusupport.h		\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
 		libcperciva/cpusupport/cpusupport_x86_sse2.c	\
 		libcperciva/crypto/crypto_aes.c			\
+		libcperciva/crypto/crypto_aes.h			\
 		libcperciva/crypto/crypto_aesctr.c		\
+		libcperciva/crypto/crypto_aesctr.h		\
+		libcperciva/crypto/crypto_aes_aesni.h		\
 		libcperciva/crypto/crypto_dh.c			\
+		libcperciva/crypto/crypto_dh.h			\
 		libcperciva/crypto/crypto_dh_group14.c		\
+		libcperciva/crypto/crypto_dh_group14.h		\
 		libcperciva/crypto/crypto_entropy.c		\
+		libcperciva/crypto/crypto_entropy.h		\
 		libcperciva/crypto/crypto_verify_bytes.c	\
+		libcperciva/crypto/crypto_verify_bytes.h	\
 		libcperciva/datastruct/elasticarray.c		\
+		libcperciva/datastruct/elasticarray.h		\
+		libcperciva/datastruct/mpool.h			\
 		libcperciva/datastruct/ptrheap.c		\
+		libcperciva/datastruct/ptrheap.h		\
 		libcperciva/datastruct/timerqueue.c		\
+		libcperciva/datastruct/timerqueue.h		\
 		libcperciva/events/events.c			\
+		libcperciva/events/events.h			\
 		libcperciva/events/events_immediate.c		\
+		libcperciva/events/events_internal.h		\
 		libcperciva/events/events_network.c		\
 		libcperciva/events/events_network_selectstats.c	\
 		libcperciva/events/events_timer.c		\
+		libcperciva/network/network.h			\
 		libcperciva/network/network_accept.c		\
 		libcperciva/network/network_connect.c		\
 		libcperciva/network/network_read.c		\
 		libcperciva/network/network_write.c		\
 		libcperciva/util/asprintf.c			\
+		libcperciva/util/asprintf.h			\
 		libcperciva/util/b64encode.c			\
+		libcperciva/util/b64encode.h			\
+		libcperciva/util/ctassert.h			\
 		libcperciva/util/entropy.c			\
+		libcperciva/util/entropy.h			\
 		libcperciva/util/getopt.c			\
+		libcperciva/util/getopt.h			\
 		libcperciva/util/hexify.c			\
+		libcperciva/util/hexify.h			\
 		libcperciva/util/humansize.c			\
+		libcperciva/util/humansize.h			\
+		libcperciva/util/imalloc.h			\
 		libcperciva/util/insecure_memzero.c		\
+		libcperciva/util/insecure_memzero.h		\
 		libcperciva/util/monoclock.c			\
+		libcperciva/util/monoclock.h			\
 		libcperciva/util/readpass.c			\
+		libcperciva/util/readpass.h			\
 		libcperciva/util/sock.c				\
+		libcperciva/util/sock.h				\
+		libcperciva/util/sock_internal.h		\
 		libcperciva/util/sock_util.c			\
+		libcperciva/util/sock_util.h			\
+		libcperciva/util/sysendian.h			\
 		libcperciva/util/ttyfd.c			\
+		libcperciva/util/ttyfd.h			\
 		libcperciva/util/warnp.c			\
+		libcperciva/util/warnp.h
+
+nodist_lib_libtarsnap_a_SOURCES=				\
 		cpusupport-config.h
 
 lib_libtarsnap_a_CFLAGS=				\
@@ -195,11 +254,17 @@ LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+EXTRA_DIST=	\
+		libcperciva/cpusupport/Build/cpusupport.sh		\
+		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c
 BUILT_SOURCES=	cpusupport-config.h
 CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
 lib_libtarsnap_aesni_a_SOURCES=				\
-		libcperciva/crypto/crypto_aes_aesni.c	\
+		libcperciva/crypto/crypto_aes_aesni.c
+nodist_lib_libtarsnap_aesni_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
@@ -207,7 +272,8 @@ lib_libtarsnap_aesni_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
-		lib/crypto/crypto_scrypt_smix_sse2.c	\
+		lib/crypto/crypto_scrypt_smix_sse2.c
+nodist_lib_libtarsnap_sse2_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_sse2_a_CFLAGS=	$(lib_libtarsnap_a_CFLAGS)	\
 	`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
@@ -232,25 +298,34 @@ tarsnap_SOURCES=			\
 		tar/subst.c		\
 		tar/tree.c		\
 		tar/tree.h		\
+		tar/tarsnap_opt.h	\
 		tar/util.c		\
 		tar/write.c		\
 		tar/glue/archive_multitape.c		\
+		tar/glue/archive_multitape.h		\
 		tar/glue/tape.c				\
+		tar/ccache/ccache.h			\
 		tar/ccache/ccache_entry.c		\
+		tar/ccache/ccache_internal.h		\
 		tar/ccache/ccache_read.c		\
 		tar/ccache/ccache_write.c		\
 		tar/multitape/chunkify.c		\
+		tar/multitape/chunkify.h		\
+		tar/multitape/multitape.h		\
 		tar/multitape/multitape_write.c		\
 		tar/multitape/multitape_read.c		\
 		tar/multitape/multitape_delete.c	\
 		tar/multitape/multitape_stats.c		\
 		tar/multitape/multitape_recover.c	\
 		tar/multitape/multitape_fsck.c		\
+		tar/multitape/multitape_internal.h	\
 		tar/multitape/multitape_nuke.c		\
 		tar/multitape/multitape_metadata.c	\
 		tar/multitape/multitape_metaindex.c	\
 		tar/multitape/multitape_chunkiter.c	\
 		tar/multitape/multitape_transaction.c	\
+		tar/chunks/chunks.h			\
+		tar/chunks/chunks_internal.h		\
 		tar/chunks/chunks_write.c		\
 		tar/chunks/chunks_read.c		\
 		tar/chunks/chunks_stats.c		\
@@ -258,10 +333,12 @@ tarsnap_SOURCES=			\
 		tar/chunks/chunks_transaction.c		\
 		tar/chunks/chunks_stats_internal.c	\
 		tar/chunks/chunks_directory.c		\
+		tar/storage/storage.h			\
 		tar/storage/storage_write.c		\
 		tar/storage/storage_read.c		\
 		tar/storage/storage_delete.c		\
 		tar/storage/storage_directory.c		\
+		tar/storage/storage_internal.h		\
 		tar/storage/storage_transaction.c
 
 if INC_WINDOWS_FILES
@@ -302,7 +379,7 @@ tarsnap_CFLAGS=						\
 		-I$(top_srcdir)/libcperciva/util	\
 		"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""	\
 		-DUSERAGENT=\"tarsnap-${VERSION}\"
-tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
+tarsnap_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 
 #
 # tarsnap-keygen source, docs, etc.
@@ -310,6 +387,7 @@ tarsnap_dist_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 #
 
 tarsnap_keygen_SOURCES=	keygen/keygen.c			\
+		keygen/keygen.h				\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
@@ -329,7 +407,7 @@ tarsnap_keygen_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
-tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
+tarsnap_keygen_man_MANS=	keygen/tarsnap-keygen.1
 
 #
 # tarsnap-keyregen source, docs, etc.
@@ -337,6 +415,7 @@ tarsnap_keygen_dist_man_MANS=	keygen/tarsnap-keygen.1
 #
 
 tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
+		keygen/keygen.h				\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
@@ -356,7 +435,7 @@ tarsnap_keyregen_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-keyregen-${VERSION}\"
 
-tarsnap_keyregen_dist_man_MANS=	keyregen/tarsnap-keyregen.1
+tarsnap_keyregen_man_MANS=	keyregen/tarsnap-keyregen.1
 
 #
 #
@@ -396,7 +475,7 @@ tarsnap_recrypt_CFLAGS=						\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DUSERAGENT=\"tarsnap-recrypt-${VERSION}\"
-tarsnap_recrypt_dist_man_MANS=	recrypt/tarsnap-recrypt.1
+tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 
 #
 #
@@ -417,7 +496,7 @@ tarsnap_keymgmt_CFLAGS=					\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util
 
-tarsnap_keymgmt_dist_man_MANS=	keymgmt/tarsnap-keymgmt.1
+tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
 #  Tarsnap sample configuration file
 sysconf_DATA	=	tar/tarsnap.conf.sample
@@ -447,6 +526,19 @@ keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
 
+EXTRA_DIST+=	tar/tarsnap.conf.sample			\
+		tar/tarsnap.1-man.in			\
+		tar/tarsnap.1-mdoc.in			\
+		tar/tarsnap.conf.5-man.in		\
+		tar/tarsnap.conf.5-mdoc.in		\
+		keygen/tarsnap-keygen.1-man		\
+		keygen/tarsnap-keygen.1-mdoc		\
+		keyregen/tarsnap-keyregen.1-man		\
+		keyregen/tarsnap-keyregen.1-mdoc	\
+		keymgmt/tarsnap-keymgmt.1-man		\
+		keymgmt/tarsnap-keymgmt.1-mdoc		\
+		recrypt/tarsnap-recrypt.1-man		\
+		recrypt/tarsnap-recrypt.1-mdoc
 CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 
 #
