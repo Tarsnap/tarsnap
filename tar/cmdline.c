@@ -94,6 +94,7 @@ static struct option {
 	{ "help",                 0, OPTION_HELP },
 	{ "humanize-numbers",	  0, OPTION_HUMANIZE_NUMBERS },
 	{ "include",              1, OPTION_INCLUDE },
+	{ "initialize-cachedir",  0, OPTION_INITIALIZE_CACHEDIR },
 	{ "insane-filesystems",	  0, OPTION_INSANE_FILESYSTEMS },
 	{ "insecure",             0, 'P' },
 	{ "interactive",          0, 'w' },

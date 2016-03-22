@@ -187,6 +187,7 @@ enum {
 	OPTION_FSCK_WRITE,	/* Operation mode, not a real option */
 	OPTION_HELP,
 	OPTION_INCLUDE,
+	OPTION_INITIALIZE_CACHEDIR,
 	OPTION_INSANE_FILESYSTEMS,
 	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
@@ -274,6 +275,7 @@ void	tarsnap_mode_r(struct bsdtar *bsdtar);
 void	tarsnap_mode_t(struct bsdtar *bsdtar);
 void	tarsnap_mode_x(struct bsdtar *bsdtar);
 void	tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey);
+void	tarsnap_mode_initialize_cachedir(struct bsdtar *bsdtar);
 void	tarsnap_mode_list_archives(struct bsdtar *bsdtar);
 void	tarsnap_mode_nuke(struct bsdtar *bsdtar);
 void	tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey);

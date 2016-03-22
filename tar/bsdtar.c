@@ -447,6 +447,9 @@ main(int argc, char **argv)
 		case OPTION_INCLUDE:
 			optq_push(bsdtar, "include", bsdtar->optarg);
 			break;
+		case OPTION_INITIALIZE_CACHEDIR:
+			set_mode(bsdtar, opt, "--initialize-cachedir");
+			break;
 		case OPTION_INSANE_FILESYSTEMS:
 			optq_push(bsdtar, "insane-filesystems", NULL);
 			break;
@@ -797,6 +800,7 @@ main(int argc, char **argv)
 	     bsdtar->mode != OPTION_RECOVER &&
 	     bsdtar->mode != OPTION_FSCK &&
 	     bsdtar->mode != OPTION_FSCK_PRUNE &&
+	     bsdtar->mode != OPTION_INITIALIZE_CACHEDIR &&
 	     bsdtar->mode != OPTION_NUKE &&
 	     bsdtar->mode != OPTION_VERIFY_CONFIG))
 		bsdtar_errc(bsdtar, 1, 0,
@@ -821,6 +825,7 @@ main(int argc, char **argv)
 	     bsdtar->mode == OPTION_RECOVER ||
 	     bsdtar->mode == OPTION_FSCK ||
 	     bsdtar->mode == OPTION_FSCK_PRUNE ||
+	     bsdtar->mode == OPTION_INITIALIZE_CACHEDIR ||
 	     bsdtar->mode == OPTION_PRINT_STATS))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cache directory must be specified for %s",
@@ -1048,6 +1053,9 @@ main(int argc, char **argv)
 		break;
 	case OPTION_FSCK_WRITE:
 		tarsnap_mode_fsck(bsdtar, 0, 0);
+		break;
+	case OPTION_INITIALIZE_CACHEDIR:
+		tarsnap_mode_initialize_cachedir(bsdtar);
 		break;
 	case OPTION_PRINT_STATS:
 		tarsnap_mode_print_stats(bsdtar);
