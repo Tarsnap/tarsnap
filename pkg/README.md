@@ -46,6 +46,8 @@ Fedora
 
 To build a Fedora package:
 
+    sudo dnf install rpmdevtools
+    sudo dnf builddep pkg/fedora/tarsnap.spec
     rpmdev-setuptree
     cp .../tarsnap-autoconf-<version>.tgz ~/rpmbuild/SOURCES
     rpmbuild -bb pkg/fedora/tarsnap.spec
@@ -53,6 +55,10 @@ To build a Fedora package:
 Then to install it:
 
     sudo dnf install ~/rpmbuild/RPMS/<arch>/tarsnap-<version>-*.rpm
+
+> Note: this spec file has been tested on Fedora; there may be some
+> incompatibilities with CentOS, OpenSUSE, or other spec-file-based Linux
+> distributions.
 
 
 Slackware
