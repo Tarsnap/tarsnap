@@ -168,6 +168,9 @@ bsdtar_init(void)
 	bsdtar->siginfo = NULL;
 	bsdtar->substitution = NULL;
 	bsdtar->keyfile = NULL;
+	bsdtar->conffile = NULL;
+	bsdtar->conf_opt = NULL;
+	bsdtar->conf_arg = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -194,6 +197,9 @@ bsdtar_atexit(void)
 	free(bsdtar->homedir);
 	free(bsdtar->option_csv_filename);
 	free(bsdtar->keyfile);
+	free(bsdtar->conffile);
+	free(bsdtar->conf_opt);
+	free(bsdtar->conf_arg);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
@@ -214,7 +220,6 @@ main(int argc, char **argv)
 	char			 buff[16];
 	char			 cachedir[PATH_MAX + 1];
 	struct passwd		*pws;
-	char			*conffile;
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
@@ -770,14 +775,15 @@ main(int argc, char **argv)
 	if (bsdtar->option_no_default_config == 0) {
 		/* Process options from ~/.tarsnaprc. */
 		if (bsdtar->homedir != NULL) {
-			if (asprintf(&conffile, "%s/.tarsnaprc",
+			if (asprintf(&bsdtar->conffile, "%s/.tarsnaprc",
 			    bsdtar->homedir) == -1)
 				bsdtar_errc(bsdtar, 1, errno, "No memory");
 
-			configfile(bsdtar, conffile);
+			configfile(bsdtar, bsdtar->conffile);
 
 			/* Free string allocated by asprintf. */
-			free(conffile);
+			free(bsdtar->conffile);
+			bsdtar->conffile = NULL;
 		}
 
 		/* Process options from system-wide tarsnap.conf. */
@@ -1292,10 +1298,8 @@ configfile(struct bsdtar *bsdtar, const char *fname)
 static int
 configfile_helper(struct bsdtar *bsdtar, const char *line)
 {
-	char * conf_opt;
 	char * conf_arg;
 	size_t optlen;
-	char * conf_arg_malloced;
 	size_t len;
 
 	/* Skip any leading whitespace. */
@@ -1307,7 +1311,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 		return (0);
 
 	/* Duplicate line. */
-	if ((conf_opt = strdup(line)) == NULL)
+	if ((bsdtar->conf_opt = strdup(line)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 
 	/*
@@ -1315,24 +1319,25 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	 * duplication, but to reduce the number of diffs to a later version,
 	 * we'll do it here.
 	 */
-	len = strlen(conf_opt);
+	len = strlen(bsdtar->conf_opt);
 	if ((len > 0) &&
-	    ((conf_opt[len - 1] == ' ') || (conf_opt[len - 1] == '\t'))) {
+	    ((bsdtar->conf_opt[len - 1] == ' ') ||
+	     (bsdtar->conf_opt[len - 1] == '\t'))) {
 		bsdtar_warnc(bsdtar, 0,
 		    "option contains trailing whitespace; future behaviour"
 		    " may change for:\n    %s", line);
 	}
 
 	/* Split line into option and argument if possible. */
-	optlen = strcspn(conf_opt, " \t");
+	optlen = strcspn(bsdtar->conf_opt, " \t");
 
 	/* Is there an argument? */
-	if (conf_opt[optlen]) {
+	if (bsdtar->conf_opt[optlen]) {
 		/* NUL-terminate the option name. */
-		conf_opt[optlen] = '\0';
+		bsdtar->conf_opt[optlen] = '\0';
 
 		/* Find the start of the argument. */
-		conf_arg = conf_opt + optlen + 1;
+		conf_arg = bsdtar->conf_opt + optlen + 1;
 		conf_arg += strspn(conf_arg, " \t");
 
 		/*
@@ -1353,24 +1358,26 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
 	    (bsdtar->homedir != NULL)) {
 		/* Construct expanded argument string. */
-		if (asprintf(&conf_arg_malloced, "%s%s",
+		if (asprintf(&bsdtar->conf_arg, "%s%s",
 		    bsdtar->homedir, &conf_arg[1]) == -1)
 			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 
 		/* Use the expanded argument string hereafter. */
-		conf_arg = conf_arg_malloced;
+		conf_arg = bsdtar->conf_arg;
 	} else {
-		conf_arg_malloced = NULL;
+		bsdtar->conf_arg = NULL;
 	}
 
 	/* Process the configuration option. */
-	dooption(bsdtar, conf_opt, conf_arg, 1);
+	dooption(bsdtar, bsdtar->conf_opt, conf_arg, 1);
 
 	/* Free expanded argument or NULL. */
-	free(conf_arg_malloced);
+	free(bsdtar->conf_arg);
+	bsdtar->conf_arg = NULL;
 
 	/* Free memory allocated by strdup. */
-	free(conf_opt);
+	free(bsdtar->conf_opt);
+	bsdtar->conf_opt = NULL;
 
 	return (0);
 }
