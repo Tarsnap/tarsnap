@@ -105,7 +105,7 @@ time_t get_date(time_t, const char *);
 static struct bsdtar	*bsdtar_init(void);
 static void		 bsdtar_atexit(void);
 
-static void		 build_dir(struct bsdtar *, const char *dir,
+static int		 build_dir(struct bsdtar *, const char *dir,
 			     const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
 static int		 configfile_helper(struct bsdtar *bsdtar,
@@ -925,7 +925,9 @@ main(int argc, char **argv)
 	 * necessary since the tar code can change directories.
 	 */
 	if (bsdtar->cachedir != NULL) {
-		build_dir(bsdtar, bsdtar->cachedir, "--cachedir");
+		if (build_dir(bsdtar, bsdtar->cachedir, "--cachedir") != 0)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Failed to ensure that cachedir exists");
 		if (realpath(bsdtar->cachedir, cachedir) == NULL)
 			bsdtar_errc(bsdtar, 1, errno, "realpath(%s)",
 			    bsdtar->cachedir);
@@ -1203,7 +1205,7 @@ long_help(struct bsdtar *bsdtar)
 	version();
 }
 
-static void
+static int
 build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 {
 	struct stat sb;
@@ -1212,7 +1214,7 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 
 	/* We need a directory name and the config option. */
 	assert(dir != NULL);
-	assert(diropt != NULL); 
+	assert(diropt != NULL);
 
 	/* Move through *dir and build all parent directories. */
 	for (dirseppos = dir; *dirseppos != '\0'; ) {
@@ -1229,12 +1231,16 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 			goto nextdir;
 
 		/* Did something go wrong? */
-		if (errno != ENOENT)
-			bsdtar_errc(bsdtar, 1, errno, "stat(%s)", s);
+		if (errno != ENOENT) {
+			bsdtar_warnc(bsdtar, errno, "stat(%s)", s);
+			goto err1;
+		}
 
 		/* Create the directory. */
-		if (mkdir(s, 0700))
-			bsdtar_errc(bsdtar, 1, errno, "error creating %s", s);
+		if (mkdir(s, 0700)) {
+			bsdtar_warnc(bsdtar, errno, "error creating %s", s);
+			goto err1;
+		}
 
 		/* Tell the user what we did. */
 		fprintf(stderr, "Directory %s created for \"%s %s\"\n",
@@ -1254,6 +1260,15 @@ nextdir:
 			    dir);
 		}
 	}
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(s);
+
+	/* Failure! */
+	return (-1);
 }
 
 /* Process options from the specified file, if it exists. */
