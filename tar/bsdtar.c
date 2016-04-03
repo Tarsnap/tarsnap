@@ -105,8 +105,7 @@ time_t get_date(time_t, const char *);
 static struct bsdtar	*bsdtar_init(void);
 static void		 bsdtar_atexit(void);
 
-static int		 build_dir(struct bsdtar *, const char *dir,
-			     const char *diropt);
+static int		 build_dir(const char *dir, const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
@@ -930,7 +929,7 @@ main(int argc, char **argv)
 	 * necessary since the tar code can change directories.
 	 */
 	if (bsdtar->cachedir != NULL) {
-		if (build_dir(bsdtar, bsdtar->cachedir, "--cachedir") != 0)
+		if (build_dir(bsdtar->cachedir, "--cachedir") != 0)
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Failed to ensure that cachedir exists");
 		if (realpath(bsdtar->cachedir, cachedir) == NULL)
@@ -1214,7 +1213,7 @@ long_help(struct bsdtar *bsdtar)
 }
 
 static int
-build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
+build_dir(const char *dir, const char *diropt)
 {
 	struct stat sb;
 	char * s;
@@ -1231,8 +1230,10 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 			dirseppos = dir + strlen(dir);
 
 		/* Generate a string containing the parent directory. */
-		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1)
-			bsdtar_errc(bsdtar, 1, errno, "No Memory");
+		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1) {
+			warnp("No memory");
+			goto err0;
+		}
 
 		/* Does the parent directory exist already? */
 		if (stat(s, &sb) == 0)
@@ -1240,13 +1241,13 @@ build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
 
 		/* Did something go wrong? */
 		if (errno != ENOENT) {
-			bsdtar_warnc(bsdtar, errno, "stat(%s)", s);
+			warnp("stat(%s)", s);
 			goto err1;
 		}
 
 		/* Create the directory. */
 		if (mkdir(s, 0700)) {
-			bsdtar_warnc(bsdtar, errno, "error creating %s", s);
+			warnp("Cannot create directory: %s", s);
 			goto err1;
 		}
 
@@ -1259,13 +1260,15 @@ nextdir:
 	}
 
 	/* Make sure permissions on the directory are correct. */
-	if (stat(dir, &sb))
-		bsdtar_errc(bsdtar, 1, errno, "stat(%s)", dir);
+	if (stat(dir, &sb)) {
+		warnp("stat(%s)", dir);
+		goto err0;
+	}
 	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
 		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
-			bsdtar_errc(bsdtar, 1, errno,
-			    "Cannot sanitize permissions on directory: %s",
+			warnp("Cannot sanitize permissions on directory: %s",
 			    dir);
+			goto err0;
 		}
 	}
 
@@ -1274,7 +1277,7 @@ nextdir:
 
 err1:
 	free(s);
-
+err0:
 	/* Failure! */
 	return (-1);
 }
