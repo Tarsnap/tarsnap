@@ -61,39 +61,6 @@ dirutil_fsyncdir(const char * path)
 }
 
 /**
- * dirutil_needdir(dirname):
- * Make sure that ${dirname} exists (creating it if necessary) and is a
- * directory.
- */
-int
-dirutil_needdir(const char * dirname)
-{
-	struct stat sb;
-
-	if (stat(dirname, &sb) == -1) {
-		if (errno != ENOENT) {
-			warnp("stat(%s)", dirname);
-			return (-1);
-		}
-
-		/* Directory does not exist; try to create it. */
-		if (mkdir(dirname, 0777)) {
-			warnp("mkdir(%s)", dirname);
-			return (-1);
-		}
-	} else {
-		/* The path exists; is it a directory? */
-		if (! S_ISDIR(sb.st_mode)) {
-			warn0("%s is not a directory", dirname);
-			return (-1);
-		}
-	}
-
-	/* Success! */
-	return (0);
-}
-
-/**
  * build_dir(dir, diropt):
  * Makes sure that ${dir} exists, creating it (and any parents) as necessary.
  */
