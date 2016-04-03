@@ -14,4 +14,10 @@ int dirutil_fsyncdir(const char *);
  */
 int dirutil_needdir(const char *);
 
+/**
+ * build_dir(dir, diropt):
+ * Makes sure that ${dir} exists, creating it (and any parents) as necessary.
+ */
+int build_dir(const char *, const char *);
+
 #endif /* !_DIRUTIL_H_ */

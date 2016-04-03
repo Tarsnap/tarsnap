@@ -79,6 +79,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 
 #include "bsdtar.h"
 #include "crypto.h"
+#include "dirutil.h"
 #include "humansize.h"
 #include "keyfile.h"
 #include "tarsnap_opt.h"
@@ -105,7 +106,6 @@ time_t get_date(time_t, const char *);
 static struct bsdtar	*bsdtar_init(void);
 static void		 bsdtar_atexit(void);
 
-static int		 build_dir(const char *dir, const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
@@ -1210,76 +1210,6 @@ long_help(struct bsdtar *bsdtar)
 			putchar(*p);
 	}
 	version();
-}
-
-static int
-build_dir(const char *dir, const char *diropt)
-{
-	struct stat sb;
-	char * s;
-	const char * dirseppos;
-
-	/* We need a directory name and the config option. */
-	assert(dir != NULL);
-	assert(diropt != NULL);
-
-	/* Move through *dir and build all parent directories. */
-	for (dirseppos = dir; *dirseppos != '\0'; ) {
-		/* Move to the next '/', or the end of the string. */
-		if ((dirseppos = strchr(dirseppos + 1, '/')) == NULL)
-			dirseppos = dir + strlen(dir);
-
-		/* Generate a string containing the parent directory. */
-		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1) {
-			warnp("No memory");
-			goto err0;
-		}
-
-		/* Does the parent directory exist already? */
-		if (stat(s, &sb) == 0)
-			goto nextdir;
-
-		/* Did something go wrong? */
-		if (errno != ENOENT) {
-			warnp("stat(%s)", s);
-			goto err1;
-		}
-
-		/* Create the directory. */
-		if (mkdir(s, 0700)) {
-			warnp("Cannot create directory: %s", s);
-			goto err1;
-		}
-
-		/* Tell the user what we did. */
-		fprintf(stderr, "Directory %s created for \"%s %s\"\n",
-		    s, diropt, dir);
-
-nextdir:
-		free(s);
-	}
-
-	/* Make sure permissions on the directory are correct. */
-	if (stat(dir, &sb)) {
-		warnp("stat(%s)", dir);
-		goto err0;
-	}
-	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
-		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
-			warnp("Cannot sanitize permissions on directory: %s",
-			    dir);
-			goto err0;
-		}
-	}
-
-	/* Success! */
-	return (0);
-
-err1:
-	free(s);
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* Process options from the specified file, if it exists. */
