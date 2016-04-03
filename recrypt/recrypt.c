@@ -58,7 +58,7 @@ usage(void)
 	/* NOTREACHED */
 }
 
-static void
+static int
 build_dir(const char *dir, const char *diropt)
 {
 	struct stat sb;
@@ -77,8 +77,8 @@ build_dir(const char *dir, const char *diropt)
 
 		/* Generate a string containing the parent directory. */
 		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1) {
-			warnp("Cannot allocate memory");
-			exit(1);
+			warnp("No memory");
+			goto err0;
 		}
 
 		/* Does the parent directory exist already? */
@@ -87,14 +87,14 @@ build_dir(const char *dir, const char *diropt)
 
 		/* Did something go wrong? */
 		if (errno != ENOENT) {
-			warnp("Cannot stat: %s", s);
-			exit(1);
+			warnp("stat(%s)", s);
+			goto err1;
 		}
 
 		/* Create the directory. */
 		if (mkdir(s, 0700)) {
 			warnp("Cannot create directory: %s", s);
-			exit(1);
+			goto err1;
 		}
 
 		/* Tell the user what we did. */
@@ -107,16 +107,25 @@ nextdir:
 
 	/* Make sure permissions on the directory are correct. */
 	if (stat(dir, &sb)) {
-		warnp("Cannot stat: %s", dir);
-		exit(1);
+		warnp("stat(%s)", dir);
+		goto err0;
 	}
 	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
 		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
 			warnp("Cannot sanitize permissions on directory: %s",
 			    dir);
-			exit(1);
+			goto err0;
 		}
 	}
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(s);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 static void
@@ -499,8 +508,10 @@ main(int argc, char **argv)
 		usage();
 
 	/* Make sure the cache directories exist. */
-	build_dir(ncachedir, "--newcachdir");
-	build_dir(ocachedir, "--oldcachdir");
+	if (build_dir(ncachedir, "--newcachdir"))
+		exit(1);
+	if (build_dir(ocachedir, "--oldcachdir"))
+		exit(1);
 
 	/* Lock the cache directories. */
 	lockdirs(ocachedir, ncachedir, &odirlock, &ndirlock);
