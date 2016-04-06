@@ -205,6 +205,14 @@ int statstape_close(TAPE_S *);
 int fscktape(uint64_t, const char *, int, int);
 
 /**
+ * statstape_initialize(machinenum, cachedir):
+ * Initialize an empty chunk directory in ${cachedir} so that --print-stats
+ * works.  This requires the "directory" file, but no other files.  Return 0
+ * on success, -1 on error, and 1 if the cachedir is already initialized.
+ */
+int statstape_initialize(uint64_t, const char *);
+
+/**
  * recovertape(machinenum, cachedir, whichkey):
  * Complete any pending checkpoint or commit, including a checkpoint in a
  * write transaction being performed by a different machine (if any).  If

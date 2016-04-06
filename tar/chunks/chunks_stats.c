@@ -414,3 +414,51 @@ chunks_stats_free(CHUNKS_S * C)
 	free(C->cachepath);
 	free(C);
 }
+
+/**
+ * chunks_initialize(const char * cachepath):
+ * Initialize the chunk directory (file) in ${cachepath}.  Return 0 on
+ * success, -1 on error, and 1 if the file already exists.
+ */
+int
+chunks_initialize(const char * cachepath)
+{
+	RWHASHTAB * HT;
+	struct chunkstats stats_extra;
+
+	/* Bail if ${chunkpath}/directory already exists. */
+ 	switch (chunks_directory_exists(cachepath)) {
+	case 0:
+		break;
+	case 1:
+		goto fileexists;
+	case -1:
+		goto err0;
+	}
+
+	/* Allocate empty hash table, and zero stats. */
+	if ((HT = rwhashtab_init(0, 1)) == NULL)
+		goto err0;
+	chunks_stats_zero(&stats_extra);
+
+	/* Write empty directory file. */
+	if (chunks_directory_write(cachepath, HT, &stats_extra, ""))
+		goto err1;
+
+	/* Free memory. */
+	rwhashtab_free(HT);
+
+	/* Success! */
+	return (0);
+
+err1:
+	rwhashtab_free(HT);
+err0:
+	/* Failure! */
+	return (-1);
+
+fileexists:
+
+	/* Failure! */
+	return (1);
+}

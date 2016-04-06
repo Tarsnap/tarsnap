@@ -80,6 +80,10 @@
 .Fl -keyfile Ar key-file
 .Fl -cachedir Ar cache-dir
 .Nm
+.Brq Fl -initialize-cachedir
+.Fl -keyfile Ar key-file
+.Fl -cachedir Ar cache-dir
+.Nm
 .Brq Fl -nuke
 .Fl -keyfile Ar key-file
 .Nm
@@ -138,6 +142,9 @@ option.
 Run as
 .Fl -fsck ,
 but if corrupt archives are detected, prune the broken data.
+.It Fl -initialize-cachedir
+Creates and initializes the cachedir.  This option is intended for the GUI and
+is not needed for command-line usage.
 .It Fl -nuke
 Delete all of the archives stored.
 To protect against accidental data loss,

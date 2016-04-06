@@ -362,6 +362,47 @@ err0:
 }
 
 /**
+ * chunks_directory_exists(cachepath):
+ * Return 1 if the /directory file exists within ${cachepath}, 0 if it does
+ * not, or -1 if there is an error.
+ */
+int
+chunks_directory_exists(const char * cachepath)
+{
+	char * directory_filename;
+	struct stat sb;
+	int rc;
+
+	/* Prepare filename. */
+	if (asprintf(&directory_filename, "%s/directory", cachepath) == -1) {
+		rc = -1;
+		goto done;
+	}
+
+	/* Check if file exists. */
+	if (stat(directory_filename, &sb) == 0) {
+		/* File exists. */
+		rc = 1;
+	} else {
+		if (errno == ENOENT) {
+			/* File does not exist. */
+			rc = 0;
+		} else {
+			/* Other error. */
+			warnp("stat(%s)", directory_filename);
+			rc = -1;
+		}
+	}
+
+	/* Clean up memory. */
+	free(directory_filename);
+
+done:
+	/* Return result code. */
+	return (rc);
+}
+
+/**
  * chunks_directory_free(htab, dir):
  * Free the hash table ${htab} of struct chunkdata records, all of its
  * elements, and ${dir}.

@@ -1,3 +1,8 @@
+### Tarsnap 1.0.38 (unreleased)
+
+- tarsnap now accepts an --initialize-cachedir command, which is intended for
+  the GUI and is not needed for command-line usage.
+
 
 Tarsnap Releases
 ================

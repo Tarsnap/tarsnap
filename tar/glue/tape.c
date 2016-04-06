@@ -232,6 +232,32 @@ err0:
 }
 
 /*
+ * Initialize cache directory.
+ */
+void
+tarsnap_mode_initialize_cachedir(struct bsdtar *bsdtar)
+{
+
+	switch (statstape_initialize(bsdtar->machinenum, bsdtar->cachedir)) {
+	case 0:
+		break;
+	case 1:
+		bsdtar_warnc(bsdtar, 0, "Cache directory already initialized");
+		/* FALLTHROUGH */
+	default:
+		goto err0;
+	}
+
+	/* Success! */
+	return;
+
+err0:
+	/* Failure! */
+	bsdtar->return_value = 1;
+	return;
+}
+
+/*
  * Nuke all the files belonging to an archive set.
  */
 void

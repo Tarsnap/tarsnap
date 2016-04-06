@@ -573,3 +573,28 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * statstape_initialize(machinenum, cachedir):
+ * Initialize an empty chunk directory in ${cachedir} so that --print-stats
+ * works.  This requires the "directory" file, but no other files.  Return 0
+ * on success, -1 on error, and 1 if the cachedir is already initialized.
+ */
+int
+statstape_initialize(uint64_t machinenum, const char * cachedir)
+{
+	int rc;
+
+	(void) machinenum; /* UNUSED */
+
+	/* Initialize the "directory" file. */
+	if ((rc = chunks_initialize(cachedir)) != 0)
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (rc);
+}
