@@ -53,7 +53,7 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
-* Mon Mar  7 2016 Graham Percival <gperciva@tarsnap.com> 1.0.37-1%{?dist}
+* Mon Mar  7 2016 Graham Percival <gperciva@tarsnap.com> 1.0.37-1
 - Upstream version 1.0.37
 - Reinstate libattr dependency, and add lzma.
 
