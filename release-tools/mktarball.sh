@@ -20,7 +20,7 @@ done
 
 # Generate autotools files
 ( cd ${DESTDIR}
-echo -n ${VERSION} > tar-version
+printf ${VERSION} > tar-version
 autoreconf -i
 rm .autom4te.cfg Makefile.am aclocal.m4 actarsnap.m4 configure.ac tar-version tsserver )
 
