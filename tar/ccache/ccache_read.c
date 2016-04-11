@@ -138,8 +138,8 @@ callback_read_data(void * cookie, uint8_t * s, size_t slen, void * rec)
 	struct ccache_read_internal * R = cookie;
 	struct ccache_record * ccr = rec;
 
-	(void)s;	/* Unused. */
-	(void)slen;	/* Unused. */
+	(void)s;	/* UNUSED */
+	(void)slen;	/* UNUSED */
 
 	/* Read chunk headers, if present. */
 	if (ccr->nch) {
@@ -163,9 +163,9 @@ callback_free(void * cookie, uint8_t * s, size_t slen, void * rec)
 {
 	struct ccache_record * ccr = rec;
 
-	(void)cookie;	/* Unused. */
-	(void)s;	/* Unused. */
-	(void)slen;	/* Unused. */
+	(void)cookie;	/* UNUSED */
+	(void)s;	/* UNUSED */
+	(void)slen;	/* UNUSED */
 
 	/* Free chunkheader records, if they weren't mmapped. */
 	if (ccr->nchalloc)
