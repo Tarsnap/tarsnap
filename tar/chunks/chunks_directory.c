@@ -83,7 +83,7 @@ callback_free(void * rec, void * cookie)
 {
 	struct chunkdata * ch = rec;
 
-	(void)cookie; 	/* Unused. */
+	(void)cookie;	/* UNUSED */
 
 	if (ch->zlen_flags & CHDATA_MALLOC)
 		free(rec);
