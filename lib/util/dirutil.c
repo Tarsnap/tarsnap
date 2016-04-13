@@ -3,10 +3,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "warnp.h"
@@ -59,34 +61,75 @@ dirutil_fsyncdir(const char * path)
 }
 
 /**
- * dirutil_needdir(dirname):
- * Make sure that ${dirname} exists (creating it if necessary) and is a
- * directory.
+ * build_dir(dir, diropt):
+ * Makes sure that ${dir} exists, creating it (and any parents) as necessary.
  */
 int
-dirutil_needdir(const char * dirname)
+build_dir(const char * dir, const char * diropt)
 {
 	struct stat sb;
+	char * s;
+	const char * dirseppos;
 
-	if (stat(dirname, &sb) == -1) {
+	/* We need a directory name and the config option. */
+	assert(dir != NULL);
+	assert(diropt != NULL);
+
+	/* Move through *dir and build all parent directories. */
+	for (dirseppos = dir; *dirseppos != '\0'; ) {
+		/* Move to the next '/', or the end of the string. */
+		if ((dirseppos = strchr(dirseppos + 1, '/')) == NULL)
+			dirseppos = dir + strlen(dir);
+
+		/* Generate a string containing the parent directory. */
+		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1) {
+			warnp("No memory");
+			goto err0;
+		}
+
+		/* Does the parent directory exist already? */
+		if (stat(s, &sb) == 0)
+			goto nextdir;
+
+		/* Did something go wrong? */
 		if (errno != ENOENT) {
-			warnp("stat(%s)", dirname);
-			return (-1);
+			warnp("stat(%s)", s);
+			goto err1;
 		}
 
-		/* Directory does not exist; try to create it. */
-		if (mkdir(dirname, 0777)) {
-			warnp("mkdir(%s)", dirname);
-			return (-1);
+		/* Create the directory. */
+		if (mkdir(s, 0700)) {
+			warnp("Cannot create directory: %s", s);
+			goto err1;
 		}
-	} else {
-		/* The path exists; is it a directory? */
-		if (! S_ISDIR(sb.st_mode)) {
-			warn0("%s is not a directory", dirname);
-			return (-1);
+
+		/* Tell the user what we did. */
+		fprintf(stderr, "Directory %s created for \"%s %s\"\n",
+		    s, diropt, dir);
+
+nextdir:
+		free(s);
+	}
+
+	/* Make sure permissions on the directory are correct. */
+	if (stat(dir, &sb)) {
+		warnp("stat(%s)", dir);
+		goto err0;
+	}
+	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
+		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
+			warnp("Cannot sanitize permissions on directory: %s",
+			    dir);
+			goto err0;
 		}
 	}
 
 	/* Success! */
 	return (0);
+
+err1:
+	free(s);
+err0:
+	/* Failure! */
+	return (-1);
 }

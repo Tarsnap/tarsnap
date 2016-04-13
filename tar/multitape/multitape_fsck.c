@@ -6,7 +6,6 @@
 
 #include "chunks.h"
 #include "crypto.h"
-#include "dirutil.h"
 #include "hexify.h"
 #include "imalloc.h"
 #include "multitape_internal.h"
@@ -462,10 +461,6 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 	size_t nmdat;
 	size_t file;
 	int key = (whichkey == 0) ? 0 : 1;
-
-	/* Make sure the cache directory exists. */
-	if (dirutil_needdir(cachedir))
-		goto err0;
 
 	/* Lock the cache directory. */
 	if ((lockfd = multitape_lock(cachedir)) == -1)

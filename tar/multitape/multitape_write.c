@@ -9,7 +9,6 @@
 #include "chunkify.h"
 #include "chunks.h"
 #include "crypto.h"
-#include "dirutil.h"
 #include "elasticarray.h"
 #include "storage.h"
 #include "sysendian.h"
@@ -442,10 +441,6 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 
 	/* Record whether to print statistics to a CSV file. */
 	d->csv_filename = csv_filename;
-
-	/* If we're using a cache, make sure ${cachedir} exists. */
-	if ((cachedir != NULL) && (dirutil_needdir(cachedir)))
-		goto err3;
 
 	/* If we're using a cache, lock the cache directory. */
 	if ((cachedir != NULL) && ((d->lockfd = multitape_lock(cachedir)) == -1))

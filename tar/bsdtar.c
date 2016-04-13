@@ -79,6 +79,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 
 #include "bsdtar.h"
 #include "crypto.h"
+#include "dirutil.h"
 #include "humansize.h"
 #include "keyfile.h"
 #include "tarsnap_opt.h"
@@ -105,8 +106,6 @@ time_t get_date(time_t, const char *);
 static struct bsdtar	*bsdtar_init(void);
 static void		 bsdtar_atexit(void);
 
-static int		 build_dir(struct bsdtar *, const char *dir,
-			     const char *diropt);
 static void		 configfile(struct bsdtar *, const char *fname);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
@@ -930,7 +929,7 @@ main(int argc, char **argv)
 	 * necessary since the tar code can change directories.
 	 */
 	if (bsdtar->cachedir != NULL) {
-		if (build_dir(bsdtar, bsdtar->cachedir, "--cachedir") != 0)
+		if (build_dir(bsdtar->cachedir, "--cachedir") != 0)
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Failed to ensure that cachedir exists");
 		if (realpath(bsdtar->cachedir, cachedir) == NULL)
@@ -1211,72 +1210,6 @@ long_help(struct bsdtar *bsdtar)
 			putchar(*p);
 	}
 	version();
-}
-
-static int
-build_dir(struct bsdtar *bsdtar, const char *dir, const char *diropt)
-{
-	struct stat sb;
-	char * s;
-	const char * dirseppos;
-
-	/* We need a directory name and the config option. */
-	assert(dir != NULL);
-	assert(diropt != NULL);
-
-	/* Move through *dir and build all parent directories. */
-	for (dirseppos = dir; *dirseppos != '\0'; ) {
-		/* Move to the next '/', or the end of the string. */
-		if ((dirseppos = strchr(dirseppos + 1, '/')) == NULL)
-			dirseppos = dir + strlen(dir);
-
-		/* Generate a string containing the parent directory. */
-		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1)
-			bsdtar_errc(bsdtar, 1, errno, "No Memory");
-
-		/* Does the parent directory exist already? */
-		if (stat(s, &sb) == 0)
-			goto nextdir;
-
-		/* Did something go wrong? */
-		if (errno != ENOENT) {
-			bsdtar_warnc(bsdtar, errno, "stat(%s)", s);
-			goto err1;
-		}
-
-		/* Create the directory. */
-		if (mkdir(s, 0700)) {
-			bsdtar_warnc(bsdtar, errno, "error creating %s", s);
-			goto err1;
-		}
-
-		/* Tell the user what we did. */
-		fprintf(stderr, "Directory %s created for \"%s %s\"\n",
-		    s, diropt, dir);
-
-nextdir:
-		free(s);
-	}
-
-	/* Make sure permissions on the directory are correct. */
-	if (stat(dir, &sb))
-		bsdtar_errc(bsdtar, 1, errno, "stat(%s)", dir);
-	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
-		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
-			bsdtar_errc(bsdtar, 1, errno,
-			    "Cannot sanitize permissions on directory: %s",
-			    dir);
-		}
-	}
-
-	/* Success! */
-	return (0);
-
-err1:
-	free(s);
-
-	/* Failure! */
-	return (-1);
 }
 
 /* Process options from the specified file, if it exists. */

@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "dirutil.h"
 #include "getopt.h"
 #include "imalloc.h"
 #include "keyfile.h"
@@ -56,67 +57,6 @@ usage(void)
 	exit(1);
 
 	/* NOTREACHED */
-}
-
-static void
-build_dir(const char *dir, const char *diropt)
-{
-	struct stat sb;
-	char * s;
-	const char * dirseppos;
-
-	/* We need a directory name and the config option. */
-	assert(dir != NULL);
-	assert(diropt != NULL);
-
-	/* Move through *dir and build all parent directories. */
-	for (dirseppos = dir; *dirseppos != '\0'; ) {
-		/* Move to the next '/', or the end of the string. */
-		if ((dirseppos = strchr(dirseppos + 1, '/')) == NULL)
-			dirseppos = dir + strlen(dir);
-
-		/* Generate a string containing the parent directory. */
-		if (asprintf(&s, "%.*s", (int)(dirseppos - dir), dir) == -1) {
-			warnp("Cannot allocate memory");
-			exit(1);
-		}
-
-		/* Does the parent directory exist already? */
-		if (stat(s, &sb) == 0)
-			goto nextdir;
-
-		/* Did something go wrong? */
-		if (errno != ENOENT) {
-			warnp("Cannot stat: %s", s);
-			exit(1);
-		}
-
-		/* Create the directory. */
-		if (mkdir(s, 0700)) {
-			warnp("Cannot create directory: %s", s);
-			exit(1);
-		}
-
-		/* Tell the user what we did. */
-		fprintf(stderr, "Directory %s created for \"%s %s\"\n",
-		    s, diropt, dir);
-
-nextdir:
-		free(s);
-	}
-
-	/* Make sure permissions on the directory are correct. */
-	if (stat(dir, &sb)) {
-		warnp("Cannot stat: %s", dir);
-		exit(1);
-	}
-	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
-		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
-			warnp("Cannot sanitize permissions on directory: %s",
-			    dir);
-			exit(1);
-		}
-	}
 }
 
 static void
@@ -499,8 +439,10 @@ main(int argc, char **argv)
 		usage();
 
 	/* Make sure the cache directories exist. */
-	build_dir(ncachedir, "--newcachdir");
-	build_dir(ocachedir, "--oldcachdir");
+	if (build_dir(ncachedir, "--newcachdir"))
+		exit(1);
+	if (build_dir(ocachedir, "--oldcachdir"))
+		exit(1);
 
 	/* Lock the cache directories. */
 	lockdirs(ocachedir, ncachedir, &odirlock, &ndirlock);
