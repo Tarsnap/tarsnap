@@ -977,6 +977,25 @@ See
 \fBenviron\fP(7)
 for more information.
 .RE
+.SH FILES
+.ad l
+.RS 5
+.TP
+.B @sysconfdir@/tarsnap.conf
+The system global
+\fB\%tarsnap\fP
+configuration file.
+Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the command line.
+.TP
+.B ~/.tarsnaprc
+The
+\fB\%tarsnap\fP
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.RE
 .SH EXIT STATUS
 .ad l
 The \fBtarsnap\fP utility exits 0 on success, and >0 if an error occurs.
@@ -1111,25 +1130,6 @@ disables the security checks above and allows you to extract
 an archive while preserving any absolute pathnames,
 \fI\& ..\fP
 components, or symlinks to other directories.
-.SH FILES
-.ad l
-.RS 5
-.TP
-.B @sysconfdir@/tarsnap.conf
-The system global
-\fB\%tarsnap\fP
-configuration file.
-Parameters specified here only take effect if they are not
-specified via the current user's local configuration file
-or via the command line.
-.TP
-.B ~/.tarsnaprc
-The
-\fB\%tarsnap\fP
-configuration file for the current user.
-Parameters specified here take effect unless they are
-specified via the command line.
-.RE
 .SH SEE ALSO
 .ad l
 \fBtarsnap-keygen\fP(1),

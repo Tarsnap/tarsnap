@@ -34,7 +34,6 @@ character, it will be replaced by the value of the HOME variable (the
 current user's home directory).
 .PP
 The following options may be specified:
-.PP
 .RS 5
 .TP
 \fBaggressive-networking\fP
