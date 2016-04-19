@@ -38,7 +38,6 @@ character, it will be replaced by the value of the HOME variable (the
 current user's home directory).
 .Pp
 The following options may be specified:
-.Pp
 .Bl -tag -width "no-aggressive-networking"
 .It Cm aggressive-networking
 .It Cm cachedir Ar cache-dir
