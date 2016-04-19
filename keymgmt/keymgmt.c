@@ -50,7 +50,7 @@ print_id(const char *keyfilename)
 
 	/* NOTREACHED */
 }
-	
+
 static void
 print_permissions(const char *keyfilename)
 {
