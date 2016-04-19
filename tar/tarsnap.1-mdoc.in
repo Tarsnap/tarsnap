@@ -881,6 +881,22 @@ See
 .Xr environ 7
 for more information.
 .El
+.Sh FILES
+.Bl -tag -width indent
+.It Pa @sysconfdir@/tarsnap.conf
+The system global
+.Nm
+configuration file.
+Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the command line.
+.It Pa ~/.tarsnaprc
+The
+.Nm
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.El
 .Sh EXIT STATUS
 .Ex -std
 .Sh EXAMPLES
@@ -994,22 +1010,6 @@ disables the security checks above and allows you to extract
 an archive while preserving any absolute pathnames,
 .Pa ..
 components, or symlinks to other directories.
-.Sh FILES
-.Bl -tag -width indent
-.It Pa @sysconfdir@/tarsnap.conf
-The system global
-.Nm
-configuration file.
-Parameters specified here only take effect if they are not
-specified via the current user's local configuration file
-or via the command line.
-.It Pa ~/.tarsnaprc
-The
-.Nm
-configuration file for the current user.
-Parameters specified here take effect unless they are
-specified via the command line.
-.El
 .Sh SEE ALSO
 .Xr tarsnap-keygen 1 ,
 .Xr tarsnap.conf 5 ,
