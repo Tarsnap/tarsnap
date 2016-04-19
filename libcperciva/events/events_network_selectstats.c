@@ -79,7 +79,7 @@ events_network_selectstats_select(void)
 
 done:
 	/* The clock is no longer running. */
-	running = 0;	
+	running = 0;
 }
 
 /**
