@@ -165,6 +165,7 @@ blockmix_salsa8(const __m128i * Bin, __m128i * Bout, __m128i * X, size_t r)
 /**
  * integerify(B, r):
  * Return the result of parsing B_{2r-1} as a little-endian integer.
+ * Note that B's layout is permuted compared to the generic implementation.
  */
 static uint64_t
 integerify(const void * B, size_t r)
