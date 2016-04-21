@@ -147,7 +147,7 @@ getdevino(struct archive * a, const char * path, dev_t * d, ino_t * i)
 	struct stat sb;
 
 	if (path == NULL) {
-		/* 
+		/*
 		 * Return bogus values to avoid comparing against
 		 * uninitialized data later on.
 		 */
