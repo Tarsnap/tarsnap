@@ -2,7 +2,13 @@ Client code for Tarsnap
 =======================
 
 Tarsnap is a secure, efficient online backup service: "Online
-backups for the truly paranoid".  https://tarsnap.com
+backups for the truly paranoid".
+
+:exclamation: We strongly recommend that people use the latest official
+release tarball on https://www.tarsnap.com
+
+> This repository is intended for developers who may wish to watch changes in
+> progress, investigate bugs, or test new (unreleased) features.
 
 
 News
