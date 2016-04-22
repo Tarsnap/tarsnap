@@ -311,10 +311,18 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 		f = fopen(pathname, "r");
 	if (f == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Couldn't open %s", pathname);
+
+	/* Record pointer for freeing upon error. */
+	bsdtar->conffile_actual = f;
+
 	buff_length = 8192;
 	buff = malloc(buff_length);
 	if (buff == NULL)
 		bsdtar_errc(bsdtar, 1, ENOMEM, "Can't read %s", pathname);
+
+	/* Record pointer for freeing upon error. */
+	bsdtar->conffile_buffer = buff;
+
 	line_start = line_end = buff_end = buff;
 	for (;;) {
 		/* Get some more data into the buffer. */
@@ -381,6 +389,11 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 	free(buff);
 	if (f != stdin)
 		fclose(f);
+
+	/* Memory has been freed. */
+	bsdtar->conffile_actual = NULL;
+	bsdtar->conffile_buffer = NULL;
+
 	return (ret);
 }
 

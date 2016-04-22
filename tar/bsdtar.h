@@ -134,6 +134,8 @@ struct bsdtar {
 	char		 *conffile;
 	char		 *conf_opt;
 	char		 *conf_arg;
+	FILE		 *conffile_actual;
+	char		 *conffile_buffer;
 
 	/* Used for --dryrun with tarsnap.conf.sample with a missing keyfile. */
 	int		  config_file_keyfile_failed;

@@ -170,6 +170,8 @@ bsdtar_init(void)
 	bsdtar->conffile = NULL;
 	bsdtar->conf_opt = NULL;
 	bsdtar->conf_arg = NULL;
+	bsdtar->conffile_actual = NULL;
+	bsdtar->conffile_buffer = NULL;
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
@@ -199,6 +201,12 @@ bsdtar_atexit(void)
 	free(bsdtar->conffile);
 	free(bsdtar->conf_opt);
 	free(bsdtar->conf_arg);
+
+	/* Free file-parsing variables from util.c. */
+	free(bsdtar->conffile_buffer);
+	if ((bsdtar->conffile_actual != NULL) &&
+	    (bsdtar->conffile_actual != stdin))
+		fclose(bsdtar->conffile_actual);
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);
