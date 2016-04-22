@@ -897,9 +897,11 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		 * makes this more complex than it might sound. */
 		r = archive_read_disk_entry_from_file(bsdtar->diskreader,
 		    entry, -1, st);
-		if (r != ARCHIVE_OK)
+		if (r != ARCHIVE_OK) {
 			bsdtar_warnc(bsdtar, archive_errno(bsdtar->diskreader),
 			    "%s", archive_error_string(bsdtar->diskreader));
+			archive_clear_error(bsdtar->diskreader);
+		}
 		if (r < ARCHIVE_WARN)
 			continue;
 
