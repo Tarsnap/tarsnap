@@ -2,8 +2,6 @@
 
 AUTOMAKE_OPTIONS= foreign subdir-objects
 
-CFLAGS += -Wno-unused-function
-
 #
 # What to build and install
 #
