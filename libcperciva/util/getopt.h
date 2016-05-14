@@ -67,7 +67,7 @@ extern int optind, opterr, optreset;
  * Jump to the appropriate GETOPT_OPT, GETOPT_OPTARG, GETOPT_MISSING_ARG, or
  * GETOPT_DEFAULT based on the option string ${ch}.  When called for the first
  * time, perform magic to index the options.
- * 
+ *
  * GETOPT_SWITCH(ch) is equivalent to "switch (ch)" in a standard getopt loop.
  */
 #define GETOPT_SWITCH(ch)						\
@@ -99,7 +99,7 @@ extern int optind, opterr, optreset;
  * Jump to this point when the option string ${os} is passed to GETOPT_SWITCH,
  * unless no argument is available, in which case jump to GETOPT_MISSING_ARG
  * (if present) or GETOPT_DEFAULT (if not).
- * 
+ *
  * GETOPT_OPTARG("-x") is equivalent to "case 'x'" in a standard getopt loop
  * which has an optstring containing "x:".
  */
@@ -117,7 +117,7 @@ extern int optind, opterr, optreset;
  * GETOPT_MISSING_ARG:
  * Jump to this point if an option string specified in GETOPT_OPTARG is seen
  * but no argument is available.
- * 
+ *
  * GETOPT_MISSING_ARG is equivalent to "case ':'" in a standard getopt loop
  * which has an optstring starting with ":".  As such, it also has the effect
  * of disabling warnings about invalid options, as if opterr had been zeroed.
@@ -137,9 +137,9 @@ extern int optind, opterr, optreset;
  * Jump to this point if an unrecognized option is seen or if an option
  * specified in GETOPT_OPTARG is seen, no argument is available, and there is
  * no GETOPT_MISSING_ARG label.
- * 
+ *
  * GETOPT_DEFAULT is equivalent to "case '?'" in a standard getopt loop.
- * 
+ *
  * NOTE: This MUST be present in the GETOPT_SWITCH statement, and MUST occur
  * after all other GETOPT_* labels.
  */
