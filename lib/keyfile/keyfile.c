@@ -73,10 +73,10 @@ read_raw(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		goto err0;
 	}
 
-	/* Parse machine number. */
+	/* Parse machine number from the first 8 bytes. */
 	*machinenum = be64dec(keybuf);
 
-	/* Parse keys. */
+	/* Parse keys from the remaining buffer. */
 	if (crypto_keys_import(&keybuf[8], keylen - 8, keys))
 		goto err0;
 
