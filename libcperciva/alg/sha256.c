@@ -163,7 +163,7 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 	insecure_memzero(&t1, sizeof(uint32_t));
 }
 
-static uint8_t PAD[64] = {
+static const uint8_t PAD[64] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
