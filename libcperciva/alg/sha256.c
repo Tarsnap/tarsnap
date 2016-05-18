@@ -390,7 +390,7 @@ void
 PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
     size_t saltlen, uint64_t c, uint8_t * buf, size_t dkLen)
 {
-	HMAC_SHA256_CTX PShctx, hctx;
+	HMAC_SHA256_CTX Phctx, PShctx, hctx;
 	size_t i;
 	uint8_t ivec[4];
 	uint8_t U[32];
@@ -402,8 +402,11 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 	/* Sanity-check. */
 	assert(dkLen <= 32 * (size_t)(UINT32_MAX));
 
+	/* Compute HMAC state after processing P. */
+	HMAC_SHA256_Init(&Phctx, passwd, passwdlen);
+
 	/* Compute HMAC state after processing P and S. */
-	HMAC_SHA256_Init(&PShctx, passwd, passwdlen);
+	memcpy(&PShctx, &Phctx, sizeof(HMAC_SHA256_CTX));
 	HMAC_SHA256_Update(&PShctx, salt, saltlen);
 
 	/* Iterate through the blocks. */
@@ -421,7 +424,7 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 
 		for (j = 2; j <= c; j++) {
 			/* Compute U_j. */
-			HMAC_SHA256_Init(&hctx, passwd, passwdlen);
+			memcpy(&hctx, &Phctx, sizeof(HMAC_SHA256_CTX));
 			HMAC_SHA256_Update(&hctx, U, 32);
 			HMAC_SHA256_Final(U, &hctx);
 
@@ -437,6 +440,7 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 		memcpy(&buf[i * 32], T, clen);
 	}
 
-	/* Clean PShctx, since we never called _Final on it. */
+	/* Clean Phctx and PShctx, since we never called _Final on them. */
+	insecure_memzero(&Phctx, sizeof(HMAC_SHA256_CTX));
 	insecure_memzero(&PShctx, sizeof(HMAC_SHA256_CTX));
 }
