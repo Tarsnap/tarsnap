@@ -86,6 +86,10 @@ static const uint32_t K[64] = {
 	    S[(70 - i) % 8], S[(71 - i) % 8],	\
 	    W[i + ii] + K[i + ii])
 
+/* Message schedule computation */
+#define MSCH(W, ii, i)				\
+	W[i + ii + 16] = s1(W[i + ii + 14]) + W[i + ii + 9] + s0(W[i + ii + 1]) + W[i + ii]
+
 /*
  * SHA256 block compression function.  The 256-bit state is transformed via
  * the 512-bit input block to produce a new state.
@@ -98,10 +102,8 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 	uint32_t t0, t1;
 	int i;
 
-	/* 1. Prepare message schedule W. */
+	/* 1. Prepare the first part of the message schedule W. */
 	be32dec_vect(W, block, 64);
-	for (i = 16; i < 64; i++)
-		W[i] = s1(W[i - 2]) + W[i - 7] + s0(W[i - 15]) + W[i - 16];
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, 32);
@@ -124,6 +126,25 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 		RNDr(S, W, 13, i);
 		RNDr(S, W, 14, i);
 		RNDr(S, W, 15, i);
+
+		if (i == 48)
+			break;
+		MSCH(W, 0, i);
+		MSCH(W, 1, i);
+		MSCH(W, 2, i);
+		MSCH(W, 3, i);
+		MSCH(W, 4, i);
+		MSCH(W, 5, i);
+		MSCH(W, 6, i);
+		MSCH(W, 7, i);
+		MSCH(W, 8, i);
+		MSCH(W, 9, i);
+		MSCH(W, 10, i);
+		MSCH(W, 11, i);
+		MSCH(W, 12, i);
+		MSCH(W, 13, i);
+		MSCH(W, 14, i);
+		MSCH(W, 15, i);
 	}
 
 	/* 4. Mix local working variables into global state. */
