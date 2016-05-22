@@ -73,10 +73,9 @@ static const uint32_t K[64] = {
 
 /* SHA256 round function */
 #define RND(a, b, c, d, e, f, g, h, k)			\
-	t0 = h + S1(e) + Ch(e, f, g) + k;		\
-	t1 = S0(a) + Maj(a, b, c);			\
-	d += t0;					\
-	h  = t0 + t1;
+	h += S1(e) + Ch(e, f, g) + k;			\
+	d += h;						\
+	h += S0(a) + Maj(a, b, c);
 
 /* Adjusted round function for rotating state */
 #define RNDr(S, W, i, ii)			\
@@ -99,7 +98,6 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 {
 	uint32_t W[64];
 	uint32_t S[8];
-	uint32_t t0, t1;
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
@@ -154,8 +152,6 @@ SHA256_Transform(uint32_t * state, const uint8_t block[64])
 	/* Clean the stack. */
 	insecure_memzero(W, 256);
 	insecure_memzero(S, 32);
-	insecure_memzero(&t0, sizeof(uint32_t));
-	insecure_memzero(&t1, sizeof(uint32_t));
 }
 
 static const uint8_t PAD[64] = {
