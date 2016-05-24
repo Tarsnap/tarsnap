@@ -165,22 +165,29 @@ static const uint8_t PAD[64] = {
 static void
 SHA256_Pad(SHA256_CTX * ctx)
 {
-	uint8_t len[8];
-	uint32_t r, plen;
+	size_t r;
 
-	/*
-	 * Convert length to a vector of bytes -- we do this now rather
-	 * than later because the length will change after we pad.
-	 */
-	be64enc(len, ctx->count);
-
-	/* Add 1--64 bytes so that the resulting length is 56 mod 64. */
+	/* Figure out how many bytes we have buffered. */
 	r = (ctx->count >> 3) & 0x3f;
-	plen = (r < 56) ? (56 - r) : (120 - r);
-	SHA256_Update(ctx, PAD, (size_t)plen);
+
+	/* Pad to 56 mod 64, transforming if we finish a block en route. */
+	if (r < 56) {
+		/* Pad to 56 mod 64. */
+		memcpy(&ctx->buf[r], PAD, 56 - r);
+	} else {
+		/* Finish the current block and mix. */
+		memcpy(&ctx->buf[r], PAD, 64 - r);
+		SHA256_Transform(ctx->state, ctx->buf);
+
+		/* The start of the final block is all zeroes. */
+		memset(&ctx->buf[0], 0, 56);
+	}
 
 	/* Add the terminating bit-count. */
-	SHA256_Update(ctx, len, 8);
+	be64enc(&ctx->buf[56], ctx->count);
+
+	/* Mix in the final block. */
+	SHA256_Transform(ctx->state, ctx->buf);
 }
 
 /* Magic initialization constants. */
