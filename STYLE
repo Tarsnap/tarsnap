@@ -154,6 +154,9 @@ should be placed logically, i.e., not including punctuation marks which
 do not form a logical part of the quoted text.  Two spaces should be used
 after a period which ends a sentence.
 
+The first local variable declaration in cookie-using functions should be
+	struct foo * bar = cookie;
+
 When versions of functions are written to exploit special CPU features
 (using the cpusupport framework), that code should be placed into a
 separate file (e.g., crypto_aes_aesni.c) so that it can be compiled with
