@@ -363,7 +363,7 @@ Synonym for
 \fB\--humanize-numbers\fP
 Use SI prefixes to make numbers printed by
 \fB\--print-stats\fP
-more readable.
+and SIGINFO more readable.
 .TP
 \fB\-I\fP
 Synonym for

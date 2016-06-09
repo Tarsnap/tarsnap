@@ -345,7 +345,7 @@ Synonym for
 .It Fl -humanize-numbers
 Use SI prefixes to make numbers printed by
 .Fl -print-stats
-more readable.
+and SIGINFO more readable.
 .It Fl I
 Synonym for
 .Fl T .
