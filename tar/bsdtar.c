@@ -345,6 +345,10 @@ main(int argc, char **argv)
 	bsdtar->delopt = NULL;
 	bsdtar->delopt_tail = &bsdtar->delopt;
 
+	/* Check if the first argument is the --debug flag. */
+	if ((bsdtar->argc > 1) && (strcmp("--debug", bsdtar->argv[1]) == 0))
+		fprintf(stderr, "Command-line arguments (after --debug):\n");
+
 	/*
 	 * Comments following each option indicate where that option
 	 * originated:  SUSv2, POSIX, GNU tar, star, etc.  If there's
@@ -352,6 +356,13 @@ main(int argc, char **argv)
 	 * implements that option.
 	 */
 	while ((opt = bsdtar_getopt(bsdtar)) != -1) {
+		if (bsdtar->option_debug) {
+			if (opt < 256)
+				fprintf(stderr, "  %c %s\n", (char) opt, bsdtar->optarg);
+			else
+				fprintf(stderr, "  %i %s\n", opt, bsdtar->optarg);
+		}
+
 		switch (opt) {
 		case OPTION_AGGRESSIVE_NETWORKING: /* tarsnap */
 			optq_push(bsdtar, "aggressive-networking", NULL);
@@ -404,6 +415,9 @@ main(int argc, char **argv)
 			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
+			break;
+		case OPTION_DEBUG: /* tarsnap */
+			bsdtar->option_debug = 1;
 			break;
 		case OPTION_DISK_PAUSE: /* tarsnap */
 			optq_push(bsdtar, "disk-pause", bsdtar->optarg);
@@ -735,6 +749,9 @@ main(int argc, char **argv)
 		}
 	}
 
+	if (bsdtar->option_debug)
+		fprintf(stderr, "  /* end command-line arguments */\n");
+
 	/*
 	 * Sanity-check options.
 	 */
@@ -799,6 +816,9 @@ main(int argc, char **argv)
 		/* Process options from system-wide tarsnap.conf. */
 		configfile(bsdtar, ETC_TARSNAP_CONF);
 	}
+
+	if (bsdtar->option_debug)
+		fprintf(stderr, "tarsnap %s\n\n", PACKAGE_VERSION);
 
 	/* Continue with more sanity-checking. */
 	if ((bsdtar->ntapes == 0) &&
@@ -1226,6 +1246,9 @@ configfile(struct bsdtar *bsdtar, const char *fname)
 {
 	struct stat sb;
 
+	if (bsdtar->option_debug)
+		fprintf(stderr, "Reading from config file: %s\n", fname);
+
 	/*
 	 * If we had --no-config-exclude (or --no-config-include) earlier,
 	 * we do not want to process any --exclude (or --include) options
@@ -1256,6 +1279,9 @@ configfile(struct bsdtar *bsdtar, const char *fname)
 
 	/* Process the file. */
 	process_lines(bsdtar, fname, configfile_helper, 0);
+
+	if (bsdtar->option_debug)
+		fprintf(stderr, "  /* end config file */\n");
 }
 
 /* Process a line of configuration file. */
@@ -1273,6 +1299,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Ignore comments and blank lines. */
 	if ((line[0] == '#') || (line[0] == '\0'))
 		return (0);
+	
+	if (bsdtar->option_debug)
+		fprintf(stderr, "  %s\n", line);
 
 	/* Duplicate line. */
 	if ((bsdtar->conf_opt = strdup(line)) == NULL)

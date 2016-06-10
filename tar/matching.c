@@ -150,8 +150,12 @@ excluded(struct bsdtar *bsdtar, const char *pathname)
 
 	/* Exclusions take priority */
 	for (match = matching->exclusions; match != NULL; match = match->next){
-		if (match_exclusion(match, pathname))
+		if (match_exclusion(match, pathname)) {
+			if (bsdtar->option_debug)
+				fprintf(stderr, "  Excluding %s due to rule: %s\n",
+					pathname, match->pattern);
 			return (1);
+		}
 	}
 
 	/* Then check for inclusions */
@@ -184,8 +188,12 @@ excluded(struct bsdtar *bsdtar, const char *pathname)
 	}
 
 	/* If there were inclusions, default is to exclude. */
-	if (matching->inclusions != NULL)
+	if (matching->inclusions != NULL) {
+		if (bsdtar->option_debug)
+			fprintf(stderr, "  Excluding %s due to not being included.\n",
+				pathname);
 	    return (1);
+	}
 
 	/* No explicit inclusions, default is to match. */
 	return (0);

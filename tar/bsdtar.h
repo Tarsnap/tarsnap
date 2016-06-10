@@ -92,6 +92,7 @@ struct bsdtar {
 	int		  disk_pause;		/* --disk-pause */
 	int		  option_aggressive_networking_set;
 	int		  option_cachecrunch_set;
+	int		  option_debug;
 	int		  option_disk_pause_set;
 	int		  option_humanize_numbers_set;
 	int		  option_maxbw_set;
@@ -180,6 +181,7 @@ enum {
 	OPTION_CONFIGFILE,
 	OPTION_CREATIONTIME,
 	OPTION_CSV_FILE,
+	OPTION_DEBUG,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,

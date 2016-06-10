@@ -79,6 +79,7 @@ static struct option {
 	{ "create",               0, 'c' },
 	{ "creationtime",         1, OPTION_CREATIONTIME },
 	{ "csv-file",		  1, OPTION_CSV_FILE },
+	{ "debug",		  0, OPTION_DEBUG },
 	{ "dereference",	  0, 'L' },
 	{ "directory",            1, 'C' },
 	{ "disk-pause",		  1, OPTION_DISK_PAUSE },
