@@ -6,10 +6,10 @@ cachedir /usr/local/tarsnap-cache
 # Tarsnap key file
 keyfile /root/tarsnap.key
 
-# Don't archive files which have the nodump flag set
+# Don't archive files which have the nodump flag set.
 nodump
 
-# Print statistics when creating or deleting archives
+# Print statistics when creating or deleting archives.
 print-stats
 
 # Create a checkpoint once per GB of uploaded data.
@@ -17,7 +17,7 @@ checkpoint-bytes 1G
 
 ### Commonly useful options
 
-# Use SI prefixes to make numbers printed by --print-stats more readable
+# Use SI prefixes to make numbers printed by --print-stats more readable.
 #humanize-numbers
 
 ### Other options, not applicable to most systems
@@ -28,10 +28,10 @@ checkpoint-bytes 1G
 # factor in upload performance.
 #aggressive-networking
 
-# Exclude files and directories matching specified patterns
+# Exclude files and directories matching specified patterns.
 #exclude
 
-# Include only files and directories matching specified patterns
+# Include only files and directories matching specified patterns.
 #include
 
 # Attempt to reduce tarsnap memory consumption.  This option
