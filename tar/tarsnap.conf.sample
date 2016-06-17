@@ -29,9 +29,13 @@ checkpoint-bytes 1G
 #aggressive-networking
 
 # Exclude files and directories matching specified patterns.
+# Only one file or directory per command; multiple "exclude"
+# commands may be given.
 #exclude
 
 # Include only files and directories matching specified patterns.
+# Only one file or directory per command; multiple "include"
+# commands may be given.
 #include
 
 # Attempt to reduce tarsnap memory consumption.  This option
