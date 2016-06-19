@@ -42,7 +42,7 @@ be32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
 }
 
 /* SHA256 round constants. */
-static const uint32_t K[64] = {
+static const uint32_t Krnd[64] = {
 	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
 	0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
 	0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -83,7 +83,7 @@ static const uint32_t K[64] = {
 	    S[(66 - i) % 8], S[(67 - i) % 8],	\
 	    S[(68 - i) % 8], S[(69 - i) % 8],	\
 	    S[(70 - i) % 8], S[(71 - i) % 8],	\
-	    W[i + ii] + K[i + ii])
+	    W[i + ii] + Krnd[i + ii])
 
 /* Message schedule computation */
 #define MSCH(W, ii, i)				\
