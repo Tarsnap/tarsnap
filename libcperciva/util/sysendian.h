@@ -22,7 +22,7 @@ be16dec(const void * pp)
 {
 	const uint8_t * p = (uint8_t const *)pp;
 
-	return ((uint16_t)(p[1]) + ((uint16_t)(p[0]) << 8));
+	return (uint16_t)((uint16_t)(p[1]) + ((uint16_t)(p[0]) << 8));
 }
 
 static inline void
@@ -85,7 +85,7 @@ le16dec(const void * pp)
 {
 	const uint8_t * p = (uint8_t const *)pp;
 
-	return ((uint16_t)(p[0]) + ((uint16_t)(p[1]) << 8));
+	return (uint16_t)((uint16_t)(p[0]) + ((uint16_t)(p[1]) << 8));
 }
 
 static inline void
