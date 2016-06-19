@@ -2,6 +2,7 @@
 #define _WARNP_H_
 
 #include <errno.h>
+#include <stddef.h>
 
 /* Avoid namespace collisions with BSD <err.h>. */
 #define warn libcperciva_warn
