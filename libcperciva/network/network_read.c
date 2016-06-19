@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include "events.h"
-#include "warnp.h"
 
 #include "network.h"
 
