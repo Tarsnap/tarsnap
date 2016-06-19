@@ -4,8 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Opaque type. */
+/* Opaque types. */
 struct crypto_aes_key;
+struct crypto_aesctr;
 
 /**
  * crypto_aesctr_init(key, nonce):
