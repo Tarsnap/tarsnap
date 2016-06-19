@@ -1,5 +1,6 @@
 #include <sys/time.h>
 
+#include <errno.h>
 #include <time.h>
 
 #include "warnp.h"
