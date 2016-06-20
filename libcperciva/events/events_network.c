@@ -255,7 +255,7 @@ events_network_select(struct timeval * tv)
 	events_network_selectstats_select();
 
 	/* Select. */
-	while (select(socketlist_getsize(S), &readfds, &writefds,
+	while (select((int)socketlist_getsize(S), &readfds, &writefds,
 	    NULL, tv) == -1) {
 		/* EINTR is harmless. */
 		if (errno == EINTR)
