@@ -20,12 +20,16 @@ A list of major changes in each version is given in [NEWS.md](NEWS.md).
 Building from git
 -----------------
 
-Normal users should only use the signed tarballs from tarsnap.com,
-but for experimental development, use:
+Normal users should only use the signed tarballs from https://tarsnap.com, but
+for experimental development, use:
 
     autoreconf -i
     ./configure
     make
+
+In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive, you will need
+to install the autoconf archive.  On Debian systems, use the
+`autoconf-archive` package; on FreeBSD, use `devel/autoconf-archive`.
 
 
 Packaging notes
