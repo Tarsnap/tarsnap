@@ -278,9 +278,9 @@ sock_resolve(const char * addr)
 
 	/* If the IP address contains ':', it's IPv6; otherwise, IPv4. */
 	if (strchr(ips, ':') != NULL)
-		res = sock_resolve_ipv6(ips, p);
+		res = sock_resolve_ipv6(ips, (in_port_t)p);
 	else
-		res = sock_resolve_ipv4(ips, p);
+		res = sock_resolve_ipv4(ips, (in_port_t)p);
 
 done1:
 	/* Free string allocated by strdup. */
