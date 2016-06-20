@@ -97,7 +97,7 @@ b64decode(const char * in, size_t inlen, uint8_t * out, size_t * outlen)
 
 		/* Output 3 bytes. */
 		for (i = 0; i < 3; i++) {
-			out[i] = t >> 16;
+			out[i] = (t >> 16) & 0xff;
 			t <<= 8;
 		}
 
