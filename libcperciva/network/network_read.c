@@ -65,7 +65,7 @@ callback_buf(void * cookie)
 	}
 
 	/* We processed some data. */
-	C->bufpos += len;
+	C->bufpos += (size_t)len;
 
 	/* Do we need to keep going? */
 	if (C->bufpos < C->minlen)
