@@ -71,8 +71,11 @@ callback_buf(void * cookie)
 	if (C->bufpos < C->minlen)
 		goto tryagain;
 
+	/* Sanity-check: buffer position must fit into a ssize_t. */
+	assert(C->bufpos <= SSIZE_MAX);
+
 	/* Invoke the callback and return. */
-	return (docallback(C, C->bufpos));
+	return (docallback(C, (ssize_t)C->bufpos));
 
 tryagain:
 	/* Reset the event. */
