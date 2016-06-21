@@ -54,8 +54,8 @@ entropy_read(uint8_t * buf, size_t buflen)
 		}
 
 		/* We've filled a portion of the buffer. */
-		buf += lenread;
-		buflen -= lenread;
+		buf += (size_t)lenread;
+		buflen -= (size_t)lenread;
 	}
 
 	/* Close the device. */
