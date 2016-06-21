@@ -116,14 +116,14 @@ events_network_register(int (*func)(void *), void * cookie, int s, int op)
 
 	/* Grow the array if necessary. */
 	if (((size_t)(s) >= socketlist_getsize(S)) &&
-	    (growsocketlist(s + 1) != 0))
+	    (growsocketlist((size_t)s + 1) != 0))
 		goto err0;
 
 	/* Look up the relevant event pointer. */
 	if (op == EVENTS_NETWORK_OP_READ)
-		r = &socketlist_get(S, s)->reader;
+		r = &socketlist_get(S, (size_t)s)->reader;
 	else
-		r = &socketlist_get(S, s)->writer;
+		r = &socketlist_get(S, (size_t)s)->writer;
 
 	/* Error out if we already have an event registered. */
 	if (*r != NULL) {
@@ -186,9 +186,9 @@ events_network_cancel(int s, int op)
 
 	/* Look up the relevant event pointer. */
 	if (op == EVENTS_NETWORK_OP_READ)
-		r = &socketlist_get(S, s)->reader;
+		r = &socketlist_get(S, (size_t)s)->reader;
 	else
-		r = &socketlist_get(S, s)->writer;
+		r = &socketlist_get(S, (size_t)s)->writer;
 
 	/* Check if we have an event. */
 	if (*r == NULL) {
