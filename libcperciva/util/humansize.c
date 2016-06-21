@@ -93,10 +93,10 @@ humansize_parse(const char * s, uint64_t * size)
 					state = -1;
 				else
 					*size *= 10;
-				if (*size > UINT64_MAX - (*s - '0'))
+				if (*size > UINT64_MAX - (uint64_t)(*s - '0'))
 					state = -1;
 				else
-					*size += *s - '0';
+					*size += (uint64_t)(*s - '0');
 				break;
 			}
 
