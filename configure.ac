@@ -60,7 +60,7 @@ AM_CONDITIONAL([INC_WINDOWS_FILES], [test $inc_windows_files = yes])
 AM_CONDITIONAL([INC_CYGWIN_FILES], [test $inc_cygwin_files = yes])
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_TOOL([STRIP],[strip])
