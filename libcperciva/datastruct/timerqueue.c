@@ -90,7 +90,7 @@ err0:
 
 /**
  * timerqueue_add(Q, tv, ptr):
- * Add the pair (${tv}, ${ptr}) to the priority queue ${Q}.  Returns a cookie
+ * Add the pair (${tv}, ${ptr}) to the priority queue ${Q}.  Return a cookie
  * which can be passed to timerqueue_delete or timerqueue_increase.
  */
 void *
