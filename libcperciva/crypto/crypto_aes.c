@@ -73,9 +73,9 @@ useaesni(void)
 
 		/* Test cases: key is 0x00010203..., ptext is 0x00112233... */
 		for (i = 0; i < 16; i++)
-			ptext[i] = 0x11 * i;
+			ptext[i] = (0x11 * i) & 0xff;
 		for (i = 0; i < 32; i++)
-			key[i] = i;
+			key[i] = i & 0xff;
 
 		/* Test that AESNI and OpenSSL produce the same results. */
 		if (aesnitest(ptext, key, 16) || aesnitest(ptext, key, 32)) {
