@@ -30,8 +30,11 @@ aesnitest(uint8_t ptext[16], uint8_t * key, size_t len)
 	uint8_t ctext_openssl[16];
 	uint8_t ctext_aesni[16];
 
+	/* Sanity-check. */
+	assert((len == 16) || (len == 32));
+
 	/* Expand the key. */
-	AES_set_encrypt_key(key, len * 8, &kexp_openssl);
+	AES_set_encrypt_key(key, (int)(len * 8), &kexp_openssl);
 	if ((kexp_aesni = crypto_aes_key_expand_aesni(key, len)) == NULL)
 		goto err0;
 
@@ -112,7 +115,7 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 		goto err0;
 
 	/* Expand the key. */
-	AES_set_encrypt_key(key, len * 8, kexp);
+	AES_set_encrypt_key(key, (int)(len * 8), kexp);
 
 	/* Success! */
 	return ((void *)kexp);
