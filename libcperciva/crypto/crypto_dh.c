@@ -45,7 +45,7 @@ blinded_modexp(uint8_t r[CRYPTO_DH_PUBLEN], BIGNUM * a,
 	BN_CTX * ctx;
 	BIGNUM * r1;
 	BIGNUM * r2;
-	size_t rlen;
+	int rlen;
 
 	/* Construct 2^256 in BN representation. */
 	if ((two_exp_256_bn = BN_bin2bn(two_exp_256, 33, NULL)) == NULL) {
@@ -127,11 +127,15 @@ blinded_modexp(uint8_t r[CRYPTO_DH_PUBLEN], BIGNUM * a,
 		goto err8;
 	}
 	rlen = BN_num_bytes(r1);
+	if (rlen < 0) {
+		warn0("Unexpected error in OpenSSL");
+		goto err8;
+	}
 	if (rlen > CRYPTO_DH_PUBLEN) {
 		warn0("Exponent result too large!");
 		goto err8;
 	}
-	memset(r, 0, CRYPTO_DH_PUBLEN - rlen);
+	memset(r, 0, CRYPTO_DH_PUBLEN - (size_t)rlen);
 	BN_bn2bin(r1, r + CRYPTO_DH_PUBLEN - rlen);
 
 	/* Free space allocated by BN_new. */
