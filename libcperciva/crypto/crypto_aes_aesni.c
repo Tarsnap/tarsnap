@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <wmmintrin.h>
 
 #include "insecure_memzero.h"
