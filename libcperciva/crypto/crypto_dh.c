@@ -136,7 +136,7 @@ blinded_modexp(uint8_t r[CRYPTO_DH_PUBLEN], BIGNUM * a,
 		goto err8;
 	}
 	memset(r, 0, CRYPTO_DH_PUBLEN - (size_t)rlen);
-	BN_bn2bin(r1, r + CRYPTO_DH_PUBLEN - rlen);
+	BN_bn2bin(r1, &r[CRYPTO_DH_PUBLEN - (size_t)rlen]);
 
 	/* Free space allocated by BN_new. */
 	BN_clear_free(r2);
