@@ -2,6 +2,7 @@
 
 - tarsnap now accepts an --initialize-cachedir command, which is intended for
   the GUI and is not needed for command-line usage.
+- tarsnap now applies --humanize-numbers to the SIGINFO "progress" output.
 
 
 Tarsnap Releases
