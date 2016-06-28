@@ -33,6 +33,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/siginfo.c,v 1.2 2008/05/22 21:08:36 cperciva
 #include <string.h>
 
 #include "bsdtar.h"
+#include "humansize.h"
+#include "tarsnap_opt.h"
 
 /* Is there a pending SIGINFO or SIGUSR1? */
 static volatile sig_atomic_t siginfo_received = 0;
@@ -114,6 +116,8 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 void
 siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 {
+	char * s_progress;
+	char * s_size;
 
 	/* If there's a signal to handle and we know what we're doing... */
 	if ((siginfo_received == 1) &&
@@ -122,9 +126,26 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
 		if (bsdtar->siginfo->size > 0) {
-			safe_fprintf(stderr, "%s %s (%ju / %" PRId64 " bytes)",
-			    bsdtar->siginfo->oper, bsdtar->siginfo->path,
-			    (uintmax_t)progress, bsdtar->siginfo->size);
+			if (tarsnap_opt_humanize_numbers) {
+				if ((s_progress = humansize(progress)) == NULL)
+					goto err0;
+				if ((s_size = humansize(bsdtar->siginfo->size))
+				    == NULL)
+					goto err1;
+				safe_fprintf(stderr, "%s %s (%s / %s bytes",
+				    bsdtar->siginfo->oper,
+				    bsdtar->siginfo->path, s_progress,
+				    s_size);
+
+				/* Clean up. */
+				free(s_progress);
+				free(s_size);
+			} else {
+				safe_fprintf(stderr, "%s %s (%ju / %" PRId64
+				    " bytes)", bsdtar->siginfo->oper,
+				    bsdtar->siginfo->path, (uintmax_t)progress,
+				    bsdtar->siginfo->size);
+			}
 		} else {
 			safe_fprintf(stderr, "%s %s",
 			    bsdtar->siginfo->oper, bsdtar->siginfo->path);
@@ -133,6 +154,15 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 			fprintf(stderr, "\n");
 		siginfo_received = 0;
 	}
+
+	/* Success! */
+	return;
+
+err1:
+	free(s_progress);
+err0:
+	/* Failure! */
+	bsdtar_errc(bsdtar, 1, ENOMEM, "Cannot allocate memory");
 }
 
 void
