@@ -205,7 +205,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	if (read_plaintext(deckeybuf, deckeylen, machinenum, filename, keys))
 		goto err3;
 
-	/* Clean up. */
+	/* Clean up.  We only used the first deckeylen values of deckeybuf. */
 	memset(deckeybuf, 0, deckeylen);
 	free(deckeybuf);
 	free(passwd);
@@ -215,6 +215,10 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	return (0);
 
 err3:
+	/*
+	 * Depending on the error, we might not know how much data was written
+	 * to deckeybuf, so we play safe by zeroing the entire allocated array.
+	 */
 	memset(deckeybuf, 0, keylen);
 	free(deckeybuf);
 err2:
