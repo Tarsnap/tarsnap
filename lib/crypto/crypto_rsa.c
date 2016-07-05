@@ -163,7 +163,7 @@ crypto_rsa_verify(int key, const uint8_t * data, size_t len,
 	uint8_t Mprime[72];
 	uint8_t Hprime[32];
 	size_t i;
-	int rsaerr;
+	unsigned long rsaerr;
 
 	/* Sanity check. */
 	assert(siglen < INT_MAX);
@@ -377,7 +377,7 @@ crypto_rsa_decrypt(int key, const uint8_t * data, size_t len,
 	uint8_t DB[223];
 	size_t msglen;
 	size_t i;
-	int rsaerr;
+	unsigned long rsaerr;
 
 	/* Sanity check. */
 	assert(len < INT_MAX);
