@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -164,6 +165,9 @@ crypto_rsa_verify(int key, const uint8_t * data, size_t len,
 	size_t i;
 	int rsaerr;
 
+	/* Sanity check. */
+	assert(siglen < INT_MAX);
+
 	/* Find the required key. */
 	if ((rsa = crypto_keys_lookup_RSA(key)) == NULL)
 		goto err0;
@@ -180,7 +184,8 @@ crypto_rsa_verify(int key, const uint8_t * data, size_t len,
 	}
 
 	/* Convert the signature to EM, via RSA. */
-	if (RSA_public_decrypt(siglen, sig, EM, rsa, RSA_NO_PADDING) != 256) {
+	if (RSA_public_decrypt((int)siglen, sig, EM, rsa, RSA_NO_PADDING)
+	    != 256) {
 		/*
 		 * We can only distinguish between a bad signature and an
 		 * internal error in OpenSSL by looking at the error code.
@@ -374,6 +379,9 @@ crypto_rsa_decrypt(int key, const uint8_t * data, size_t len,
 	size_t i;
 	int rsaerr;
 
+	/* Sanity check. */
+	assert(len < INT_MAX);
+
 	/* Find the required key. */
 	if ((rsa = crypto_keys_lookup_RSA(key)) == NULL)
 		goto err0;
@@ -397,7 +405,8 @@ crypto_rsa_decrypt(int key, const uint8_t * data, size_t len,
 	}
 
 	/* Convert the ciphertext to EM, via RSA. */
-	if (RSA_private_decrypt(len, data, EM, rsa, RSA_NO_PADDING) != 256) {
+	if (RSA_private_decrypt((int)len, data, EM, rsa, RSA_NO_PADDING)
+	    != 256) {
 		/*
 		 * We can only distinguish between bad ciphertext and an
 		 * internal error in OpenSSL by looking at the error code.
