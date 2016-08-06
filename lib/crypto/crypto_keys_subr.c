@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -375,6 +376,9 @@ crypto_keys_subr_export_HMAC(struct crypto_hmac_key * key, uint8_t * buf,
 		goto err0;
 	}
 
+	/* Sanity check.  (uint32_t)(-1) is reserved for errors. */
+	assert(key->len < UINT32_MAX - 1);
+
 	if (buf != NULL) {
 		if (buflen < key->len) {
 			warn0("Unexpected end of key buffer");
@@ -385,7 +389,7 @@ crypto_keys_subr_export_HMAC(struct crypto_hmac_key * key, uint8_t * buf,
 	}
 
 	/* Success! */
-	return (key->len);
+	return ((uint32_t)(key->len));
 
 err0:
 	/* Failure! */

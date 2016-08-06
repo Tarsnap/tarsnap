@@ -472,7 +472,7 @@ crypto_keys_export(int keys, uint8_t ** buf, size_t * buflen)
 		/* Write key header. */
 		kh = *buf + bufpos;
 		le32enc(&kh[KEYHEADER_OFFSET_LEN], len);
-		kh[KEYHEADER_OFFSET_TYPE] = key;
+		kh[KEYHEADER_OFFSET_TYPE] = key & 0xff;
 
 		/* Advance buffer position. */
 		bufpos += KEYHEADER_LEN + len;
