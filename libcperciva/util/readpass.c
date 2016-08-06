@@ -106,7 +106,7 @@ readpass(char ** passwd, const char * prompt,
 			goto err2;
 		}
 		memcpy(&term, &term_old, sizeof(struct termios));
-		term.c_lflag = (term.c_lflag & ~ECHO) | ECHONL;
+		term.c_lflag = (term.c_lflag & ~((tcflag_t)ECHO)) | ECHONL;
 		if (tcsetattr(fileno(readfrom), TCSANOW, &term)) {
 			warnp("Cannot set terminal settings");
 			goto err2;
