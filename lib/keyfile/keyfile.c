@@ -11,6 +11,7 @@
 
 #include "b64encode.h"
 #include "crypto.h"
+#include "insecure_memzero.h"
 #include "readpass.h"
 #include "scryptenc.h"
 #include "sysendian.h"
@@ -199,14 +200,14 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	 * Don't need this any more.  To simplify error handling, we zero
 	 * this here but free it later.
 	 */
-	memset(passwd, 0, strlen(passwd));
+	insecure_memzero(passwd, strlen(passwd));
 
 	/* Process the decrypted key file. */
 	if (read_plaintext(deckeybuf, deckeylen, machinenum, filename, keys))
 		goto err3;
 
-	/* Clean up. */
-	memset(deckeybuf, 0, deckeylen);
+	/* Clean up.  We only used the first deckeylen values of deckeybuf. */
+	insecure_memzero(deckeybuf, deckeylen);
 	free(deckeybuf);
 	free(passwd);
 	free(pwprompt);
@@ -215,10 +216,14 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	return (0);
 
 err3:
-	memset(deckeybuf, 0, keylen);
+	/*
+	 * Depending on the error, we might not know how much data was written
+	 * to deckeybuf, so we play safe by zeroing the entire allocated array.
+	 */
+	insecure_memzero(deckeybuf, keylen);
 	free(deckeybuf);
 err2:
-	memset(passwd, 0, strlen(passwd));
+	insecure_memzero(passwd, strlen(passwd));
 	free(passwd);
 err1:
 	free(pwprompt);
@@ -340,7 +345,7 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 		goto err1;
 
 	/* Zero and free memory. */
-	memset(decbuf, 0, decbuflen);
+	insecure_memzero(decbuf, decbuflen);
 	free(decbuf);
 
 	/* Success! */
@@ -349,7 +354,7 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 err2:
 	warn0("Key file is corrupt on line %zu: %s", lnum, filename);
 err1:
-	memset(decbuf, 0, decbuflen);
+	insecure_memzero(decbuf, decbuflen);
 	free(decbuf);
 err0:
 	/* Failure! */
@@ -415,7 +420,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 	}
 
 	/* Zero and free memory. */
-	memset(keybuf, 0, sb.st_size);
+	insecure_memzero(keybuf, sb.st_size);
 	free(keybuf);
 
 	/* Success! */
@@ -424,7 +429,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 err2:
 	fclose(f);
 err1:
-	memset(keybuf, 0, sb.st_size);
+	insecure_memzero(keybuf, sb.st_size);
 	free(keybuf);
 err0:
 	/* Failure! */
@@ -546,7 +551,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	 * Don't need this any more.  To simplify error handling, we zero
 	 * this here but free it later.
 	 */
-	memset(keybuf, 0, keybuflen);
+	insecure_memzero(keybuf, keybuflen);
 
 	/* If we have a passphrase, we want to encrypt. */
 	if (passphrase != NULL) {
@@ -587,13 +592,13 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 
 		/* Error out if the encryption failed. */
 		if (rc != 0) {
-			memset(encrbuf, 0, tskeylen + 128);
+			insecure_memzero(encrbuf, tskeylen + 128);
 			free(encrbuf);
 			goto err2;
 		}
 
 		/* Switch key buffers. */
-		memset(tskeybuf, 0, tskeylen);
+		insecure_memzero(tskeybuf, tskeylen);
 		free(tskeybuf);
 		tskeylen = tskeylen + 128;
 		tskeybuf = encrbuf;
@@ -636,7 +641,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	}
 
 	/* Zero and free key buffers. */
-	memset(tskeybuf, 0, tskeylen);
+	insecure_memzero(tskeybuf, tskeylen);
 	free(tskeybuf);
 	free(keybuf);
 
@@ -644,10 +649,10 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	return (0);
 
 err2:
-	memset(tskeybuf, 0, tskeylen);
+	insecure_memzero(tskeybuf, tskeylen);
 	free(tskeybuf);
 err1:
-	memset(keybuf, 0, keybuflen);
+	insecure_memzero(keybuf, keybuflen);
 	free(keybuf);
 err0:
 	/* Failure! */
