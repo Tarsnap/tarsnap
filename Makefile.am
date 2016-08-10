@@ -251,7 +251,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
-	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
 EXTRA_DIST=	\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
