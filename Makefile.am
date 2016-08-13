@@ -355,7 +355,7 @@ tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
 		libarchive/archive.h		\
 		$(LIBTARSNAP_A)
 
-tarsnap_LDADD= -lcrypto libarchive/libarchive.a $(LIBTARSNAP_A)
+tarsnap_LDADD= libarchive/libarchive.a $(LIBTARSNAP_A)
 tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/libarchive		\
 		-DLIBARCHIVE_STATIC			\
@@ -389,7 +389,7 @@ tarsnap_keygen_SOURCES=	keygen/keygen.c			\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
-tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keygen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keygen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -417,7 +417,7 @@ tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
-tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keyregen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keyregen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -456,7 +456,7 @@ tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_transaction.c
 
-tarsnap_recrypt_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_recrypt_LDADD= $(LIBTARSNAP_A)
 tarsnap_recrypt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
@@ -483,7 +483,7 @@ tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 
 tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 
-tarsnap_keymgmt_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I${top_srcdir}/libarchive		\
