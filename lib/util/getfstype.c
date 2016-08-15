@@ -1,3 +1,6 @@
+/* We use non-POSIX functionality in this file. */
+#undef _POSIX_C_SOURCE
+
 #include "bsdtar_platform.h"
 
 #ifdef HAVE_SYS_PARAM_H
