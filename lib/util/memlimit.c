@@ -26,6 +26,10 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
+
+/* We use non-POSIX functionality in this file. */
+#undef _POSIX_C_SOURCE
+
 #include "bsdtar_platform.h"
 
 #include <sys/types.h>
