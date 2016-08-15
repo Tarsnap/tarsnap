@@ -94,6 +94,7 @@ struct bsdtar {
 	int		  option_cachecrunch_set;
 	int		  option_disk_pause_set;
 	int		  option_humanize_numbers_set;
+	int		  option_keep_going_set;
 	int		  option_maxbw_set;
 	int		  option_maxbw_rate_down_set;
 	int		  option_maxbw_rate_up_set;
@@ -213,6 +214,7 @@ enum {
 	OPTION_NO_DISK_PAUSE,
 	OPTION_NO_HUMANIZE_NUMBERS,
 	OPTION_NO_INSANE_FILESYSTEMS,
+	OPTION_NO_KEEP_GOING,
 	OPTION_NO_MAXBW,
 	OPTION_NO_MAXBW_RATE_DOWN,
 	OPTION_NO_MAXBW_RATE_UP,

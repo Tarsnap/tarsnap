@@ -499,6 +499,10 @@ option specified in a configuration file.
 Ignore any
 .Cm insane-filesystems
 option specified in a configuration file.
+.It Fl -no-keep-going
+Ignore any
+.Cm keep-going
+option specified in a configuration file.
 .It Fl -no-maxbw
 Ignore any
 .Cm maxbw
