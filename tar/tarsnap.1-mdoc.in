@@ -143,7 +143,7 @@ Run as
 .Fl -fsck ,
 but if corrupt archives are detected, prune the broken data.
 .It Fl -initialize-cachedir
-Creates and initializes the cachedir.  This option is intended for the GUI and
+Create and initialize the cachedir.  This option is intended for the GUI and
 is not needed for command-line usage.
 .It Fl -nuke
 Delete all of the archives stored.
@@ -153,7 +153,7 @@ will ask you to type the text "No Tomorrow" when using the
 .Fl -nuke
 command.
 .It Fl -verify-config
-Checks the configuration file(s) for syntactic errors.
+Check the configuration file(s) for syntactic errors.
 .It Fl -version
 Print version number of
 .Nm ,
@@ -756,7 +756,7 @@ the memory usage when
 .Fl -lowmem
 is specified, by not caching anything.
 .It Fl -verify-config
-Checks the configuration file(s) for syntactic errors.
+Check the configuration file(s) for syntactic errors.
 .It Fl -version
 Print version number of
 .Nm ,
