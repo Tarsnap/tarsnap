@@ -34,3 +34,6 @@ confmf
 /tarsnap-keymgmt
 /tarsnap-keyregen
 /tarsnap-recrypt
+
+# ignore python cache
+tools/__pycache__
