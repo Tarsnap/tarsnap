@@ -25,11 +25,14 @@ tarsnap server, and writes a key file for use with
 .Xr tarsnap 1 .
 .Pp
 The
-.Fl -keyfile ,
-.Fl -user ,
-and
-.Fl -machine
-parameters are all required.
+.Fl -keyfile Ar key-file
+option specifies the name of the file in which to write the newly-generated
+keys.  The
+.Fl -user Ar user-name
+option specifies the name (i.e. email address) of the Tarsnap account.  The
+.Fl -machine Ar machine-name
+option specifies a name which will be displayed in accounting reports so that
+you can see how much data each machine is storing.
 .Pp
 If the
 .Fl -passphrased
