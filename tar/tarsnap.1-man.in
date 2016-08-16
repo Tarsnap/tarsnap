@@ -397,6 +397,10 @@ Allow descent into synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .TP
+\fB\--iso-dates\fP
+(-t mode only)
+Print file and directory dates as yyyy-mm-dd hh:mm:ss.
+.TP
 \fB\-k\fP
 (x mode only)
 Do not overwrite existing files.
@@ -548,6 +552,11 @@ option specified in a configuration file.
 \fB\--no-insane-filesystems\fP
 Ignore any
 \fBinsane-filesystems\fP
+option specified in a configuration file.
+.TP
+\fB\--no-iso-dates\fP
+Ignore any
+\fBiso-dates\fP
 option specified in a configuration file.
 .TP
 \fB\--no-maxbw\fP
