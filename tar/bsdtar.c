@@ -1237,10 +1237,20 @@ configfile(struct bsdtar *bsdtar, const char *fname, int fromcmdline)
 	bsdtar->option_no_config_include_set =
 	    bsdtar->option_no_config_include;
 
-	/* If the file doesn't exist, do nothing. */
 	if (stat(fname, &sb)) {
-		if (errno == ENOENT)
-			return;
+		/* Missing file. */
+		if (errno == ENOENT) {
+			if (fromcmdline) {
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Cannot read config file: %s", fname);
+			} else {
+				/*
+				 * If the file wasn't specified on the
+				 * command-line, do nothing.
+				 */
+				return;
+			}
+		}
 
 		/*
 		 * Something bad happened.  Note that this could occur if
