@@ -111,6 +111,8 @@ struct bsdtar {
 	int		  option_retry_forever_set;
 	int		  option_insane_filesystems;
 	int		  option_insane_filesystems_set;
+	int		  option_iso_dates;
+	int		  option_iso_dates_set;
 	const char	**configfiles;		/* --configfile */
 	size_t 		  nconfigfiles;
 	int		  option_no_default_config; /* --no-default-config */
@@ -191,6 +193,7 @@ enum {
 	OPTION_INCLUDE,
 	OPTION_INITIALIZE_CACHEDIR,
 	OPTION_INSANE_FILESYSTEMS,
+	OPTION_ISO_DATES,
 	OPTION_HUMANIZE_NUMBERS,
 	OPTION_KEYFILE,
 	OPTION_KEEP_GOING,
@@ -213,6 +216,7 @@ enum {
 	OPTION_NO_DISK_PAUSE,
 	OPTION_NO_HUMANIZE_NUMBERS,
 	OPTION_NO_INSANE_FILESYSTEMS,
+	OPTION_NO_ISO_DATES,
 	OPTION_NO_MAXBW,
 	OPTION_NO_MAXBW_RATE_DOWN,
 	OPTION_NO_MAXBW_RATE_UP,

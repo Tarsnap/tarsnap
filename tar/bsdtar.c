@@ -460,6 +460,9 @@ main(int argc, char **argv)
 		case OPTION_INSANE_FILESYSTEMS:
 			optq_push(bsdtar, "insane-filesystems", NULL);
 			break;
+		case OPTION_ISO_DATES:
+			optq_push(bsdtar, "iso-dates", NULL);
+			break;
 		case 'k': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
 			break;
@@ -567,6 +570,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NO_INSANE_FILESYSTEMS:
 			optq_push(bsdtar, "no-insane-filesystems", NULL);
+			break;
+		case OPTION_NO_ISO_DATES:
+			optq_push(bsdtar, "no-iso-dates", NULL);
 			break;
 		case OPTION_NO_MAXBW:
 			optq_push(bsdtar, "no-maxbw", NULL);
@@ -1468,6 +1474,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_insane_filesystems = 1;
 		bsdtar->option_insane_filesystems_set = 1;
+	} else if (strcmp(conf_opt, "iso-dates") == 0) {
+		if (bsdtar->option_iso_dates_set)
+			goto optset;
+
+		bsdtar->option_iso_dates = 1;
+		bsdtar->option_iso_dates_set = 1;
 	} else if (strcmp(conf_opt, "keyfile") == 0) {
 		if (bsdtar->keyfile != NULL)
 			goto optset;
@@ -1571,6 +1583,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_insane_filesystems_set = 1;
+	} else if (strcmp(conf_opt, "no-iso-dates") == 0) {
+		if (bsdtar->option_iso_dates_set)
+			goto optset;
+
+		bsdtar->option_iso_dates_set = 1;
 	} else if (strcmp(conf_opt, "no-maxbw") == 0) {
 		if (bsdtar->option_maxbw_set)
 			goto optset;

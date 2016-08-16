@@ -413,20 +413,25 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 		bsdtar->gs_width = w+strlen(tmp)+1;
 	fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
 
-	/* Format the time using 'ls -l' conventions. */
+	/* Format the time. */
 	tim = (time_t)st->st_mtime;
+	if (bsdtar->option_iso_dates) {
+		fmt = "%F %T";
+	} else {
+		/* Use the 'ls -l' convention. */
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	/* Windows' strftime function does not support %e format. */
-	if (imaxabs(tim - now) > (365/2)*86400)
-		fmt = bsdtar->day_first ? "%d %b  %Y" : "%b %d  %Y";
-	else
-		fmt = bsdtar->day_first ? "%d %b %H:%M" : "%b %d %H:%M";
+		/* Windows' strftime function does not support %e format. */
+		if (imaxabs(tim - now) > (365/2)*86400)
+			fmt = bsdtar->day_first ? "%d %b  %Y" : "%b %d  %Y";
+		else
+			fmt = bsdtar->day_first ? "%d %b %H:%M" : "%b %d %H:%M";
 #else
-	if (imaxabs(tim - now) > (365/2)*86400)
-		fmt = bsdtar->day_first ? "%e %b  %Y" : "%b %e  %Y";
-	else
-		fmt = bsdtar->day_first ? "%e %b %H:%M" : "%b %e %H:%M";
+		if (imaxabs(tim - now) > (365/2)*86400)
+			fmt = bsdtar->day_first ? "%e %b  %Y" : "%b %e  %Y";
+		else
+			fmt = bsdtar->day_first ? "%e %b %H:%M" : "%b %e %H:%M";
 #endif
+	}
 	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
 	fprintf(out, " %s ", tmp);
 	safe_fprintf(out, "%s", archive_entry_pathname(entry));
