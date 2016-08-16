@@ -52,30 +52,29 @@ archives.
 The following list shows which permissions are required for various
 .Xr tarsnap 1
 .Em command modes .
-The
-.Fl -recover
-command requires either (1)
+.Bl -tag -width 4n -offset 4n
+.It Em --recover
+requires either (1)
 .Fl d
 (archive deleting), (2)
 .Fl w
 (archive creating), or (3)
 .Fl -nuke
 keys.
-The
-.Fl -fsck
-command requires either (1) both
+.It Em --fsck
+requires either (1) both
 .Fl w
 (archive writing) and
 .Fl r
 (archive reading) keys, or (2)
 .Fl d
 (archive deleting) keys.
-The
-.Fl -fsck-prune
-command requires
+.It Em --fsck-prune
+requires
 .Fl d
 (archive deleting) keys, since it needs to be able to delete
 corrupted archives.
+.El
 .Pp
 If the
 .Fl -passphrased
