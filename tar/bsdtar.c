@@ -106,7 +106,8 @@ time_t get_date(time_t, const char *);
 static struct bsdtar	*bsdtar_init(void);
 static void		 bsdtar_atexit(void);
 
-static void		 configfile(struct bsdtar *, const char *fname);
+static void		 configfile(struct bsdtar *, const char *fname,
+			     int fromcmdline);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
 static void		 dooption(struct bsdtar *, const char *,
@@ -779,7 +780,7 @@ main(int argc, char **argv)
 
 	/* Process config files passed on the command line. */
 	for (i = 0; i < bsdtar->nconfigfiles; i++)
-		configfile(bsdtar, bsdtar->configfiles[i]);
+		configfile(bsdtar, bsdtar->configfiles[i], 1);
 
 	/* If we do not have --no-default-config, process default configs. */
 	if (bsdtar->option_no_default_config == 0) {
@@ -789,7 +790,7 @@ main(int argc, char **argv)
 			    bsdtar->homedir) == -1)
 				bsdtar_errc(bsdtar, 1, errno, "No memory");
 
-			configfile(bsdtar, bsdtar->conffile);
+			configfile(bsdtar, bsdtar->conffile, 0);
 
 			/* Free string allocated by asprintf. */
 			free(bsdtar->conffile);
@@ -797,7 +798,7 @@ main(int argc, char **argv)
 		}
 
 		/* Process options from system-wide tarsnap.conf. */
-		configfile(bsdtar, ETC_TARSNAP_CONF);
+		configfile(bsdtar, ETC_TARSNAP_CONF, 0);
 	}
 
 	/* Continue with more sanity-checking. */
@@ -1222,7 +1223,7 @@ long_help(struct bsdtar *bsdtar)
 
 /* Process options from the specified file, if it exists. */
 static void
-configfile(struct bsdtar *bsdtar, const char *fname)
+configfile(struct bsdtar *bsdtar, const char *fname, int fromcmdline)
 {
 	struct stat sb;
 
