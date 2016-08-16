@@ -104,3 +104,9 @@ or
 options are specified, a key file will be produced which does not
 contain any keys.
 This is probably not very useful.
+.Pp
+The
+.Fl -version
+option prints the version number of
+.Nm ,
+then exits.
