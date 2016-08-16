@@ -49,6 +49,9 @@ being able to read it; while a key file generated with
 can be used to delete all the archives stored, but not individual
 archives.
 .Pp
+The following list shows which permissions are required for various
+.Xr tarsnap 1
+.Em command modes .
 The
 .Fl -recover
 command requires either (1)
