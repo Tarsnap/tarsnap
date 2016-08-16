@@ -29,6 +29,8 @@ key files
 .Sh DESCRIPTION
 .Nm
 reads the provided key files and writes a new key file
+(specified by
+.Fl -outkeyfile Ar new-key-file )
 containing only the keys required for the operations
 specified via the
 .Fl r
@@ -106,6 +108,16 @@ or
 options are specified, a key file will be produced which does not
 contain any keys.
 This is probably not very useful.
+.Pp
+The
+.Fl -print-key-id Ar key-file
+option displays the 64-bit integer corresponding to the key's machine number.
+This may be useful for scripts or GUIs which manage a user's Tarsnap account,
+but is not likely to be helpful for command-line use.
+.Pp
+The
+.Fl -print-key-permissions Ar key-file
+option displays the permissions which the key possesses.
 .Pp
 The
 .Fl -version
