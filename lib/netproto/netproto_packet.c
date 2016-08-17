@@ -253,7 +253,7 @@ netproto_writepacket(NETPROTO_CONNECTION * C, uint8_t type,
 
 	/* Construct header. */
 	header[0] = type;
-	be32enc(&header[1], buflen);
+	be32enc(&header[1], (uint32_t)buflen);
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_SHA256, buf, buflen,
 	    &header[5])) {
 		warn0("Programmer error: "

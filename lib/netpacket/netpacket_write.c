@@ -80,7 +80,7 @@ netpacket_write_file(NETPACKET_CONNECTION * NPC,
 	packetbuf[8] = class;
 	memcpy(&packetbuf[9], name, 32);
 	memcpy(&packetbuf[41], nonce, 32);
-	be32enc(&packetbuf[73], buflen);
+	be32enc(&packetbuf[73], (uint32_t)buflen);
 	memcpy(&packetbuf[77], buf, buflen);
 
 	/* Append hmac. */

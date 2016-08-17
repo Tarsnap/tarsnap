@@ -426,7 +426,7 @@ storage_read_file_callback(STORAGE_R * S, uint8_t * buf, size_t buflen,
 	if (buf != NULL) {
 		C->buf = buf;
 		C->buflen = buflen;
-		C->size = buflen + STORAGE_FILE_OVERHEAD;
+		C->size = (uint32_t)(buflen + STORAGE_FILE_OVERHEAD);
 	} else {
 		C->buf = NULL;
 		C->buflen = 0;
