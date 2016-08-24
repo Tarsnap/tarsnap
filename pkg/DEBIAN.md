@@ -22,6 +22,9 @@ To use the official Tarsnap Debian source packages, set up:
         sudo apt-key add tarsnap-signing-key-2016.asc
         gpg --no-default-keyring --keyring ~/.gnupg/trustedkeys.gpg \
           --import tarsnap-signing-key-2016.asc
+        sudo apt-key adv --keyserver keyserver.ubuntu.com \
+          --recv-keys 1397BC53640DB551
+
 
    (adjust the filename of the Tarsnap signing key in 2017 or later years)
 
