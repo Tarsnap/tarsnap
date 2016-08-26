@@ -40,7 +40,7 @@
 
 #ifdef HAVE_CLOCK_GETTIME
 
-static clock_t clocktouse;
+static clockid_t clocktouse;
 
 static int
 getclockres(double * resd)

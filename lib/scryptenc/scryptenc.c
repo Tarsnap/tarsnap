@@ -28,6 +28,7 @@
  */
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -204,6 +205,9 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 		return (rc);
 	N = (uint64_t)(1) << logN;
 
+	/* Sanity check. */
+	assert((logN > 0) && (logN < 256));
+
 	/* Get some salt. */
 	if (crypto_entropy_read(salt, 32))
 		return (4);
@@ -215,7 +219,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	/* Construct the file header. */
 	memcpy(header, "scrypt", 6);
 	header[6] = 0;
-	header[7] = logN;
+	header[7] = logN & 0xff;
 	be32enc(&header[8], r);
 	be32enc(&header[12], p);
 	memcpy(&header[16], salt, 32);

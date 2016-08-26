@@ -1,6 +1,9 @@
 #ifndef _CRYPTO_SCRYPT_SMIX_SSE2_H_
 #define _CRYPTO_SCRYPT_SMIX_SSE2_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 /**
  * crypto_scrypt_smix_sse2(B, r, N, V, XY):
  * Compute B = SMix_r(B, N).  The input B must be 128r bytes in length;
