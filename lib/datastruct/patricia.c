@@ -137,7 +137,7 @@ static int
 compare(const struct pnode * n, const uint8_t * key, size_t keylen,
     uint8_t * mlen, uint8_t * mask)
 {
-	size_t	i;
+	uint8_t i;
 	uint8_t	mm;
 
 	/* Scan through the complete bytes in the node. */

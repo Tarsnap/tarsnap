@@ -140,7 +140,7 @@ network_register(int fd, int op, struct timeval * timeo,
 	/* Enlarge array if necessary. */
 	if ((osize = (int)callbacks_getsize(cs)) <= fd) {
 		/* Resize. */
-		if (callbacks_resize(cs, fd + 1))
+		if (callbacks_resize(cs, (size_t)(fd + 1)))
 			goto err0;
 
 		/* Initialize empty. */
@@ -150,7 +150,7 @@ network_register(int fd, int op, struct timeval * timeo,
 	}
 
 	/* Grab the relevant callback record. */
-	c = *callbacks_get(cs, fd);
+	c = *callbacks_get(cs, (size_t)fd);
 
 	/* If there is no record in that slot, allocate one. */
 	if (c == NULL) {
@@ -164,7 +164,7 @@ network_register(int fd, int op, struct timeval * timeo,
 		c->event_timer = NULL;
 
 		/* Insert into table slot. */
-		*callbacks_get(cs, fd) = c;
+		*callbacks_get(cs, (size_t)fd) = c;
 	}
 
 	/* Make sure we're not replacing an existing callback. */
@@ -233,7 +233,7 @@ network_deregister(int fd, int op)
 	}
 
 	/* Grab the relevant callback record. */
-	c = *callbacks_get(cs, fd);
+	c = *callbacks_get(cs, (size_t)fd);
 
 	/* If there is no callback, return silently. */
 	if (c == NULL || c->callback == NULL)

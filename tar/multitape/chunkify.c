@@ -234,7 +234,7 @@ chunkify_init(uint32_t meanlen, uint32_t maxlen,
 	/* cm[i] is generated from HMAC('x' . i). */
 	for (i = 0; i < 256; i++) {
 		pbuf[0] = 'x';
-		pbuf[1] = i;
+		pbuf[1] = i & 0xff;
 		if (crypto_hash_data(CRYPTO_KEY_HMAC_CPARAMS, pbuf, 2, hbuf))
 			goto err;
 		memcpy(&c->cm[i], hbuf, sizeof(c->cm[i]));

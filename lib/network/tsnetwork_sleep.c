@@ -91,7 +91,7 @@ network_sleep(struct timeval * timeo,
 		goto err0;
 
 	/* Success! */
-	return (h);
+	return ((int)h);
 
 err1:
 	free(sp);
