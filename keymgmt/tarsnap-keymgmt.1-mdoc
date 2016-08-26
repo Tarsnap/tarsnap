@@ -29,6 +29,8 @@ key files
 .Sh DESCRIPTION
 .Nm
 reads the provided key files and writes a new key file
+(specified by
+.Fl -outkeyfile Ar new-key-file )
 containing only the keys required for the operations
 specified via the
 .Fl r
@@ -49,30 +51,32 @@ being able to read it; while a key file generated with
 can be used to delete all the archives stored, but not individual
 archives.
 .Pp
-The
-.Fl -recover
-command requires either (1)
+The following list shows which permissions are required for various
+.Xr tarsnap 1
+.Em command modes .
+.Bl -tag -width 4n -offset 4n
+.It Em --recover
+requires either (1)
 .Fl d
 (archive deleting), (2)
 .Fl w
 (archive creating), or (3)
 .Fl -nuke
 keys.
-The
-.Fl -fsck
-command requires either (1) both
+.It Em --fsck
+requires either (1) both
 .Fl w
 (archive writing) and
 .Fl r
 (archive reading) keys, or (2)
 .Fl d
 (archive deleting) keys.
-The
-.Fl -fsck-prune
-command requires
+.It Em --fsck-prune
+requires
 .Fl d
 (archive deleting) keys, since it needs to be able to delete
 corrupted archives.
+.El
 .Pp
 If the
 .Fl -passphrased
@@ -104,3 +108,19 @@ or
 options are specified, a key file will be produced which does not
 contain any keys.
 This is probably not very useful.
+.Pp
+The
+.Fl -print-key-id Ar key-file
+option displays the 64-bit integer corresponding to the key's machine number.
+This may be useful for scripts or GUIs which manage a user's Tarsnap account,
+but is not likely to be helpful for command-line use.
+.Pp
+The
+.Fl -print-key-permissions Ar key-file
+option displays the permissions which the key possesses.
+.Pp
+The
+.Fl -version
+option prints the version number of
+.Nm ,
+then exits.

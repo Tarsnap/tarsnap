@@ -52,6 +52,12 @@ so care should be taken to disable any automatic (e.g.,
 archiving while
 .Nm
 is run.
+.Pp
+The
+.Fl -version
+option prints the version number of
+.Nm ,
+then exits.
 .Sh EXAMPLES
 The following sequence of commands will create new keys and re-encrypt
 data, assuming that the currently used keys are in
