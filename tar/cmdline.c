@@ -127,6 +127,7 @@ static struct option {
 	{ "no-disk-pause",	  0, OPTION_NO_DISK_PAUSE },
 	{ "no-humanize-numbers",  0, OPTION_NO_HUMANIZE_NUMBERS },
 	{ "no-insane-filesystems", 0, OPTION_NO_INSANE_FILESYSTEMS },
+	{ "no-keep-going",        0, OPTION_NO_KEEP_GOING },
 	{ "no-maxbw",		  0, OPTION_NO_MAXBW },
 	{ "no-maxbw-rate-down",	  0, OPTION_NO_MAXBW_RATE_DOWN },
 	{ "no-maxbw-rate-up",	  0, OPTION_NO_MAXBW_RATE_UP },

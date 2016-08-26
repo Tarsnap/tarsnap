@@ -465,7 +465,7 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE;
 			break;
 		case OPTION_KEEP_GOING: /* tarsnap */
-			bsdtar->option_keep_going = 1;
+			optq_push(bsdtar, "keep-going", NULL);
 			break;
 		case OPTION_KEEP_NEWER_FILES: /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_NO_OVERWRITE_NEWER;
@@ -568,6 +568,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NO_INSANE_FILESYSTEMS:
 			optq_push(bsdtar, "no-insane-filesystems", NULL);
+			break;
+		case OPTION_NO_KEEP_GOING:
+			optq_push(bsdtar, "no-keep-going", NULL);
 			break;
 		case OPTION_NO_MAXBW:
 			optq_push(bsdtar, "no-maxbw", NULL);
@@ -1479,6 +1482,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_insane_filesystems = 1;
 		bsdtar->option_insane_filesystems_set = 1;
+	} else if (strcmp(conf_opt, "keep-going") == 0) {
+		if (bsdtar->option_keep_going_set)
+			goto optset;
+
+		bsdtar->option_keep_going = 1;
+		bsdtar->option_keep_going_set = 1;
 	} else if (strcmp(conf_opt, "keyfile") == 0) {
 		if (bsdtar->keyfile != NULL)
 			goto optset;
@@ -1582,6 +1591,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_insane_filesystems_set = 1;
+	} else if (strcmp(conf_opt, "no-keep-going") == 0) {
+		if (bsdtar->option_keep_going_set)
+			goto optset;
+
+		bsdtar->option_keep_going_set = 1;
 	} else if (strcmp(conf_opt, "no-maxbw") == 0) {
 		if (bsdtar->option_maxbw_set)
 			goto optset;

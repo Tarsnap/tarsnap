@@ -550,6 +550,11 @@ Ignore any
 \fBinsane-filesystems\fP
 option specified in a configuration file.
 .TP
+\fB\--no-keep-going\fP
+Ignore any
+\fBkeep-going\fP
+option specified in a configuration file.
+.TP
 \fB\--no-maxbw\fP
 Ignore any
 \fBmaxbw\fP
