@@ -4,6 +4,9 @@
   the GUI and is not needed for command-line usage.
 - tarsnap now applies --humanize-numbers to the SIGINFO "progress" output.
 - tarsnap now gives a warning for --configfile /nosuchfile.
+- tarsnap now accepts --iso-dates, which prints file and directory dates as
+  yyyy-mm-dd hh:mm:ss in "list archive" mode.  This can be cancelled with
+  --no-iso-dates.
 
 
 Tarsnap Releases
