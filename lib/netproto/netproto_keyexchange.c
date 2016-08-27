@@ -116,7 +116,7 @@ netproto_keyexchange(NETPROTO_CONNECTION * C, const char * useragent,
 		goto err0;
 	if ((KC->useragent = strdup(useragent)) == NULL)
 		goto err1;
-	KC->useragentlen = useragentlen;
+	KC->useragentlen = (uint8_t)useragentlen;
 	KC->callback = callback;
 	KC->cookie = cookie;
 	KC->C = C;
