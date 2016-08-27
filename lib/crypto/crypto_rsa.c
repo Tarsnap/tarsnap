@@ -35,7 +35,7 @@ crypto_MGF1(uint8_t * seed, size_t seedlen, uint8_t * buf, size_t buflen)
 	/* Iterate through the buffer. */
 	for (pos = 0; pos < buflen; pos += 32) {
 		/* The ith block starts at position i * 32. */
-		i = pos / 32;
+		i = (uint32_t)(pos / 32);
 
 		/* Convert counter to big-endian format. */
 		be32enc(C, i);
