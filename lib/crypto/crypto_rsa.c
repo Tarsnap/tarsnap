@@ -29,6 +29,9 @@ crypto_MGF1(uint8_t * seed, size_t seedlen, uint8_t * buf, size_t buflen)
 	uint32_t i;
 	uint8_t C[4];
 
+	/* Sanity check for I2OSP function. */
+	assert(((buflen - 1) / 32) <= UINT32_MAX);
+
 	/* Iterate through the buffer. */
 	for (pos = 0; pos < buflen; pos += 32) {
 		/* The ith block starts at position i * 32. */
