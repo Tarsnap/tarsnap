@@ -64,7 +64,7 @@ netpacket_register_cha_response(NETPACKET_CONNECTION * NPC,
 
 	/* Construct challenge response packet. */
 	memcpy(packetbuf, keys, 96);
-	packetbuf[96] = namelen;
+	packetbuf[96] = (uint8_t)namelen;
 	memcpy(packetbuf + 97, name, namelen);
 
 	/* Append hmac. */
