@@ -340,7 +340,7 @@ patricia_insert(PATRICIA * P, const uint8_t * key, size_t keylen, void * rec)
 			 */
 			/* Create the lower of the new nodes. */
 			slen = (*np)->slen - mlen;
-			pnew2 = node_dup(*np, slen, (*np)->s + mlen);
+			pnew2 = node_dup(*np, (uint8_t)slen, (*np)->s + mlen);
 			if (pnew2 == NULL)
 				return (-1);
 
