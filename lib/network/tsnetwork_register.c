@@ -145,7 +145,7 @@ network_register(int fd, int op, struct timeval * timeo,
 
 		/* Initialize empty. */
 		for (; osize < fd + 1; osize++) {
-			*callbacks_get(cs, osize) = NULL;
+			*callbacks_get(cs, (size_t)osize) = NULL;
 		}
 	}
 
