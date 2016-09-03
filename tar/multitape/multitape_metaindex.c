@@ -115,7 +115,7 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 		fraglen = buflen - fragnum * MAXIFRAG;
 		if (fraglen > MAXIFRAG)
 			fraglen = MAXIFRAG;
-		multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
 		if (storage_write_file(S, buf + fragnum * MAXIFRAG,
 		    fraglen, 'i', fraghash))
 			goto err1;
