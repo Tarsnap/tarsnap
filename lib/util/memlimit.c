@@ -96,7 +96,7 @@ memlimit_sysctl_hw(size_t * memlimit, int mibleaf)
 	if (sysctlval > SIZE_MAX)
 		*memlimit = SIZE_MAX;
 	else
-		*memlimit = sysctlval;
+		*memlimit = (size_t)sysctlval;
 #else
 	*memlimit = sysctlval;
 #endif
@@ -138,7 +138,7 @@ memlimit_sysinfo(size_t * memlimit)
 	if (totalmem > SIZE_MAX)
 		*memlimit = SIZE_MAX;
 	else
-		*memlimit = totalmem;
+		*memlimit = (size_t)totalmem;
 #else
 	*memlimit = totalmem;
 #endif
@@ -187,7 +187,7 @@ memlimit_rlimit(size_t * memlimit)
 	if (memrlimit > SIZE_MAX)
 		*memlimit = SIZE_MAX;
 	else
-		*memlimit = memrlimit;
+		*memlimit = (size_t)memrlimit;
 #else
 	*memlimit = memrlimit;
 #endif
@@ -232,7 +232,7 @@ memlimit_sysconf(size_t * memlimit)
 	if (totalmem > SIZE_MAX)
 		*memlimit = SIZE_MAX;
 	else
-		*memlimit = totalmem;
+		*memlimit = (size_t)totalmem;
 #else
 	*memlimit = totalmem;
 #endif
