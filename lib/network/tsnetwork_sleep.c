@@ -111,13 +111,13 @@ network_desleep(int handle)
 	struct sleeper * sp;
 
 	/* Sanity-check the handle. */
-	if (handle >= (int)sleepers_getsize(sleepers)) {
+	if ((handle >= (int)sleepers_getsize(sleepers)) || (handle < 0)) {
 		warn0("Invalid sleeper handle: %d", handle);
 		goto err0;
 	}
 
 	/* Grab the relevant sleeper record. */
-	sp = *sleepers_get(sleepers, handle);
+	sp = *sleepers_get(sleepers, (size_t)handle);
 
 	/* If there is no timer, return silently. */
 	if (sp->event_cookie == NULL)
