@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -110,6 +111,10 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 	char hashbuf[65];
 	int rc;
 
+	/* Sanity checks. */
+	assert(buflen <= UINT32_MAX);
+	assert(C->zbuflen < CHDATA_MALLOC);
+
 	/* If the chunk is in ${C}->HT, return the compressed length. */
 	if ((ch = rwhashtab_read(C->HT, hash)) != NULL) {
 		chunks_stats_add(&C->stats_total, ch->len,
@@ -157,8 +162,8 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 
 	/* ... fill in the chunk parameters... */
 	memcpy(ch->hash, hash, 32);
-	ch->len = buflen;
-	ch->zlen_flags = zlen | CHDATA_MALLOC | CHDATA_CTAPE;
+	ch->len = (uint32_t)buflen;
+	ch->zlen_flags = (uint32_t)(zlen | CHDATA_MALLOC | CHDATA_CTAPE);
 	ch->nrefs = 1;
 	ch->ncopies = 1;
 
