@@ -141,13 +141,13 @@ callback_buf(void * cookie, int status)
 		goto docallback;
 	} else {
 		/* Adjust bandwidth limit. */
-		if (network_bwlimit_eat(C->netop, len)) {
+		if (network_bwlimit_eat(C->netop, (size_t)len)) {
 			status = NETWORK_STATUS_ERR;
 			goto docallback;
 		}
 
 		/* Data has been read/written into/from buffer. */
-		C->bufpos += len;
+		C->bufpos += (size_t)len;
 		if (C->bufpos == C->buflen) {
 			status = NETWORK_STATUS_OK;
 			goto docallback;
