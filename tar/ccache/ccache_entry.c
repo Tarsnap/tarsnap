@@ -488,7 +488,7 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 			break;
 
 		/* Read until we've got the whole chunk. */
-		for (cpos = 0; cpos < chunklen; cpos += lenread) {
+		for (cpos = 0; cpos < chunklen; cpos += (size_t)lenread) {
 			lenread = read(fd, chunkbuf + cpos, chunklen - cpos);
 			if (lenread < 0) {
 				warnp("reading file");
