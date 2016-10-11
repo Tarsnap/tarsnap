@@ -78,6 +78,7 @@ add_substitution(struct bsdtar *bsdtar, const char *rule_text)
 	if (rule == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 	rule->next = NULL;
+	rule->result = NULL;
 
 	if (subst->last_rule == NULL)
 		subst->first_rule = rule;
