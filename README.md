@@ -27,9 +27,17 @@ for experimental development, use:
     ./configure
     make
 
-In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive, you will need
-to install the autoconf archive.  On Debian systems, use the
-`autoconf-archive` package; on FreeBSD, use `devel/autoconf-archive`.
+- In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive,
+  you will need to install the autoconf archive.  On Debian, use
+  the `autoconf-archive` package; on FreeBSD, use
+  `devel/autoconf-archive`.
+
+- If you receive this message:
+
+        confugre.ac:...: error: possibly undefined macro: AC_MSG_WARN
+
+  then you need `pkg-config`.  On Debian , use the `pkg-config`
+  package; on FreeBSD, use `devel/pkgconf`.
 
 
 Packaging notes
