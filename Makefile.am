@@ -77,7 +77,7 @@ libarchive_libarchive_a_SOURCES=				\
 	libarchive/filter_fork.h
 
 if INC_WINDOWS_FILES
-libarchive_libarchive_a_SOURCES+=						\
+libarchive_libarchive_a_SOURCES+=				\
 	libarchive/archive_windows.h				\
 	libarchive/archive_windows.c				\
 	libarchive/filter_fork_windows.c
@@ -245,14 +245,14 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-D_POSIX_C_SOURCE=200809L		\
-		-DPOSIXFAIL_MSG_NOSIGNAL \
+		-DPOSIXFAIL_MSG_NOSIGNAL		\
 		-DPOSIXFAIL_CLOCK_REALTIME
 
 LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
-EXTRA_DIST=	\
+EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
@@ -284,21 +284,21 @@ LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 #
 #
 
-tarsnap_SOURCES=			\
-		tar/bsdtar.c		\
-		tar/bsdtar.h		\
-		tar/bsdtar_platform.h	\
-		tar/cmdline.c		\
-		tar/getdate.c		\
-		tar/matching.c		\
-		tar/read.c		\
-		tar/siginfo.c		\
-		tar/subst.c		\
-		tar/tree.c		\
-		tar/tree.h		\
-		tar/tarsnap_opt.h	\
-		tar/util.c		\
-		tar/write.c		\
+tarsnap_SOURCES=					\
+		tar/bsdtar.c				\
+		tar/bsdtar.h				\
+		tar/bsdtar_platform.h			\
+		tar/cmdline.c				\
+		tar/getdate.c				\
+		tar/matching.c				\
+		tar/read.c				\
+		tar/siginfo.c				\
+		tar/subst.c				\
+		tar/tree.c				\
+		tar/tree.h				\
+		tar/tarsnap_opt.h			\
+		tar/util.c				\
+		tar/write.c				\
 		tar/glue/archive_multitape.c		\
 		tar/glue/archive_multitape.h		\
 		tar/glue/tape.c				\
@@ -351,11 +351,11 @@ tarsnap_SOURCES+=			\
 endif
 
 tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
-		libarchive/archive_entry.h	\
-		libarchive/archive.h		\
+		libarchive/archive_entry.h		\
+		libarchive/archive.h			\
 		$(LIBTARSNAP_A)
 
-tarsnap_LDADD= -lcrypto libarchive/libarchive.a $(LIBTARSNAP_A)
+tarsnap_LDADD= libarchive/libarchive.a $(LIBTARSNAP_A)
 tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/libarchive		\
 		-DLIBARCHIVE_STATIC			\
@@ -389,7 +389,7 @@ tarsnap_keygen_SOURCES=	keygen/keygen.c			\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
-tarsnap_keygen_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keygen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keygen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -417,7 +417,7 @@ tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
 
-tarsnap_keyregen_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keyregen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keyregen_CPPFLAGS=				\
 		-I${top_srcdir}/libarchive		\
 		-I$(top_srcdir)/tar			\
@@ -456,7 +456,7 @@ tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_transaction.c
 
-tarsnap_recrypt_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_recrypt_LDADD= $(LIBTARSNAP_A)
 tarsnap_recrypt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
@@ -483,7 +483,7 @@ tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 
 tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 
-tarsnap_keymgmt_LDADD= -lcrypto $(LIBTARSNAP_A)
+tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I${top_srcdir}/libarchive		\
@@ -545,10 +545,10 @@ CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 #
 if INSTALL_BASH_COMPLETION
 bashcompdir = $(BASH_COMPLETION_DIR)
-dist_bashcomp_DATA = misc/bash_completion.d/tarsnap \
-	misc/bash_completion.d/tarsnap-keygen \
-	misc/bash_completion.d/tarsnap-keymgmt \
-	misc/bash_completion.d/tarsnap-keyregen \
+dist_bashcomp_DATA = misc/bash_completion.d/tarsnap	\
+	misc/bash_completion.d/tarsnap-keygen		\
+	misc/bash_completion.d/tarsnap-keymgmt		\
+	misc/bash_completion.d/tarsnap-keyregen		\
 	misc/bash_completion.d/tarsnap-recrypt
 endif
 
