@@ -59,7 +59,7 @@
 #endif
 
 struct ftyperec {
-	int f_type;
+	unsigned int f_type;
 	const char * typename;
 } ftypes[] = {
 #ifdef ADFS_SUPER_MAGIC
