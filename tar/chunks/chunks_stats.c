@@ -335,8 +335,8 @@ chunks_stats_addchunk(CHUNKS_S * C, const uint8_t * hash,
 
 	/* Record the lengths if necessary. */
 	if (ch->d.nrefs == 0 && ch->ncopies_ctape == 0) {
-		ch->d.len = len;
-		ch->d.zlen_flags = zlen | (ch->d.zlen_flags & CHDATA_FLAGS);
+		ch->d.len = (uint32_t)len;
+		ch->d.zlen_flags = (uint32_t)(zlen | (ch->d.zlen_flags & CHDATA_FLAGS));
 	}
 
 	/* Update "current tape" statistics. */
