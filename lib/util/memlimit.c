@@ -163,7 +163,7 @@ memlimit_rlimit(size_t * memlimit)
 		return (1);
 	if ((rl.rlim_cur != RLIM_INFINITY) &&
 	    ((uint64_t)rl.rlim_cur < memrlimit))
-		memrlimit = rl.rlim_cur;
+		memrlimit = (uint64_t)rl.rlim_cur;
 #endif
 
 	/* ... RLIMIT_DATA... */
@@ -171,7 +171,7 @@ memlimit_rlimit(size_t * memlimit)
 		return (1);
 	if ((rl.rlim_cur != RLIM_INFINITY) &&
 	    ((uint64_t)rl.rlim_cur < memrlimit))
-		memrlimit = rl.rlim_cur;
+		memrlimit = (uint64_t)rl.rlim_cur;
 
 	/* ... and RLIMIT_RSS. */
 #ifdef RLIMIT_RSS
@@ -179,7 +179,7 @@ memlimit_rlimit(size_t * memlimit)
 		return (1);
 	if ((rl.rlim_cur != RLIM_INFINITY) &&
 	    ((uint64_t)rl.rlim_cur < memrlimit))
-		memrlimit = rl.rlim_cur;
+		memrlimit = (uint64_t)rl.rlim_cur;
 #endif
 
 	/* Return the value, but clamp to SIZE_MAX if necessary. */
