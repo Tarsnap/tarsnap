@@ -4,9 +4,10 @@ BUILDDIR=/tmp/tarsnap-debian-source/
 
 # Handle arguments
 RELEASE_TARBALL=$1
-REVISION=$2
-if [ ! -f $RELEASE_TARBALL ] || [ -z $REVISION ]; then
-	echo "Usage: mkdebsource.sh RELEASE_TARBALL REVISION"
+DEBIAN_DIR=$(realpath $2)
+REVISION=$3
+if [ ! -f $RELEASE_TARBALL ] || [ -z $DEBIAN_DIR ] || [ -z $REVISION ]; then
+	echo "Usage: mkdebsource.sh RELEASE_TARBALL DEBIAN_DIR REVISION"
 	exit 1
 fi
 
@@ -51,7 +52,7 @@ tar -xzf $RENAMED_TARBALL
 
 # Prepare source directory for debianizing
 cd $RELEASE_DIRNAME
-cp -r pkg/debian .
+cp -r $DEBIAN_DIR .
 
 # Debianize: create tarsnap_*.debian.tar.gz and tarsnap_*.dsc
 debuild -S -us -uc
