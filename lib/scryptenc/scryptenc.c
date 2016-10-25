@@ -151,6 +151,12 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 	uint64_t N;
 	int rc;
 
+	/* Sanity-check values. */
+	if ((logN < 1) || (logN > 63))
+		return (7);
+	if ((uint64_t)(r) * (uint64_t)(p) >= 0x40000000)
+		return (7);
+
 	/* Figure out the maximum amount of memory we can use. */
 	if (memtouse(maxmem, maxmemfrac, &memlimit))
 		return (1);
@@ -159,12 +165,6 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 	if ((rc = scryptenc_cpuperf(&opps)) != 0)
 		return (rc);
 	opslimit = opps * maxtime;
-
-	/* Sanity-check values. */
-	if ((logN < 1) || (logN > 63))
-		return (7);
-	if ((uint64_t)(r) * (uint64_t)(p) >= 0x40000000)
-		return (7);
 
 	/* Check limits. */
 	N = (uint64_t)(1) << logN;
