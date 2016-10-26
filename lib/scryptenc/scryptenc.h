@@ -91,13 +91,14 @@ int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
  * decrypted data length to outlen.  The allocated length of outbuf must
- * be at least inbuflen.
+ * be at least inbuflen.  If ${force} is 1, do not check whether
+ * decryption will exceed the estimated available memory or time.
  */
 int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
-    const uint8_t *, size_t, size_t, double, double, int);
+    const uint8_t *, size_t, size_t, double, double, int, int);
 
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen,
@@ -110,11 +111,12 @@ int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
 
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Read a stream from infile and decrypt it, writing the resulting stream to
- * outfile.
+ * outfile.  If ${force} is 1, do not check whether decryption
+ * will exceed the estimated available memory or time.
  */
 int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
-    size_t, double, double, int);
+    size_t, double, double, int, int);
 
 #endif /* !_SCRYPTENC_H_ */

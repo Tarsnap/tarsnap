@@ -154,7 +154,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Decrypt the key file. */
 	rc = scryptdec_buf(keybuf, keylen, deckeybuf, &deckeylen,
-	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0, 0);
+	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0, 0, 0);
 	if (rc != 0) {
 		switch (rc) {
 		case 1:

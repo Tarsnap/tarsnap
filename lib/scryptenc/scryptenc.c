@@ -53,7 +53,8 @@
 
 static int pickparams(size_t, double, double,
     int *, uint32_t *, uint32_t *, int);
-static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int);
+static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int,
+    int);
 
 static void
 display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
@@ -143,7 +144,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 
 static int
 checkparams(size_t maxmem, double maxmemfrac, double maxtime,
-    int logN, uint32_t r, uint32_t p, int verbose)
+    int logN, uint32_t r, uint32_t p, int verbose, int force)
 {
 	size_t memlimit;
 	double opps;
@@ -157,21 +158,28 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 	if ((uint64_t)(r) * (uint64_t)(p) >= 0x40000000)
 		return (7);
 
-	/* Figure out the maximum amount of memory we can use. */
-	if (memtouse(maxmem, maxmemfrac, &memlimit))
-		return (1);
+	/* Are we forcing decryption, regardless of resource limits? */
+	if (!force) {
+		/* Figure out the maximum amount of memory we can use. */
+		if (memtouse(maxmem, maxmemfrac, &memlimit))
+			return (1);
 
-	/* Figure out how fast the CPU is. */
-	if ((rc = scryptenc_cpuperf(&opps)) != 0)
-		return (rc);
-	opslimit = opps * maxtime;
+		/* Figure out how fast the CPU is. */
+		if ((rc = scryptenc_cpuperf(&opps)) != 0)
+			return (rc);
+		opslimit = opps * maxtime;
 
-	/* Check limits. */
-	N = (uint64_t)(1) << logN;
-	if ((memlimit / N) / r < 128)
-		return (9);
-	if ((opslimit / N) / (r * p) < 4)
-		return (10);
+		/* Check limits. */
+		N = (uint64_t)(1) << logN;
+		if ((memlimit / N) / r < 128)
+			return (9);
+		if ((opslimit / N) / (r * p) < 4)
+			return (10);
+	} else {
+		/* We have no limit. */
+		memlimit = 0;
+		opps = 0;
+	}
 
 	if (verbose)
 		display_params(logN, r, p, memlimit, opps, maxtime);
@@ -240,7 +248,8 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 static int
 scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
+    int force)
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
@@ -269,10 +278,10 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	/*
 	 * Check whether the provided parameters are valid and whether the
 	 * key derivation function can be computed within the allowed memory
-	 * and CPU time.
+	 * and CPU time, unless the user chose to disable this test.
 	 */
 	if ((rc = checkparams(maxmem, maxmemfrac, maxtime, logN, r, p,
-	    verbose)) != 0)
+	    verbose, force)) != 0)
 		return (rc);
 
 	/* Compute the derived keys. */
@@ -344,15 +353,17 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
  * decrypted data length to outlen.  The allocated length of outbuf must
- * be at least inbuflen.
+ * be at least inbuflen.  If ${force} is 1, do not check whether
+ * decryption will exceed the estimated available memory or time.
  */
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
     size_t * outlen, const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
+    int force)
 {
 	uint8_t hbuf[32];
 	uint8_t dk[64];
@@ -380,7 +391,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(inbuf, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
 		return (rc);
 
 	/* Decrypt data. */
@@ -480,14 +491,16 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Read a stream from infile and decrypt it, writing the resulting stream to
- * outfile.
+ * outfile.  If ${force} is 1, do not check whether decryption
+ * will exceed the estimated available memory or time.
  */
 int
 scryptdec_file(FILE * infile, FILE * outfile,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
+    int force)
 {
 	uint8_t buf[ENCBLOCK + 32];
 	uint8_t header[96];
@@ -532,7 +545,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
+	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
 		return (rc);
 
 	/* Start hashing with the header. */
