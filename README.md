@@ -34,7 +34,7 @@ for experimental development, use:
 
 - If you receive this message:
 
-        confugre.ac:...: error: possibly undefined macro: AC_MSG_WARN
+        configure.ac:...: error: possibly undefined macro: AC_MSG_WARN
 
   then you need `pkg-config`.  On Debian , use the `pkg-config`
   package; on FreeBSD, use `devel/pkgconf`.
