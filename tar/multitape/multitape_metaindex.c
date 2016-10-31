@@ -87,19 +87,19 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 		goto err0;
 
 	/* Copy values into buffer. */
-	le32enc(p, mind->hindexlen);
+	le32enc(p, (uint32_t)mind->hindexlen);
 	p += 4;
 	if (mind->hindexlen > 0)
 		memcpy(p, mind->hindex, mind->hindexlen);
 	p += mind->hindexlen;
 
-	le32enc(p, mind->cindexlen);
+	le32enc(p, (uint32_t)mind->cindexlen);
 	p += 4;
 	if (mind->cindexlen > 0)
 		memcpy(p, mind->cindex, mind->cindexlen);
 	p += mind->cindexlen;
 
-	le32enc(p, mind->tindexlen);
+	le32enc(p, (uint32_t)mind->tindexlen);
 	p += 4;
 	if (mind->tindexlen > 0)
 		memcpy(p, mind->tindex, mind->tindexlen);
