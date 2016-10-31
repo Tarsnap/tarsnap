@@ -467,7 +467,7 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 		goto err0;
 
 	/* Make sure the lower layers are in a clean state. */
-	if (multitape_cleanstate(cachedir, machinenum, whichkey))
+	if (multitape_cleanstate(cachedir, machinenum, key))
 		goto err1;
 
 	/*
