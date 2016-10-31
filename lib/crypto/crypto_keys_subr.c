@@ -103,7 +103,7 @@ export_BN(BIGNUM * bn, uint8_t ** buf, size_t * buflen,
 	unsigned int bnlen;
 
 	/* Figure out how much space we need. */
-	bnlen = BN_num_bytes(bn);
+	bnlen = (unsigned int)BN_num_bytes(bn);
 
 	/* Add the required storage length to ${len}. */
 	if (*len + sizeof(uint32_t) < *len) {
