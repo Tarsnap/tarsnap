@@ -500,7 +500,7 @@ storage_transaction_start_delete(NETPACKET_CONNECTION * NPC,
  */
 int
 storage_transaction_start_fsck(NETPACKET_CONNECTION * NPC,
-    uint64_t machinenum, uint8_t seqnum[32], int whichkey)
+    uint64_t machinenum, uint8_t seqnum[32], uint8_t whichkey)
 {
 
 	if (whichkey)

@@ -139,7 +139,7 @@ STORAGE_D * storage_delete_start(uint64_t, const uint8_t[32], uint8_t[32]);
  * transaction into ${seqnum}.  If ${whichkey} is zero, use the write key
  * (in which case the transaction must be readonly).
  */
-STORAGE_D * storage_fsck_start(uint64_t, uint8_t[32], int, int);
+STORAGE_D * storage_fsck_start(uint64_t, uint8_t[32], int, uint8_t);
 
 /**
  * storage_delete_file(S, class, name):
