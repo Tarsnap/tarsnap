@@ -2,9 +2,9 @@
 
 #ifdef CPUSUPPORT_X86_CPUID
 #include <cpuid.h>
-#endif
 
 #define CPUID_SSE2_BIT (1 << 26)
+#endif
 
 CPUSUPPORT_FEATURE_DECL(x86, sse2)
 {
