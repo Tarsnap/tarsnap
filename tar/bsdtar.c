@@ -418,6 +418,9 @@ main(int argc, char **argv)
 		case 'f': /* multitar */
 			bsdtar->tapenames[bsdtar->ntapes++] = bsdtar->optarg;
 			break;
+		case OPTION_FORCE_RESOURCES:
+			optq_push(bsdtar, "force-resources", NULL);
+			break;
 		case OPTION_FSCK: /* multitar */
 			set_mode(bsdtar, opt, "--fsck");
 			break;
@@ -566,6 +569,8 @@ main(int argc, char **argv)
 		case OPTION_NO_DISK_PAUSE:
 			optq_push(bsdtar, "no-disk-pause", NULL);
 			break;
+		case OPTION_NO_FORCE_RESOURCES:
+			optq_push(bsdtar, "no-force-resources", NULL);
 		case OPTION_NO_HUMANIZE_NUMBERS:
 			optq_push(bsdtar, "no-humanize-numbers", NULL);
 			break;
@@ -1464,6 +1469,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (exclude(bsdtar, conf_arg))
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Couldn't exclude %s", conf_arg);
+	} else if (strcmp(conf_opt, "force-resources") == 0) {
+		if (bsdtar->option_force_resources_set)
+			goto optset;
+
+		bsdtar->option_force_resources = 1;
+		bsdtar->option_force_resources_set = 1;
 	} else if (strcmp(conf_opt, "humanize-numbers") == 0) {
 		if (bsdtar->option_humanize_numbers_set)
 			goto optset;
@@ -1584,6 +1595,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_disk_pause_set = 1;
+	} else if (strcmp(conf_opt, "no-force-resources") == 0) {
+		if (bsdtar->option_force_resources_set)
+			goto optset;
+
+		bsdtar->option_force_resources_set = 1;
 	} else if (strcmp(conf_opt, "no-humanize-numbers") == 0) {
 		if (bsdtar->option_humanize_numbers_set)
 			goto optset;
@@ -1745,7 +1761,7 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 	uint64_t machinenum;
 
 	/* Load the key file. */
-	if (keyfile_read(path, &machinenum, ~0))
+	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources))
 		goto err0;
 
 	/* Check the machine number. */
