@@ -372,6 +372,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 	struct stat sb;
 	uint8_t * keybuf;
 	FILE * f;
+	size_t keyfilelen;
 
 	/* Stat the file. */
 	if (stat(filename, &sb)) {
@@ -379,12 +380,15 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 		goto err0;
 	}
 
-	/* Allocate memory. */
+	/* Validate keyfile size. */
 	if ((sb.st_size == 0) || (sb.st_size > 1000000)) {
 		warn0("Key file has unreasonable size: %s", filename);
 		goto err0;
 	}
-	if ((keybuf = malloc(sb.st_size)) == NULL)
+	keyfilelen = (size_t)(sb.st_size);
+
+	/* Allocate memory. */
+	if ((keybuf = malloc(keyfilelen)) == NULL)
 		goto err0;
 
 	/* Read the file. */
@@ -392,7 +396,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 		warnp("fopen(%s)", filename);
 		goto err1;
 	}
-	if (fread(keybuf, sb.st_size, 1, f) != 1) {
+	if (fread(keybuf, keyfilelen, 1, f) != 1) {
 		warnp("fread(%s)", filename);
 		goto err2;
 	}
@@ -403,7 +407,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 
 	/* If this is a raw key file, process it. */
 	if ((keybuf[0] == 0x00) || (keybuf[0] == 0xff)) {
-		if (read_raw(keybuf, sb.st_size,
+		if (read_raw(keybuf, keyfilelen,
 		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
@@ -411,7 +415,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 		}
 	} else {
 		/* Otherwise, try to base64 decode it. */
-		if (read_base64((const char *)keybuf, sb.st_size,
+		if (read_base64((const char *)keybuf, keyfilelen,
 		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
@@ -420,7 +424,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 	}
 
 	/* Zero and free memory. */
-	insecure_memzero(keybuf, sb.st_size);
+	insecure_memzero(keybuf, keyfilelen);
 	free(keybuf);
 
 	/* Success! */
@@ -429,7 +433,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys)
 err2:
 	fclose(f);
 err1:
-	insecure_memzero(keybuf, sb.st_size);
+	insecure_memzero(keybuf, keyfilelen);
 	free(keybuf);
 err0:
 	/* Failure! */
