@@ -106,7 +106,7 @@ err0:
  */
 STORAGE_D *
 storage_fsck_start(uint64_t machinenum, uint8_t seqnum[32],
-    int readonly, int whichkey)
+    int readonly, uint8_t whichkey)
 {
 	struct storage_delete_internal * S;
 

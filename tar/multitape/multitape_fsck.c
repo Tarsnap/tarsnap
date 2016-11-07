@@ -460,14 +460,14 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 	struct tapemetadata ** mdatlist;
 	size_t nmdat;
 	size_t file;
-	int key = (whichkey == 0) ? 0 : 1;
+	uint8_t key = (whichkey == 0) ? 0 : 1;
 
 	/* Lock the cache directory. */
 	if ((lockfd = multitape_lock(cachedir)) == -1)
 		goto err0;
 
 	/* Make sure the lower layers are in a clean state. */
-	if (multitape_cleanstate(cachedir, machinenum, whichkey))
+	if (multitape_cleanstate(cachedir, machinenum, key))
 		goto err1;
 
 	/*
