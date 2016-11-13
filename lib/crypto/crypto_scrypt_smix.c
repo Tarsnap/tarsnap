@@ -27,7 +27,6 @@
  * online backup system.
  */
 #include <stdint.h>
-#include <string.h>
 
 #include "sysendian.h"
 

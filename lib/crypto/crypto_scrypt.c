@@ -97,7 +97,7 @@ _crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 		goto err1;
 	XY = (uint32_t *)(XY0);
 #if !defined(MAP_ANON) || !defined(HAVE_MMAP)
-	if ((errno = posix_memalign(&V0, 64, 128 * r * N)) != 0)
+	if ((errno = posix_memalign(&V0, 64, (size_t)(128 * r * N))) != 0)
 		goto err2;
 	V = (uint32_t *)(V0);
 #endif
