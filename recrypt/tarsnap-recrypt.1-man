@@ -52,6 +52,12 @@ so care should be taken to disable any automatic (e.g.,
 archiving while
 \fB\%tarsnap-recrypt\fP
 is run.
+.PP
+The
+\fB\--version\fP
+option prints the version number of
+\fB\%tarsnap-recrypt\fP,
+then exits.
 .SH EXAMPLES
 .ad l
 The following sequence of commands will create new keys and re-encrypt

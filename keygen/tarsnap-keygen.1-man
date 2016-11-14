@@ -25,11 +25,14 @@ tarsnap server, and writes a key file for use with
 \fBtarsnap\fP(1).
 .PP
 The
-\fB\--keyfile\fP,
-\fB\--user\fP,
-and
-\fB\--machine\fP
-parameters are all required.
+\fB\--keyfile\fP \fIkey-file\fP
+option specifies the name of the file in which to write the newly-generated
+keys.  The
+\fB\--user\fP \fIuser-name\fP
+option specifies the name (i.e. email address) of the Tarsnap account.  The
+\fB\--machine\fP \fImachine-name\fP
+option specifies a name which will be displayed in accounting reports so that
+you can see how much data each machine is storing.
 .PP
 If the
 \fB\--passphrased\fP
@@ -51,3 +54,9 @@ option is specified, a maximum of approximately
 \fImaxtime\fP
 seconds will be used in the scrypt key derivation function to
 encrypt the key file.
+.PP
+The
+\fB\--version\fP
+option prints the version number of
+\fB\%tarsnap-keygen\fP,
+then exits.
