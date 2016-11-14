@@ -52,6 +52,8 @@ The following options may be specified:
 .TP
 \fBinsane-filesystems\fP
 .TP
+\fBiso-dates\fP
+.TP
 \fBkeyfile\fP \fIkey-file\fP
 .TP
 \fBlowmem\fP
@@ -80,6 +82,8 @@ The following options may be specified:
 .TP
 \fBno-insane-filesystems\fP
 .TP
+\fBno-iso-dates\fP
+.TP
 \fBno-maxbw\fP
 .TP
 \fBno-maxbw-rate-down\fP
@@ -92,6 +96,8 @@ The following options may be specified:
 .TP
 \fBno-quiet\fP
 .TP
+\fBno-retry-forever\fP
+.TP
 \fBno-snaptime\fP
 .TP
 \fBno-store-atime\fP
@@ -101,6 +107,8 @@ The following options may be specified:
 \fBprint-stats\fP
 .TP
 \fBquiet\fP
+.TP
+\fBretry-forever\fP
 .TP
 \fBsnaptime\fP \fIfile\fP
 .TP

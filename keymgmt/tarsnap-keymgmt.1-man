@@ -31,6 +31,8 @@ key files
 .ad l
 \fB\%tarsnap-keymgmt\fP
 reads the provided key files and writes a new key file
+(specified by
+\fB\--outkeyfile\fP \fInew-key-file\fP)
 containing only the keys required for the operations
 specified via the
 \fB\-r\fP
@@ -51,30 +53,35 @@ being able to read it; while a key file generated with
 can be used to delete all the archives stored, but not individual
 archives.
 .PP
-The
-\fB\--recover\fP
-command requires either (1)
+The following list shows which permissions are required for various
+\fBtarsnap\fP(1)
+.IR command modes.
+.RS 5
+.TP
+.IR --recover
+requires either (1)
 \fB\-d\fP
 (archive deleting), (2)
 \fB\-w\fP
 (archive creating), or (3)
 \fB\--nuke\fP
 keys.
-The
-\fB\--fsck\fP
-command requires either (1) both
+.TP
+.IR --fsck
+requires either (1) both
 \fB\-w\fP
 (archive writing) and
 \fB\-r\fP
 (archive reading) keys, or (2)
 \fB\-d\fP
 (archive deleting) keys.
-The
-\fB\--fsck-prune\fP
-command requires
+.TP
+.IR --fsck-prune
+requires
 \fB\-d\fP
 (archive deleting) keys, since it needs to be able to delete
 corrupted archives.
+.RE
 .PP
 If the
 \fB\--passphrased\fP
@@ -106,3 +113,19 @@ or
 options are specified, a key file will be produced which does not
 contain any keys.
 This is probably not very useful.
+.PP
+The
+\fB\--print-key-id\fP \fIkey-file\fP
+option displays the 64-bit integer corresponding to the key's machine number.
+This may be useful for scripts or GUIs which manage a user's Tarsnap account,
+but is not likely to be helpful for command-line use.
+.PP
+The
+\fB\--print-key-permissions\fP \fIkey-file\fP
+option displays the permissions which the key possesses.
+.PP
+The
+\fB\--version\fP
+option prints the version number of
+\fB\%tarsnap-keymgmt\fP,
+then exits.

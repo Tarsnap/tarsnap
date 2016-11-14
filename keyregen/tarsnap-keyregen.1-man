@@ -35,12 +35,16 @@ re-encrypting data; otherwise, existing archives will become unreadable and
 cannot be used for deduplication.
 .PP
 The
-\fB\--keyfile\fP,
-\fB\--user\fP,
-\fB\--machine\fP,
-and
-\fB\--oldkey\fP
-parameters are all required.
+\fB\--keyfile\fP \fIkey-file\fP
+option specifies the name of the file in which to write the newly-generated
+keys.  The
+\fB\--oldkey\fP \fIold-key-file\fP
+option specifies the name of the file containing the old keys.  The
+\fB\--user\fP \fIuser-name\fP
+option specifies the name (i.e. email address) of the Tarsnap account.  The
+\fB\--machine\fP \fImachine-name\fP
+option specifies a name which will be displayed in accounting reports so that
+you can see how much data each machine is storing.
 .PP
 If the
 \fB\--passphrased\fP
@@ -62,3 +66,9 @@ option is specified, a maximum of approximately
 \fImaxtime\fP
 seconds will be used in the scrypt key derivation function to
 encrypt the key file.
+.PP
+The
+\fB\--version\fP
+option prints the version number of
+\fB\%tarsnap-keyregen\fP,
+then exits.
