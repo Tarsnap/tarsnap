@@ -368,6 +368,10 @@ containing only the entries from
 .Ar all-backup
 containing the string
 .Sq foo .
+.It Fl -force-resources
+Force the decryption of a passphrase-encrypted key file to proceed
+even if it is anticipated to require an excessive amount of memory
+or CPU time.
 .It Fl -insane-filesystems
 (c mode only)
 Allow descent into synthetic filesystems such as procfs.
@@ -493,6 +497,10 @@ and
 .It Fl -no-disk-pause
 Ignore any
 .Cm disk-pause
+option specified in a configuration file.
+.It Fl -no-force-resources
+Ignore any
+.Cm force-resources
 option specified in a configuration file.
 .It Fl -no-humanize-numbers
 Ignore any

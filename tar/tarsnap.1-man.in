@@ -391,6 +391,11 @@ containing only the entries from
 containing the string
 Sq foo.
 .TP
+\fB\--force-resources\fP
+Force the decryption of a passphrase-encrypted key file to proceed
+even if it is anticipated to require an excessive amount of memory
+or CPU time.
+.TP
 \fB\--insane-filesystems\fP
 (c mode only)
 Allow descent into synthetic filesystems such as procfs.
@@ -542,6 +547,11 @@ and
 \fB\--no-disk-pause\fP
 Ignore any
 \fBdisk-pause\fP
+option specified in a configuration file.
+.TP
+\fB\--no-force-resources\fP
+Ignore any
+\fBforce-resources\fP
 option specified in a configuration file.
 .TP
 \fB\--no-humanize-numbers\fP
