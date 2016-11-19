@@ -100,12 +100,11 @@ int multitape_chunkiter_tmd(STORAGE_R *, CHUNKS_S *,
 int multitape_metadata_ispresent(STORAGE_W *, const char *);
 
 /**
- * multitape_metadata_put(S, C, mdat, extrastats):
+ * multitape_metadata_put(S, C, mdat):
  * Store archive metadata.  Call chunks_write_extrastats on ${C} and the
- * metadata file length if ${extrastats} != 0.
+ * metadata file length.
  */
-int multitape_metadata_put(STORAGE_W *, CHUNKS_W *, struct tapemetadata *,
-    int);
+int multitape_metadata_put(STORAGE_W *, CHUNKS_W *, struct tapemetadata *);
 
 /**
  * multitape_metadata_get_byhash(S, C, mdat, tapehash, quiet):
@@ -158,13 +157,13 @@ int multitape_metadata_delete(STORAGE_D *, CHUNKS_D *, struct tapemetadata *);
 void multitape_metaindex_fragname(const uint8_t[32], uint32_t, uint8_t[32]);
 
 /**
- * multitape_metaindex_put(S, C, mind, mdat, extrastats):
+ * multitape_metaindex_put(S, C, mind, mdat):
  * Store the provided archive metaindex, and update the archive metadata
  * with the metaindex parameters.  Call chunks_write_extrastats on ${C} and
- * the length(s) of file(s) containing the metaindex if ${extrastats} != 0.
+ * the length(s) of file(s) containing the metaindex.
  */
 int multitape_metaindex_put(STORAGE_W *, CHUNKS_W *, struct tapemetaindex *,
-    struct tapemetadata *, int);
+    struct tapemetadata *);
 
 /**
  * multitape_metaindex_get(S, C, mind, mdat, quiet):

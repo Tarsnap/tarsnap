@@ -777,11 +777,11 @@ flushtape(TAPE_W * d, int isapart)
 	 * archive metadata is stored, since it fills in fields in the archive
 	 * metadata concerning the index length and hash.
 	 */
-	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd, 1))
+	if (multitape_metaindex_put(d->S, d->C, &tmi, &tmd))
 		goto err4;
 
 	/* Store archive metadata. */
-	if (multitape_metadata_put(d->S, d->C, &tmd, 1))
+	if (multitape_metadata_put(d->S, d->C, &tmd))
 		goto err4;
 
 	/* Free duplicated chunk indexes. */
