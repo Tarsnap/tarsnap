@@ -332,7 +332,7 @@ multitape_metaindex_free(struct tapemetaindex * mind)
 /**
  * multitape_metaindex_delete(S, C, mdat):
  * Delete the metaindex file associated with the provided metadata.  Call
- * chnks_delete_extrastats on ${C} and the length(s) of file(s) containing
+ * chunks_delete_extrastats on ${C} and the length(s) of file(s) containing
  * the metaindex.
  */
 int
