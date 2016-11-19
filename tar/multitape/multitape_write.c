@@ -843,15 +843,33 @@ writetape_checkpoint(TAPE_W * d)
 		goto err0;
 
 	/*
+	 * Back up archive set statistics before adding the metadata and
+	 * metaindex; these will be restored after the chunk layer writes the
+	 * directory file.
+	 */
+	chunks_write_extrastats_copy(d->C, 0);
+
+	/*
 	 * Flush data through and write the metaindex and metadata;
 	 * checkpoints are partial archives, so mark it as such.
+	 * This also adds the metadata and metaindex to the "extra"
+	 * statistics; we need these when we write the directory file, but we
+	 * will restore the original statistics later since the metadata and
+	 * metaindex from this checkpoint will be discarded if/when another
+	 * checkpoint is created or the archive is completed.
 	 */
-	if (flushtape(d, 1, 0))
+	if (flushtape(d, 1, 1))
 		goto err0;
 
 	/* Ask the chunks layer to prepare for a checkpoint. */
 	if (chunks_write_checkpoint(d->C))
 		goto err0;
+
+	/*
+	 * Restore original statistics (i.e. without the metadata and
+	 * metaindex).
+	 */
+	chunks_write_extrastats_copy(d->C, 1);
 
 	/* If this isn't a dry run, create a checkpoint. */
 	if ((d->S != NULL) &&
