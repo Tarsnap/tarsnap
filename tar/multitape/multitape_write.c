@@ -98,7 +98,7 @@ static int
 stream_init(struct stream * S, chunkify_callback callback, void * cookie)
 {
 
-	/* Create chunkfier. */
+	/* Create chunkifier. */
 	if ((S->c =
 	    chunkify_init(MEANCHUNK, MAXCHUNK, callback, cookie)) == NULL)
 		goto err0;
