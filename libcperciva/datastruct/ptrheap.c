@@ -292,7 +292,7 @@ ptrheap_deletemin(struct ptrheap * H)
  * ptrheap_increase(H, rc):
  * Adjust the heap ${H} to account for the fact that the element ptr for
  * which the function call setreccookie(cookie, ptr, ${rc}) was most recently
- * made has incrased.
+ * made has increased.
  */
 void
 ptrheap_increase(struct ptrheap * H, size_t rc)
