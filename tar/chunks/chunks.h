@@ -230,7 +230,9 @@ int chunks_transaction_checkpoint(const char *);
  */
 int chunks_transaction_commit(const char *);
 
-/** Functions used by both _stats_ and _fsck_ codebases. **/
+/*
+ * Functions used by both _stats_ and _fsck_ codebases.
+ */
 
 /**
  * chunks_stats_zeroarchive(C):
@@ -252,7 +254,9 @@ int chunks_stats_addchunk(CHUNKS_S *, const uint8_t *, size_t, size_t);
  */
 void chunks_stats_extrastats(CHUNKS_S *, size_t);
 
-/** Function used by --initialize-cachedir. **/
+/*
+ * Function used by --initialize-cachedir.
+ */
 
 /**
  * chunks_initialize(cachepath):
