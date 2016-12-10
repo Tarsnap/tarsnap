@@ -496,8 +496,16 @@ tarsnap_keymgmt_CPPFLAGS=				\
 
 tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
-#  Tarsnap sample configuration file
+#  Tarsnap configuration file
+if INSTALL_CONF_NO_SAMPLE
+tar/tarsnap.conf: tar/tarsnap.conf.sample
+	cp $< $@
+
+sysconf_DATA	=	tar/tarsnap.conf
+CLEANFILES	+=	tar/tarsnap.conf
+else
 sysconf_DATA	=	tar/tarsnap.conf.sample
+endif
 
 # Use the right version of the man pages depending on whether we have mdoc
 # macros available on this system.
