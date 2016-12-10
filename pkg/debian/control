@@ -8,6 +8,7 @@ Standards-Version: 3.9.5
 Package: tarsnap
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: tarsnap-archive-keyring
 Description: secure, efficient online backup service
  This package contains the client for Tarsnap: a secure, efficient online
  backup service.
