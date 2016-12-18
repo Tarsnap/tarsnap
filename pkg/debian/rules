@@ -5,5 +5,4 @@
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- --with-bash-completion-dir
-
+	dh_auto_configure -- --with-bash-completion-dir --with-conf-no-sample

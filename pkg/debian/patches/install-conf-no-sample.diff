@@ -1,0 +1,109 @@
+Index: tarsnap-autoconf-1.0.37/Makefile.in
+===================================================================
+--- tarsnap-autoconf-1.0.37.orig/Makefile.in
++++ tarsnap-autoconf-1.0.37/Makefile.in
+@@ -107,6 +107,7 @@ bin_PROGRAMS = tarsnap$(EXEEXT) tarsnap-
+ @INC_CYGWIN_FILES_TRUE@		tar/bsdtar_cygwin.h	\
+ @INC_CYGWIN_FILES_TRUE@		tar/bsdtar_cygwin.c
+ 
++@INSTALL_CONF_NO_SAMPLE_TRUE@am__append_4 = tar/tarsnap.conf
+ subdir = .
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+ am__aclocal_m4_deps = $(top_srcdir)/tar-version $(top_srcdir)/tsserver \
+@@ -694,7 +696,7 @@ AUTOMAKE_OPTIONS = foreign subdir-object
+ noinst_LIBRARIES = libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
+ dist_man_MANS = $(tarsnap_dist_man_MANS) $(tarsnap_keygen_dist_man_MANS) $(tarsnap_keyregen_dist_man_MANS) $(tarsnap_recrypt_dist_man_MANS) $(tarsnap_keymgmt_dist_man_MANS)
+ CLEANFILES = $(dist_man_MANS) cpusupport-config.h \
+-	cpusupport-config.h.tmp tar/tarsnap.1-mdoc \
++	cpusupport-config.h.tmp $(am__append_4) tar/tarsnap.1-mdoc \
+ 	tar/tarsnap.conf.5-mdoc
+ 
+ #
+@@ -1048,9 +1050,8 @@ tarsnap_keymgmt_CFLAGS = \
+ 		-I$(top_srcdir)/libcperciva/util
+ 
+ tarsnap_keymgmt_dist_man_MANS = keymgmt/tarsnap-keymgmt.1
+-
+-#  Tarsnap sample configuration file
+-sysconf_DATA = tar/tarsnap.conf.sample
++@INSTALL_CONF_NO_SAMPLE_FALSE@sysconf_DATA = tar/tarsnap.conf.sample
++@INSTALL_CONF_NO_SAMPLE_TRUE@sysconf_DATA = tar/tarsnap.conf
+ 
+ #
+ # Misc helper scripts
+@@ -5290,6 +5291,10 @@ uninstall-man: uninstall-man1 uninstall-
+ cpusupport-config.h:
+ 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+ 
++#  Tarsnap configuration file
++@INSTALL_CONF_NO_SAMPLE_TRUE@tar/tarsnap.conf: tar/tarsnap.conf.sample
++@INSTALL_CONF_NO_SAMPLE_TRUE@	cp $< $@
++
+ # Use the right version of the man pages depending on whether we have mdoc
+ # macros available on this system.
+ tar/tarsnap.1-man tar/tarsnap.1-mdoc \
+Index: tarsnap-autoconf-1.0.37/configure
+===================================================================
+--- tarsnap-autoconf-1.0.37.orig/configure
++++ tarsnap-autoconf-1.0.37/configure
+@@ -634,6 +634,8 @@ PKG_CONFIG_LIBDIR
+ PKG_CONFIG_PATH
+ PKG_CONFIG
+ HAS_PKG_CONFIG
++INSTALL_CONF_NO_SAMPLE_FALSE
++INSTALL_CONF_NO_SAMPLE_TRUE
+ LIBOBJS
+ FREEBSD_PORTRANGE_BUG
+ BROKEN_TCP_NOPUSH
+@@ -759,6 +762,7 @@ with_lzma
+ enable_xattr
+ enable_acl
+ enable_largefile
++with_conf_no_sample
+ with_bash_completion_dir
+ enable_compiler_warnings
+ '
+@@ -1416,6 +1431,7 @@ Optional Packages:
+   --without-bz2lib        Don't build support for bzip2 through bz2lib
+   --without-lzmadec       Don't build support for lzma through lzmadec
+   --without-lzma          Don't build support for xz through lzma
++  --with-conf-no-sample   Install tarsnap.conf without the .sample suffix.
+   --with-bash-completion-dir[=DIRNAME]
+                           Install bash completion script. [default=no]
+ 
+@@ -8444,6 +8460,24 @@ cat >>confdefs.h <<_ACEOF
+ _ACEOF
+ 
+ 
++# Strip the .sample from tarsnap.conf.sample (if requested by the user).
++
++# Check whether --with-conf-no-sample was given.
++if test "${with_conf_no_sample+set}" = set; then :
++  withval=$with_conf_no_sample;
++else
++  with_conf_no_sample=no
++fi
++
++ if test "x$with_conf_no_sample" != "xno"; then
++  INSTALL_CONF_NO_SAMPLE_TRUE=
++  INSTALL_CONF_NO_SAMPLE_FALSE='#'
++else
++  INSTALL_CONF_NO_SAMPLE_TRUE='#'
++  INSTALL_CONF_NO_SAMPLE_FALSE=
++fi
++
++
+ # install bash completion
+ 
+ # Check whether --with-bash-completion-dir was given.
+@@ -8967,6 +9001,10 @@ if test -z "${MAINTAINER_MODE_TRUE}" &&
+   as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
+ fi
++if test -z "${INSTALL_CONF_NO_SAMPLE_TRUE}" && test -z "${INSTALL_CONF_NO_SAMPLE_FALSE}"; then
++  as_fn_error $? "conditional \"INSTALL_CONF_NO_SAMPLE\" was never defined.
++Usually this means the macro was only invoked conditionally." "$LINENO" 5
++fi
+ if test -z "${INSTALL_BASH_COMPLETION_TRUE}" && test -z "${INSTALL_BASH_COMPLETION_FALSE}"; then
+   as_fn_error $? "conditional \"INSTALL_BASH_COMPLETION\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
