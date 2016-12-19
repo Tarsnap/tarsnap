@@ -364,7 +364,7 @@ bsdtar_getopt(struct bsdtar *bsdtar)
 			/* Short-circuit if first chars don't match. */
 			if (popt->name[0] != opt_word[0])
 				continue;
-			/* If option is a prefix of name in table, record it.*/
+			/* If option is a prefix of name in table, record it. */
 			if (strncmp(opt_word, popt->name, optlength) == 0) {
 				match2 = match; /* Record up to two matches. */
 				match = popt;
