@@ -444,6 +444,14 @@ AC_SYS_LARGEFILE
 AC_CHECK_DECLS([optarg])
 AC_CHECK_DECLS([optind])
 
+# Strip the .sample from tarsnap.conf.sample (if requested by the user).
+AC_ARG_WITH([conf-no-sample],
+    AS_HELP_STRING([--with-conf-no-sample],
+        [Install tarsnap.conf without the .sample suffix.]),
+    [], [with_conf_no_sample=no])
+AM_CONDITIONAL([INSTALL_CONF_NO_SAMPLE],
+    [test "x$with_conf_no_sample" != "xno"])
+
 # install bash completion
 AC_ARG_WITH([bash-completion-dir],
     AS_HELP_STRING([--with-bash-completion-dir@<:@=DIRNAME@:>@],
