@@ -299,7 +299,7 @@ SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx)
 
 /**
  * SHA256_Buf(in, len, digest):
- * Compute the SHA256 hash of ${len} bytes from $in} and write it to ${digest}.
+ * Compute the SHA256 hash of ${len} bytes from ${in} and write it to ${digest}.
  */
 void
 SHA256_Buf(const void * in, size_t len, uint8_t digest[32])

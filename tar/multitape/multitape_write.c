@@ -98,7 +98,7 @@ static int
 stream_init(struct stream * S, chunkify_callback callback, void * cookie)
 {
 
-	/* Create chunkfier. */
+	/* Create chunkifier. */
 	if ((S->c =
 	    chunkify_init(MEANCHUNK, MAXCHUNK, callback, cookie)) == NULL)
 		goto err0;
@@ -492,7 +492,7 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	if ((d->hbuf = bytebuf_init(0)) == NULL)
 		goto err9;
 
-	/* Iinitialize file chunkifier. */
+	/* Initialize file chunkifier. */
 	if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_file,
 	    (void *)d)) == NULL)
 		goto err10;

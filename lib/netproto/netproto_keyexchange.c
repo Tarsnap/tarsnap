@@ -371,7 +371,7 @@ dh_sent(void * cookie, int status)
 	 * better as long as latency costs less than $45/hour.
 	 *
 	 * Since I don't expect people to be running tarsnap from mobile
-	 * phones (or over 19.2Kbps modems, where the added bandwidth slows
+	 * phones (or over 19.2kbps modems, where the added bandwidth slows
 	 * down the connection by longer than the overlapping of computation
 	 * time saves) any time soon, I'm taking the route which optimizes
 	 * for time.
