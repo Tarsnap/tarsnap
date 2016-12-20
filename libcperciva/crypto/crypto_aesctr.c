@@ -97,7 +97,7 @@ crypto_aesctr_free(struct crypto_aesctr * stream)
 
 /**
  * crypto_aesctr_buf(key, nonce, inbuf, outbuf, buflen):
- * Equivalent to init(key, nonce); stream(inbuf, outbuf, buflen); free.
+ * Equivalent to _init(key, nonce); _stream(inbuf, outbuf, buflen); _free().
  */
 void
 crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
