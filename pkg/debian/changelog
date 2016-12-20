@@ -1,3 +1,8 @@
+tarsnap (1.0.37-3) unstable; urgency=medium
+
+  * Install a real tarsnap.conf file to /etc, not tarsnap.conf.sample.
+  * Recommend tarsnap-archive-keyring.
+ -- Graham Percival <gperciva@tarsnap.com>  Sat, 19 Dec 2016 20:01:20 -0800
 tarsnap (1.0.37-2) unstable; urgency=low
 
   * Use gzip compression for the .debian.tar.* file.
