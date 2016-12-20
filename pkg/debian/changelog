@@ -1,6 +1,5 @@
 tarsnap (1.0.37-2) unstable; urgency=low
 
-  * Update release script to allow -R debian package revisions (i.e. -2).
   * Use gzip compression for the .debian.tar.* file.
  -- Graham Percival <gperciva@tarsnap.com>  Sun, 04 Dec 2016 23:24:18 +0000
 tarsnap (1.0.37-1) unstable; urgency=low
