@@ -503,7 +503,7 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 	 * links (e.g., FAT32).
 	 *
 	 * If the link(2) call fails with ENOSYS (sensible failure code for
-	 * not supporting hard links) or EPERM (linux's idea of a joke?), we
+	 * not supporting hard links) or EPERM (Linux's idea of a joke?), we
 	 * fall back to using rename(2) instead of link/sync/unlink.
 	 */
 

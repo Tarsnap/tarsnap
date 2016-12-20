@@ -233,7 +233,7 @@ sock_resolve(const char * addr)
 	char * ips;
 	long p;
 
-	/* If the address starts with '/', it's a unix socket. */
+	/* If the address starts with '/', it's a Unix domain socket. */
 	if (addr[0] == '/') {
 		res = sock_resolve_unix(addr);
 		goto done0;
