@@ -81,6 +81,13 @@ int chunks_write_chunkref(CHUNKS_W *, const uint8_t *);
 void chunks_write_extrastats(CHUNKS_W *, size_t);
 
 /**
+ * chunks_write_extrastats_copy(C, direction):
+ * Make a copy of the extra stats; if ${direction} is 0, copy from the real
+ * stats to a copy; if 1, set the real stats to the copy.
+ */
+void chunks_write_extrastats_copy(CHUNKS_W *, size_t);
+
+/**
  * chunks_write_printstats(stream, C, csv):
  * Print statistics for the write transaction associated with the cookie
  * ${C} to ${stream}, optionally in ${csv} format.

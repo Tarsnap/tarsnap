@@ -26,6 +26,7 @@ struct chunks_write_internal {
 	struct chunkstats stats_total;	/* All archives, w/ multiplicity. */
 	struct chunkstats stats_unique;	/* All archives, w/o multiplicity. */
 	struct chunkstats stats_extra;	/* Extra (non-chunked) data. */
+	struct chunkstats stats_extra_copy;	/* Copy for checkpoint stats. */
 	struct chunkstats stats_tape;	/* This archive, w/ multiplicity. */
 	struct chunkstats stats_new;	/* New chunks. */
 	struct chunkstats stats_tapee;	/* Extra data in this archive. */
@@ -246,6 +247,21 @@ chunks_write_extrastats(CHUNKS_W * C, size_t len)
 
 	chunks_stats_add(&C->stats_extra, len, len, 1);
 	chunks_stats_add(&C->stats_tapee, len, len, 1);
+}
+
+/**
+ * chunks_write_extrastats_copy(C, direction):
+ * Make a copy of the extra stats; if ${direction} is 0, copy from the real
+ * stats to a copy; if 1, set the real stats to the copy.
+ */
+void
+chunks_write_extrastats_copy(CHUNKS_W * C, size_t direction)
+{
+
+	if (direction == 0)
+		C->stats_extra_copy = C->stats_extra;
+	else
+		C->stats_extra = C->stats_extra_copy;
 }
 
 /**
