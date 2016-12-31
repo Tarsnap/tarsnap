@@ -646,6 +646,10 @@ main(int argc, char **argv)
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
 			break;
+		case OPTION_PROBABILITY_CHECK_FILE: /* tarsnap */
+			optq_push(bsdtar, "probability-check-file",
+			    bsdtar->optarg);
+			break;
 		case 'q': /* FreeBSD GNU tar --fast-read, NetBSD -q */
 			bsdtar->option_fast_read = 1;
 			break;
@@ -1657,6 +1661,18 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_print_stats = 1;
 		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "probability-check-file") == 0) {
+		if (conf_arg == NULL)
+			goto needarg;
+
+		bsdtar->probability_check_file = strtod(conf_arg, &eptr);
+		if ((*eptr != '\0') ||
+		    (bsdtar->probability_check_file > 1.0) ||
+		    (bsdtar->probability_check_file < 0.0))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Invalid probability of checking file hashes: %s",
+			        conf_arg);
+		bsdtar->option_probability_check_file_set = 1;
 	} else if (strcmp(conf_opt, "quiet") == 0) {
 		if (bsdtar->option_quiet_set)
 			goto optset;

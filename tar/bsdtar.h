@@ -90,6 +90,7 @@ struct bsdtar {
 	double		  bwlimit_rate_up;	/* --maxbw-rate(-up)? */
 	double		  bwlimit_rate_down;	/* --maxbw-rate(-down)? */
 	int		  disk_pause;		/* --disk-pause */
+	double		  probability_check_file; /* --probability-check-file */
 	int		  option_aggressive_networking_set;
 	int		  option_cachecrunch_set;
 	int		  option_disk_pause_set;
@@ -99,6 +100,7 @@ struct bsdtar {
 	int		  option_maxbw_rate_up_set;
 	int		  option_nodump_set;
 	int		  option_print_stats_set;
+	int		  option_probability_check_file_set;
 	int		  option_snaptime_set;
 	int		  option_store_atime_set;
 	int		  option_totals_set;
@@ -236,6 +238,7 @@ enum {
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PRINT_STATS,
+	OPTION_PROBABILITY_CHECK_FILE,
 	OPTION_RECOVER,
 	OPTION_RECOVER_DELETE,	/* Operation mode, not a real option */
 	OPTION_RECOVER_WRITE,	/* Operation mode, not a real option */

@@ -96,8 +96,10 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 
 #include "archive_multitape.h"
 #include "ccache.h"
+#include "crypto_entropy.h"
 #include "getfstype.h"
 #include "sigquit.h"
+#include "sysendian.h"
 #include "tsnetwork.h"
 
 /* Size of buffer for holding file data prior to writing. */
@@ -1027,6 +1029,8 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	int			 filecached = 0;
 	int fd = -1;
 	int e;
+	uint8_t random_buffer[4];
+	uint32_t random_value;
 
 	/*
 	 * If this archive entry needs data, we have a canonical path to the
@@ -1039,6 +1043,58 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	    (bsdtar->chunk_cache != NULL)) {
 		cce = ccache_entry_lookup(bsdtar->chunk_cache, rpath, st,
 		    bsdtar->write_cookie, &filecached);
+	}
+
+	/*
+	 * If the user requested it, check cached hash values against re-read
+	 * data from disk.  Note: if (filecached==1) then the filesize is
+	 * equal to the sum of all cache chunks + trailer are equal.
+	 */
+	if (bsdtar->option_probability_check_file_set &&
+	    (archive_entry_size(entry) > 0) && (filecached == 1)) {
+		/*
+		 * Generate a random number.  Does not need to be high-quality
+		 * entropy, but using known low-quality entropy could lead to
+		 * annoying complaints from static code analyzers.
+		 */ 
+		if (crypto_entropy_read(random_buffer, 4))
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Cannot generate random number");
+		random_value = le32dec(random_buffer);
+
+		/* Should we check this file? */
+		if (random_value <
+		    bsdtar->probability_check_file * UINT32_MAX) {
+			/* Open file for reading. */
+			const char *pathname = archive_entry_sourcepath(entry);
+			fd = open(pathname, O_RDONLY);
+			if (fd == -1) {
+				if (!bsdtar->verbose)
+					bsdtar_warnc(bsdtar, errno,
+					    "%s: could not open file",
+					    pathname);
+				else
+					fprintf(stderr, ": %s",
+					    strerror(errno));
+				return;
+			}
+	
+			/* Check file data with cached hashes and trailer. */
+			switch (ccache_entry_check_file(cce, fd)) {
+			case 0:
+				close(fd);
+			case 1:
+				close(fd);
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Cached hashes or trailer does not "
+				    "agree with %s", pathname);
+			case -1:
+				close(fd);
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Error occurred while comparing "
+				    "cached hashes of %s", pathname);
+			}
+		}
 	}
 
 	/*

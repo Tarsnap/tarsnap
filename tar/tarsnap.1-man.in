@@ -696,6 +696,15 @@ option is also specified.
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .TP
+\fB\--probability-check-file\fP \fIp\fP
+(c mode only)
+If a file has not changed, read it anyway (with the given probability
+\fIp\fP
+from 0.0 to 1.0) and compare its hash(es) and trailer to the cached values.
+This might provide a warning about a failing disk if other detection methods
+fail.  However, this operation will make Tarsnap run considerably slower, so
+we do not recommend using a high probability with large archives.
+.TP
 \fB\-q\fP (\fB\--fast-read\fP)
 (x and t modes only)
 Extract or list only the first archive entry that matches each pattern
