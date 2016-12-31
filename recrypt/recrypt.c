@@ -451,7 +451,7 @@ main(int argc, char **argv)
 	if (keyfile_read(nkeyfile, &nmachinenum,
 	    CRYPTO_KEYMASK_SIGN_PRIV | CRYPTO_KEYMASK_ENCR_PUB |
 	    CRYPTO_KEYMASK_AUTH_GET | CRYPTO_KEYMASK_AUTH_PUT |
-            CRYPTO_KEYMASK_HMAC_FILE_WRITE)) {
+            CRYPTO_KEYMASK_HMAC_FILE_WRITE, 0)) {
 		warnp("Cannot read key file: %s", nkeyfile);
 		exit(1);
 	}
@@ -485,7 +485,7 @@ main(int argc, char **argv)
 	if (keyfile_read(okeyfile, &omachinenum,
 	    CRYPTO_KEYMASK_SIGN_PUB | CRYPTO_KEYMASK_ENCR_PRIV |
 	    CRYPTO_KEYMASK_AUTH_GET | CRYPTO_KEYMASK_AUTH_DELETE |
-	    CRYPTO_KEYMASK_HMAC_FILE)) {
+	    CRYPTO_KEYMASK_HMAC_FILE, 0)) {
 		warnp("Cannot read key file: %s", okeyfile);
 		exit(1);
 	}

@@ -5,11 +5,13 @@
 #include <stdio.h>
 
 /**
- * keyfile_read(filename, machinenum, keys):
+ * keyfile_read(filename, machinenum, keys, force):
  * Read keys from a tarsnap key file; and return the machine # via the
  * provided pointer.  Ignore any keys not specified in the ${keys} mask.
+ * If ${force} is 1, do not check whether decryption will exceed
+ * the estimated available memory or time.
  */
-int keyfile_read(const char *, uint64_t *, int);
+int keyfile_read(const char *, uint64_t *, int, int);
 
 /**
  * keyfile_write(filename, machinenum, keys, passphrase, maxmem, cputime):

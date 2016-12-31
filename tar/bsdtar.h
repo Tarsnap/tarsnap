@@ -113,6 +113,8 @@ struct bsdtar {
 	int		  option_insane_filesystems_set;
 	int		  option_iso_dates;
 	int		  option_iso_dates_set;
+	int		  option_force_resources;
+	int		  option_force_resources_set;
 	const char	**configfiles;		/* --configfile */
 	size_t 		  nconfigfiles;
 	int		  option_no_default_config; /* --no-default-config */
@@ -185,6 +187,7 @@ enum {
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
 	OPTION_EXCLUDE,
+	OPTION_FORCE_RESOURCES,
 	OPTION_FSCK,
 	OPTION_FSCK_DELETE,	/* Operation mode, not a real option */
 	OPTION_FSCK_PRUNE,
@@ -214,6 +217,7 @@ enum {
 	OPTION_NO_CONFIG_INCLUDE,
 	OPTION_NO_DEFAULT_CONFIG,
 	OPTION_NO_DISK_PAUSE,
+	OPTION_NO_FORCE_RESOURCES,
 	OPTION_NO_HUMANIZE_NUMBERS,
 	OPTION_NO_INSANE_FILESYSTEMS,
 	OPTION_NO_ISO_DATES,
