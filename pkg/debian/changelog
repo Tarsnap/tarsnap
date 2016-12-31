@@ -1,3 +1,8 @@
+tarsnap (1.0.37-4) unstable; urgency=medium
+
+  * Ensure that libssl 1.1.0 is not used.
+
+ -- Graham Percival <gperciva@tarsnap.com>  Fri, 30 Dec 2016 18:20:02 -0800
 tarsnap (1.0.37-3) unstable; urgency=medium
 
   * Install a real tarsnap.conf file to /etc, not tarsnap.conf.sample.
