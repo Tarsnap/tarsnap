@@ -1,10 +1,12 @@
 #compdef tarsnap
 
 # zsh completion function for tarsnap 1.0.37
+# Place this file in one of the completion folders listed in $fpath (e.g. /usr/share/zsh/functions/Completion/Linux)
+# Then either restart zsh, or: autoload -Uz _tarsnap; compdef _tarsnap tarsnap
 
 # Set the following variable to the path of a file containing the output from "tarsnap --list-archives" 
 # i.e. one archive name per line. If left blank then archive names will not be completed.
-local archivefile=
+local archivelistfile=
 
 local -a reply matchany number files directories archives keyfile cachedir patterns attarfile atatarchivename
 # matches any word (e.g. the the first command word)
@@ -25,13 +27,13 @@ function _tarsnap_archives() {
     archivesarr=( "${(f)$(cat ${1})}" )
     compadd -a archivesarr
 }
-archives=(/$'-f\0'/ ':opts:options:(-f)' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivefile}")
+archives=(/$'-f\0'/ ':opts:options:(-f)' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivelistfile}")
 # completes patterns
 patterns=("$matchany" ':patterns:glob pattern matching files to be viewed/extracted:')
 # complete tar file with @ at beginning (for -c command). Need to make sure it doesnt match @@<FILE>.
 attarfile=(/$'@'/ ':option:option:(@)' /$'[^@][^\0]##\0'/ ":file:file:_files")
 # complete archive name with @@ at beginning (for -c command)
-atatarchivename=(/$'@@'/ ':option:option:(@@)' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivefile}")
+atatarchivename=(/$'@@'/ ':option:option:(@@)' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivelistfile}")
 local -a commonopts copts dopts ropts topts xopts laopts psopts reopts fsckopts nuopts
 # options common to all commands
 _regex_words opts "options" \
