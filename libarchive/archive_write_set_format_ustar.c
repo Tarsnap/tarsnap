@@ -108,9 +108,9 @@ static const char template_header[] = {
 	'0','0','0','0','0','0', ' ','\0',
 	/* gid, space-null termination: 8 bytes */
 	'0','0','0','0','0','0', ' ','\0',
-	/* size, space termation: 12 bytes */
+	/* size, space termination: 12 bytes */
 	'0','0','0','0','0','0','0','0','0','0','0', ' ',
-	/* mtime, space termation: 12 bytes */
+	/* mtime, space termination: 12 bytes */
 	'0','0','0','0','0','0','0','0','0','0','0', ' ',
 	/* Initial checksum value: 8 spaces */
 	' ',' ',' ',' ',' ',' ',' ',' ',
