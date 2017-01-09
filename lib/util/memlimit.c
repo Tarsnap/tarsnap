@@ -216,8 +216,11 @@ memlimit_sysconf(size_t * memlimit)
 	/* Read the two limits. */
 	if (((pagesize = sysconf(_SC_PAGE_SIZE)) == -1) ||
 	    ((physpages = sysconf(_SC_PHYS_PAGES)) == -1)) {
-		/* Did an error occur? */
-		if (errno != 0)
+		/*
+		 * Did an error occur?  OS X may return EINVAL due to not
+		 * supporting _SC_PHYS_PAGES in spite of defining it.
+		 */
+		if (errno != 0 && errno != EINVAL)
 			return (1);
 
 		/* If not, there is no limit. */
