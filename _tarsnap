@@ -18,19 +18,19 @@ files=("$matchany" ':file:file:_files')
 # completes directories
 directories=("$matchany" ':dir:directory:{_path_files -/}')
 # completes --keyfile option
-keyfile=(/$'--keyfile\0'/ ':opts:options:(--keyfile)' "$matchany" ':file:file:_files')
+keyfile=(/$'--keyfile\0'/ ':opts:options:((--keyfile\:"specify key file"))' "$matchany" ':file:file:_files')
 # completes --cachedir option
-cachedir=(/$'--cachedir\0'/ ':opts:options:(--cachedir)' "$matchany" ':file:file:{_path_files -/}')
+cachedir=(/$'--cachedir\0'/ ':opts:options:((--cachedir\:"specify cache directory"))' "$matchany" ':file:file:{_path_files -/}')
 # completes --dry-run option
 typeset -a dryrunopt
-dryrunopt=(/$'--dry-run\0'/ ':opts:options:(--dry-run)')
+dryrunopt=(/$'--dry-run\0'/ ':opts:options:((--dry-run\:"dont really create an archive, just simulate doing so"))')
 # completes -f (archive) option 
 function _tarsnap_archives() {
     local -a archivesarr
     archivesarr=( "${(f)$(cat ${1})}" )
     compadd -a archivesarr
 }
-archives=(/$'-f\0'/ ':opts:options:(-f)' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivelistfile}")
+archives=(/$'-f\0'/ ':opts:options:((-f\:"specify name of archive to operate on"))' /$'[^\0]##\0'/ ":archive:archive:{_tarsnap_archives $archivelistfile}")
 # completes patterns
 patterns=("$matchany" ':patterns:glob pattern matching files to be viewed/extracted:')
 # complete tar file with @ at beginning (for -c command). Need to make sure it doesnt match @@<FILE>.
