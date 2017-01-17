@@ -121,22 +121,22 @@ local csvfileopt='--csv-file:write statistics in CSV format to a file:$files'
 local patternopt=' :glob pattern matching files to be viewed/extracted:'
 # options for the create command
 _regex_words opts "options" "$aggressivenetworkingopt" "$changediropt" "$checklinksopt" "$creationtimeopt" "$diskpauseopt" "$excludeopt" "$Hopt" "$includeopt" "$insanefilesystemsopt" "$Lopt" "$lowmemopt" "$maxbwopt" "$nopt" "$neweropt" "$newermtimeopt" "$newerthanopt" "$newermtimethanopt" "$nodumpopt" "$onefilesystemopt" "$Popt" "$printstatsopt" "$snaptimeopt" "$storeatimeopt" "$Topt" "$nullopt" "$totalsopt" "$verylowmemopt" "$vopt" "$wopt" "$Xopt"
-copts=("(" "$keyfile[@]" "|" ")" "(" "$cachedir[@]" "|" ")" "(" "$archives[@]" "|" "$dryrunopt[@]" ")" "(" "$reply[@]" "|" "$commonopts[@]" "|" "$atatarchivename[@]" "|" "$attarfile[@]" ")" \# "(" "$files[@]" ")" \#)
+copts=("(" "$archives[@]" "|" "$keyfile[@]" "|" "$cachedir[@]" "|" "$reply[@]" "|" "$commonopts[@]" "|" "$atatarchivename[@]" "|" "$attarfile[@]" ")" \# "(" "$files[@]" ")" \#)
 # options for the delete command
 _regex_words opts "options" "$keepgoingopt" "$printstatsopt"
-dopts=("(" "$keyfile[@]" "|" ")" "(" "$cachedir[@]" "|" ")" "$archives[@]" "(" "$reply[@]" "|" "$commonopts[@]" ")" \#)
+dopts=("(" "$keyfile[@]" "|" "$cachedir[@]" "|" "$archives[@]" "|" "$reply[@]" "|" "$commonopts[@]" ")" \#)
 # options for the read command
 ropts=("(" "$keyfile[@]" "|" ")" "$archives[@]")
 # options for the list command
 _regex_words opts "options" "$excludeopt" "$includeopt" "$Oopt" "$Popt" "$qopt" "$Topt" "$nullopt" "$vopt" "$Xopt" "$patternopt"
-topts=("(" "$keyfile[@]" "|" ")" "$archives[@]" "(" "$reply[@]" "|" "$commonopts[@]" ")" \# "(" "$patterns[@]" ")" \#)
+topts=("(" "$keyfile[@]" "|" "$archives[@]" "|" "$reply[@]" "|" "$commonopts[@]" ")" \# "(" "$patterns[@]" ")" \#)
 # options for the extract command
 _regex_words opts "options" "$Copt" "$chrootopt" "$excludeopt" "$includeopt" "$kopt" "$keepnewerfilesopt" "$mopt" "$Oopt" "$Popt" "$qopt" "$oopt" "$popt" "$numericowneropt" "$Sopt" "$stripcomponentsopt" "$Topt" "$nullopt" "$Uopt" "$vopt" "$wopt" "$Xopt" "$patternopt"
-xopts=("(" "$keyfile[@]" "|" ")" "$archives[@]" "(" "$reply[@]" "|" "$commonopts[@]" ")" \# "(" "$patterns[@]" ")" \#)
+xopts=("(" "$keyfile[@]" "|" "$archives[@]" "|" "$reply[@]" "|" "$commonopts[@]" ")" \# "(" "$patterns[@]" ")" \#)
 # options for list-archives command
 lsopts=("$keyfile[@]")
 # options for the print-stats command
-psopts=("(" "$keyfile[@]" "|" ")" "(" "$cachedir[@]" "|" ")" "$archives[@]")
+psopts=("(" "$keyfile[@]" "|" "$cachedir[@]" ")" \# "$archives[@]")
 # options for the recover, fsck and fsck-prune commands
 fsckopts=("(" "$keyfile[@]" "|" ")" "$cachedir[@]")
 # options for the nuke command
