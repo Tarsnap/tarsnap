@@ -161,12 +161,16 @@ crypto_keys_init(void)
 	RAND_seed(randbuf, RANDBUFLEN);
 
 	/* Load server root public key. */
-	if (crypto_keys_server_import_root())
+	if (crypto_keys_server_import_root()) {
+		warn0("Could not import server root public key");
 		goto err0;
+	}
 
 	/* Initialize keys owned by crypto_file. */
-	if (crypto_file_init_keys())
+	if (crypto_file_init_keys()) {
+		warn0("Could not initialize crypto_file keys");
 		goto err0;
+	}
 
 	/* Success! */
 	return (0);
