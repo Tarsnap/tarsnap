@@ -32,7 +32,7 @@
  */
 
 static int import_BN(BIGNUM **, const uint8_t **, size_t *);
-static int export_BN(BIGNUM *, uint8_t **, size_t *, uint32_t *);
+static int export_BN(const BIGNUM *, uint8_t **, size_t *, uint32_t *);
 
 /**
  * import_BN(bn, buf, buflen):
@@ -102,7 +102,7 @@ err0:
  * Add the required storage length to ${len}.
  */
 static int
-export_BN(BIGNUM * bn, uint8_t ** buf, size_t * buflen,
+export_BN(const BIGNUM * bn, uint8_t ** buf, size_t * buflen,
     uint32_t * len)
 {
 	size_t i;
