@@ -2,12 +2,15 @@ Source: tarsnap
 Section: net
 Priority: extra
 Maintainer: Graham Percival <gperciva@tarsnap.com>
-Build-Depends: debhelper (>= 9.0.0), e2fslibs-dev, zlib1g-dev, libssl-dev, libbz2-dev, libattr1-dev, libacl1-dev, pkg-config, bash-completion
+Build-Depends: debhelper (>= 9.0.0), e2fslibs-dev, zlib1g-dev,
+  libssl-dev (<< 1.1.0) | libssl1.0-dev,
+  libbz2-dev, libattr1-dev, libacl1-dev, pkg-config, bash-completion
 Standards-Version: 3.9.5
 
 Package: tarsnap
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: tarsnap-archive-keyring
 Description: secure, efficient online backup service
  This package contains the client for Tarsnap: a secure, efficient online
  backup service.
