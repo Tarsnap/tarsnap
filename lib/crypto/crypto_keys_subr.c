@@ -55,6 +55,12 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 	*buf += sizeof(uint32_t);
 	*buflen -= sizeof(uint32_t);
 
+	/* Sanity check. */
+	if (len > INT_MAX) {
+		warn0("Unexpected key length");
+		goto err0;
+	}
+
 	/* Make sure there's enough data. */
 	if (*buflen < len) {
 		warn0("Unexpected EOF of key data");
@@ -69,7 +75,7 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 		goto err0;
 	for (i = 0; i < len; i++)
 		bnbuf[len - 1 - i] = (*buf)[i];
-	if ((*bn = BN_bin2bn(bnbuf, len, NULL)) == NULL) {
+	if ((*bn = BN_bin2bn(bnbuf, (int)len, NULL)) == NULL) {
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
 		goto err1;
 	}
