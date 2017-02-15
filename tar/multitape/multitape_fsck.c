@@ -121,7 +121,7 @@ deletearchive(STORAGE_D * SD, struct tapemetadata * tmd)
 
 	/* Delete index fragments. */
 	for (fragnum = 0; fragnum * MAXIFRAG < tmd->indexlen; fragnum++) {
-		multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
 		if (storage_delete_file(SD, 'i', fraghash))
 			goto err0;
 	}
@@ -268,7 +268,8 @@ phase2(uint64_t machinenum, STORAGE_D * SD,
 		for (fragnum = 0;
 		    fragnum * MAXIFRAG < mdatlist[file]->indexlen;
 		    fragnum++) {
-			multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+			multitape_metaindex_fragname(hbuf, (uint32_t)fragnum,
+			    fraghash);
 			if (findinlist(fraghash, flist, nfiles) == nfiles) {
 				fprintf(stdout,
 				    "  Deleting archive"
@@ -307,7 +308,8 @@ nextfile:	;
 		for (fragnum = 0;
 		    fragnum * MAXIFRAG < mdatlist[file]->indexlen;
 		    fragnum++) {
-			multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+			multitape_metaindex_fragname(hbuf, (uint32_t)fragnum,
+			    fraghash);
 			neededvec[findinlist(fraghash, flist, nfiles)] = 1;
 		}
 	}
