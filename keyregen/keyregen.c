@@ -136,6 +136,7 @@ main(int argc, char **argv)
 	/* We should have processed all the arguments. */
 	if (argc != 0)
 		usage();
+	(void)argv; /* argv is not used beyond this point. */
 
 	/*
 	 * We must have a user name, machine name, key file, and old key
