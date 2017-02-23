@@ -109,7 +109,7 @@ static void		 bsdtar_atexit(void);
 static void		 configfile(struct bsdtar *, const char *fname,
 			     int fromcmdline);
 static int		 configfile_helper(struct bsdtar *bsdtar,
-			     const char *line);
+			     const char *line, void *context);
 static void		 dooption(struct bsdtar *, const char *,
 			     const char *, int);
 static int		 load_keys(struct bsdtar *, const char *path);
@@ -1277,12 +1277,12 @@ configfile(struct bsdtar *bsdtar, const char *fname, int fromcmdline)
 	}
 
 	/* Process the file. */
-	process_lines(bsdtar, fname, configfile_helper, 0);
+	process_lines(bsdtar, fname, configfile_helper, 0, 0);
 }
 
 /* Process a line of configuration file. */
 static int
-configfile_helper(struct bsdtar *bsdtar, const char *line)
+configfile_helper(struct bsdtar *bsdtar, const char *line, void *context)
 {
 	char * conf_arg;
 	size_t optlen;
@@ -1466,7 +1466,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (conf_arg == NULL)
 			goto needarg;
 
-		if (exclude(bsdtar, conf_arg))
+		if (exclude(bsdtar, conf_arg, 0))
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Couldn't exclude %s", conf_arg);
 	} else if (strcmp(conf_opt, "force-resources") == 0) {
@@ -1487,7 +1487,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (conf_arg == NULL)
 			goto needarg;
 
-		if (include(bsdtar, conf_arg))
+		if (include(bsdtar, conf_arg, 0))
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Failed to add %s to inclusion list", conf_arg);
 	} else if (strcmp(conf_opt, "insane-filesystems") == 0) {

@@ -263,14 +263,14 @@ void	bsdtar_warnc(struct bsdtar *, int _code, const char *fmt, ...);
 void	cleanup_exclusions(struct bsdtar *);
 void	do_chdir(struct bsdtar *);
 int	edit_pathname(struct bsdtar *, struct archive_entry *);
-int	exclude(struct bsdtar *, const char *pattern);
+int	exclude(struct bsdtar *, const char *pattern, void *context);
 int	exclude_from_file(struct bsdtar *, const char *pathname);
 int	excluded(struct bsdtar *, const char *pathname);
-int	include(struct bsdtar *, const char *pattern);
+int	include(struct bsdtar *, const char *pattern, void *context);
 int	include_from_file(struct bsdtar *, const char *pathname);
 int	pathcmp(const char *a, const char *b);
 int	process_lines(struct bsdtar *bsdtar, const char *pathname,
-	    int (*process)(struct bsdtar *, const char *), int null);
+	    int (*process)(struct bsdtar *, const char *, void *), int null, void *context);
 void	safe_fprintf(FILE *, const char *fmt, ...);
 void	set_chdir(struct bsdtar *, const char *newdir);
 void	siginfo_init(struct bsdtar *);

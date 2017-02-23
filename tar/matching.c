@@ -78,7 +78,7 @@ static int	pathmatch(const char *p, const char *s);
  */
 
 int
-exclude(struct bsdtar *bsdtar, const char *pattern)
+exclude(struct bsdtar *bsdtar, const char *pattern, void *context)
 {
 	struct matching *matching;
 
@@ -94,11 +94,11 @@ int
 exclude_from_file(struct bsdtar *bsdtar, const char *pathname)
 {
 	return (process_lines(bsdtar, pathname, &exclude,
-	    bsdtar->option_null));
+	    bsdtar->option_null, 0));
 }
 
 int
-include(struct bsdtar *bsdtar, const char *pattern)
+include(struct bsdtar *bsdtar, const char *pattern, void *context)
 {
 	struct matching *matching;
 
@@ -115,7 +115,7 @@ int
 include_from_file(struct bsdtar *bsdtar, const char *pathname)
 {
 	return (process_lines(bsdtar, pathname, &include,
-	    bsdtar->option_null));
+	    bsdtar->option_null, 0));
 }
 
 static void

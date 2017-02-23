@@ -112,7 +112,7 @@ static int		 append_archive_tarsnap(struct bsdtar *,
 static void		 archive_names_from_file(struct bsdtar *bsdtar,
 			     struct archive *a);
 static int		 archive_names_from_file_helper(struct bsdtar *bsdtar,
-			     const char *line);
+			     const char *line, void *context);
 static int		 copy_file_data(struct bsdtar *bsdtar,
 			     struct archive *a, struct archive *ina);
 static int		 getdevino(struct archive *, const char *, dev_t *,
@@ -498,7 +498,7 @@ archive_names_from_file(struct bsdtar *bsdtar, struct archive *a)
 
 	bsdtar->next_line_is_dir = 0;
 	process_lines(bsdtar, bsdtar->names_from_file,
-	    archive_names_from_file_helper, bsdtar->option_null);
+	    archive_names_from_file_helper, bsdtar->option_null, 0);
 	if (bsdtar->next_line_is_dir)
 		bsdtar_errc(bsdtar, 1, errno,
 		    "Unexpected end of filename list; "
@@ -506,7 +506,8 @@ archive_names_from_file(struct bsdtar *bsdtar, struct archive *a)
 }
 
 static int
-archive_names_from_file_helper(struct bsdtar *bsdtar, const char *line)
+archive_names_from_file_helper(struct bsdtar *bsdtar, const char *line,
+                               void *context)
 {
 	if (bsdtar->next_line_is_dir) {
 		if (*line != '\0')
