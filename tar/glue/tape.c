@@ -26,7 +26,7 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 
 	/* Delete archives. */
 	for (i = 0; i < bsdtar->ntapes; i++) {
-		if (bsdtar->verbose && (bsdtar->ntapes > 1))
+		if (bsdtar->verbose)
 			fprintf(stderr, "Deleting archive \"%s\"\n",
 			    bsdtar->tapenames[i]);
 		switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
