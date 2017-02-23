@@ -328,7 +328,9 @@ In the print-stats and d modes,
 .Fl f Ar archive-name
 can be specified multiple times, in which case the operation
 (printing statistics, or deletion) will be performed for each
-of the specified archives.
+of the specified archive.s;
+.Ar archive-name
+may also be -, in which case archive names will be read from stdin.
 .Pp
 Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when
