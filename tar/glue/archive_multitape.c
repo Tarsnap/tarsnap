@@ -224,7 +224,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 				lenread = sizeof(buff);
 			else
 				lenread = backloglen;
-			lenread = archive_read_data(ina, buff, lenread);
+			lenread = archive_read_data(ina, buff, (size_t)lenread);
 			if (lenread == 0) {
 				warn0("libarchive claims data backlog,"
 				    " but no data can be read?");
@@ -234,7 +234,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 				return (-2);
 
 			/* Write it out to the new archive. */
-			writelen = archive_write_data(a, buff, lenread);
+			writelen = archive_write_data(a, buff, (size_t)lenread);
 			if (writelen < lenread)
 				return (-1);
 

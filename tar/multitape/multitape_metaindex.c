@@ -186,7 +186,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 		fraglen = mdat->indexlen - fragnum * MAXIFRAG;
 		if (fraglen > MAXIFRAG)
 			fraglen = MAXIFRAG;
-		multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
 		switch (storage_read_file(S, mbuf + fragnum * MAXIFRAG,
 		    fraglen, 'i', fraghash)) {
 		case -1:
@@ -351,7 +351,7 @@ multitape_metaindex_delete(STORAGE_D * S, CHUNKS_D * C,
 		fraglen = mdat->indexlen - fragnum * MAXIFRAG;
 		if (fraglen > MAXIFRAG)
 			fraglen = MAXIFRAG;
-		multitape_metaindex_fragname(hbuf, fragnum, fraghash);
+		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
 		if (storage_delete_file(S, 'i', fraghash))
 			goto err0;
 		chunks_delete_extrastats(C, fraglen);

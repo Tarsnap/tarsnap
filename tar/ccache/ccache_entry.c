@@ -484,7 +484,7 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 		 * file is, even if the file has grown since when we called
 		 * lstat on it and the cache is corrupt.
 		 */
-		if ((off_t)(skiplen + chunklen) > cce->size_new)
+		if ((skiplen + (off_t)chunklen) > cce->size_new)
 			break;
 
 		/* Read until we've got the whole chunk. */
