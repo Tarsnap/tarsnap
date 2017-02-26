@@ -432,6 +432,7 @@ main(int argc, char **argv)
 	/* We should have processed all the arguments. */
 	if (argc != 0)
 		usage();
+	(void)argv; /* argv is not used beyond this point. */
 
 	/* Make sure we have the necessary options. */
 	if ((ocachedir == NULL) || (ncachedir == NULL) ||

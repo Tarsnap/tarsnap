@@ -126,6 +126,7 @@ main(int argc, char **argv)
 	/* We should have processed all the arguments. */
 	if (argc != 0)
 		usage();
+	(void)argv; /* argv is not used beyond this point. */
 
 	/* We must have a user name, machine name, and key file specified. */
 	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
