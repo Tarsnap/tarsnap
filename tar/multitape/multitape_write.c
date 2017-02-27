@@ -357,7 +357,7 @@ endentry(TAPE_W * d)
 	/* Construct entry header. */
 	le32enc(eh.hlen, hlen);
 	le64enc(eh.clen, d->clen);
-	le32enc(eh.tlen, d->tlen);
+	le32enc(eh.tlen, (uint32_t)d->tlen);
 
 	/* Write entry header to header stream. */
 	if (chunkify_write(d->h.c, (uint8_t *)(&eh),

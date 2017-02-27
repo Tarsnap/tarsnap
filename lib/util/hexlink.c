@@ -56,7 +56,7 @@ int
 hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 {
 	char * hexbuf;
-	int rc;
+	ssize_t rc;
 
 	/* Allocate memory for buffer. */
 	if ((hexbuf = malloc(buflen * 2 + 1)) == NULL)
@@ -69,7 +69,7 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 	}
 
 	/* Is the link the correct length? */
-	if (rc != (int)(buflen * 2)) {
+	if ((size_t)rc != (buflen * 2)) {
 		warn0("Link is incorrect length: %s", path);
 		goto err1;
 	}
