@@ -206,8 +206,15 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err2;
 	};
 
+	/* Check that we don't have too many cache records. */
+	if (W.N > UINT32_MAX) {
+		warn0("Programmer error: "
+		    "The cache cannot contain more than 2^32-1 entries");
+		goto err2;
+	}
+
 	/* Write the number of records to the file. */
-	le32enc(N, W.N);
+	le32enc(N, (uint32_t)W.N);
 	if (fwrite(N, 4, 1, W.f) != 1) {
 		warnp("fwrite(%s)", W.s);
 		goto err2;
