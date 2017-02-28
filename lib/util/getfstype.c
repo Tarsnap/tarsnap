@@ -1,5 +1,6 @@
 /* We use non-POSIX functionality in this file. */
 #undef _POSIX_C_SOURCE
+#undef _XOPEN_SOURCE
 
 #include "bsdtar_platform.h"
 
