@@ -67,6 +67,9 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	struct ccache_record * ccr = rec;
 	size_t plen;
 
+	/* Sanity check. */
+	assert(slen <= UINT32_MAX);
+
 	/* Don't write an entry if there are no chunks and no trailer. */
 	if ((ccr->nch == 0) && (ccr->tlen == 0))
 		goto done;
@@ -88,8 +91,8 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	le64enc(ccre.nch, ccr->nch);
 	le32enc(ccre.tlen, (uint32_t)ccr->tlen);
 	le32enc(ccre.tzlen, (uint32_t)ccr->tzlen);
-	le32enc(ccre.prefixlen, plen);
-	le32enc(ccre.suffixlen, slen - plen);
+	le32enc(ccre.prefixlen, (uint32_t)plen);
+	le32enc(ccre.suffixlen, (uint32_t)(slen - plen));
 	le32enc(ccre.age, ccr->age + 1);
 
 	/* Write cache entry header to disk. */
