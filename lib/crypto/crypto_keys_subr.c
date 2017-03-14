@@ -344,14 +344,9 @@ crypto_keys_subr_export_RSA_priv(RSA * key, uint8_t * buf, size_t buflen)
 	}
 
 	/* Get values from the RSA key. */
-	n = key->n;
-	e = key->e;
-	d = key->d;
-	p = key->p;
-	q = key->q;
-	dmp1 = key->dmp1;
-	dmq1 = key->dmq1;
-	iqmp = key->iqmp;
+	if (crypto_compat_RSA_export(key, &n, &e, &d, &p, &q, &dmp1, &dmq1,
+	    &iqmp))
+		goto err0;
 
 	/* Each large integer gets exported. */
 	if (export_BN(n, &buf, &buflen, &len))
@@ -396,8 +391,9 @@ crypto_keys_subr_export_RSA_pub(RSA * key, uint8_t * buf, size_t buflen)
 	}
 
 	/* Get values from the RSA key. */
-	n = key->n;
-	e = key->e;
+	if (crypto_compat_RSA_export(key, &n, &e, NULL, NULL, NULL, NULL, NULL,
+	    NULL))
+		goto err0;
 
 	/* Each large integer gets exported. */
 	if (export_BN(n, &buf, &buflen, &len))

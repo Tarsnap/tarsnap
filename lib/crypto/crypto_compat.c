@@ -57,3 +57,45 @@ crypto_compat_RSA_import(RSA ** key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
 	/* Success! */
 	return (0);
 }
+
+/**
+ * crypto_compat_RSA_export(key, n, e, d, p, q, dmp1, dmq1, iqmp):
+ * Export values from the given RSA ${key} into the BIGNUMs.  ${n} and ${e}
+ * must be non-NULL; the other values may be NULL if desired, and will
+ * therefore not be exported.
+ */
+int
+crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
+    const BIGNUM ** d, const BIGNUM ** p, const BIGNUM ** q,
+    const BIGNUM ** dmp1, const BIGNUM ** dmq1, const BIGNUM ** iqmp)
+{
+
+	/* Sanity checks. */
+	assert(key != NULL);
+	assert((n != NULL) && (e != NULL));
+
+	/* All the private-key-related variables are NULL, or they're not. */
+	if (d == NULL) {
+		assert((p == NULL) && (q == NULL) && (dmp1 == NULL)
+		    && (dmq1 == NULL) && (iqmp == NULL));
+	} else {
+		assert((p != NULL) && (q != NULL) && (dmp1 != NULL)
+		    && (dmq1 != NULL) && (iqmp != NULL));
+	}
+
+	/* Get values from RSA key. */
+	*n = key->n;
+	*e = key->e;
+	if (d != NULL) {
+		/* Private key. */
+		*d = key->d;
+		*p = key->p;
+		*q = key->q;
+		*dmp1 = key->dmp1;
+		*dmq1 = key->dmq1;
+		*iqmp = key->iqmp;
+	}
+
+	/* Success! */
+	return (0);
+}
