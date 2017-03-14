@@ -117,6 +117,7 @@ crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
 	}
 
 	/* Get values from RSA key. */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	*n = key->n;
 	*e = key->e;
 	if (d != NULL) {
@@ -128,6 +129,18 @@ crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
 		*dmq1 = key->dmq1;
 		*iqmp = key->iqmp;
 	}
+#else
+	/* Do we have a public key, or private key? */
+	if (d == NULL) {
+		/* We could use d here, but using NULL makes it more clear. */
+		RSA_get0_key(key, n, e, NULL);
+	} else {
+		/* Private key. */
+		RSA_get0_key(key, n, e, d);
+		RSA_get0_factors(key, p, q);
+		RSA_get0_crt_params(key, dmp1, dmq1, iqmp);
+	}
+#endif
 
 	/* Success! */
 	return (0);
