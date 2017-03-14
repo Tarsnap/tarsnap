@@ -11,6 +11,7 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 
+#include "crypto_compat.h"
 #include "crypto_entropy.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -208,14 +209,8 @@ crypto_keys_subr_import_RSA_priv(RSA ** key, const uint8_t * buf, size_t buflen)
 		goto err2;
 
 	/* Load values into the RSA key. */
-	(*key)->n = n;
-	(*key)->e = e;
-	(*key)->d = d;
-	(*key)->p = p;
-	(*key)->q = q;
-	(*key)->dmp1 = dmp1;
-	(*key)->dmq1 = dmq1;
-	(*key)->iqmp = iqmp;
+	if (crypto_compat_RSA_import(key, n, e, d, p, q, dmp1, dmq1, iqmp))
+		goto err1;
 
 	/* Success! */
 	return (0);
@@ -270,8 +265,9 @@ crypto_keys_subr_import_RSA_pub(RSA ** key, const uint8_t * buf, size_t buflen)
 		goto err2;
 
 	/* Load values into the RSA key. */
-	(*key)->n = n;
-	(*key)->e = e;
+	if (crypto_compat_RSA_import(key, n, e, NULL, NULL, NULL, NULL, NULL,
+	    NULL))
+		goto err1;
 
 	/* Success! */
 	return (0);
