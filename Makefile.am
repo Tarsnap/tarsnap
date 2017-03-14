@@ -91,6 +91,8 @@ libarchive_libarchive_a_CPPFLAGS=-I$(top_builddir)/libarchive
 #
 lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto.h				\
+		lib/crypto/crypto_compat.c			\
+		lib/crypto/crypto_compat.h			\
 		lib/crypto/crypto_file.c			\
 		lib/crypto/crypto_hash.c			\
 		lib/crypto/crypto_internal.h			\
