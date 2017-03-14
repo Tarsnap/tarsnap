@@ -350,12 +350,15 @@ endentry(TAPE_W * d)
 	if (bytebuf_export(d->hbuf, &hbuf, &hlen))
 		goto err0;
 
+	/* Sanity check. */
+	assert(hlen < UINT32_MAX);
+
 	/* Create a new elastic archive header buffer. */
 	if ((d->hbuf = bytebuf_init(0)) == NULL)
 		goto err1;
 
 	/* Construct entry header. */
-	le32enc(eh.hlen, hlen);
+	le32enc(eh.hlen, (uint32_t)hlen);
 	le64enc(eh.clen, d->clen);
 	le32enc(eh.tlen, (uint32_t)d->tlen);
 
