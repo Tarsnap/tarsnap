@@ -4,6 +4,10 @@
 
 #include "crypto_compat.h"
 
+#ifndef OPENSSL_VERSION_NUMBER
+#error "OPENSSL_VERSION_NUMBER must be defined"
+#endif
+
 /**
  * crypto_compat_RSA_valid_size(rsa):
  * Return nonzero if ${rsa} has a valid size, and zero for an invalid size.
