@@ -1,6 +1,7 @@
 #ifndef _GETOPT_H_
 #define _GETOPT_H_
 
+#include <assert.h>
 #include <setjmp.h>
 #include <stddef.h>
 
@@ -107,8 +108,10 @@ extern int optind, opterr, optreset;
 #define _GETOPT_OPTARG(os, ln)	__GETOPT_OPTARG(os, ln)
 #define __GETOPT_OPTARG(os, ln)						\
 	case ln:							\
-		if (getopt_initialized)					\
+		if (getopt_initialized) {				\
+			assert(optarg != NULL);				\
 			goto getopt_skip_ ## ln;			\
+		}							\
 		getopt_register_opt(os, ln - getopt_ln_min, 1);		\
 		DO_LONGJMP;						\
 	getopt_skip_ ## ln
