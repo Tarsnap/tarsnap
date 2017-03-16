@@ -59,7 +59,7 @@
 #define SELINUX_MAGIC		0xf97cff8c
 #endif
 
-struct ftyperec {
+static struct ftyperec {
 	unsigned int f_type;
 	const char * typename;
 } ftypes[] = {
