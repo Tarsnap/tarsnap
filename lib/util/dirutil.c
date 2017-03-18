@@ -117,7 +117,7 @@ nextdir:
 		goto err0;
 	}
 	if (sb.st_mode & (S_IRWXG | S_IRWXO)) {
-		if (chmod(dir, sb.st_mode & ~(S_IRWXG | S_IRWXO))) {
+		if (chmod(dir, sb.st_mode & (mode_t)(~(S_IRWXG | S_IRWXO)))) {
 			warnp("Cannot sanitize permissions on directory: %s",
 			    dir);
 			goto err0;
