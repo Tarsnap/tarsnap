@@ -158,6 +158,7 @@ crypto_compat_RSA_generate_key()
 {
 	RSA * key;
 
+#if OPENSSL_VERSION_NUMBER < 0x00908000L
 	/* Generate key. */
 	if ((key = RSA_generate_key(2048, 65537, NULL, NULL)) == NULL) {
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
@@ -166,7 +167,37 @@ crypto_compat_RSA_generate_key()
 
 	/* Success! */
 	return (key);
+#else
+	BIGNUM * e;
 
+	/* Set up parameter. */
+	if ((e = BN_new()) == NULL) {
+		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
+		goto err0;
+	}
+	BN_set_word(e, 65537);
+
+	/* Generate key. */
+	if ((key = RSA_new()) == NULL) {
+		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
+		goto err1;
+	}
+	if (RSA_generate_key_ex(key, 2048, e, NULL) != 1) {
+		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
+		goto err2;
+	}
+
+	/* Clean up. */
+	BN_free(e);
+
+	/* Success! */
+	return (key);
+
+err2:
+	RSA_free(key);
+err1:
+	BN_free(e);
+#endif
 err0:
 	/* Failure! */
 	return (NULL);
