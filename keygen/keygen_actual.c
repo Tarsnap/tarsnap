@@ -52,6 +52,12 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err0;
 	}
 
+	/* Sanity-check the memory size. */
+	if (maxmem > SIZE_MAX) {
+		fprintf(stderr, "Passphrase memory size is too large\n");
+		goto err0;
+	}
+
 	/* Get a password. */
 	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
 		warnp("Error reading password");
@@ -127,7 +133,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 
 	/* Write keys to file. */
 	if (keyfile_write_file(keyfile, C->machinenum,
-	    CRYPTO_KEYMASK_USER, passphrase, maxmem, maxtime))
+	    CRYPTO_KEYMASK_USER, passphrase, (size_t)maxmem, maxtime))
 		goto err3;
 
 	/* Close the key file. */

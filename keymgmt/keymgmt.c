@@ -182,6 +182,11 @@ main(int argc, char **argv)
 				    " argument: %s", optarg);
 				exit(1);
 			}
+			if (maxmem > SIZE_MAX) {
+				fprintf(stderr,
+				    "Passphrase memory size is too large\n");
+				exit(1);
+			}
 			break;
 		GETOPT_OPTARG("--passphrase-time"):
 			if (maxtime != 1.0)
@@ -310,7 +315,7 @@ main(int argc, char **argv)
 
 	/* Write out new key file. */
 	if (keyfile_write(newkeyfile, machinenum, keyswanted,
-	    passphrase, maxmem, maxtime))
+	    passphrase, (size_t)maxmem, maxtime))
 		exit(1);
 
 	/* Success! */
