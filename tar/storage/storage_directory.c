@@ -54,7 +54,7 @@ storage_directory_read(uint64_t machinenum, char class, int key,
 	/* Initialize structure. */
 	C.machinenum = machinenum;
 	C.done = 0;
-	C.class = class;
+	C.class = (uint8_t)class;
 	C.key = key;
 	memset(C.start, 0, 32);
 	C.flist = NULL;

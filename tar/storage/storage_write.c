@@ -189,7 +189,7 @@ storage_write_fexist(STORAGE_W * S, char class, const uint8_t name[32])
 
 	/* Initialize structure. */
 	C.machinenum = S->machinenum;
-	C.class = class;
+	C.class = (uint8_t)class;
 	memcpy(C.name, name, 32);
 	memcpy(C.nonce, S->nonce, 32);
 	C.done = 0;
@@ -308,7 +308,7 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 		goto err0;
 	C->S = S;
 	C->machinenum = S->machinenum;
-	C->class = class;
+	C->class = (uint8_t)class;
 	memcpy(C->name, name, 32);
 	memcpy(C->nonce, S->nonce, 32);
 	C->done = 0;
