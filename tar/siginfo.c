@@ -132,7 +132,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				if ((s_size = humansize(bsdtar->siginfo->size))
 				    == NULL)
 					goto err1;
-				safe_fprintf(stderr, "%s %s (%s / %s bytes",
+				safe_fprintf(stderr, "%s %s (%s / %s bytes)",
 				    bsdtar->siginfo->oper,
 				    bsdtar->siginfo->path, s_progress,
 				    s_size);
