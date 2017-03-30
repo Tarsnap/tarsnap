@@ -46,8 +46,7 @@ network_select(int blocking)
 		return (events_run());
 	}
 
-	/* Success! */
-	return (0);
+	/* UNREACHABLE */
 
 err0:
 	/* Failure! */
