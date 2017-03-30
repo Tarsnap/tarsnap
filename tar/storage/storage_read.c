@@ -208,7 +208,7 @@ storage_read_cache(STORAGE_R * S, char class, const uint8_t name[32])
 	cache_prune(S);
 
 	/* Is this file already marked as needing to be cached? */
-	classname[0] = class;
+	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
 	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
 		/* If we're in the linked list, remove ourselves from it. */
@@ -273,7 +273,7 @@ storage_read_cache_find(STORAGE_R * S, char class, const uint8_t name[32],
 	*buflen = 0;
 
 	/* Search for a cache entry. */
-	classname[0] = class;
+	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
 	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
 		/* Found it! */
@@ -419,7 +419,7 @@ storage_read_file_callback(STORAGE_R * S, uint8_t * buf, size_t buflen,
 	C->cookie = cookie;
 	C->S = S;
 	C->machinenum = S->machinenum;
-	C->class = class;
+	C->class = (uint8_t)class;
 	memcpy(C->name, name, 32);
 
 	/* Do we have a buffer? */

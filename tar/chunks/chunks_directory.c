@@ -174,7 +174,7 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	}
 
 	/* Make sure the number of chunks is an integer. */
-	if ((size_t)(sb.st_size - sizeof(struct chunkstats_external)) %
+	if (((size_t)sb.st_size - sizeof(struct chunkstats_external)) %
 	    (sizeof(struct chunkdata_external))) {
 		warn0("on-disk directory is corrupt: %s", s);
 		goto err2;
@@ -182,7 +182,7 @@ chunks_directory_read(const char * cachepath, void ** dir,
 
 	/* Compute the number of on-disk chunks. */
 	numchunks =
-	    (size_t)(sb.st_size - sizeof(struct chunkstats_external)) /
+	    ((size_t)sb.st_size - sizeof(struct chunkstats_external)) /
 	    sizeof(struct chunkdata_external);
 
 	/* Make sure we don't get an integer overflow. */

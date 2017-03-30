@@ -79,7 +79,7 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 		errno = ENOMEM;
 		goto err0;
 	} else {
-		buflen = totalsize;
+		buflen = (size_t)totalsize;
 	}
 
 	/* Allocate memory. */
@@ -178,7 +178,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 		errno = ENOMEM;
 		goto err0;
 	}
-	if ((mbuf = malloc(mdat->indexlen)) == NULL)
+	if ((mbuf = malloc((size_t)mdat->indexlen)) == NULL)
 		goto err0;
 
 	/* Read the archive metaindex. */
@@ -206,7 +206,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	/* Make sure the index matches the hash provided. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_SHA256,
-	    mbuf, mdat->indexlen, indexhbuf)) {
+	    mbuf, (size_t)mdat->indexlen, indexhbuf)) {
 		warnp("Programmer error: "
 		    "SHA256 should never fail");
 		goto err1;
@@ -216,7 +216,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	/* We haven't parsed any of the index yet. */
 	buf = mbuf;
-	buflen = mdat->indexlen;
+	buflen = (size_t)mdat->indexlen;
 
 	/* Extract header stream index. */
 	if (buflen < 4)
