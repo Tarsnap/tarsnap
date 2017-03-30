@@ -26,6 +26,7 @@
 #include "bsdtar_platform.h"
 __FBSDID("$FreeBSD: src/usr.bin/tar/siginfo.c,v 1.2 2008/05/22 21:08:36 cperciva Exp $");
 
+#include <assert.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -119,6 +120,9 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	char * s_progress;
 	char * s_size;
 
+	/* Sanity check. */
+	assert(progress >= 0);
+
 	/* If there's a signal to handle and we know what we're doing... */
 	if ((siginfo_received == 1) &&
 	    (bsdtar->siginfo->path != NULL) &&
@@ -127,12 +131,13 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 			fprintf(stderr, "\n");
 		if (bsdtar->siginfo->size > 0) {
 			if (tarsnap_opt_humanize_numbers) {
-				if ((s_progress = humansize(progress)) == NULL)
-					goto err0;
-				if ((s_size = humansize(bsdtar->siginfo->size))
+				if ((s_progress = humansize((uint64_t)progress))
 				    == NULL)
+					goto err0;
+				if ((s_size = humansize(
+				    (uint64_t)bsdtar->siginfo->size)) == NULL)
 					goto err1;
-				safe_fprintf(stderr, "%s %s (%s / %s bytes",
+				safe_fprintf(stderr, "%s %s (%s / %s bytes)",
 				    bsdtar->siginfo->oper,
 				    bsdtar->siginfo->path, s_progress,
 				    s_size);
