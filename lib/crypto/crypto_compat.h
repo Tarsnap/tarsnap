@@ -24,4 +24,10 @@ int crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
     const BIGNUM ** d, const BIGNUM ** p, const BIGNUM ** q,
     const BIGNUM ** dmp1, const BIGNUM ** dmq1, const BIGNUM ** iqmp);
 
+/**
+ * crypto_compat_RSA_generate_key():
+ * Generate a key pair.
+ */
+RSA * crypto_compat_RSA_generate_key(void);
+
 #endif

@@ -458,14 +458,12 @@ crypto_keys_subr_generate_RSA(RSA ** priv, RSA ** pub)
 	if (*pub != NULL)
 		RSA_free(*pub);
 
-	*priv = RSA_generate_key(2048, 65537, NULL, NULL);
-	if (*priv == NULL) {
+	if ((*priv = crypto_compat_RSA_generate_key()) == NULL) {
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
 		goto err0;
 	}
 
-	*pub = RSAPublicKey_dup(*priv);
-	if (*pub == NULL) {
+	if ((*pub = RSAPublicKey_dup(*priv)) == NULL) {
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
 		goto err1;
 	}
