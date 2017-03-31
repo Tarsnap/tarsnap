@@ -242,7 +242,7 @@ get_entryheader(TAPE_R * d)
 	case sizeof(struct entryheader):
 		/* Successful read of chunk header.  Decode entry header. */
 		d->hlen = le32dec(eh.hlen);
-		d->clen = le64dec(eh.clen);
+		d->clen = (off_t)le64dec(eh.clen);
 		d->tlen = le32dec(eh.tlen);
 		return (1);
 	default:
