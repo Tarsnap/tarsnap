@@ -93,7 +93,7 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	le32enc(ccre.tzlen, (uint32_t)ccr->tzlen);
 	le32enc(ccre.prefixlen, (uint32_t)plen);
 	le32enc(ccre.suffixlen, (uint32_t)(slen - plen));
-	le32enc(ccre.age, ccr->age + 1);
+	le32enc(ccre.age, (uint32_t)(ccr->age + 1));
 
 	/* Write cache entry header to disk. */
 	if (fwrite(&ccre, sizeof(ccre), 1, W->f) != 1)
