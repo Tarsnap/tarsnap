@@ -14,6 +14,6 @@
 /* Define using libcperciva namespace to avoid collisions. */
 #define CTASSERT(x)			libcperciva_CTASSERT(x, __LINE__)
 #define libcperciva_CTASSERT(x, y)	libcperciva__CTASSERT(x, y)
-#define libcperciva__CTASSERT(x, y)	typedef char libcperciva__assert ## y[(x) ? 1 : -1]
+#define libcperciva__CTASSERT(x, y)	extern char libcperciva__assert ## y[(x) ? 1 : -1]
 
 #endif /* !_CTASSERT_H_ */
