@@ -332,7 +332,7 @@ err0:
 
 /**
  * readtape_read(d, buffer):
- * Read some data from the tape associated with ${d}, make *${buffer}
+ * Read some data from the tape associated with ${d}, make ${*buffer}
  * point to the data, and return the number of bytes read.
  */
 ssize_t
