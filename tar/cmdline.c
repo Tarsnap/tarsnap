@@ -149,6 +149,7 @@ static struct option {
 	{ "numeric-owner",	  0, OPTION_NUMERIC_OWNER },
 	{ "one-file-system",	  0, OPTION_ONE_FILE_SYSTEM },
 	{ "preserve-permissions", 0, 'p' },
+	{ "print-key-id",	  0, OPTION_PRINT_KEY_ID },
 	{ "print-stats",	  0, OPTION_PRINT_STATS },
 	{ "quiet",		  0, OPTION_QUIET },
 	{ "read-full-blocks",	  0, 'B' },
