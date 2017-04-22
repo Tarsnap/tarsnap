@@ -14,6 +14,7 @@
 - tarsnap now accepts --force-resources to force the decryption of a
   passphrase-encrypted key file to proceed even if it is anticipated to require
   an excessive amount of memory or CPU time.
+- tarsnap now supports OpenSSL 1.1.
 
 
 Tarsnap Releases
