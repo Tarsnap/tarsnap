@@ -7,6 +7,10 @@
 - tarsnap now accepts --iso-dates, which prints file and directory dates as
   yyyy-mm-dd hh:mm:ss in "list archive" mode.  This can be cancelled with
   --no-iso-dates.
+- the `./configure --with-conf-no-sample` flag causes `make install` to install
+  the sample config file as `tarsnap.conf`, instead of the usual
+  `tarsnap.conf.sample`.  This may result in `make install` overwriting an
+  existing `tarsnap.conf` file.
 
 
 Tarsnap Releases
