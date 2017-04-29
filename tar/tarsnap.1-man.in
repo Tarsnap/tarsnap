@@ -343,7 +343,9 @@ In the print-stats and d modes,
 \fB\-f\fP \fIarchive-name\fP
 can be specified multiple times, in which case the operation
 (printing statistics, or deletion) will be performed for each
-of the specified archives.
+of the specified archives;
+\fIarchive-name\fP
+may also be -, in which case archive names will be read from stdin.
 .PP
 Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when

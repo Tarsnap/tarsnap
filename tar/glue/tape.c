@@ -14,6 +14,17 @@
 /*
  * Delete a tape.
  */
+int
+tarsnap_mode_d_callback(struct bsdtar *bsdtar, const char *archive,
+                        void *context) {
+	return deletetape((TAPE_D *)context, bsdtar->machinenum, bsdtar->cachedir,
+	                  archive, bsdtar->option_print_stats, 1,
+	                  bsdtar->option_csv_filename);
+}
+
+/*
+ * Delete all listed tapes.
+ */
 void
 tarsnap_mode_d(struct bsdtar *bsdtar)
 {
@@ -26,21 +37,25 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 
 	/* Delete archives. */
 	for (i = 0; i < bsdtar->ntapes; i++) {
-		if (bsdtar->verbose && (bsdtar->ntapes > 1))
+		if (bsdtar->verbose)
 			fprintf(stderr, "Deleting archive \"%s\"\n",
 			    bsdtar->tapenames[i]);
-		switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
-		    bsdtar->tapenames[i], bsdtar->option_print_stats,
-		    bsdtar->ntapes > 1 ? 1 : 0, bsdtar->option_csv_filename)) {
-		case 0:
-			break;
-		case 1:
-			if (bsdtar->option_keep_going)
+		if (strcmp(bsdtar->tapenames[i], "-") == 0)
+			process_lines(bsdtar, bsdtar->tapenames[i],
+			              tarsnap_mode_d_callback, bsdtar->option_null, (void*)d);
+		else
+			switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
+			    bsdtar->tapenames[i], bsdtar->option_print_stats,
+			    bsdtar->ntapes > 1 ? 1 : 0, bsdtar->option_csv_filename)) {
+			case 0:
 				break;
-			/* FALLTHROUGH */
-		default:
-			goto err2;
-		}
+			case 1:
+				if (bsdtar->option_keep_going)
+					break;
+				/* FALLTHROUGH */
+			default:
+				goto err2;
+			}
 	}
 
 	/* We've finished deleting archives. */
@@ -109,6 +124,17 @@ err1:
 }
 
 /*
+ * Print statistics relating to an archive.
+ */
+
+int
+tarsnap_mode_print_stats_callback(struct bsdtar *bsdtar, const char *archive, void *context)
+{
+	return statstape_print((TAPE_S*)context, archive,
+	                       bsdtar->option_csv_filename);
+}
+
+/*
  * Print statistics relating to an archive or set of archives.
  */
 void
@@ -136,17 +162,22 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	} else {
 		/* User wants statistics about specific archive(s). */
 		for (i = 0; i < bsdtar->ntapes; i++) {
-			switch (statstape_print(d, bsdtar->tapenames[i],
-			    bsdtar->option_csv_filename)) {
-			case 0:
-				break;
-			case 1:
-				if (bsdtar->option_keep_going)
+			if (strcmp(bsdtar->tapenames[i], "-") == 0)
+				process_lines(bsdtar, bsdtar->tapenames[i],
+				              tarsnap_mode_print_stats_callback, bsdtar->option_null,
+				              (void*)d);
+			else
+				switch (statstape_print(d, bsdtar->tapenames[i],
+				    bsdtar->option_csv_filename)) {
+				case 0:
 					break;
-				/* FALLTHROUGH */
-			default:
-				goto err2;
-			}
+				case 1:
+					if (bsdtar->option_keep_going)
+						break;
+					/* FALLTHROUGH */
+				default:
+					goto err2;
+				}
 		}
 	}
 

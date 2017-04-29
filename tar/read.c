@@ -124,7 +124,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	int			  r;
 
 	while (*bsdtar->argv) {
-		include(bsdtar, *bsdtar->argv);
+		include(bsdtar, *bsdtar->argv, 0);
 		bsdtar->argv++;
 	}
 

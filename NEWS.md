@@ -7,6 +7,8 @@
 - tarsnap now accepts --iso-dates, which prints file and directory dates as
   yyyy-mm-dd hh:mm:ss in "list archive" mode.  This can be cancelled with
   --no-iso-dates.
+- tarsnap now reads archive names from stdin when you specify -f - while in the
+  -d or --print-stats modes.
 
 
 Tarsnap Releases

@@ -286,7 +286,8 @@ yes(const char *fmt, ...)
  */
 int
 process_lines(struct bsdtar *bsdtar, const char *pathname,
-    int (*process)(struct bsdtar *, const char *), int null)
+    int (*process)(struct bsdtar *, const char *, void *), int null,
+    void *context)
 {
 	FILE *f;
 	char *buff, *buff_end, *line_start, *line_end, *p;
@@ -346,7 +347,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 				if (*line_end == '\015')
 					lastcharwasr = 1;
 				*line_end = '\0';
-				if ((*process)(bsdtar, line_start) != 0)
+				if ((*process)(bsdtar, line_start, context) != 0)
 					ret = -1;
 				line_start = line_end + 1;
 				line_end = line_start;
@@ -383,7 +384,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 	/* At end-of-file, handle the final line. */
 	if (line_end > line_start) {
 		*line_end = '\0';
-		if ((*process)(bsdtar, line_start) != 0)
+		if ((*process)(bsdtar, line_start, context) != 0)
 			ret = -1;
 	}
 	free(buff);
