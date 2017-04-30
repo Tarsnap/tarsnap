@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 
 #include <openssl/bn.h>
 #include <openssl/err.h>

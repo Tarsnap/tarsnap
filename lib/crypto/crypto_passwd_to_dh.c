@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #include "crypto_dh.h"
