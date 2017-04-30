@@ -1,6 +1,7 @@
 #ifndef _NETPROTO_H_
 #define _NETPROTO_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "tsnetwork.h"

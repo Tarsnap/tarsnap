@@ -6,6 +6,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
+#include <errno.h>
+
 #include "warnp.h"
 
 #include "tsnetwork_internal.h"
