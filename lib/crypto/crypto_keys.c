@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/rsa.h>
 
 #include "crypto_entropy.h"
 #include "sysendian.h"

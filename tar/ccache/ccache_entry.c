@@ -3,9 +3,11 @@
 #include <sys/stat.h>
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <zlib.h>
 
 #include "ccache_internal.h"

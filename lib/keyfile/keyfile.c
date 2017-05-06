@@ -4,10 +4,12 @@
 #include <sys/stat.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "b64encode.h"
 #include "crypto.h"

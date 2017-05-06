@@ -4,9 +4,12 @@
 #include <sys/stat.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "crypto.h"
 #include "dirutil.h"

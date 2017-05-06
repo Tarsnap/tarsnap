@@ -1,7 +1,9 @@
 #include "bsdtar_platform.h"
 
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "humansize.h"
 #include "storage.h"

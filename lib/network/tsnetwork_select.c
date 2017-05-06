@@ -1,5 +1,7 @@
 #include "bsdtar_platform.h"
 
+#include <stddef.h>
+
 #include "events.h"
 
 #include "tsnetwork_internal.h"
