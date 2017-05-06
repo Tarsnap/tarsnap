@@ -107,7 +107,8 @@ multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
 	p += 8;
 
 	/* Generate signature. */
-	if (crypto_rsa_sign(CRYPTO_KEY_SIGN_PRIV, buf, p - buf, p, 256))
+	if (crypto_rsa_sign(CRYPTO_KEY_SIGN_PRIV, buf, (size_t)(p - buf), p,
+	    256))
 		goto err1;
 
 	/* Return buffer and length. */
@@ -249,7 +250,7 @@ multitape_metadata_dec(struct tapemetadata * mdat, uint8_t * buf,
 	if (buflen < 256)
 		goto bad2;
 	switch (crypto_rsa_verify(CRYPTO_KEY_SIGN_PUB,
-	    buf, p - buf, p, 256)) {
+	    buf, (size_t)(p - buf), p, 256)) {
 	case -1:
 		/* Error in crypto_rsa_verify. */
 		goto err2;

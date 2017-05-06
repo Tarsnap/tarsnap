@@ -477,7 +477,7 @@ crypto_rsa_decrypt(int key, const uint8_t * data, size_t len,
 		 * will result in msglen holding the length of the message
 		 * after the padding is removed.
 		 */
-		msglen += (int8_t)(paddingmask);
+		msglen += (size_t)((int8_t)(paddingmask));
 
 		/*-
 		 * If baddata is still 0, there are 3 cases:
