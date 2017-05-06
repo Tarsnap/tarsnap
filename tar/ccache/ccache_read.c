@@ -68,7 +68,7 @@ read_rec(void * cookie)
 	ccr->tzlen = le32dec(ccre.tzlen);
 	prefixlen = le32dec(ccre.prefixlen);
 	suffixlen = le32dec(ccre.suffixlen);
-	ccr->age = le32dec(ccre.age);
+	ccr->age = (int)le32dec(ccre.age);
 
 	/* Zero other fields. */
 	ccr->nchalloc = 0;

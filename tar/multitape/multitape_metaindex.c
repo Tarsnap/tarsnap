@@ -183,7 +183,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	/* Read the archive metaindex. */
 	for (fragnum = 0; fragnum * MAXIFRAG < mdat->indexlen; fragnum++) {
-		fraglen = mdat->indexlen - fragnum * MAXIFRAG;
+		fraglen = (size_t)mdat->indexlen - fragnum * MAXIFRAG;
 		if (fraglen > MAXIFRAG)
 			fraglen = MAXIFRAG;
 		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
@@ -348,7 +348,7 @@ multitape_metaindex_delete(STORAGE_D * S, CHUNKS_D * C,
 		goto err0;
 
 	for (fragnum = 0; fragnum * MAXIFRAG < mdat->indexlen; fragnum++) {
-		fraglen = mdat->indexlen - fragnum * MAXIFRAG;
+		fraglen = (size_t)mdat->indexlen - fragnum * MAXIFRAG;
 		if (fraglen > MAXIFRAG)
 			fraglen = MAXIFRAG;
 		multitape_metaindex_fragname(hbuf, (uint32_t)fragnum, fraghash);
