@@ -7,6 +7,14 @@
 - tarsnap now accepts --iso-dates, which prints file and directory dates as
   yyyy-mm-dd hh:mm:ss in "list archive" mode.  This can be cancelled with
   --no-iso-dates.
+- the `./configure --with-conf-no-sample` flag causes `make install` to install
+  the sample config file as `tarsnap.conf`, instead of the usual
+  `tarsnap.conf.sample`.  This may result in `make install` overwriting an
+  existing `tarsnap.conf` file.
+- tarsnap now accepts --force-resources to force the decryption of a
+  passphrase-encrypted key file to proceed even if it is anticipated to require
+  an excessive amount of memory or CPU time.
+- tarsnap now supports OpenSSL 1.1.
 
 
 Tarsnap Releases
