@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -189,6 +190,9 @@ stream_read(struct stream * S, uint8_t * buf, size_t buflen, CHUNKS_R * C)
 	size_t readlen;
 	size_t bufpos;
 
+	/* Sanity check. */
+	assert(buflen < SSIZE_MAX);
+
 	for (bufpos = 0; bufpos < buflen; bufpos += readlen) {
 		/* Read data. */
 		if (stream_get_chunk(S, &readbuf, &readlen, C))
@@ -210,7 +214,7 @@ stream_read(struct stream * S, uint8_t * buf, size_t buflen, CHUNKS_R * C)
 	}
 
 	/* Success (or perhaps EOF). */
-	return (bufpos);
+	return ((ssize_t)bufpos);
 
 err0:
 	/* Failure! */
