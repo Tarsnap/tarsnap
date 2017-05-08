@@ -151,6 +151,12 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 		goto err0;
 	}
 
+	/* Sanity check the compressed size. */
+	if (zlen > SSIZE_MAX) {
+		warnp("Error compressing chunk");
+		goto err0;
+	}
+
 	/* Ask the storage layer to write the file for us. */
 	if (storage_write_file(C->S, C->zbuf, zlen, 'c', hash)) {
 		hexify(hash, hashbuf, 32);
@@ -180,7 +186,7 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 	chunks_stats_add(&C->stats_new, ch->len, zlen, 1);
 
 	/* Success! */
-	return (zlen);
+	return ((ssize_t)zlen);
 
 err1:
 	free(ch);
