@@ -352,9 +352,9 @@ endentry(TAPE_W * d)
 	if (bytebuf_export(d->hbuf, &hbuf, &hlen))
 		goto err0;
 
-	/* Sanity check. */
+	/* Sanity checks. */
 	assert(hlen < UINT32_MAX);
-	assert((d->clen >= 0) && ((uintmax_t)d->clen < UINT64_MAX));
+	assert((d->clen >= 0) && ((uintmax_t)d->clen <= UINT64_MAX));
 
 	/* Create a new elastic archive header buffer. */
 	if ((d->hbuf = bytebuf_init(0)) == NULL)
