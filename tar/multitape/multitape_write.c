@@ -1,6 +1,7 @@
 #include "bsdtar_platform.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -568,6 +569,9 @@ ssize_t
 writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 {
 
+	/* Sanity check */
+	assert(nbytes <= SSIZE_MAX);
+
 	/* Don't write anything if we're truncating the archive. */
 	if (d->eof)
 		goto eof;
@@ -593,7 +597,7 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 	}
 
 	/* Success! */
-	return (nbytes);
+	return ((ssize_t)nbytes);
 
 eof:
 	/* Archive is being truncated; refuse to write anything. */

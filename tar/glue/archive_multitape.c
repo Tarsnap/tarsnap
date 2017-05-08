@@ -1,6 +1,8 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "archive.h"
 #include "multitape.h"
@@ -62,6 +64,9 @@ write_write(struct archive * a, void * cookie, const void * buffer,
 	struct multitape_write_internal * d = cookie;
 	ssize_t writelen;
 
+	/* Sanity check. */
+	assert(nbytes <= SSIZE_MAX);
+
 	writelen = writetape_write(d, buffer, nbytes);
 	if (writelen < 0) {
 		archive_set_error(a, errno, "Error writing archive");
@@ -71,7 +76,7 @@ write_write(struct archive * a, void * cookie, const void * buffer,
 		archive_set_error(a, 0, "Archive truncated");
 		return (ARCHIVE_WARN);
 	} else
-		return (nbytes);
+		return ((ssize_t)nbytes);
 }
 
 static int
