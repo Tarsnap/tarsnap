@@ -392,8 +392,14 @@ readtape_read(TAPE_R * d, const void ** buffer)
 		goto err0;
 	} while (1);
 
+	/* Sanity check. */
+	if (clen > SSIZE_MAX) {
+		warn0("Chunk is too large");
+		goto err0;
+	}
+
 	/* Success! */
-	return (clen);
+	return ((ssize_t)clen);
 
 eof:
 	/* No more data. */
@@ -469,8 +475,14 @@ readtape_readchunk(TAPE_R * d, struct chunkheader ** ch)
 	*ch = &d->c.ch;
 	len = le32dec(d->c.ch.len);
 
+	/* Sanity check. */
+	if (len > SSIZE_MAX) {
+		warn0("Chunk is too large");
+		goto err0;
+	}
+
 	/* Return the chunk length. */
-	return (len);
+	return ((ssize_t)len);
 
 nochunk:
 	/* We don't have a chunk available. */
