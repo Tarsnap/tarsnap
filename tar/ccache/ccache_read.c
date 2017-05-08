@@ -62,7 +62,7 @@ read_rec(void * cookie)
 		goto err0;
 
 	/* Decode record. */
-	ccr->ino = le64dec(ccre.ino);
+	ccr->ino = (ino_t)le64dec(ccre.ino);
 	ccr->size = (off_t)le64dec(ccre.size);
 	ccr->mtime = (time_t)le64dec(ccre.mtime);
 	ccr->nch = le64dec(ccre.nch);
