@@ -11,6 +11,7 @@
 #include "chunkify.h"
 #include "chunks.h"
 #include "crypto.h"
+#include "ctassert.h"
 #include "elasticarray.h"
 #include "storage.h"
 #include "sysendian.h"
@@ -19,6 +20,9 @@
 #include "multitape_internal.h"
 
 #include "multitape.h"
+
+/* This API relies upon chunks being no more than SSIZE_MAX bytes in length. */
+CTASSERT(MAXCHUNK <= SSIZE_MAX);
 
 /* Mean chunk size desired. */
 #define	MEANCHUNK	65536
@@ -609,7 +613,7 @@ writetape_ischunkpresent(TAPE_W * d, struct chunkheader * ch)
 {
 
 	if (chunks_write_ispresent(d->C, ch->hash) == 0)
-		return (le32dec(ch->len));
+		return ((ssize_t)le32dec(ch->len));
 	else
 		return (0);
 }
@@ -657,7 +661,7 @@ writetape_writechunk(TAPE_W * d, struct chunkheader * ch)
 	d->clen += le32dec(ch->len);
 
 	/* Success! */
-	return (le32dec(ch->len));
+	return ((ssize_t)le32dec(ch->len));
 
 notpresent:
 	/* The chunk layer doesn't have a chunk with this hash. */
