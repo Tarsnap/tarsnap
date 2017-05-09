@@ -3,6 +3,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/err.h>
+#include <openssl/opensslv.h>
 #include <openssl/rsa.h>
 
 #include "warnp.h"
