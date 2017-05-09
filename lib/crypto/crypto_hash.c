@@ -5,7 +5,6 @@
 
 #include "crypto_internal.h"
 #include "sha256.h"
-#include "warnp.h"
 
 #include "crypto.h"
 

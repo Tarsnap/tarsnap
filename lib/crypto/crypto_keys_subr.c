@@ -9,7 +9,6 @@
 
 #include <openssl/bn.h>
 #include <openssl/err.h>
-#include <openssl/rand.h>
 #include <openssl/rsa.h>
 
 #include "crypto_compat.h"
