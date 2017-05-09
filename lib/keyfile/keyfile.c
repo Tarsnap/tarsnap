@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "b64encode.h"
 #include "crypto.h"
 #include "insecure_memzero.h"

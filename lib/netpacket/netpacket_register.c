@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "crypto.h"
 #include "netpacket_internal.h"
 #include "netproto.h"
 #include "warnp.h"

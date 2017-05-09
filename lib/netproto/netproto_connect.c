@@ -12,6 +12,7 @@
 #include "network.h"
 #include "sock.h"
 #include "sock_util.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "netproto.h"

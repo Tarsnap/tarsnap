@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "warnp.h"
+
 #include "tsnetwork.h"
 
 typedef struct netproto_connection_internal NETPROTO_CONNECTION;
