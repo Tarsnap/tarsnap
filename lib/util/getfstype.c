@@ -222,7 +222,7 @@ getfstype(const char * path)
 	/* We need to call statfs(2) and interpret f_type values. */
 	if (statfs(path, &sfs) == 0) {
 		for (i = 0; ftypes[i].typename != NULL; i++) {
-			if (sfs.f_type == ftypes[i].f_type) {
+			if (((unsigned int)sfs.f_type) == ftypes[i].f_type) {
 				fstype = ftypes[i].typename;
 				break;
 			}
