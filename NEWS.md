@@ -15,6 +15,9 @@
   an excessive amount of memory or CPU time.  This can be cancelled with
   --no-force-resources.
 - tarsnap now supports OpenSSL 1.1.
+- tarsnap now displays 'Deleting archive "foo"' when deleting a single archive
+  in verbose mode.  (The former behaviour was to print that message only when
+  multiple archives were being deleted by a single tarsnap command.)
 
 
 Tarsnap Releases
