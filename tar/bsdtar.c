@@ -231,6 +231,7 @@ main(int argc, char **argv)
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
+	const char		*tapename_cmdline;
 
 	WARNP_INIT;
 
@@ -416,7 +417,9 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
-			bsdtar->tapenames[bsdtar->ntapes++] = bsdtar->optarg;
+			tapename_cmdline = bsdtar->optarg;
+			bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
+			bsdtar->ntapes++;
 			break;
 		case OPTION_FORCE_RESOURCES:
 			optq_push(bsdtar, "force-resources", NULL);
@@ -772,8 +775,12 @@ main(int argc, char **argv)
 	 * few bytes off anyway since the command line, including "--dry-run"
 	 * is included in the metadata.
 	 */
-	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0))
-		bsdtar->tapenames[bsdtar->ntapes++] = "(dry-run)";
+	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0)) {
+		tapename_cmdline = "(dry-run)";
+		bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
+		bsdtar->ntapes++;
+	}
+
 
 	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')
