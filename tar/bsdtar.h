@@ -45,7 +45,7 @@
  */
 struct bsdtar {
 	/* Options */
-	const char	**tapenames; /* -f tapename */
+	char		**tapenames; /* -f tapename */
 	size_t		  ntapes;
 	char		 *homedir;
 	char		 *cachedir; /* --cachedir */

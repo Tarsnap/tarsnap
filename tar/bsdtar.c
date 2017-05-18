@@ -187,8 +187,15 @@ static void
 bsdtar_atexit(void)
 {
 	struct bsdtar *bsdtar;
+	size_t i;
 
 	bsdtar = &bsdtar_storage;
+
+	/* Free arrays containined strings allocated by strdup. */
+	if (bsdtar->tapenames != NULL) {
+		for (i = 0; i < bsdtar->ntapes; i++)
+			free(bsdtar->tapenames[i]);
+	}
 
 	/* Free arrays allocated by malloc. */
 	free(bsdtar->tapenames);
@@ -231,7 +238,7 @@ main(int argc, char **argv)
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
-	const char		*tapename_cmdline;
+	char			*tapename_cmdline;
 
 	WARNP_INIT;
 
@@ -417,7 +424,8 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
-			tapename_cmdline = bsdtar->optarg;
+			if ((tapename_cmdline = strdup(bsdtar->optarg)) == NULL)
+				bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 			bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
 			bsdtar->ntapes++;
 			break;
@@ -776,7 +784,8 @@ main(int argc, char **argv)
 	 * is included in the metadata.
 	 */
 	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0)) {
-		tapename_cmdline = "(dry-run)";
+		if ((tapename_cmdline = strdup("(dry-run)")) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 		bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
 		bsdtar->ntapes++;
 	}
