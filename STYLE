@@ -18,6 +18,9 @@ Static functions may have the above form of comment, or simply a
 /* Brief description of what the function does. */
 line before the function.
 
+Line lengths should generally be 78 characters, and not more than 80
+characters.
+
 In general, functions should return (int)(-1) or NULL to indicate error.
 
 Errors should be printed via warnp (if errno is relevant) or warn0 (if errno
