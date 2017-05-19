@@ -46,6 +46,8 @@ The following options may be specified:
 .TP
 \fBexclude\fP \fIpattern\fP
 .TP
+\fBforce-resources\fP
+.TP
 \fBhumanize-numbers\fP
 .TP
 \fBinclude\fP \fIpattern\fP
@@ -77,6 +79,8 @@ The following options may be specified:
 \fBno-config-include\fP
 .TP
 \fBno-disk-pause\fP
+.TP
+\fBno-force-resources\fP
 .TP
 \fBno-humanize-numbers\fP
 .TP
