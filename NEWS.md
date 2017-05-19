@@ -12,7 +12,8 @@
   result in overwriting an existing tarsnap.conf file.
 - tarsnap now accepts --force-resources to force the decryption of a
   passphrase-encrypted key file to proceed even if it is anticipated to require
-  an excessive amount of memory or CPU time.
+  an excessive amount of memory or CPU time.  This can be cancelled with
+  --no-force-resources.
 - tarsnap now supports OpenSSL 1.1.
 
 
