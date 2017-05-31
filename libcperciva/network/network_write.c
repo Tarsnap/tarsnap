@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "events.h"
+#include "mpool.h"
 #include "warnp.h"
 
 #include "network.h"
@@ -40,6 +41,8 @@ struct network_write_cookie {
 	size_t bufpos;
 };
 
+MPOOL(network_write_cookie, struct network_write_cookie, 16);
+
 /* Invoke the callback, clean up, and return the callback's status. */
 static int
 docallback(struct network_write_cookie * C, ssize_t nbytes)
@@ -50,7 +53,7 @@ docallback(struct network_write_cookie * C, ssize_t nbytes)
 	rc = (C->callback)(C->cookie, nbytes);
 
 	/* Clean up. */
-	free(C);
+	mpool_network_write_cookie_free(C);
 
 	/* Return the callback's status. */
 	return (rc);
@@ -151,7 +154,7 @@ network_write(int fd, const uint8_t * buf, size_t buflen, size_t minwrite,
 	assert(buflen <= SSIZE_MAX);
 
 	/* Bake a cookie. */
-	if ((C = malloc(sizeof(struct network_write_cookie))) == NULL)
+	if ((C = mpool_network_write_cookie_malloc()) == NULL)
 		goto err0;
 	C->callback = callback;
 	C->cookie = cookie;
@@ -170,7 +173,7 @@ network_write(int fd, const uint8_t * buf, size_t buflen, size_t minwrite,
 	return (C);
 
 err1:
-	free(C);
+	mpool_network_write_cookie_free(C);
 err0:
 	/* Failure! */
 	return (NULL);
@@ -190,5 +193,5 @@ network_write_cancel(void * cookie)
 	events_network_cancel(C->fd, EVENTS_NETWORK_OP_WRITE);
 
 	/* Free the cookie. */
-	free(C);
+	mpool_network_write_cookie_free(C);
 }
