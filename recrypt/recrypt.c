@@ -21,6 +21,7 @@
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
 #include "warnp.h"
+#include "imalloc.h"
 
 /* Copy batches of 16384 blocks; print a . per 512 blocks. */
 #define BATCHLEN 16384
