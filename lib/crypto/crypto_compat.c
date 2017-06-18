@@ -13,6 +13,15 @@
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif
 
+/*
+ * LibreSSL claims to be OpenSSL 2.0, but (currently) has APIs compatible with
+ * OpenSSL 1.0.1g.
+ */
+#ifdef LIBRESSL_VERSION_NUMBER
+#undef OPENSSL_VERSION_NUMBER
+#define OPENSSL_VERSION_NUMBER 0x1000107fL
+#endif
+
 /**
  * crypto_compat_RSA_valid_size(rsa):
  * Return nonzero if ${rsa} has a valid size, and zero for an invalid size.
