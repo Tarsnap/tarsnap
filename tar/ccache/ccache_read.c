@@ -282,9 +282,10 @@ ccache_read(const char * path)
 		warnp("fstat(%s)", R.s);
 		goto err5;
 	}
-	if (sb.st_size != (off_t)(fpos + R.datalen)) {
+	if (sb.st_size != fpos + (off_t)R.datalen) {
 		warn0("Cache has incorrect size (%jd, expected %jd)\n",
-		    (intmax_t)(sb.st_size), (intmax_t)(fpos + R.datalen));
+		    (intmax_t)(sb.st_size),
+		    (intmax_t)(fpos + (off_t)R.datalen));
 		goto err5;
 	}
 	C->datalen = R.datalen + (fpos % pagesize);
