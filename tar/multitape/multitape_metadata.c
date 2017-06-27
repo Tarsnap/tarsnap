@@ -90,7 +90,7 @@ multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
 	p += strlen(mdat->name) + 1;
 
 	/* Encode ctime and argc. */
-	le64enc(p, mdat->ctime);
+	le64enc(p, (uint64_t)mdat->ctime);
 	p += 8;
 	le32enc(p, (uint32_t)mdat->argc);
 	p += 4;
@@ -200,7 +200,7 @@ multitape_metadata_dec(struct tapemetadata * mdat, uint8_t * buf,
 	/* Parse ctime and argc. */
 	if (buflen < 8)
 		goto bad1;
-	mdat->ctime = le64dec(p);
+	mdat->ctime = (time_t)le64dec(p);
 	buflen -= 8;
 	p += 8;
 	if (buflen < 4)
