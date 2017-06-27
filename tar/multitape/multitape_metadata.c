@@ -68,6 +68,9 @@ multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
 	uint8_t * p;
 	int i;
 
+	/* Sanity check. */
+	assert((mdat->argc >= 0) && ((uintmax_t)mdat->argc <= UINT32_MAX));
+
 	/* Add up the lengths of various pieces of metadata. */
 	buflen = strlen(mdat->name) + 1;	/* name */
 	buflen += 8;				/* ctime */
@@ -87,9 +90,9 @@ multitape_metadata_enc(const struct tapemetadata * mdat, uint8_t ** bufp,
 	p += strlen(mdat->name) + 1;
 
 	/* Encode ctime and argc. */
-	le64enc(p, mdat->ctime);
+	le64enc(p, (uint64_t)mdat->ctime);
 	p += 8;
-	le32enc(p, mdat->argc);
+	le32enc(p, (uint32_t)mdat->argc);
 	p += 4;
 
 	/* Copy argv. */
@@ -197,21 +200,22 @@ multitape_metadata_dec(struct tapemetadata * mdat, uint8_t * buf,
 	/* Parse ctime and argc. */
 	if (buflen < 8)
 		goto bad1;
-	mdat->ctime = le64dec(p);
+	mdat->ctime = (time_t)le64dec(p);
 	buflen -= 8;
 	p += 8;
 	if (buflen < 4)
 		goto bad1;
-	mdat->argc = le32dec(p);
+	mdat->argc = (int)le32dec(p);
 	buflen -= 4;
 	p += 4;
 
 	/* Sanity-check argc. */
-	if ((mdat->argc < 0) || ((size_t)(mdat->argc) > buflen))
+	if ((mdat->argc < 0) || ((uintmax_t)mdat->argc > SIZE_MAX) ||
+	    ((size_t)(mdat->argc) > buflen))
 		goto bad1;
 
 	/* Allocate space for argv. */
-	if ((mdat->argv = malloc(mdat->argc * sizeof(char *))) == NULL)
+	if ((mdat->argv = malloc((size_t)mdat->argc * sizeof(char *))) == NULL)
 		goto err1;
 
 	/* Parse argv. */
