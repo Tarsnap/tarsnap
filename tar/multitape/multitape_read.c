@@ -1,5 +1,6 @@
 #include "bsdtar_platform.h"
 
+#include <assert.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -189,6 +190,9 @@ stream_read(struct stream * S, uint8_t * buf, size_t buflen, CHUNKS_R * C)
 	size_t readlen;
 	size_t bufpos;
 
+	/* Sanity check. */
+	assert(buflen < SSIZE_MAX);
+
 	for (bufpos = 0; bufpos < buflen; bufpos += readlen) {
 		/* Read data. */
 		if (stream_get_chunk(S, &readbuf, &readlen, C))
@@ -210,7 +214,7 @@ stream_read(struct stream * S, uint8_t * buf, size_t buflen, CHUNKS_R * C)
 	}
 
 	/* Success (or perhaps EOF). */
-	return (bufpos);
+	return ((ssize_t)bufpos);
 
 err0:
 	/* Failure! */
@@ -388,8 +392,14 @@ readtape_read(TAPE_R * d, const void ** buffer)
 		goto err0;
 	} while (1);
 
+	/* Sanity check. */
+	if (clen > SSIZE_MAX) {
+		warn0("Chunk is too large");
+		goto err0;
+	}
+
 	/* Success! */
-	return (clen);
+	return ((ssize_t)clen);
 
 eof:
 	/* No more data. */
@@ -465,8 +475,14 @@ readtape_readchunk(TAPE_R * d, struct chunkheader ** ch)
 	*ch = &d->c.ch;
 	len = le32dec(d->c.ch.len);
 
+	/* Sanity check. */
+	if (len > SSIZE_MAX) {
+		warn0("Chunk is too large");
+		goto err0;
+	}
+
 	/* Return the chunk length. */
-	return (len);
+	return ((ssize_t)len);
 
 nochunk:
 	/* We don't have a chunk available. */

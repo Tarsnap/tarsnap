@@ -1,6 +1,7 @@
 #include "bsdtar_platform.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include "chunkify.h"
 #include "chunks.h"
 #include "crypto.h"
+#include "ctassert.h"
 #include "elasticarray.h"
 #include "storage.h"
 #include "sysendian.h"
@@ -19,6 +21,9 @@
 #include "multitape_internal.h"
 
 #include "multitape.h"
+
+/* This API relies upon chunks being no more than SSIZE_MAX bytes in length. */
+CTASSERT(MAXCHUNK <= SSIZE_MAX);
 
 /* Mean chunk size desired. */
 #define	MEANCHUNK	65536
@@ -564,6 +569,9 @@ ssize_t
 writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 {
 
+	/* Sanity check */
+	assert(nbytes <= SSIZE_MAX);
+
 	/* Don't write anything if we're truncating the archive. */
 	if (d->eof)
 		goto eof;
@@ -589,7 +597,7 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 	}
 
 	/* Success! */
-	return (nbytes);
+	return ((ssize_t)nbytes);
 
 eof:
 	/* Archive is being truncated; refuse to write anything. */
@@ -609,7 +617,7 @@ writetape_ischunkpresent(TAPE_W * d, struct chunkheader * ch)
 {
 
 	if (chunks_write_ispresent(d->C, ch->hash) == 0)
-		return (le32dec(ch->len));
+		return ((ssize_t)le32dec(ch->len));
 	else
 		return (0);
 }
@@ -657,7 +665,7 @@ writetape_writechunk(TAPE_W * d, struct chunkheader * ch)
 	d->clen += le32dec(ch->len);
 
 	/* Success! */
-	return (le32dec(ch->len));
+	return ((ssize_t)le32dec(ch->len));
 
 notpresent:
 	/* The chunk layer doesn't have a chunk with this hash. */
