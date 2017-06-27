@@ -69,8 +69,11 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	struct ccache_record * ccr = rec;
 	size_t plen;
 
-	/* Sanity check. */
+	/* Sanity checks. */
 	assert(slen <= UINT32_MAX);
+	assert((ccr->size >= 0) && ((uintmax_t)ccr->size <= UINT64_MAX));
+	assert((ccr->mtime >= 0) && ((uintmax_t)ccr->mtime <= UINT64_MAX));
+	assert((uintmax_t)ccr->ino <= UINT64_MAX);
 
 	/* Don't write an entry if there are no chunks and no trailer. */
 	if ((ccr->nch == 0) && (ccr->tlen == 0))
@@ -87,9 +90,9 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	}
 
 	/* Convert integers to portable format. */
-	le64enc(ccre.ino, ccr->ino);
-	le64enc(ccre.size, ccr->size);
-	le64enc(ccre.mtime, ccr->mtime);
+	le64enc(ccre.ino, (uint64_t)ccr->ino);
+	le64enc(ccre.size, (uint64_t)ccr->size);
+	le64enc(ccre.mtime, (uint64_t)ccr->mtime);
 	le64enc(ccre.nch, ccr->nch);
 	le32enc(ccre.tlen, (uint32_t)ccr->tlen);
 	le32enc(ccre.tzlen, (uint32_t)ccr->tzlen);
