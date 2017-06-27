@@ -5,6 +5,8 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -244,9 +246,18 @@ chunks_directory_read(const char * cachepath, void ** dir,
 		if (rwhashtab_insert(HT, p))
 			goto err4;
 
+#if UINT32_MAX > SSIZE_MAX
+		/* ... paranoid check for number of copies... */
+		if (p->ncopies > SSIZE_MAX)
+			warn0("More than %zd copies of a chunk; "
+			    "data is ok but stats may be inaccurate",
+			    SSIZE_MAX);
+#endif
+
 		/* ... and updating the statistics. */
 		chunks_stats_add(stats_unique, p->len, p->zlen_flags, 1);
-		chunks_stats_add(stats_all, p->len, p->zlen_flags, p->ncopies);
+		chunks_stats_add(stats_all, p->len, p->zlen_flags,
+		    (ssize_t)p->ncopies);
 
 		/* Sanity check. */
 		if ((p->len == 0) || (p->zlen_flags == 0) || (p->nrefs == 0)) {
