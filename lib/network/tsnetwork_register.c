@@ -36,7 +36,7 @@ op2cs(int op)
 	case NETWORK_OP_WRITE:
 		return (1);
 	default:
-		assert(!"Invalid operation type in network_register");
+		assert(0 && "Invalid operation type in network_register");
 	}
 }
 
@@ -69,7 +69,7 @@ docallback(struct callback * c, int timedout)
 		status = NETWORK_STATUS_TIMEOUT;
 		break;
 	default:
-		assert(!"Invalid status to docallback");
+		assert(0 && "Invalid status to docallback");
 		return (-1);
 	}
 
