@@ -513,7 +513,9 @@ endif
 # Use the right version of the man pages depending on whether we have mdoc
 # macros available on this system.
 tar/tarsnap.1-man tar/tarsnap.1-mdoc \
-tar/tarsnap.conf.5-man tar/tarsnap.conf.5-mdoc:
+tar/tarsnap.conf.5-man tar/tarsnap.conf.5-mdoc: tar/tarsnap.1-man.in \
+		tar/tarsnap.1-mdoc.in tar/tarsnap.conf.5-man.in \
+		tar/tarsnap.conf.5-mdoc.in
 	sed -e 's|@sysconfdir[@]|${sysconfdir}|g' ${srcdir}/$@.in > $@.tmp
 	mv $@.tmp $@
 tar/tarsnap.1:	tar/tarsnap.1-@MANVER@

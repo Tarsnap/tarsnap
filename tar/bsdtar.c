@@ -398,7 +398,7 @@ main(int argc, char **argv)
 		case OPTION_CSV_FILE: /* tarsnap */
 			if (bsdtar->option_csv_filename != NULL)
 				bsdtar_errc(bsdtar, 1, errno,
-				    "Two --csv-file options given.\n");
+				    "Two --csv-file options given");
 			if ((bsdtar->option_csv_filename = strdup(
 			    bsdtar->optarg)) == NULL)
 				bsdtar_errc(bsdtar, 1, errno, "Out of memory");

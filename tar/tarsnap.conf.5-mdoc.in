@@ -44,6 +44,7 @@ The following options may be specified:
 .It Cm checkpoint-bytes Ar bytespercheckpoint
 .It Cm disk-pause Ar X
 .It Cm exclude Ar pattern
+.It Cm force-resources
 .It Cm humanize-numbers
 .It Cm include Ar pattern
 .It Cm insane-filesystems
@@ -60,6 +61,7 @@ The following options may be specified:
 .It Cm no-config-exclude
 .It Cm no-config-include
 .It Cm no-disk-pause
+.It Cm no-force-resources
 .It Cm no-humanize-numbers
 .It Cm no-insane-filesystems
 .It Cm no-iso-dates
