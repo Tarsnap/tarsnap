@@ -12,6 +12,7 @@
 #include "netproto.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "netpacket.h"

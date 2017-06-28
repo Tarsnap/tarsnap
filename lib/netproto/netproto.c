@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "crypto.h"
 #include "tsnetwork.h"
 #include "warnp.h"
 

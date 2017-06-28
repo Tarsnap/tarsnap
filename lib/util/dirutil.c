@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "warnp.h"
 
 #include "dirutil.h"
