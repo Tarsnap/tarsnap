@@ -65,7 +65,7 @@ read_rec(void * cookie)
 	ccr->ino = (ino_t)le64dec(ccre.ino);
 	ccr->size = (off_t)le64dec(ccre.size);
 	ccr->mtime = (time_t)le64dec(ccre.mtime);
-	ccr->nch = le64dec(ccre.nch);
+	ccr->nch = (size_t)le64dec(ccre.nch);
 	ccr->tlen = le32dec(ccre.tlen);
 	ccr->tzlen = le32dec(ccre.tzlen);
 	prefixlen = le32dec(ccre.prefixlen);
@@ -79,6 +79,11 @@ read_rec(void * cookie)
 	ccr->flags = 0;
 
 	/* Sanity check some fields. */
+	if (le64dec(ccre.nch) > (uint64_t)SIZE_MAX) {
+		warn0("Cache file is corrupt or too large for this "
+		    "platform: %s", R->s);
+		goto err1;
+	}
 	if ((prefixlen == 0 && suffixlen == 0) ||
 	    (ccr->nch > SIZE_MAX / sizeof(struct chunkheader)) ||
 	    (ccr->nch == 0 && ccr->tlen == 0) ||
