@@ -1,0 +1,24 @@
+Building from git
+-----------------
+
+Normal users should only use the signed tarballs from https://tarsnap.com, but
+for experimental development, use:
+
+    autoreconf -i
+    ./configure
+    make
+
+- In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive,
+  you will need to install the autoconf archive.  On Debian, use
+  the `autoconf-archive` package; on FreeBSD, use
+  `devel/autoconf-archive`.
+
+- If you receive this message:
+
+        configure.ac:...: error: possibly undefined macro: AC_MSG_WARN
+
+  then you need `pkg-config`.  On Debian , use the `pkg-config`
+  package; on FreeBSD, use `devel/pkgconf`.
+
+
+

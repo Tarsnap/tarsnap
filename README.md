@@ -17,27 +17,16 @@ News
 A list of major changes in each version is given in [NEWS.md](NEWS.md).
 
 
-Building from git
------------------
+Building
+--------
 
-Normal users should only use the signed tarballs from https://tarsnap.com, but
-for experimental development, use:
+The official releases should build and install using autotools:
 
-    autoreconf -i
     ./configure
     make
+    make install
 
-- In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive,
-  you will need to install the autoconf archive.  On Debian, use
-  the `autoconf-archive` package; on FreeBSD, use
-  `devel/autoconf-archive`.
-
-- If you receive this message:
-
-        configure.ac:...: error: possibly undefined macro: AC_MSG_WARN
-
-  then you need `pkg-config`.  On Debian , use the `pkg-config`
-  package; on FreeBSD, use `devel/pkgconf`.
+See the [BUILDING](BUILDING) file for more details.
 
 
 Packaging notes
