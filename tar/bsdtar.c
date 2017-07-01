@@ -187,8 +187,15 @@ static void
 bsdtar_atexit(void)
 {
 	struct bsdtar *bsdtar;
+	size_t i;
 
 	bsdtar = &bsdtar_storage;
+
+	/* Free arrays containined strings allocated by strdup. */
+	if (bsdtar->tapenames != NULL) {
+		for (i = 0; i < bsdtar->ntapes; i++)
+			free(bsdtar->tapenames[i]);
+	}
 
 	/* Free arrays allocated by malloc. */
 	free(bsdtar->tapenames);
@@ -231,6 +238,7 @@ main(int argc, char **argv)
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
+	char			*tapename_cmdline;
 
 	WARNP_INIT;
 
@@ -416,7 +424,10 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
 			break;
 		case 'f': /* multitar */
-			bsdtar->tapenames[bsdtar->ntapes++] = bsdtar->optarg;
+			if ((tapename_cmdline = strdup(bsdtar->optarg)) == NULL)
+				bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+			bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
+			bsdtar->ntapes++;
 			break;
 		case OPTION_FORCE_RESOURCES:
 			optq_push(bsdtar, "force-resources", NULL);
@@ -772,8 +783,13 @@ main(int argc, char **argv)
 	 * few bytes off anyway since the command line, including "--dry-run"
 	 * is included in the metadata.
 	 */
-	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0))
-		bsdtar->tapenames[bsdtar->ntapes++] = "(dry-run)";
+	if (bsdtar->option_dryrun && (bsdtar->ntapes == 0)) {
+		if ((tapename_cmdline = strdup("(dry-run)")) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+		bsdtar->tapenames[bsdtar->ntapes] = tapename_cmdline;
+		bsdtar->ntapes++;
+	}
+
 
 	/* At this point we must have a mode set. */
 	if (bsdtar->mode == '\0')
