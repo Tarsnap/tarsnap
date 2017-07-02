@@ -69,6 +69,7 @@ static struct option {
 } tar_longopts[] = {
 	{ "absolute-paths",       0, 'P' },
 	{ "aggressive-networking",0, OPTION_AGGRESSIVE_NETWORKING },
+	{ "archive-names",	  1, OPTION_ARCHIVE_NAMES },
 	{ "cachedir",		  1, OPTION_CACHEDIR },
 	{ "cd",                   1, 'C' },
 	{ "check-links",          0, OPTION_CHECK_LINKS },

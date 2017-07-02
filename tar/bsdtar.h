@@ -95,6 +95,7 @@ struct bsdtar {
 	double		  bwlimit_rate_down;	/* --maxbw-rate(-down)? */
 	int		  disk_pause;		/* --disk-pause */
 	int		  option_aggressive_networking_set;
+	int		  option_archive_names_set;
 	int		  option_cachecrunch_set;
 	int		  option_disk_pause_set;
 	int		  option_humanize_numbers_set;
@@ -184,6 +185,7 @@ struct bsdtar {
 /* Fake short equivalents for long options that otherwise lack them. */
 enum {
 	OPTION_AGGRESSIVE_NETWORKING=256,
+	OPTION_ARCHIVE_NAMES,
 	OPTION_CACHEDIR,
 	OPTION_CHECK_LINKS,
 	OPTION_CHECKPOINT_BYTES,
