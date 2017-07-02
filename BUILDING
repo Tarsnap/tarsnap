@@ -1,0 +1,60 @@
+Installing
+----------
+
+To build and install tarsnap, run:
+    ./configure
+    make
+    make install
+
+Tarsnap should build and run on most IEEE Std 1003.1 (POSIX) compliant
+systems which
+  1. Includes the Software Development Utilities option,
+  2. Has OpenSSL available via -lcrypto and #include <openssl/foo>,
+  3. Has zlib available via -lz and #include <zlib.h>,
+  4. Provides /dev/urandom, and
+  5. (Linux only) has the <ext2fs/ext2_fs.h> header (which is *not* the same
+     as the <linux/ext2_fs.h> header file.
+
+
+Building from git
+-----------------
+
+Normal users should only use the signed tarballs from https://tarsnap.com, but
+for experimental development, use:
+
+    autoreconf -i
+    ./configure
+    make
+
+- In order to support the `AX_CFLAGS_WARN_ALL` autoconf directive,
+  you will need to install the autoconf archive.  On Debian, use
+  the `autoconf-archive` package; on FreeBSD, use
+  `devel/autoconf-archive`.
+
+- If you receive this message:
+
+        configure.ac:...: error: possibly undefined macro: AC_MSG_WARN
+
+  then you need `pkg-config`.  On Debian , use the `pkg-config`
+  package; on FreeBSD, use `devel/pkgconf`.
+
+
+Platform-specific notes
+-----------------------
+
+- On Debian Ubuntu, and related Linux distributions, the minimal set of
+  dependencies is:
+
+      sudo apt-get install gcc libc6-dev make libssl-dev zlib1g-dev e2fslibs-dev
+
+  To enable all optional features, install:
+
+      sudo apt-get install bash-completion libacl1-dev libattr1-dev libbz2-dev liblzma-dev pkg-config
+
+- On RedHat, CentOS, SuSE, Amazon Linux, and related Linux distributions:
+
+      sudo yum install gcc make glibc-devel openssl-devel zlib-devel e2fsprogs-devel
+
+  To enable all optional features, install:
+
+      sudo yum install bzip2-devel libacl-devel libattr-devel lzma-devel xz-devel pkgconf bash-completion
