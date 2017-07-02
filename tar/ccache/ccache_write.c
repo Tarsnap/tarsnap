@@ -93,7 +93,7 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	le64enc(ccre.ino, (uint64_t)ccr->ino);
 	le64enc(ccre.size, (uint64_t)ccr->size);
 	le64enc(ccre.mtime, (uint64_t)ccr->mtime);
-	le64enc(ccre.nch, ccr->nch);
+	le64enc(ccre.nch, (uint64_t)ccr->nch);
 	le32enc(ccre.tlen, (uint32_t)ccr->tlen);
 	le32enc(ccre.tzlen, (uint32_t)ccr->tzlen);
 	le32enc(ccre.prefixlen, (uint32_t)plen);

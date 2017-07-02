@@ -35,9 +35,15 @@ chunks_stats_add(struct chunkstats * stats, size_t len, size_t zlen,
     ssize_t copies)
 {
 
-	stats->nchunks += copies;
-	stats->s_len += (uint64_t)(len) * (int64_t)(copies);
-	stats->s_zlen += (uint64_t)(zlen) * (int64_t)(copies);
+	/*
+	 * The value ${copies} may be negative, but since nchunks, s_len, and
+	 * s_zlen are all of type uint64_t, casting a negative value to
+	 * uint64_t will still yield the correct results, thanks to modulo-2^64
+	 * arithmetic.
+	 */
+	stats->nchunks += (uint64_t)copies;
+	stats->s_len += (uint64_t)(len) * (uint64_t)(copies);
+	stats->s_zlen += (uint64_t)(zlen) * (uint64_t)(copies);
 }
 
 /**
