@@ -34,7 +34,7 @@ _tarsnap ()
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	# These options will be completed by the path to a filename.
-	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X"
+	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X|--archive-names"
 
 	# These options will be completed by the path to a directory.
 	wpatharg="--cachedir"
