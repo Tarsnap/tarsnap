@@ -35,6 +35,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "elasticarray.h"
+
+ELASTICARRAY_DECL(STRLIST, strlist, char *);
+
 /*
  * The internal state for the "tarsnap" program.
  *
@@ -140,6 +144,9 @@ struct bsdtar {
 	char		 *conf_arg;
 	FILE		 *conffile_actual;
 	char		 *conffile_buffer;
+
+	/* Temporary array for loading archive names. */
+	STRLIST		 tapenames_setup;
 
 	/* Used for --dryrun with tarsnap.conf.sample with a missing keyfile. */
 	int		  config_file_keyfile_failed;
