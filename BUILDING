@@ -42,7 +42,7 @@ for experimental development, use:
 Platform-specific notes
 -----------------------
 
-- On Debian Ubuntu, and related Linux distributions, the minimal set of
+- On Debian, Ubuntu, and related Linux distributions, the minimal set of
   dependencies is:
 
       sudo apt-get install gcc libc6-dev make libssl-dev zlib1g-dev e2fslibs-dev
