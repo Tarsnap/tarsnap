@@ -179,6 +179,7 @@ crypto_keys_subr_import_RSA_priv(RSA ** key, const uint8_t * buf, size_t buflen)
 	/* Free any existing key. */
 	if (*key != NULL)
 		RSA_free(*key);
+	*key = NULL;
 
 	/* Create a new key. */
 	if ((*key = RSA_new()) == NULL) {
@@ -247,6 +248,7 @@ crypto_keys_subr_import_RSA_pub(RSA ** key, const uint8_t * buf, size_t buflen)
 	/* Free any existing key. */
 	if (*key != NULL)
 		RSA_free(*key);
+	*key = NULL;
 
 	/* Create a new key. */
 	if ((*key = RSA_new()) == NULL) {
@@ -297,6 +299,7 @@ crypto_keys_subr_import_HMAC(struct crypto_hmac_key ** key,
 		free((*key)->key);
 		free(*key);
 	}
+	*key = NULL;
 
 	/* Make sure the buffer is the right length. */
 	if (buflen != 32) {
@@ -457,6 +460,7 @@ crypto_keys_subr_generate_RSA(RSA ** priv, RSA ** pub)
 		RSA_free(*priv);
 	if (*pub != NULL)
 		RSA_free(*pub);
+	*priv = *pub = NULL;
 
 	if ((*priv = crypto_compat_RSA_generate_key()) == NULL) {
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
