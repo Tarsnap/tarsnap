@@ -332,8 +332,10 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	/* Encrypt data. */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
 		return (5);
-	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL)
+	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
+		crypto_aes_key_free(key_enc_exp);
 		return (6);
+	}
 	crypto_aesctr_stream(AES, inbuf, &outbuf[96], inbuflen);
 	crypto_aesctr_free(AES);
 	crypto_aes_key_free(key_enc_exp);
@@ -397,8 +399,10 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	/* Decrypt data. */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
 		return (5);
-	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL)
+	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
+		crypto_aes_key_free(key_enc_exp);
 		return (6);
+	}
 	crypto_aesctr_stream(AES, &inbuf[96], outbuf, inbuflen - 128);
 	crypto_aesctr_free(AES);
 	crypto_aes_key_free(key_enc_exp);
@@ -458,8 +462,10 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	 */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
 		return (5);
-	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL)
+	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
+		crypto_aes_key_free(key_enc_exp);
 		return (6);
+	}
 	do {
 		if ((readlen = fread(buf, 1, ENCBLOCK, infile)) == 0)
 			break;
@@ -560,8 +566,10 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	 */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
 		return (5);
-	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL)
+	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
+		crypto_aes_key_free(key_enc_exp);
 		return (6);
+	}
 	do {
 		/* Read data until we have more than 32 bytes of it. */
 		if ((readlen = fread(&buf[buflen], 1,
