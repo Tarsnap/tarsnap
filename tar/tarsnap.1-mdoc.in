@@ -214,6 +214,9 @@ being limited by individual bottleneck(s), this may
 allow tarsnap to use a significantly larger fraction
 of the available bandwidth, at the expense of slowing
 down any other network traffic.
+.It Fl -archive-names Ar filename
+Read a list of archive names from
+.Ar filename .
 .It Fl C Ar directory
 (c and x modes only)
 In c mode, this changes the directory before adding

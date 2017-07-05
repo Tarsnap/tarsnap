@@ -110,6 +110,8 @@ static void		 configfile(struct bsdtar *, const char *fname,
 			     int fromcmdline);
 static int		 configfile_helper(struct bsdtar *bsdtar,
 			     const char *line);
+static int		 archive_names_helper(struct bsdtar *bsdtar,
+			     const char *line);
 static void		 dooption(struct bsdtar *, const char *,
 			     const char *, int);
 static int		 load_keys(struct bsdtar *, const char *path);
@@ -370,6 +372,18 @@ main(int argc, char **argv)
 		case OPTION_AGGRESSIVE_NETWORKING: /* tarsnap */
 			optq_push(bsdtar, "aggressive-networking", NULL);
 			break;
+		case OPTION_ARCHIVE_NAMES:
+			if (bsdtar->option_archive_names_set)
+				bsdtar_errc(bsdtar, 1, errno,
+				    "Two --archive-names options given");
+			if (bsdtar->optarg == NULL)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Argument required for --archive-names");
+			bsdtar->option_archive_names_set = 1;
+
+			/* Read tapenames from --archive_names file. */
+			process_lines(bsdtar, bsdtar->optarg,
+			    archive_names_helper, 0);
 		case 'B': /* GNU tar */
 			/* libarchive doesn't need this; just ignore it. */
 			break;
@@ -1394,6 +1408,28 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	free(bsdtar->conf_opt);
 	bsdtar->conf_opt = NULL;
 
+	return (0);
+}
+
+/* Process a line of configuration file. */
+static int
+archive_names_helper(struct bsdtar *bsdtar, const char *line)
+{
+	char * name;
+
+	/* Ignore blank lines. */
+	if (line[0] == '\0')
+		return (0);
+
+	/* Duplicate line. */
+	if ((name = strdup(line)) == NULL)
+		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+	/* Record archive name. */
+	if (strlist_append(bsdtar->tapenames_setup, &name, 1))
+		bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+
+	/* Success! */
 	return (0);
 }
 

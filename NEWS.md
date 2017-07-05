@@ -18,6 +18,8 @@
 - tarsnap now displays 'Deleting archive "foo"' when deleting a single archive
   in verbose mode.  (The former behaviour was to print that message only when
   multiple archives were being deleted by a single tarsnap command.)
+- tarsnap now accepts --archive-names filename, which reads a list of
+  archive names from a file in addition to any -f options.
 
 
 Tarsnap Releases

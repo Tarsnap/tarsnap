@@ -218,6 +218,10 @@ allow tarsnap to use a significantly larger fraction
 of the available bandwidth, at the expense of slowing
 down any other network traffic.
 .TP
+\fB\--archive-names\fP \fIfilename\fP
+Read a list of archive names from
+\fIfilename\fP.
+.TP
 \fB\-C\fP \fIdirectory\fP
 (c and x modes only)
 In c mode, this changes the directory before adding
