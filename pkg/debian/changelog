@@ -1,3 +1,28 @@
+tarsnap (1.0.37.99-1) unstable; urgency=medium
+
+  * New version of tarsnap brings several new features and warnings, and
+    OpenSSL 1.1 support.
+  * tarsnap now accepts an --initialize-cachedir command, which is intended for
+    the GUI and is not needed for command-line usage.
+  * tarsnap now applies --humanize-numbers to the SIGINFO "progress" output.
+  * tarsnap now gives a warning for --configfile /nosuchfile.
+  * tarsnap now accepts --iso-dates, which prints file and directory dates as
+    yyyy-mm-dd hh:mm:ss in "list archive" mode.  This can be cancelled with
+    --no-iso-dates.
+  * the ./configure --with-conf-no-sample flag causes in the sample config file
+    to be installed as tarsnap.conf instead of tarsnap.conf.sample.  This may
+    result in overwriting an existing tarsnap.conf file.
+  * tarsnap now accepts --force-resources to force the decryption of a
+    passphrase-encrypted key file to proceed even if it is anticipated to
+    require an excessive amount of memory or CPU time.  This can be cancelled
+    with --no-force-resources.
+  * tarsnap now displays 'Deleting archive "foo"' when deleting a single archive
+    in verbose mode.  (The former behaviour was to print that message only when
+    multiple archives were being deleted by a single tarsnap command.)
+  * tarsnap now accepts --archive-names filename, which reads a list of
+    archive names from a file in addition to any -f options.
+
+ -- Graham Percival <gperciva@tarsnap.com>  Thu, 06 Jul 2017 20:30:56 -0800
 tarsnap (1.0.37-4) unstable; urgency=medium
 
   * Ensure that libssl 1.1.0 is not used.
