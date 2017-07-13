@@ -378,6 +378,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 			buff_end = p + (buff_end - buff);
 			line_end = p + (line_end - buff);
 			line_start = buff = p;
+			bsdtar->conffile_buffer = buff;
 		}
 	}
 	/* At end-of-file, handle the final line. */
