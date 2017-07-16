@@ -52,6 +52,10 @@ callback_count(void * cookie, uint8_t * s, size_t slen, void * rec)
 	if (ccr->age > MAXAGE)
 		goto done;
 
+	/* Don't write an entry if it has negative mtime. */
+	if (ccr->mtime < 0)
+		goto done;
+
 	/* This record will be written. */
 	W->N += 1;
 
@@ -69,12 +73,6 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	struct ccache_record * ccr = rec;
 	size_t plen;
 
-	/* Sanity checks. */
-	assert(slen <= UINT32_MAX);
-	assert((ccr->size >= 0) && ((uintmax_t)ccr->size <= UINT64_MAX));
-	assert((ccr->mtime >= 0) && ((uintmax_t)ccr->mtime <= UINT64_MAX));
-	assert((uintmax_t)ccr->ino <= UINT64_MAX);
-
 	/* Don't write an entry if there are no chunks and no trailer. */
 	if ((ccr->nch == 0) && (ccr->tlen == 0))
 		goto done;
@@ -82,6 +80,16 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	/* Don't write an entry if it hasn't been used recently. */
 	if (ccr->age > MAXAGE)
 		goto done;
+
+	/* Don't write an entry if it has negative mtime. */
+	if (ccr->mtime < 0)
+		goto done;
+
+	/* Sanity checks. */
+	assert(slen <= UINT32_MAX);
+	assert((ccr->size >= 0) && ((uintmax_t)ccr->size <= UINT64_MAX));
+	assert((uintmax_t)ccr->mtime <= UINT64_MAX);
+	assert((uintmax_t)ccr->ino <= UINT64_MAX);
 
 	/* Figure out how much prefix is shared. */
 	for (plen = 0; plen < slen && plen < W->sbuflen; plen++) {
@@ -146,6 +154,10 @@ callback_write_data(void * cookie, uint8_t * s, size_t slen, void * rec)
 
 	/* Don't write an entry if it hasn't been used recently. */
 	if (ccr->age > MAXAGE)
+		goto done;
+
+	/* Don't write an entry if it has negative mtime. */
+	if (ccr->mtime < 0)
 		goto done;
 
 	/* Write chunkheader records to disk, if any. */
