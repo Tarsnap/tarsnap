@@ -34,6 +34,44 @@ static int callback_write_rec(void * cookie, uint8_t * s, size_t slen,
 static int callback_write_data(void * cookie, uint8_t * s, size_t slen,
     void * rec);
 
+/* Should we skip this record? */
+static int
+skiprecord(struct ccache_record * ccr)
+{
+
+	/*
+	 * Don't write an entry if there are no chunks and no trailer; if
+	 * there's no data, we don't accomplish anything by having a record
+	 * of the file in our cache.
+	 */
+	if ((ccr->nch == 0) && (ccr->tlen == 0))
+		return (1);
+
+	/*
+	 * Don't write an entry if it hasn't been used recently; people often
+	 * run several sets of archives covering different directories, so we
+	 * don't want to drop cache entries as soon as they're not used in an
+	 * archive, but we don't want to keep them for too long either so that
+	 * we don't waste time / memory / disk space keeping track of a file
+	 * which we'll never archive again.
+	 */
+	if (ccr->age > MAXAGE)
+		return (1);
+
+	/*
+	 * Don't write an entry if it has negative mtime.  It is very unlikely
+	 * to be correct, and if something is mangling a file's modification
+	 * time there's too much of a risk that we'd rely on the modification
+	 * time and incorrectly conclude that it hasn't been modified since
+	 * the last time we looked at it.
+	 */
+	if (ccr->mtime < 0)
+		return (1);
+
+	/* This record looks reasonable; write it out. */
+	return (0);
+}
+
 /* Callback to count the number of records which will be written. */
 static int
 callback_count(void * cookie, uint8_t * s, size_t slen, void * rec)
@@ -44,22 +82,10 @@ callback_count(void * cookie, uint8_t * s, size_t slen, void * rec)
 	(void)s; /* UNUSED */
 	(void)slen; /* UNUSED */
 
-	/* Don't write an entry if there are no chunks and no trailer. */
-	if ((ccr->nch == 0) && (ccr->tlen == 0))
-		goto done;
+	/* Count records we're not skipping. */
+	if (!skiprecord(ccr))
+		W->N += 1;
 
-	/* Don't write an entry if it hasn't been used recently. */
-	if (ccr->age > MAXAGE)
-		goto done;
-
-	/* Don't write an entry if it has negative mtime. */
-	if (ccr->mtime < 0)
-		goto done;
-
-	/* This record will be written. */
-	W->N += 1;
-
-done:
 	/* Success! */
 	return (0);
 }
@@ -73,16 +99,8 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 	struct ccache_record * ccr = rec;
 	size_t plen;
 
-	/* Don't write an entry if there are no chunks and no trailer. */
-	if ((ccr->nch == 0) && (ccr->tlen == 0))
-		goto done;
-
-	/* Don't write an entry if it hasn't been used recently. */
-	if (ccr->age > MAXAGE)
-		goto done;
-
-	/* Don't write an entry if it has negative mtime. */
-	if (ccr->mtime < 0)
+	/* Skip records which we don't want stored. */
+	if (skiprecord(ccr))
 		goto done;
 
 	/* Sanity checks. */
@@ -148,16 +166,8 @@ callback_write_data(void * cookie, uint8_t * s, size_t slen, void * rec)
 	(void)s; /* UNUSED */
 	(void)slen; /* UNUSED */
 
-	/* Don't write an entry if there are no chunks and no trailer. */
-	if ((ccr->nch == 0) && (ccr->tlen == 0))
-		goto done;
-
-	/* Don't write an entry if it hasn't been used recently. */
-	if (ccr->age > MAXAGE)
-		goto done;
-
-	/* Don't write an entry if it has negative mtime. */
-	if (ccr->mtime < 0)
+	/* Skip records which we don't want stored. */
+	if (skiprecord(ccr))
 		goto done;
 
 	/* Write chunkheader records to disk, if any. */
