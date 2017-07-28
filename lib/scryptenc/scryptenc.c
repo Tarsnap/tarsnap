@@ -157,6 +157,8 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		return (7);
 	if ((uint64_t)(r) * (uint64_t)(p) >= 0x40000000)
 		return (7);
+	if ((r == 0) || (p == 0))
+		return (7);
 
 	/* Are we forcing decryption, regardless of resource limits? */
 	if (!force) {
@@ -173,7 +175,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		N = (uint64_t)(1) << logN;
 		if ((memlimit / N) / r < 128)
 			return (9);
-		if ((opslimit / N) / (r * p) < 4)
+		if (((opslimit / N) / r) / p < 4)
 			return (10);
 	} else {
 		/* We have no limit. */
