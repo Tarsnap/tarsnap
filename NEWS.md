@@ -1,4 +1,14 @@
-### Tarsnap 1.0.38 (unreleased)
+Tarsnap Releases
+================
+
+### Tarsnap 1.0.39 (July 29, 2017)
+
+- Fix an abort trap which complained about files with a negative modification
+  time.  (This assertion occured after the archive is stored, so no user data
+  was at risk.)
+
+
+### Tarsnap 1.0.38 (July 15, 2017)
 
 - tarsnap now accepts an --initialize-cachedir command, which is intended for
   the GUI and is not needed for command-line usage.
@@ -21,9 +31,6 @@
 - tarsnap now accepts --archive-names filename, which reads a list of
   archive names from a file in addition to any -f options.
 
-
-Tarsnap Releases
-================
 
 ### Tarsnap 1.0.37 (March 10, 2016)
 
