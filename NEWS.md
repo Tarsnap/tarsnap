@@ -3,6 +3,12 @@ Tarsnap Releases
 
 ### Tarsnap 1.0.39 (July 29, 2017)
 
+- Fix a division-by-zero crash when reading corrupt password-encrypted tarsnap
+  key files.
+- Fix a crash in reading corrupt "cpio newc" format archives included via the
+  tarsnap @archive directive, on 32-bit systems.
+- Fix a bug in the handling of corrupt "ar" format archives included via the
+  tarsnap @archive directive.
 - Fix an abort trap which complained about files with a negative modification
   time.  (This assertion occured after the archive is stored, so no user data
   was at risk.)
