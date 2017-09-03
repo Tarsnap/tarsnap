@@ -1,0 +1,35 @@
+name: tarsnap
+version: master
+summary: Tarsnap is a secure, efficient online backup service.
+description: "Online backups for the truly paranoid"
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode
+
+apps:
+  tarsnap:
+    command: tarsnap
+  keygen:
+    command: tarsnap-keygen
+    aliases: [tarsnap-keygen]
+  keymgmt:
+    command: tarsnap-keymgmt
+    aliases: [tarsnap-keymgmt]
+  keyregen:
+    command: tarsnap-keyregen
+    aliases: [tarsnap-keyregen]
+  recrypt:
+    command: tarsnap-recrypt
+    aliases: [tarsnap-recrypt]
+
+parts:
+  tarsnap:
+    source: .
+    plugin: autotools
+    build-packages:
+      - gcc
+      - libc6-dev
+      - make
+      - libssl-dev
+      - zlib1g-dev
+      - e2fslibs-dev
