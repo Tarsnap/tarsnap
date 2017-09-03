@@ -1,11 +1,11 @@
 Name:           tarsnap
-Version:        1.0.37
+Version:        1.0.39
 Release:        1%{?dist}
 Summary:        Secure, efficient online backup service
 
 License:        Proprietary
-URL:            http://www.tarsnap.com/
-Source0:        http://www.tarsnap.com/download/tarsnap-autoconf-%{version}.tgz
+URL:            https://www.tarsnap.com/
+Source0:        https://www.tarsnap.com/download/tarsnap-autoconf-%{version}.tgz
 
 BuildRequires:  gcc
 BuildRequires:  bzip2-devel
@@ -53,6 +53,10 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
+* Sun Sep  3 2017 David Sastre Medina <d.sastre.medina@gmail.com> 1.0.39-1
+- Upstream version 1.0.39
+- Switch to HTTPS URLs.
+
 * Mon Mar  7 2016 Graham Percival <gperciva@tarsnap.com> 1.0.37-1
 - Upstream version 1.0.37
 - Reinstate libattr dependency, and add lzma.
