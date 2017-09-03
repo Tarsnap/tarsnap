@@ -5,7 +5,7 @@ tarsnap (1.0.39-1) unstable; urgency=medium
   * Fix two crashes arising from maliciously-crafted archives included via
     the tarsnap @archive directive.
   * Fix an abort trap which complained about files with a negative modification
-    time.  (This assertion occured after the archive is stored, so no user data
+    time.  (This assertion occurred after the archive is stored, so no user data
     was at risk.)
 
  -- Graham Percival <pkg-deb@tarsnap.com>  Sat, 29 Jul 2017 00:53:18 +0000

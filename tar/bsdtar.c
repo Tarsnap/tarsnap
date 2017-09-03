@@ -203,7 +203,7 @@ bsdtar_atexit(void)
 		strlist_free(bsdtar->tapenames_setup);
 	}
 
-	/* Free arrays containined strings allocated by strdup. */
+	/* Free arrays containing strings allocated by strdup. */
 	if (bsdtar->tapenames != NULL) {
 		for (i = 0; i < bsdtar->ntapes; i++)
 			free(bsdtar->tapenames[i]);
