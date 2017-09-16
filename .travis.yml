@@ -18,8 +18,8 @@ matrix:
            CFLAGS_LIBARCHIVE="$CFLAGS_STRICT"
     - compiler: clang
       env: CFLAGS="-std=c99 -O2 -Wall -Wextra -Werror"
-           CFLAGS_STRICT="-Weverything -Werror -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-undef -Wno-documentation-unknown-command -Wno-missing-noreturn -Wno-unused-function"
-           CFLAGS_LIBARCHIVE="-Weverything -Werror -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-missing-noreturn -Wno-sign-conversion -Wno-undef -Wno-shorten-64-to-32 -Wno-shadow -Wno-conversion -Wno-unused-macros -Wno-class-varargs -Wno-unreachable-code -Wno-tautological-overlap-compare -Wno-float-equal -Wno-unreachable-code-break -Wno-unused-function"
+           CFLAGS_STRICT="-Weverything -Werror -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-undef -Wno-documentation-unknown-command -Wno-missing-noreturn -Wno-unused-function -Wno-reserved-id-macro -Wno-cast-align"
+           CFLAGS_LIBARCHIVE="-Weverything -Werror -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-missing-noreturn -Wno-sign-conversion -Wno-undef -Wno-shorten-64-to-32 -Wno-shadow -Wno-conversion -Wno-unused-macros -Wno-class-varargs -Wno-unreachable-code -Wno-tautological-overlap-compare -Wno-float-equal -Wno-unreachable-code-break -Wno-unused-function -Wno-reserved-id-macro -Wno-comma"
 addons:
   apt:
     packages: libssl-dev zlib1g-dev e2fslibs-dev
