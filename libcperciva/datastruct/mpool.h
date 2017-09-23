@@ -1,7 +1,9 @@
 #ifndef _MPOOL_H_
 #define _MPOOL_H_
 
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * Memory allocator cache.  Memory allocations can be returned to the pool
@@ -12,6 +14,73 @@
  * allocating the same memory).
  */
 
+struct mpool {
+	size_t stacklen;
+	size_t allocsize;
+	void ** allocs;
+	uint64_t nallocs;
+	uint64_t nempties;
+	int state;
+	void ** allocs_static;
+	void (*atexitfunc)(void);
+};
+
+static inline void
+mpool_atexit(struct mpool * M)
+{
+
+	while (M->stacklen)
+		free(M->allocs[--M->stacklen]);
+	if (M->allocs != M->allocs_static)
+		free(M->allocs);
+}
+
+static inline void *
+mpool_malloc(struct mpool * M, size_t len)
+{
+
+	M->nallocs++;
+	if (M->stacklen)
+		return (M->allocs[--(M->stacklen)]);
+	M->nempties++;
+	if (M->state == 0) {
+		atexit(M->atexitfunc);
+		M->state = 1;
+	}
+	return (malloc(len));
+}
+
+static inline void
+mpool_free(struct mpool * M, void * p)
+{
+	void * allocs_new;
+
+	if (p == NULL)
+		return;
+
+	if (M->stacklen < M->allocsize) {
+		M->allocs[M->stacklen++] = p;
+		return;
+	}
+
+	if (M->nempties	> (M->nallocs >> 8)) {
+		allocs_new = malloc(M->allocsize * 2 * sizeof(void *));
+		if (allocs_new) {
+			memcpy(allocs_new, M->allocs,
+			    M->allocsize * sizeof(void *));
+			if (M->allocs != M->allocs_static)
+				free(M->allocs);
+			M->allocs = allocs_new;
+			M->allocsize = M->allocsize * 2;
+			M->allocs[M->stacklen++] = p;
+		} else
+			free(p);
+	} else
+		free(p);
+	M->nempties = 0;
+	M->nallocs = 0;
+}
+
 /**
  * MPOOL(name, type, size):
  * Define the functions
@@ -19,62 +88,40 @@
  * ${type} * mpool_${name}_malloc(void);
  * void mpool_${name}_free(${type} *);
  *
- * which allocate and free structures of type ${type}.  Up to ${size}
- * such structures are kept cached after _free is called in order to
- * allow future _malloc calls to be rapidly serviced.
+ * which allocate and free structures of type ${type}.  A minimum of ${size}
+ * such structures are kept cached after _free is called in order to allow
+ * future _malloc calls to be rapidly serviced; this limit will be autotuned
+ * upwards depending on the allocation/free pattern.
  *
  * Cached structures will be freed at program exit time in order to aid
  * in the detection of memory leaks.
  */
-#define MPOOL(name, type, size) 				\
-static struct mpool_##name##_struct {				\
-	size_t stacklen;					\
-	int atexit_set;						\
-	type * allocs[size];					\
-} mpool_##name##_rec = {0, 0, {NULL}};				\
+#define MPOOL(name, type, size)					\
+static void mpool_##name##_atexit(void);			\
+static void * mpool_##name##_static[size];			\
+static struct mpool mpool_##name##_rec =			\
+    {0, size, mpool_##name##_static, 0, 0, 0,			\
+    mpool_##name##_static, mpool_##name##_atexit};		\
 								\
 static void							\
 mpool_##name##_atexit(void)					\
 {								\
 								\
-	while (mpool_##name##_rec.stacklen) {			\
-		--mpool_##name##_rec.stacklen;			\
-		free(mpool_##name##_rec.allocs[mpool_##name##_rec.stacklen]);	\
-	}							\
+	mpool_atexit(&mpool_##name##_rec);			\
 }								\
 								\
 static inline type *						\
 mpool_##name##_malloc(void)					\
 {								\
-	type * p;						\
 								\
-	if (mpool_##name##_rec.stacklen) {			\
-		mpool_##name##_rec.stacklen -= 1;		\
-		p = mpool_##name##_rec.allocs[mpool_##name##_rec.stacklen];	\
-	} else {						\
-		if (mpool_##name##_rec.atexit_set == 0) {	\
-			atexit(mpool_##name##_atexit);		\
-			mpool_##name##_rec.atexit_set = 1;	\
-		}						\
-		p = malloc(sizeof(type));			\
-	}							\
-								\
-	return (p);						\
+	return (mpool_malloc(&mpool_##name##_rec, sizeof(type)));	\
 }								\
 								\
 static inline void						\
 mpool_##name##_free(type * p)					\
 {								\
 								\
-	if (p == NULL)						\
-		return;						\
-								\
-	if (mpool_##name##_rec.stacklen < size) {		\
-		mpool_##name##_rec.allocs[mpool_##name##_rec.stacklen] = p;	\
-		mpool_##name##_rec.stacklen++;			\
-	} else {						\
-		free(p);					\
-	}							\
+	mpool_free(&mpool_##name##_rec, p);			\
 }								\
 								\
 struct mpool_##name##_dummy
