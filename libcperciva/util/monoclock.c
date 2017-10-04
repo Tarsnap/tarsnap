@@ -8,11 +8,13 @@
 #include "monoclock.h"
 
 /* Determine which clock(s) to use. */
+#ifndef POSIXFAIL_CLOCK_GETTIME
 #ifdef CLOCK_MONOTONIC
 #define USE_MONOTONIC
 #endif
 #ifndef POSIXFAIL_CLOCK_REALTIME
 #define USE_REALTIME
+#endif
 #endif
 
 /**
