@@ -9,7 +9,6 @@
 
 #include "tsnetwork_internal.h"
 #include "tvmath.h"
-#include "warnp.h"
 
 #include "tsnetwork.h"
 
