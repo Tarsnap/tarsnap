@@ -7,7 +7,6 @@
 #include "netpacket_internal.h"
 #include "netproto.h"
 #include "sysendian.h"
-#include "warnp.h"
 
 #include "netpacket.h"
 

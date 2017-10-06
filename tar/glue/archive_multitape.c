@@ -1,5 +1,7 @@
 #include "bsdtar_platform.h"
 
+#include <sys/types.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>

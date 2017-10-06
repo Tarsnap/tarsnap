@@ -3,7 +3,6 @@
 #include <sys/time.h>
 
 #include "monoclock.h"
-#include "warnp.h"
 
 #include "tvmath.h"
 
