@@ -7,6 +7,16 @@
 
 #include "monoclock.h"
 
+/* Determine which clock(s) to use. */
+#ifndef POSIXFAIL_CLOCK_GETTIME
+#ifdef CLOCK_MONOTONIC
+#define USE_MONOTONIC
+#endif
+#ifndef POSIXFAIL_CLOCK_REALTIME
+#define USE_REALTIME
+#endif
+#endif
+
 /**
  * monoclock_get(tv):
  * Store the current time in ${tv}.  If CLOCK_MONOTONIC is available, use
@@ -16,11 +26,11 @@
 int
 monoclock_get(struct timeval * tv)
 {
-#if defined(CLOCK_MONOTONIC) || !defined(POSIXFAIL_CLOCK_REALTIME)
+#if defined(USE_MONOTONIC) || defined(USE_REALTIME)
 	struct timespec tp;
 #endif
 
-#ifdef CLOCK_MONOTONIC
+#ifdef USE_MONOTONIC
 	if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0) {
 		tv->tv_sec = tp.tv_sec;
 		tv->tv_usec = tp.tv_nsec / 1000;
@@ -29,7 +39,7 @@ monoclock_get(struct timeval * tv)
 		goto err0;
 	} else
 #endif
-#ifndef POSIXFAIL_CLOCK_REALTIME
+#ifdef USE_REALTIME
 	if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
 		tv->tv_sec = tp.tv_sec;
 		tv->tv_usec = tp.tv_nsec / 1000;
