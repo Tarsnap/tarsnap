@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "ccache_internal.h"
 #include "multitape_internal.h"
 #include "patricia.h"

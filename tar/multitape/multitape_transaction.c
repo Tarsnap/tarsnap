@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "chunks.h"
 #include "crypto_entropy.h"
 #include "dirutil.h"

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "crypto.h"
 #include "dirutil.h"
 #include "getopt.h"
