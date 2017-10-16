@@ -392,8 +392,7 @@ creates a new archive
 \fIfoo-backup\fP
 containing only the entries from
 \fIall-backup\fP
-containing the string
-Sq foo.
+containing the string "foo".
 .TP
 \fB\--force-resources\fP
 Force the decryption of a passphrase-encrypted key file to proceed

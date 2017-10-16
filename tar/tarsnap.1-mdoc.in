@@ -318,7 +318,7 @@ specified on the command line.
 (c, d, x, t, r, and print-stats modes only)
 Operate on the archive
 .Ar archive-name .
-In mode c, if archive creation is interrupted by ^Q,
+In mode c, if archive creation is interrupted by \&^Q,
 the SIGQUIT signal, or reaching the bandwidth limit
 specified via a
 .Fl -maxbw
@@ -855,9 +855,7 @@ to the standard error device.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
-signal or
-.ua
-Q,
+signal or \&^Q,
 or if the bandwidth limit specified via a
 .Fl -maxbw
 option is reached,
@@ -1113,5 +1111,5 @@ If
 .Nm
 is run with standard input, standard output, and standard error
 redirected and inside a chroot where terminal devices are not
-exposed, ^Q will not be mapped to SIGQUIT and will consequently not
+exposed, \&^Q will not be mapped to SIGQUIT and will consequently not
 trigger the truncation of the current archive.
