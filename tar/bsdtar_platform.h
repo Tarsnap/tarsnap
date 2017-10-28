@@ -154,12 +154,6 @@
 #define	ARCHIVE_STAT_MTIME_NANOS(st)	(0)
 #endif
 
-/* If asprintf isn't provided by the OS, use our local version. */
-#ifndef HAVE_ASPRINTF
-#define asprintf tarsnap_asprintf
-#include "asprintf.h"
-#endif
-
 /* How to mark functions that don't return. */
 /* This facilitates use of some newer static code analysis tools. */
 #undef __LA_DEAD

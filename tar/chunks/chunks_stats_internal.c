@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "asprintf.h"
 #include "humansize.h"
 #include "storage.h"
 #include "tarsnap_opt.h"

@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "chunkify.h"
 #include "chunks.h"
 #include "crypto.h"

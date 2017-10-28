@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "asprintf.h"
 #include "ctassert.h"
 #include "dirutil.h"
 #include "rwhashtab.h"
