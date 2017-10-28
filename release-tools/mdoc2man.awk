@@ -170,6 +170,12 @@ function splitwords(l, dest, n, o, w) {
       sep = ""
     } else if(match(words[w],"^No$")) { # Normal text
       add(words[++w])
+    } else if(match(words[w],"^Sq$")) { # Quote
+      addopen("`")
+      add(words[++w])
+      while(w<nwords&&!match(words[w+1],"^[\\.,]"))
+	add(words[++w])
+      addclose("'")
     } else if(match(words[w],"^Dq$")) { # Quote
       addopen("``")
       add(words[++w])
@@ -377,9 +383,9 @@ function splitwords(l, dest, n, o, w) {
       # TODO: Figure out how to handle this
     } else if(match(words[w],"^[=]$")) {
       addpunct(words[w])
-    } else if(match(words[w],"^[\[{(]$")) {
+    } else if(match(words[w],"^[[{(]$")) {
       addopen(words[w])
-    } else if(match(words[w],"^[\\\])}.,;:]$")) {
+    } else if(match(words[w],"^[\\])}.,;:]$")) {
       addclose(words[w])
     } else {
       add(words[w])
