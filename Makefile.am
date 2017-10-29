@@ -248,8 +248,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-D_POSIX_C_SOURCE=200809L		\
 		-D_XOPEN_SOURCE=700			\
-		-DPOSIXFAIL_MSG_NOSIGNAL		\
-		-DPOSIXFAIL_CLOCK_REALTIME
+		${CFLAGS_POSIX}
 
 LIBTARSNAP_A=	lib/libtarsnap.a
 
