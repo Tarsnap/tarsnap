@@ -498,5 +498,11 @@ fi
 AC_SUBST([BASH_COMPLETION_DIR])
 AM_CONDITIONAL([INSTALL_BASH_COMPLETION],[test "x$with_bash_completion_dir" != "xno"])
 
+# Run the libcperciva POSIX compatibility tests and pass values to the Makefile.
+AC_MSG_NOTICE([checking POSIX compatibility...])
+LIBCPERCIVA_DIR=${srcdir}/libcperciva
+CFLAGS_POSIX=`export CC="${CC}"; command -p sh ${LIBCPERCIVA_DIR}/POSIX/posix-cflags.sh "$PATH"`
+AC_SUBST([CFLAGS_POSIX])
+AC_MSG_RESULT([... done checking POSIX compatibility])
 
 AC_OUTPUT
