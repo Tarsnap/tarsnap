@@ -383,6 +383,10 @@ name of the option.
 .It Fl -iso-dates
 (-t mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
+.Pp
+The default is to use the same format as 'ls -l': If the files were modified
+within the past six months, print the month, day, hour, and minutes; otherwise,
+print the month, day, and year.
 .It Fl k
 (x mode only)
 Do not overwrite existing files.
