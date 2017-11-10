@@ -323,6 +323,9 @@ server when performing a dry run, it will not detect an
 attempt to create an archive with the same name as one
 which already exists.
 .TP
+\fB\--dump-config\fP
+Print out the command-line and all non-blank lines read from config files.
+.TP
 \fB\--exclude\fP \fIpattern\fP
 (c, x, and t modes only)
 Do not process files or directories that match the
