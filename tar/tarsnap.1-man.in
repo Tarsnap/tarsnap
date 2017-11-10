@@ -409,6 +409,10 @@ name of the option.
 \fB\--iso-dates\fP
 (-t mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
+.PP
+The default is to use the same format as 'ls -l': If the files were modified
+within the past six months, print the month, day, hour, and minutes; otherwise,
+print the month, day, and year.
 .TP
 \fB\-k\fP
 (x mode only)
@@ -910,14 +914,34 @@ current position and exit (see "INTERRUPTING ARCHIVAL" below).
 .RE
 .SH PRINTING ARCHIVE STATISTICS
 .ad l
-Statistics on archives can be printed by running
-\fB\%tarsnap\fP
-\fB\--print-stats\fP
-and during archive creation or deletion statistics on the created or
-deleted archive can be printed using the
-\fB\--print-stats\fP
-option.
-In either case,
+There are four commands which print statistics about archives:
+.RS 5
+.IP \(bu
+Global statistics:
+.RS 4
+\fB\%tarsnap\fP \fB\--print-stats\fP
+.RE
+.IP \(bu
+Global statistics and info about specific archive(s):
+.RS 4
+\fB\%tarsnap\fP \fB\--print-stats\fP \fB\-f\fP \fIarchive-name1\fP [\fB\-f\fP \fI...\fP]
+.RE
+.IP \(bu
+Global statistics and info about all archives:
+.RS 4
+\fB\%tarsnap\fP \fB\--print-stats\fP \fB\-f\fP \fI'*'\fP
+.RE
+.IP \(bu
+Global statistics and info about the archive(s) that were just created or
+deleted:
+.RS 4
+\fB\%tarsnap\fP \fB\-c\fP \fB\--print-stats\fP \fB\-f\fP \fIarchive-name\fP \fIDIR\fP
+.RE
+.RS 4
+\fB\%tarsnap\fP \fB\-d\fP \fB\--print-stats\fP \fB\-f\fP \fIarchive-name1\fP [\fB\-f\fP \fI...\fP]
+.RE
+.RE
+.PP
 \fB\%tarsnap\fP
 will print a table in the following format:
 .RS 4
@@ -948,6 +972,9 @@ when the
 \fB\--print-stats\fP
 option is used while creating or deleting archives, the table is printed
 to the standard error device.
+.PP
+Global statistics are calculated based on the current cache directory, without
+using the keyfile or querying the Tarsnap servers.
 .SH INTERRUPTING ARCHIVAL
 .ad l
 Upon receipt of the
