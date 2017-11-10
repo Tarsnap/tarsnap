@@ -98,6 +98,7 @@ struct bsdtar {
 	int		  option_archive_names_set;
 	int		  option_cachecrunch_set;
 	int		  option_disk_pause_set;
+	int		  option_dump_config;
 	int		  option_humanize_numbers_set;
 	int		  option_maxbw_set;
 	int		  option_maxbw_rate_down_set;
@@ -195,6 +196,7 @@ enum {
 	OPTION_CSV_FILE,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
+	OPTION_DUMP_CONFIG,
 	OPTION_EXCLUDE,
 	OPTION_FORCE_RESOURCES,
 	OPTION_FSCK,
