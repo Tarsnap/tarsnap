@@ -866,6 +866,9 @@ when the
 .Fl -print-stats
 option is used while creating or deleting archives, the table is printed
 to the standard error device.
+.Pp
+Global statistics are calculated based on the current cache directory, without
+using the keyfile or querying the Tarsnap servers.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
