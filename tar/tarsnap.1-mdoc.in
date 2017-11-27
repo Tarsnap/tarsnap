@@ -383,6 +383,10 @@ name of the option.
 .It Fl -iso-dates
 (-t mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
+.Pp
+The default is to use the same format as 'ls -l': If the files were modified
+within the past six months, print the month, day, hour, and minutes; otherwise,
+print the month, day, and year.
 .It Fl k
 (x mode only)
 Do not overwrite existing files.
@@ -815,14 +819,24 @@ is creating an archive (mode c) it will truncate the archive at the
 current position and exit (see "INTERRUPTING ARCHIVAL" below).
 .El
 .Sh PRINTING ARCHIVE STATISTICS
-Statistics on archives can be printed by running
-.Nm
-.Fl -print-stats
-and during archive creation or deletion statistics on the created or
-deleted archive can be printed using the
-.Fl -print-stats
-option.
-In either case,
+There are four commands which print statistics about archives:
+.Bl -bullet -width indent
+.It
+Global statistics:
+.Dl Nm Fl -print-stats
+.It
+Global statistics and info about specific archive(s):
+.Dl Nm Fl -print-stats Fl f Ar archive-name1 Op Fl f Ar ...
+.It
+Global statistics and info about all archives:
+.Dl Nm Fl -print-stats Fl f Ar '*'
+.It
+Global statistics and info about the archive(s) that were just created or
+deleted:
+.Dl Nm Fl c Fl -print-stats Fl f Ar archive-name Ar DIR
+.Dl Nm Fl d Fl -print-stats Fl f Ar archive-name1 Op Fl f Ar ...
+.El
+.Pp
 .Nm
 will print a table in the following format:
 .Bd -literal
@@ -852,6 +866,9 @@ when the
 .Fl -print-stats
 option is used while creating or deleting archives, the table is printed
 to the standard error device.
+.Pp
+Global statistics are calculated based on the current cache directory, without
+using the keyfile or querying the Tarsnap servers.
 .Sh INTERRUPTING ARCHIVAL
 Upon receipt of the
 .Dv SIGQUIT
