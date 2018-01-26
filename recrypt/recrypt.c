@@ -36,6 +36,7 @@ int tarsnap_opt_noisy_warnings = 0;
 int tarsnap_opt_humanize_numbers = 0;
 uint64_t tarsnap_opt_checkpointbytes = (uint64_t)(-1);
 uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
+uint64_t tarsnap_opt_uploadprogressbytes = (uint64_t)(-1);
 
 struct block {
 	char class;

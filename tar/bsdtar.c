@@ -92,6 +92,7 @@ int tarsnap_opt_humanize_numbers = 0;
 int tarsnap_opt_noisy_warnings = 0;
 uint64_t tarsnap_opt_checkpointbytes = (uint64_t)(-1);
 uint64_t tarsnap_opt_maxbytesout = (uint64_t)(-1);
+uint64_t tarsnap_opt_uploadprogressbytes = (uint64_t)(-1);
 
 /* Structure for holding a delayed option. */
 struct delayedopt {
@@ -740,6 +741,10 @@ main(int argc, char **argv)
 		case 'U': /* GNU tar */
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_UNLINK;
 			bsdtar->option_unlink_first = 1;
+			break;
+		case OPTION_UPLOAD_PROGRESS_BYTES: /* tarsnap */
+			optq_push(bsdtar, "upload-progress-bytes",
+			    bsdtar->optarg);
 			break;
 		case 'v': /* SUSv2 */
 			bsdtar->verbose++;
@@ -1779,6 +1784,20 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_totals = 1;
 		bsdtar->option_totals_set = 1;
+	} else if (strcmp(conf_opt, "upload-progress-bytes") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (tarsnap_opt_uploadprogressbytes != (uint64_t)(-1))
+			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
+
+		if (humansize_parse(conf_arg, &tarsnap_opt_uploadprogressbytes))
+			bsdtar_errc(bsdtar, 1, 0, "Cannot parse #bytes per "
+			    "upload progress message: %s", conf_arg);
+		if (tarsnap_opt_uploadprogressbytes < 1000)
+			bsdtar_errc(bsdtar, 1, 0, "upload-progress-bytes "
+			    "value must be at least 1000");
 	} else if (strcmp(conf_opt, "verylowmem") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;
