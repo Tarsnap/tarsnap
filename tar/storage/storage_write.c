@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "crypto.h"
+#include "humansize.h"
 #include "netpacket.h"
 #include "netproto.h"
 #include "storage_internal.h"
@@ -70,23 +71,25 @@ struct write_file_internal {
 	uint8_t * filebuf;
 };
 
-static void raisesigs(struct storage_write_internal * S);
+static void raisesigs_progress(struct storage_write_internal * S);
 static sendpacket_callback callback_fexist_send;
 static handlepacket_callback callback_fexist_response;
 static sendpacket_callback callback_write_file_send;
 static handlepacket_callback callback_write_file_response;
 
 /**
- * raisesigs(S):
+ * raisesigs_progress(S):
  * Look at how much bandwidth has been used plus what will be used once all
  * pending requests are sent, and send a SIGQUIT to ourselves if this exceeds
  * tarsnap_opt_maxbytesout, or a SIGUSR2 if it exceeds
- * tarsnap_opt_nextcheckpoint.
+ * tarsnap_opt_nextcheckpoint.  Also print to STDERR if we have sent more than
+ * tarsnap_opt_uploadprogressbytes since the last message.
  */
 static void
-raisesigs(struct storage_write_internal * S)
+raisesigs_progress(struct storage_write_internal * S)
 {
 	static uint64_t lastcheckpoint = 0;
+	static uint64_t lastuploadprogress = 0;
 	uint64_t in, out, queued;
 	uint64_t totalout = 0;
 	size_t i;
@@ -109,6 +112,20 @@ raisesigs(struct storage_write_internal * S)
 			lastcheckpoint = totalout;
 			if (raise(SIGUSR2))
 				warnp("raise(SIGUSR2)");
+		}
+	}
+
+	/* Print a message if appropriate. */
+	if (tarsnap_opt_uploadprogressbytes != (uint64_t)(-1)) {
+		if (totalout > lastuploadprogress +
+		    tarsnap_opt_uploadprogressbytes) {
+			lastuploadprogress = totalout;
+			if (tarsnap_opt_humanize_numbers)
+				fprintf(stderr, "Uploaded %s\n",
+				    humansize(totalout));
+			else
+				fprintf(stderr, "Uploaded %" PRIu64 "\n",
+				    totalout);
 		}
 	}
 }
@@ -345,8 +362,8 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
 		goto err0;
 
-	/* Send ourself SIGQUIT or SIGUSR2 if necessary. */
-	raisesigs(S);
+	/* Send ourself SIGQUIT or SIGUSR2, or print a message if necessary. */
+	raisesigs_progress(S);
 
 	/* Success! */
 	return (0);
@@ -425,8 +442,9 @@ callback_write_file_response(void * cookie,
 	 * Send ourself SIGQUIT or SIGUSR2 if necessary.  We do this
 	 * here in addition to in storage_write_file because a write will
 	 * use more bandwidth than expected if it needs to be retried.
+	 * Also print a progress message if requested.
 	 */
-	raisesigs(C->S);
+	raisesigs_progress(C->S);
 
 	/* Free file buffer. */
 	free(C->filebuf);
