@@ -30,6 +30,11 @@
 /* Read blocks using 8 connections. */
 #define NCONNS 8
 
+/* Keymasks required. */
+static const int KEYMASK_NEW_KEYFILE = (CRYPTO_KEYMASK_SIGN_PRIV
+    | CRYPTO_KEYMASK_ENCR_PUB | CRYPTO_KEYMASK_AUTH_GET
+    | CRYPTO_KEYMASK_AUTH_PUT | CRYPTO_KEYMASK_HMAC_FILE_WRITE);
+
 /* Global tarsnap options declared in tarsnap_opt.h. */
 int tarsnap_opt_aggressive_networking = 1;
 int tarsnap_opt_noisy_warnings = 0;
@@ -380,6 +385,7 @@ main(int argc, char **argv)
 	char *odirpath, *ndirpath;
 	FILE *odir, *ndir;
 	const char * ch;
+	const char * missingkey = NULL;
 
 	WARNP_INIT;
 
@@ -453,11 +459,12 @@ main(int argc, char **argv)
 	lockdirs(ocachedir, ncachedir, &odirlock, &ndirlock);
 
 	/* Read keys from the new key file. */
-	if (keyfile_read(nkeyfile, &nmachinenum,
-	    CRYPTO_KEYMASK_SIGN_PRIV | CRYPTO_KEYMASK_ENCR_PUB |
-	    CRYPTO_KEYMASK_AUTH_GET | CRYPTO_KEYMASK_AUTH_PUT |
-            CRYPTO_KEYMASK_HMAC_FILE_WRITE, 0)) {
+	if (keyfile_read(nkeyfile, &nmachinenum, KEYMASK_NEW_KEYFILE, 0)) {
 		warnp("Cannot read key file: %s", nkeyfile);
+		exit(1);
+	}
+	if ((missingkey = crypto_keys_missing(KEYMASK_NEW_KEYFILE)) != NULL) {
+		warn0("The %s key is required in the new key", missingkey);
 		exit(1);
 	}
 
