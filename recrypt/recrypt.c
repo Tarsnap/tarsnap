@@ -30,6 +30,14 @@
 /* Read blocks using 8 connections. */
 #define NCONNS 8
 
+/* Keymasks required. */
+static const int KEYMASK_NEW_KEYFILE = (CRYPTO_KEYMASK_SIGN_PRIV
+    | CRYPTO_KEYMASK_ENCR_PUB | CRYPTO_KEYMASK_AUTH_GET
+    | CRYPTO_KEYMASK_AUTH_PUT | CRYPTO_KEYMASK_HMAC_FILE_WRITE);
+static const int KEYMASK_OLD_KEYFILE = (CRYPTO_KEYMASK_SIGN_PUB
+    | CRYPTO_KEYMASK_ENCR_PRIV | CRYPTO_KEYMASK_AUTH_GET
+    | CRYPTO_KEYMASK_AUTH_DELETE | CRYPTO_KEYMASK_HMAC_FILE);
+
 /* Global tarsnap options declared in tarsnap_opt.h. */
 int tarsnap_opt_aggressive_networking = 1;
 int tarsnap_opt_noisy_warnings = 0;
@@ -380,6 +388,7 @@ main(int argc, char **argv)
 	char *odirpath, *ndirpath;
 	FILE *odir, *ndir;
 	const char * ch;
+	const char * missingkey = NULL;
 
 	WARNP_INIT;
 
@@ -453,11 +462,12 @@ main(int argc, char **argv)
 	lockdirs(ocachedir, ncachedir, &odirlock, &ndirlock);
 
 	/* Read keys from the new key file. */
-	if (keyfile_read(nkeyfile, &nmachinenum,
-	    CRYPTO_KEYMASK_SIGN_PRIV | CRYPTO_KEYMASK_ENCR_PUB |
-	    CRYPTO_KEYMASK_AUTH_GET | CRYPTO_KEYMASK_AUTH_PUT |
-            CRYPTO_KEYMASK_HMAC_FILE_WRITE, 0)) {
+	if (keyfile_read(nkeyfile, &nmachinenum, KEYMASK_NEW_KEYFILE, 0)) {
 		warnp("Cannot read key file: %s", nkeyfile);
+		exit(1);
+	}
+	if ((missingkey = crypto_keys_missing(KEYMASK_NEW_KEYFILE)) != NULL) {
+		warn0("The %s key is required in the new key", missingkey);
 		exit(1);
 	}
 
@@ -487,11 +497,12 @@ main(int argc, char **argv)
 	 * we've read the list of blocks) the only thing we'll be doing to
 	 * the new machine is writing blocks.
 	 */
-	if (keyfile_read(okeyfile, &omachinenum,
-	    CRYPTO_KEYMASK_SIGN_PUB | CRYPTO_KEYMASK_ENCR_PRIV |
-	    CRYPTO_KEYMASK_AUTH_GET | CRYPTO_KEYMASK_AUTH_DELETE |
-	    CRYPTO_KEYMASK_HMAC_FILE, 0)) {
+	if (keyfile_read(okeyfile, &omachinenum, KEYMASK_OLD_KEYFILE, 0)) {
 		warnp("Cannot read key file: %s", okeyfile);
+		exit(1);
+	}
+	if ((missingkey = crypto_keys_missing(KEYMASK_OLD_KEYFILE)) != NULL) {
+		warn0("The %s key is required in the old key", missingkey);
 		exit(1);
 	}
 

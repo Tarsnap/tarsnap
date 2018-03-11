@@ -277,6 +277,18 @@ crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_file, buf, len))
 				goto err0;
+			/*
+			 * There is normally only one "file hmac" key, used for
+			 * both signing blocks which are being written and
+			 * verifying blocks which are being read; but in
+			 * tarsnap-recrypt we download blocks from one machine
+			 * and verify them with one key before re-uploading
+			 * them signed with a different key.  Consequently, the
+			 * tarsnap crypto code internally treats this as two
+			 * keys; and we set one or both to the key we're
+			 * reading from the key file depending on the flags we
+			 * were passed.
+			 */
 			if ((keys & CRYPTO_KEYMASK_HMAC_FILE_WRITE) &&
 			    crypto_keys_subr_import_HMAC(
 			    &keycache.hmac_file_write, buf, len))
