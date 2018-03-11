@@ -1,3 +1,9 @@
+### Tarsnap 1.0.40 (unreleased)
+
+- tarsnap now accepts an --dump-config option to print the command-line and all
+  non-blank lines read from config files.
+
+
 Tarsnap Releases
 ================
 

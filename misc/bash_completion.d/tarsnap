@@ -61,7 +61,7 @@ _tarsnap ()
 		  --retry-forever --no-retry-forever --creationtime \
 		  --keep-going --verify-config \
 		  --initialize-cachedir --iso-dates --no-iso-dates \
-		  --force-resources --no-force-resources"
+		  --force-resources --no-force-resources --dump-config"
 
 	# Available short options
 	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X -q"

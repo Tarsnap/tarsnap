@@ -250,6 +250,7 @@ main(int argc, char **argv)
 	const char		*missingkey;
 	time_t			 now;
 	size_t 			 i;
+	int			 j;
 	char			*tapename_cmdline;
 
 	WARNP_INIT;
@@ -361,6 +362,17 @@ main(int argc, char **argv)
 	bsdtar->delopt = NULL;
 	bsdtar->delopt_tail = &bsdtar->delopt;
 
+	/* Check if any argument is --dump-config; if so, print them all. */
+	for (j = 0; j < argc; j++)
+		if (strcmp("--dump-config", bsdtar->argv[j]) == 0)
+			bsdtar->option_dump_config = 1;
+	if (bsdtar->option_dump_config) {
+		fprintf(stderr, "Command-line:\n ");
+		for (j = 0; j < argc; j++)
+			fprintf(stderr, " %s", argv[j]);
+		fprintf(stderr, "\n");
+	}
+
 	/*
 	 * Comments following each option indicate where that option
 	 * originated:  SUSv2, POSIX, GNU tar, star, etc.  If there's
@@ -432,6 +444,9 @@ main(int argc, char **argv)
 			break;
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
+			break;
+		case OPTION_DUMP_CONFIG: /* tarsnap */
+			/* Do nothing; already handled. */
 			break;
 		case OPTION_DISK_PAUSE: /* tarsnap */
 			optq_push(bsdtar, "disk-pause", bsdtar->optarg);
@@ -1281,6 +1296,10 @@ configfile(struct bsdtar *bsdtar, const char *fname, int fromcmdline)
 {
 	struct stat sb;
 
+	/* Print config filename if given --dump-config. */
+	if (bsdtar->option_dump_config)
+		fprintf(stderr, "Reading from config file: %s\n", fname);
+
 	/*
 	 * If we had --no-config-exclude (or --no-config-include) earlier,
 	 * we do not want to process any --exclude (or --include) options
@@ -1338,6 +1357,10 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Ignore comments and blank lines. */
 	if ((line[0] == '#') || (line[0] == '\0'))
 		return (0);
+	
+	/* Print line if given --dump-config. */
+	if (bsdtar->option_dump_config)
+		fprintf(stderr, "  %s\n", line);
 
 	/* Duplicate line. */
 	if ((bsdtar->conf_opt = strdup(line)) == NULL)

@@ -84,6 +84,7 @@ static struct option {
 	{ "directory",            1, 'C' },
 	{ "disk-pause",		  1, OPTION_DISK_PAUSE },
 	{ "dry-run",		  0, OPTION_DRYRUN },
+	{ "dump-config",	  0, OPTION_DUMP_CONFIG },
 	{ "exclude",              1, OPTION_EXCLUDE },
 	{ "exclude-from",         1, 'X' },
 	{ "extract",              0, 'x' },

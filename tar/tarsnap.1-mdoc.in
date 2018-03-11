@@ -308,6 +308,8 @@ does not contact the
 server when performing a dry run, it will not detect an
 attempt to create an archive with the same name as one
 which already exists.
+.It Fl -dump-config
+Print out the command-line and all non-blank lines read from config files.
 .It Fl -exclude Ar pattern
 (c, x, and t modes only)
 Do not process files or directories that match the
