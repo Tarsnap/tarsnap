@@ -943,6 +943,15 @@ main(int argc, char **argv)
 	if (bsdtar->option_null)
 		only_mode(bsdtar, "--null", "cxt");
 
+	/* We should only have remaining args in -c, -t, and -x modes. */
+	if (bsdtar->argc != 0) {
+		if (!((bsdtar->mode == 'c') || (bsdtar->mode == 't') ||
+		    (bsdtar->mode == 'x'))) {
+			bsdtar_errc(bsdtar, 1, 0, "Cannot have unused "
+			    "command-line args in this mode.");
+		}
+	}
+
 	/* Check options only permitted in certain modes. */
 	if (bsdtar->option_dont_traverse_mounts)
 		only_mode(bsdtar, "--one-file-system", "c");
