@@ -1,5 +1,8 @@
 ### Tarsnap 1.0.40 (unreleased)
 
+- Fix `clock_gettime()` problem on OSX on OSX 10.11 with XCode 8, which
+  includes `CLOCK_REALTIME` in `<time.h>` but does not include the symbol
+  in the standard library.
 - tarsnap now accepts an --dump-config option to print the command-line and all
   non-blank lines read from config files.
 
