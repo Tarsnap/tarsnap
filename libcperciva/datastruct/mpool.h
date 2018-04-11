@@ -53,7 +53,7 @@ mpool_malloc(struct mpool * M, size_t len)
 static inline void
 mpool_free(struct mpool * M, void * p)
 {
-	void * allocs_new;
+	void ** allocs_new;
 
 	if (p == NULL)
 		return;
@@ -64,7 +64,7 @@ mpool_free(struct mpool * M, void * p)
 	}
 
 	if (M->nempties	> (M->nallocs >> 8)) {
-		allocs_new = malloc(M->allocsize * 2 * sizeof(void *));
+		allocs_new = (void **)malloc(M->allocsize * 2 * sizeof(void *));
 		if (allocs_new) {
 			memcpy(allocs_new, M->allocs,
 			    M->allocsize * sizeof(void *));
