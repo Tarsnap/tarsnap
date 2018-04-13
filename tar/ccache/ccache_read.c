@@ -80,11 +80,13 @@ read_rec(void * cookie)
 	ccr->flags = 0;
 
 	/* Sanity check some fields. */
+#if SIZE_MAX < UINT64_MAX
 	if (le64dec(ccre.nch) > (uint64_t)SIZE_MAX) {
 		warn0("Cache file is corrupt or too large for this "
 		    "platform: %s", R->s);
 		goto err1;
 	}
+#endif
 	if ((prefixlen == 0 && suffixlen == 0) ||
 	    (ccr->nch > SIZE_MAX / sizeof(struct chunkheader)) ||
 	    (ccr->nch == 0 && ccr->tlen == 0) ||
