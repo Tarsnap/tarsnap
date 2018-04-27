@@ -56,6 +56,12 @@ static int pickparams(size_t, double, double,
 static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int,
     int);
 
+struct scryptdec_file_cookie {
+	FILE *	infile;		/* This is not owned by this cookie. */
+	uint8_t	header[96];
+	uint8_t	dk[64];
+};
+
 static void
 display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
     double opps, double maxtime)
@@ -548,6 +554,27 @@ err1:
 }
 
 /**
+ * scryptdec_file_cookie_free(cookie):
+ * Free the ${cookie}.
+ */
+static void
+scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
+{
+
+	/* Behave consistently with free(NULL). */
+	if (C == NULL)
+		return;
+
+	/* Zero sensitive data. */
+	insecure_memzero(C->dk, 64);
+
+	/* We do not free C->infile because it is not owned by this cookie. */
+
+	/* Free the cookie. */
+	free(C);
+}
+
+/**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Read a stream from infile and decrypt it, writing the resulting stream to
@@ -560,10 +587,9 @@ scryptdec_file(FILE * infile, FILE * outfile,
     size_t maxmem, double maxmemfrac, double maxtime, int verbose,
     int force)
 {
+	struct scryptdec_file_cookie * C;
 	uint8_t buf[ENCBLOCK + 32];
-	uint8_t header[96];
 	uint8_t hbuf[32];
-	uint8_t dk[64];
 	uint8_t * key_enc;
 	uint8_t * key_hmac;
 	size_t buflen = 0;
@@ -573,16 +599,21 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	struct crypto_aesctr * AES;
 	int rc;
 
+	/* Allocate the cookie. */
+	if ((C = malloc(sizeof(struct scryptdec_file_cookie))) == NULL)
+		return (6);
+	C->infile = infile;
+
 	/* Use existing array for these pointers. */
-	key_enc = dk;
-	key_hmac = &dk[32];
+	key_enc = C->dk;
+	key_hmac = &C->dk[32];
 
 	/*
 	 * Read the first 7 bytes of the file; all future versions of scrypt
 	 * are guaranteed to have at least 7 bytes of header.
 	 */
-	if (fread(header, 7, 1, infile) < 1) {
-		if (ferror(infile)) {
+	if (fread(C->header, 7, 1, C->infile) < 1) {
+		if (ferror(C->infile)) {
 			rc = 13;
 			goto err0;
 		} else {
@@ -592,11 +623,11 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	}
 
 	/* Do we have the right magic? */
-	if (memcmp(header, "scrypt", 6)) {
+	if (memcmp(C->header, "scrypt", 6)) {
 		rc = 7;
 		goto err0;
 	}
-	if (header[6] != 0) {
+	if (C->header[6] != 0) {
 		rc = 8;
 		goto err0;
 	}
@@ -605,8 +636,8 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	 * Read another 89 bytes of the file; version 0 of the scrypt file
 	 * format has a 96-byte header.
 	 */
-	if (fread(&header[7], 89, 1, infile) < 1) {
-		if (ferror(infile)) {
+	if (fread(&C->header[7], 89, 1, C->infile) < 1) {
+		if (ferror(C->infile)) {
 			rc = 13;
 			goto err0;
 		} else {
@@ -616,13 +647,13 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	}
 
 	/* Parse the header and generate derived keys. */
-	if ((rc = scryptdec_setup(header, dk, passwd, passwdlen,
+	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
 	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
 		goto err1;
 
 	/* Start hashing with the header. */
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
-	HMAC_SHA256_Update(&hctx, header, 96);
+	HMAC_SHA256_Update(&hctx, C->header, 96);
 
 	/*
 	 * We don't know how long the encrypted data block is (we can't know,
@@ -642,7 +673,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	do {
 		/* Read data until we have more than 32 bytes of it. */
 		if ((readlen = fread(&buf[buflen], 1,
-		    ENCBLOCK + 32 - buflen, infile)) == 0)
+		    ENCBLOCK + 32 - buflen, C->infile)) == 0)
 			break;
 		buflen += readlen;
 		if (buflen <= 32)
@@ -668,7 +699,7 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	crypto_aes_key_free(key_enc_exp);
 
 	/* Did we exit the loop due to a read error? */
-	if (ferror(infile)) {
+	if (ferror(C->infile)) {
 		rc = 13;
 		goto err1;
 	}
@@ -686,14 +717,14 @@ scryptdec_file(FILE * infile, FILE * outfile,
 		goto err1;
 	}
 
-	/* Zero sensitive data. */
-	insecure_memzero(dk, 64);
+	/* Clean up cookie, attempting to zero sensitive data. */
+	scryptdec_file_cookie_free(C);
 
 	/* Success! */
 	return (0);
 
 err1:
-	insecure_memzero(dk, 64);
+	scryptdec_file_cookie_free(C);
 err0:
 	/* Failure! */
 	return (rc);
