@@ -564,14 +564,18 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	uint8_t header[96];
 	uint8_t hbuf[32];
 	uint8_t dk[64];
-	uint8_t * key_enc = dk;
-	uint8_t * key_hmac = &dk[32];
+	uint8_t * key_enc;
+	uint8_t * key_hmac;
 	size_t buflen = 0;
 	size_t readlen;
 	HMAC_SHA256_CTX hctx;
 	struct crypto_aes_key * key_enc_exp;
 	struct crypto_aesctr * AES;
 	int rc;
+
+	/* Use existing array for these pointers. */
+	key_enc = dk;
+	key_hmac = &dk[32];
 
 	/*
 	 * Read the first 7 bytes of the file; all future versions of scrypt
