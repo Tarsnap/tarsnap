@@ -103,7 +103,6 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto_rsa.c				\
 		lib/crypto/crypto_scrypt.h			\
 		lib/crypto/crypto_scrypt.c			\
-		lib/crypto/crypto_scrypt_internal.h		\
 		lib/crypto/crypto_scrypt_smix.c			\
 		lib/crypto/crypto_scrypt_smix.h			\
 		lib/crypto/crypto_scrypt_smix_sse2.h		\
