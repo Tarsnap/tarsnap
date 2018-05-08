@@ -286,7 +286,8 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	    bsdtar->machinenum, bsdtar->cachedir, bsdtar->tapenames[0],
 	    bsdtar->argc_orig, bsdtar->argv_orig,
 	    bsdtar->option_print_stats, bsdtar->option_dryrun,
-	    bsdtar->creationtime, bsdtar->option_csv_filename);
+	    bsdtar->creationtime, bsdtar->option_csv_filename,
+	    (void **)&bsdtar->siginfo, &siginfo_newbytes);
 	if (bsdtar->write_cookie == NULL) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
 		goto err1;

@@ -33,16 +33,20 @@ struct chunks_write_internal {
 	struct chunkstats stats_tape;	/* This archive, w/ multiplicity. */
 	struct chunkstats stats_new;	/* New chunks. */
 	struct chunkstats stats_tapee;	/* Extra data in this archive. */
+	void ** siginfo_cookie;		/* Cookie for siginfo. */
+	void (* siginfo_newbytes) (void **, uint64_t);	/* Set new bytes. */
 };
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize):
+ * chunks_write_start(cachepath, S, maxchunksize, siginfo, siginfo_newbytes):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.
+ * ${maxchunksize}.  If ${siginfo_newbytes} is not NULL, call it with
+ * ${siginfo_cookie} and the number of new bytes after writing each chunk.
  */
 CHUNKS_W *
-chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize)
+chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize,
+    void ** siginfo_cookie, void siginfo_newbytes(void **, uint64_t))
 {
 	struct chunks_write_internal * C;
 
@@ -59,6 +63,10 @@ chunks_write_start(const char * cachepath, STORAGE_W * S, size_t maxchunksize)
 	/* Set length parameters. */
 	C->maxlen = maxchunksize;
 	C->zbuflen = C->maxlen + (C->maxlen / 1000) + 13;
+
+	/* Store siginfo. */
+	C->siginfo_cookie = siginfo_cookie;
+	C->siginfo_newbytes = siginfo_newbytes;
 
 	/* Allocate buffer for holding a compressed chunk. */
 	if ((C->zbuf = malloc(C->zbuflen)) == NULL)
@@ -187,6 +195,11 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 	chunks_stats_add(&C->stats_tape, ch->len, zlen, 1);
 	chunks_stats_add(&C->stats_new, ch->len, zlen, 1);
 
+	/* Pass number of new bytes to siginfo. */
+	if (C->siginfo_newbytes != NULL)
+		C->siginfo_newbytes(C->siginfo_cookie,
+		    chunks_stats_newbytes(&C->stats_new, &C->stats_tapee));
+
 	/* Success! */
 	return ((ssize_t)zlen);
 
@@ -256,6 +269,12 @@ chunks_write_extrastats(CHUNKS_W * C, size_t len)
 
 	chunks_stats_add(&C->stats_extra, len, len, 1);
 	chunks_stats_add(&C->stats_tapee, len, len, 1);
+
+	/* Pass number of new bytes to siginfo. */
+	if (C->siginfo_newbytes != NULL)
+		C->siginfo_newbytes(C->siginfo_cookie,
+		    chunks_stats_newbytes(&C->stats_new, &C->stats_tapee));
+
 }
 
 /**

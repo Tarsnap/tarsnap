@@ -42,12 +42,15 @@ int chunks_read_chunk(CHUNKS_R *, const uint8_t *, size_t, size_t,
 void chunks_read_free(CHUNKS_R *);
 
 /**
- * chunks_write_start(cachepath, S, maxchunksize):
+ * chunks_write_start(cachepath, S, maxchunksize, siginfo_cookie,
+ *     siginfo_newbytes):
  * Start a write transaction using the cache directory ${cachepath} and the
  * storage layer cookie ${S} which will involve chunks of maximum size
- * ${maxchunksize}.
+ * ${maxchunksize}.  If ${siginfo_newbytes} is not NULL, call it with
+ * ${siginfo_cookie} and the number of new bytes after writing each chunk.
  */
-CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t);
+CHUNKS_W * chunks_write_start(const char *, STORAGE_W *, size_t, void **,
+    void (void **, uint64_t));
 
 /**
  * chunks_write_chunk(C, hash, buf, buflen):

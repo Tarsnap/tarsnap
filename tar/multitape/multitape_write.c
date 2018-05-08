@@ -398,14 +398,15 @@ err0:
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime, csv_filename):
+ *     dryrun, creationtime, csv_filename, siginfo_cookie, siginfo_newbytes):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
     const char * tapename, int argc, char ** argv, int printstats,
-    int dryrun, time_t creationtime, const char * csv_filename)
+    int dryrun, time_t creationtime, const char * csv_filename,
+    void ** siginfo_cookie, void siginfo_newbytes(void **, uint64_t))
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -479,7 +480,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		d->S = NULL;
 
 	/* Obtain a write cookie from the chunk layer. */
-	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK)) == NULL)
+	if ((d->C = chunks_write_start(cachedir, d->S, MAXCHUNK,
+	    siginfo_cookie, siginfo_newbytes)) == NULL)
 		goto err5;
 
 	/*
