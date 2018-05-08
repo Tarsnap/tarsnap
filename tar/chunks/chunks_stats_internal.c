@@ -64,6 +64,21 @@ chunks_stats_addstats(struct chunkstats * to, struct chunkstats * from)
 }
 
 /**
+ * chunks_stats_newbytes(stats, stats_extra):
+ * Return the number of new compressed bytes from ${stats} and ${stats_extra}.
+ */
+uint64_t
+chunks_stats_newbytes(struct chunkstats * stats,
+    struct chunkstats * stats_extra)
+{
+	uint64_t zlen = stats->s_zlen + stats_extra->s_zlen;
+	uint64_t nchunks = stats->nchunks + stats_extra->nchunks;
+
+	/* Compute new bytes. */
+	return (zlen + nchunks * STORAGE_FILE_OVERHEAD);
+}
+
+/**
  * chunks_stats_printheader(stream, csv):
  * Print a header line for statistics to ${stream}, optionally in ${csv}
  * format.

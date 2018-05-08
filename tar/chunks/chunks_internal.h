@@ -104,6 +104,12 @@ void chunks_stats_add(struct chunkstats *, size_t len, size_t zlen,
 void chunks_stats_addstats(struct chunkstats *, struct chunkstats *);
 
 /**
+ * chunks_stats_newbytes(stats, stats_extra):
+ * Return the number of new compressed bytes from ${stats} and ${stats_extra}.
+ */
+uint64_t chunks_stats_newbytes(struct chunkstats *, struct chunkstats *);
+
+/**
  * chunks_stats_printheader(stream, csv):
  * Print a header line for statistics to ${stream}, optionally in ${csv}
  * format.
