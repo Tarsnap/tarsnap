@@ -190,6 +190,10 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 	return (0);
 }
 
+/*
+ * NOTE: The caller is responsible for sanitizing ${dk}, including if this
+ * function fails.
+ */
 static int
 scryptenc_setup(uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
@@ -247,6 +251,10 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	return (0);
 }
 
+/*
+ * NOTE: The caller is responsible for sanitizing ${dk}, including if this
+ * function fails.
+ */
 static int
 scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
@@ -326,17 +334,20 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
 	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
-		return (rc);
+		goto err1;
 
 	/* Copy header into output buffer. */
 	memcpy(outbuf, header, 96);
 
 	/* Encrypt data. */
-	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
-		return (5);
+	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
+		rc = 5;
+		goto err1;
+	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		return (6);
+		rc = 6;
+		goto err1;
 	}
 	crypto_aesctr_stream(AES, inbuf, &outbuf[96], inbuflen);
 	crypto_aesctr_free(AES);
@@ -353,6 +364,12 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Success! */
 	return (0);
+
+err1:
+	insecure_memzero(dk, 64);
+
+	/* Failure! */
+	return (rc);
 }
 
 /**
@@ -382,28 +399,37 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	 * All versions of the scrypt format will start with "scrypt" and
 	 * have at least 7 bytes of header.
 	 */
-	if ((inbuflen < 7) || (memcmp(inbuf, "scrypt", 6) != 0))
-		return (7);
+	if ((inbuflen < 7) || (memcmp(inbuf, "scrypt", 6) != 0)) {
+		rc = 7;
+		goto err0;
+	}
 
 	/* Check the format. */
-	if (inbuf[6] != 0)
-		return (8);
+	if (inbuf[6] != 0) {
+		rc = 8;
+		goto err0;
+	}
 
 	/* We must have at least 128 bytes. */
-	if (inbuflen < 128)
-		return (7);
+	if (inbuflen < 128) {
+		rc = 7;
+		goto err0;
+	}
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(inbuf, dk, passwd, passwdlen,
 	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
-		return (rc);
+		goto err1;
 
 	/* Decrypt data. */
-	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
-		return (5);
+	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
+		rc = 5;
+		goto err1;
+	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		return (6);
+		rc = 6;
+		goto err1;
 	}
 	crypto_aesctr_stream(AES, &inbuf[96], outbuf, inbuflen - 128);
 	crypto_aesctr_free(AES);
@@ -414,14 +440,22 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
 	HMAC_SHA256_Update(&hctx, inbuf, inbuflen - 32);
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (memcmp(hbuf, &inbuf[inbuflen - 32], 32))
-		return (7);
+	if (memcmp(hbuf, &inbuf[inbuflen - 32], 32)) {
+		rc = 7;
+		goto err1;
+	}
 
 	/* Zero sensitive data. */
 	insecure_memzero(dk, 64);
 
 	/* Success! */
 	return (0);
+
+err1:
+	insecure_memzero(dk, 64);
+err0:
+	/* Failure! */
+	return (rc);
 }
 
 /**
@@ -450,23 +484,28 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
 	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
-		return (rc);
+		goto err1;
 
 	/* Hash and write the header. */
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
 	HMAC_SHA256_Update(&hctx, header, 96);
-	if (fwrite(header, 96, 1, outfile) != 1)
-		return (12);
+	if (fwrite(header, 96, 1, outfile) != 1) {
+		rc = 12;
+		goto err1;
+	}
 
 	/*
 	 * Read blocks of data, encrypt them, and write them out; hash the
 	 * data as it is produced.
 	 */
-	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
-		return (5);
+	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
+		rc = 5;
+		goto err1;
+	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		return (6);
+		rc = 6;
+		goto err1;
 	}
 	do {
 		if ((readlen = fread(buf, 1, ENCBLOCK, infile)) == 0)
@@ -475,26 +514,37 @@ scryptenc_file(FILE * infile, FILE * outfile,
 		HMAC_SHA256_Update(&hctx, buf, readlen);
 		if (fwrite(buf, 1, readlen, outfile) < readlen) {
 			crypto_aesctr_free(AES);
-			return (12);
+			rc = 12;
+			goto err1;
 		}
 	} while (1);
 	crypto_aesctr_free(AES);
 	crypto_aes_key_free(key_enc_exp);
 
 	/* Did we exit the loop due to a read error? */
-	if (ferror(infile))
-		return (13);
+	if (ferror(infile)) {
+		rc = 13;
+		goto err1;
+	}
 
 	/* Compute the final HMAC and output it. */
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (fwrite(hbuf, 32, 1, outfile) != 1)
-		return (12);
+	if (fwrite(hbuf, 32, 1, outfile) != 1) {
+		rc = 12;
+		goto err1;
+	}
 
 	/* Zero sensitive data. */
 	insecure_memzero(dk, 64);
 
 	/* Success! */
 	return (0);
+
+err1:
+	insecure_memzero(dk, 64);
+
+	/* Failure! */
+	return (rc);
 }
 
 /**
@@ -528,33 +578,43 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	 * are guaranteed to have at least 7 bytes of header.
 	 */
 	if (fread(header, 7, 1, infile) < 1) {
-		if (ferror(infile))
-			return (13);
-		else
-			return (7);
+		if (ferror(infile)) {
+			rc = 13;
+			goto err0;
+		} else {
+			rc = 7;
+			goto err0;
+		}
 	}
 
 	/* Do we have the right magic? */
-	if (memcmp(header, "scrypt", 6))
-		return (7);
-	if (header[6] != 0)
-		return (8);
+	if (memcmp(header, "scrypt", 6)) {
+		rc = 7;
+		goto err0;
+	}
+	if (header[6] != 0) {
+		rc = 8;
+		goto err0;
+	}
 
 	/*
 	 * Read another 89 bytes of the file; version 0 of the scrypt file
 	 * format has a 96-byte header.
 	 */
 	if (fread(&header[7], 89, 1, infile) < 1) {
-		if (ferror(infile))
-			return (13);
-		else
-			return (7);
+		if (ferror(infile)) {
+			rc = 13;
+			goto err0;
+		} else {
+			rc = 7;
+			goto err0;
+		}
 	}
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(header, dk, passwd, passwdlen,
 	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
-		return (rc);
+		goto err1;
 
 	/* Start hashing with the header. */
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
@@ -566,11 +626,14 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	 * data and decrypt all of it except the final 32 bytes, then check
 	 * if that final 32 bytes is the correct signature.
 	 */
-	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL)
-		return (5);
+	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
+		rc = 5;
+		goto err1;
+	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		return (6);
+		rc = 6;
+		goto err1;
 	}
 	do {
 		/* Read data until we have more than 32 bytes of it. */
@@ -589,7 +652,8 @@ scryptdec_file(FILE * infile, FILE * outfile,
 		crypto_aesctr_stream(AES, buf, buf, buflen - 32);
 		if (fwrite(buf, 1, buflen - 32, outfile) < buflen - 32) {
 			crypto_aesctr_free(AES);
-			return (12);
+			rc = 12;
+			goto err1;
 		}
 
 		/* Move the last 32 bytes to the start of the buffer. */
@@ -600,20 +664,33 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	crypto_aes_key_free(key_enc_exp);
 
 	/* Did we exit the loop due to a read error? */
-	if (ferror(infile))
-		return (13);
+	if (ferror(infile)) {
+		rc = 13;
+		goto err1;
+	}
 
 	/* Did we read enough data that we *might* have a valid signature? */
-	if (buflen < 32)
-		return (7);
+	if (buflen < 32) {
+		rc = 7;
+		goto err1;
+	}
 
 	/* Verify signature. */
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (memcmp(hbuf, buf, 32))
-		return (7);
+	if (memcmp(hbuf, buf, 32)) {
+		rc = 7;
+		goto err1;
+	}
 
 	/* Zero sensitive data. */
 	insecure_memzero(dk, 64);
 
+	/* Success! */
 	return (0);
+
+err1:
+	insecure_memzero(dk, 64);
+err0:
+	/* Failure! */
+	return (rc);
 }
