@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_sse2.a
+noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
 CLEANFILES=	$(man_MANS)
@@ -159,6 +159,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/alg/sha256.h			\
 		libcperciva/cpusupport/cpusupport.h		\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
+		libcperciva/cpusupport/cpusupport_x86_rdrand.c	\
 		libcperciva/cpusupport/cpusupport_x86_sse2.c	\
 		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aes.h			\
@@ -171,6 +172,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/crypto/crypto_dh_group14.h		\
 		libcperciva/crypto/crypto_entropy.c		\
 		libcperciva/crypto/crypto_entropy.h		\
+		libcperciva/crypto/crypto_entropy_rdrand.h	\
 		libcperciva/crypto/crypto_verify_bytes.c	\
 		libcperciva/crypto/crypto_verify_bytes.h	\
 		libcperciva/datastruct/elasticarray.c		\
@@ -269,6 +271,15 @@ lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
+
+lib_libtarsnap_rdrand_a_SOURCES=				\
+		libcperciva/crypto/crypto_entropy_rdrand.c
+nodist_lib_libtarsnap_rdrand_a_SOURCES=			\
+		cpusupport-config.h
+lib_libtarsnap_rdrand_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDRAND}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_rdrand.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
 		lib/crypto/crypto_scrypt_smix_sse2.c
