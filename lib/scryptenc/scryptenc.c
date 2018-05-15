@@ -579,7 +579,7 @@ scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
  *     maxtime, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
- * be modified until the decryption is complete.
+ * be modified until the decryption is completed by scryptdec_file_copy.
  */
 static int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
@@ -651,18 +651,15 @@ err1:
 }
 
 /**
- * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose, force):
- * Read a stream from infile and decrypt it, writing the resulting stream to
- * outfile.  If ${force} is 1, do not check whether decryption
- * will exceed the estimated available memory or time.
+ * scryptdec_file_copy(cookie, outfile):
+ * Read a stream from the file that was passed into the ${cookie} by
+ * scryptdec_file_prep, decrypt it, and write the resulting stream to
+ * ${outfile}.  After this function completes, it is safe to modify/close
+ * ${outfile} and the ${infile} which was given to scryptdec_file_prep.
  */
-int
-scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
-    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
-    int verbose, int force)
+static int
+scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 {
-	struct scryptdec_file_cookie * C;
 	uint8_t buf[ENCBLOCK + 32];
 	uint8_t hbuf[32];
 	uint8_t * key_enc;
@@ -674,10 +671,8 @@ scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
 	struct crypto_aesctr * AES;
 	int rc;
 
-	/* Check header, including passphrase. */
-	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, maxmem,
-	    maxmemfrac, maxtime, verbose, force, &C)) != 0)
-		goto err0;
+	/* Sanity check. */
+	assert(C != NULL);
 
 	/* Use existing array for these pointers. */
 	key_enc = C->dk;
@@ -695,12 +690,12 @@ scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
 	 */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
 		rc = 5;
-		goto err1;
+		goto err0;
 	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
 		rc = 6;
-		goto err1;
+		goto err0;
 	}
 	do {
 		/* Read data until we have more than 32 bytes of it. */
@@ -720,7 +715,7 @@ scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
 		if (fwrite(buf, 1, buflen - 32, outfile) < buflen - 32) {
 			crypto_aesctr_free(AES);
 			rc = 12;
-			goto err1;
+			goto err0;
 		}
 
 		/* Move the last 32 bytes to the start of the buffer. */
@@ -733,21 +728,53 @@ scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
 	/* Did we exit the loop due to a read error? */
 	if (ferror(C->infile)) {
 		rc = 13;
-		goto err1;
+		goto err0;
 	}
 
 	/* Did we read enough data that we *might* have a valid signature? */
 	if (buflen < 32) {
 		rc = 7;
-		goto err1;
+		goto err0;
 	}
 
 	/* Verify signature. */
 	HMAC_SHA256_Final(hbuf, &hctx);
 	if (memcmp(hbuf, buf, 32)) {
 		rc = 7;
-		goto err1;
+		goto err0;
 	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (rc);
+}
+
+/**
+ * scryptdec_file(infile, outfile, passwd, passwdlen,
+ *     maxmem, maxmemfrac, maxtime, verbose, force):
+ * Read a stream from infile and decrypt it, writing the resulting stream to
+ * outfile.  If ${force} is 1, do not check whether decryption
+ * will exceed the estimated available memory or time.
+ */
+int
+scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
+    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
+    int verbose, int force)
+{
+	struct scryptdec_file_cookie * C;
+	int rc;
+
+	/* Check header, including passphrase. */
+	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, maxmem,
+	    maxmemfrac, maxtime, verbose, force, &C)) != 0)
+		goto err0;
+
+	/* Copy unencrypted data to outfile. */
+	if ((rc = scryptdec_file_copy(C, outfile)) != 0)
+		goto err1;
 
 	/* Clean up cookie, attempting to zero sensitive data. */
 	scryptdec_file_cookie_free(C);
