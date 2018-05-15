@@ -557,7 +557,7 @@ err1:
  * scryptdec_file_cookie_free(cookie):
  * Free the ${cookie}.
  */
-static void
+void
 scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
 {
 
@@ -581,7 +581,7 @@ scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy.
  */
-static int
+int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
     size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
     int verbose, int force, struct scryptdec_file_cookie ** cookie)
@@ -657,7 +657,7 @@ err1:
  * ${outfile}.  After this function completes, it is safe to modify/close
  * ${outfile} and the ${infile} which was given to scryptdec_file_prep.
  */
-static int
+int
 scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 {
 	uint8_t buf[ENCBLOCK + 32];
