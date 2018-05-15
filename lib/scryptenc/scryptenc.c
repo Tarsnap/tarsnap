@@ -575,6 +575,82 @@ scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
 }
 
 /**
+ * scryptdec_file_prep(infile, passwd, passwdlen, maxmem, maxmemfrac,
+ *     maxtime, force, cookie):
+ * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
+ * a cookie at ${cookie}.  After calling this function, ${infile} should not
+ * be modified until the decryption is complete.
+ */
+static int
+scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
+    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
+    int verbose, int force, struct scryptdec_file_cookie ** cookie)
+{
+	struct scryptdec_file_cookie * C;
+	int rc;
+
+	/* Allocate the cookie. */
+	if ((C = malloc(sizeof(struct scryptdec_file_cookie))) == NULL)
+		return (6);
+	C->infile = infile;
+
+	/*
+	 * Read the first 7 bytes of the file; all future versions of scrypt
+	 * are guaranteed to have at least 7 bytes of header.
+	 */
+	if (fread(C->header, 7, 1, C->infile) < 1) {
+		if (ferror(C->infile)) {
+			rc = 13;
+			goto err1;
+		} else {
+			rc = 7;
+			goto err1;
+		}
+	}
+
+	/* Do we have the right magic? */
+	if (memcmp(C->header, "scrypt", 6)) {
+		rc = 7;
+		goto err1;
+	}
+	if (C->header[6] != 0) {
+		rc = 8;
+		goto err1;
+	}
+
+	/*
+	 * Read another 89 bytes of the file; version 0 of the scrypt file
+	 * format has a 96-byte header.
+	 */
+	if (fread(&C->header[7], 89, 1, C->infile) < 1) {
+		if (ferror(C->infile)) {
+			rc = 13;
+			goto err1;
+		} else {
+			rc = 7;
+			goto err1;
+		}
+	}
+
+	/* Parse the header and generate derived keys. */
+	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
+	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
+		goto err1;
+
+	/* Set cookie for calling function. */
+	*cookie = C;
+
+	/* Success! */
+	return (0);
+
+err1:
+	scryptdec_file_cookie_free(C);
+
+	/* Failure! */
+	return (rc);
+}
+
+/**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
  * Read a stream from infile and decrypt it, writing the resulting stream to
@@ -582,10 +658,9 @@ scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
  * will exceed the estimated available memory or time.
  */
 int
-scryptdec_file(FILE * infile, FILE * outfile,
-    const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
-    int force)
+scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
+    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
+    int verbose, int force)
 {
 	struct scryptdec_file_cookie * C;
 	uint8_t buf[ENCBLOCK + 32];
@@ -599,57 +674,14 @@ scryptdec_file(FILE * infile, FILE * outfile,
 	struct crypto_aesctr * AES;
 	int rc;
 
-	/* Allocate the cookie. */
-	if ((C = malloc(sizeof(struct scryptdec_file_cookie))) == NULL)
-		return (6);
-	C->infile = infile;
+	/* Check header, including passphrase. */
+	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, maxmem,
+	    maxmemfrac, maxtime, verbose, force, &C)) != 0)
+		goto err0;
 
 	/* Use existing array for these pointers. */
 	key_enc = C->dk;
 	key_hmac = &C->dk[32];
-
-	/*
-	 * Read the first 7 bytes of the file; all future versions of scrypt
-	 * are guaranteed to have at least 7 bytes of header.
-	 */
-	if (fread(C->header, 7, 1, C->infile) < 1) {
-		if (ferror(C->infile)) {
-			rc = 13;
-			goto err0;
-		} else {
-			rc = 7;
-			goto err0;
-		}
-	}
-
-	/* Do we have the right magic? */
-	if (memcmp(C->header, "scrypt", 6)) {
-		rc = 7;
-		goto err0;
-	}
-	if (C->header[6] != 0) {
-		rc = 8;
-		goto err0;
-	}
-
-	/*
-	 * Read another 89 bytes of the file; version 0 of the scrypt file
-	 * format has a 96-byte header.
-	 */
-	if (fread(&C->header[7], 89, 1, C->infile) < 1) {
-		if (ferror(C->infile)) {
-			rc = 13;
-			goto err0;
-		} else {
-			rc = 7;
-			goto err0;
-		}
-	}
-
-	/* Parse the header and generate derived keys. */
-	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
-		goto err1;
 
 	/* Start hashing with the header. */
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
