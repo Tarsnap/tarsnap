@@ -260,6 +260,13 @@ size_t
 getopt_lookup(const char * os)
 {
 
+	/*
+	 * We only take this parameter so that we can assert that it's the
+	 * same option string as we returned from getopt(); as such, it is
+	 * unused in the absense of assertions.
+	 */
+	(void)os; /* UNUSED */
+
 	/* Can't reset here. */
 	if (optreset)
 		DIE("Can't reset in the middle of getopt loop");
