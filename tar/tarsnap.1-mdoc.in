@@ -320,7 +320,11 @@ which already exists.
 .It Fl -dump-config
 Print out the command-line and all non-blank lines read from config files.
 .It Fl -exclude Ar pattern
-(c, x, and t modes only)
+.Pf ( Fl c ,
+.Fl x ,
+and
+.Fl t
+modes only)
 Do not process files or directories that match the
 specified pattern.
 Note that exclusions take precedence over patterns or filenames
@@ -366,7 +370,11 @@ and SIGINFO more readable.
 Synonym for
 .Fl T .
 .It Fl -include Ar pattern
-(c, x, and t modes only)
+.Pf ( Fl c ,
+.Fl x ,
+and
+.Fl t
+modes only)
 Process only files or directories that match the specified pattern.
 Note that exclusions specified with
 .Fl -exclude
@@ -640,7 +648,11 @@ the archive will be discarded.
 mode only)
 Do not cross mount points.
 .It Fl P
-(c, x, and t modes only)
+.Pf ( Fl c ,
+.Fl x ,
+and
+.Fl t
+modes only)
 Preserve pathnames.
 By default, absolute pathnames (those that begin with a /
 character) have the leading slash removed both when creating archives
@@ -752,7 +764,11 @@ several times (e.g., if daily backup archives are created) due to
 .Nm
 itself accessing files and thereby causing their access times to be changed.
 .It Fl T Ar filename
-(c, x, and t modes only)
+.Pf ( Fl c ,
+.Fl x ,
+and
+.Fl t
+modes only)
 In x or t mode,
 .Nm
 will read the list of names to be extracted from
@@ -824,7 +840,11 @@ and exit.
 (c and x modes only)
 Ask for confirmation for every action.
 .It Fl X Ar filename
-(c, x, and t modes only)
+.Pf ( Fl c ,
+.Fl x ,
+and
+.Fl t
+modes only)
 Read a list of exclusion patterns from the specified file.
 See
 .Fl -exclude
