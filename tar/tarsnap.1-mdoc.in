@@ -333,7 +333,14 @@ specified pattern.
 Note that exclusions take precedence over patterns or filenames
 specified on the command line.
 .It Fl f Ar archive-name
-(c, d, x, t, r, and print-stats modes only)
+.Pf ( Fl c ,
+.Fl d ,
+.Fl x ,
+.Fl t ,
+.Fl r ,
+and
+.Fl -print-stats
+modes only)
 Operate on the archive
 .Ar archive-name .
 In mode c, if archive creation is interrupted by \&^Q,
@@ -406,7 +413,8 @@ Allow descent into synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .It Fl -iso-dates
-(-t mode only)
+.Pf ( Fl t
+mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
 .Pp
 The default is to use the same format as 'ls -l': If the files were modified
@@ -419,7 +427,10 @@ Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
 .It Fl -keep-going
-(d and print-stats modes only)
+.Pf ( Fl d
+and
+.Fl -print-stats
+modes only)
 Continue deleting or printing statistics after finding that one
 of the archives specified does not exist.
 .It Fl -keep-newer-files
@@ -685,7 +696,10 @@ is being run by root, the default is to restore the owner unless the
 .Fl o
 option is also specified.
 .It Fl -print-stats
-(c and d modes only)
+.Pf ( Fl c
+and
+.Fl d
+modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .It Fl q ( Fl -fast-read )
@@ -819,7 +833,12 @@ overwrites existing files, which preserves existing hardlinks.
 With this option, existing hardlinks will be broken, as will any
 symlink that would affect the location of an extracted file.
 .It Fl v
-(c, t, x, and list-archives modes only)
+.Pf ( Fl c ,
+.Fl t ,
+.Fl x ,
+and
+.Fl -list-archives
+modes only)
 Produce verbose output.
 In create and extract modes,
 .Nm
