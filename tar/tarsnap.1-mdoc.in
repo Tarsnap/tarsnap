@@ -221,7 +221,10 @@ down any other network traffic.
 Read a list of archive names from
 .Ar filename .
 .It Fl C Ar directory
-(c and x modes only)
+.Pf ( Fl c
+and
+.Fl x
+modes only)
 In c mode, this changes the directory before adding
 the following files.
 In x mode, change directories after opening the archive
@@ -837,7 +840,10 @@ Print version number of
 .Nm ,
 and exit.
 .It Fl w
-(c and x modes only)
+.Pf ( Fl c
+and
+.Fl x
+modes only)
 Ask for confirmation for every action.
 .It Fl X Ar filename
 .Pf ( Fl c ,
