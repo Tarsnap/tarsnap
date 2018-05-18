@@ -183,7 +183,8 @@ other operation.
 .RS 5
 .TP
 \fB@\fP\fIarchive-file\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 The specified archive file is read and the entries
 in it will be appended to the current archive.
 If
@@ -201,14 +202,16 @@ from disk and stores it using
 \fB\%tarsnap\fP.
 .TP
 \fB@@\fP\fIarchive-name\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 The specified
 \fB\%tarsnap\fP
 archive is read and the entries in it will be
 appended to the current archive.
 .TP
 \fB\--aggressive-networking\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Use multiple TCP connections to send data to the
 \fB\%tarsnap\fP
 server.
@@ -223,7 +226,10 @@ Read a list of archive names from
 \fIfilename\fP.
 .TP
 \fB\-C\fP \fIdirectory\fP
-(c and x modes only)
+(\fB\-c\fP
+and
+\fB\-x\fP
+modes only)
 In c mode, this changes the directory before adding
 the following files.
 In x mode, change directories after opening the archive
@@ -244,11 +250,13 @@ is lost, it can be reconstructed by running
 \fB\%tarsnap\fP \fB\--fsck\fP.
 .TP
 \fB\--check-links\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Issue a warning message unless all links to each file are archived.
 .TP
 \fB\--checkpoint-bytes\fP \fIbytespercheckpoint\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Create a checkpoint after every
 \fIbytespercheckpoint\fP
 bytes of uploaded data.
@@ -259,7 +267,8 @@ creating a checkpoint in an archive can take a few seconds and several
 hundred kB of bandwidth.
 .TP
 \fB\--chroot\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 \fB\%chroot\fP()
 to the current directory after processing any
 \fB\-C\fP
@@ -275,7 +284,8 @@ will be read; where settings conflict, the earlier configuration file will
 take priority.
 .TP
 \fB\--creationtime\fP \fIX\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Manually specify a creation time (a unix timestamp) for the
 archive.  This is unlikely to be useful when tarsnap is being
 invoked directly from the command line.
@@ -285,7 +295,8 @@ invoked directly from the command line.
 Write statistics in CSV format to a file.
 .TP
 \fB\--disk-pause\fP \fIX\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Pause for
 \fIX\fP
 ms between storing archive entries and after every 64 kB of file data.
@@ -298,7 +309,8 @@ operating system disk cache, a value of
 will approximately double the time taken.
 .TP
 \fB\--dry-run\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Don't really create an archive; just simulate doing so.
 The list of paths added to an archive (if the
 \fB\-v\fP
@@ -327,14 +339,25 @@ which already exists.
 Print out the command-line and all non-blank lines read from config files.
 .TP
 \fB\--exclude\fP \fIpattern\fP
-(c, x, and t modes only)
+(\fB\-c\fP,
+\fB\-x\fP,
+and
+\fB\-t\fP
+modes only)
 Do not process files or directories that match the
 specified pattern.
 Note that exclusions take precedence over patterns or filenames
 specified on the command line.
 .TP
 \fB\-f\fP \fIarchive-name\fP
-(c, d, x, t, r, and print-stats modes only)
+(\fB\-c\fP,
+\fB\-d\fP,
+\fB\-x\fP,
+\fB\-t\fP,
+\fB\-r\fP,
+and
+\fB\--print-stats\fP
+modes only)
 Operate on the archive
 \fIarchive-name\fP.
 In mode c, if archive creation is interrupted by \&^Q,
@@ -358,12 +381,14 @@ repeatedly creating archives from the same files/directories (e.g.,
 daily backups).
 .TP
 \fB\-H\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Symbolic links named on the command line will be followed; the
 target of the link will be archived, not the link itself.
 .TP
 \fB\-h\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Synonym for
 \fB\-L\fP.
 .TP
@@ -377,7 +402,11 @@ Synonym for
 \fB\-T\fP.
 .TP
 \fB\--include\fP \fIpattern\fP
-(c, x, and t modes only)
+(\fB\-c\fP,
+\fB\-x\fP,
+and
+\fB\-t\fP
+modes only)
 Process only files or directories that match the specified pattern.
 Note that exclusions specified with
 \fB\--exclude\fP
@@ -404,13 +433,15 @@ even if it is anticipated to require an excessive amount of memory
 or CPU time.
 .TP
 \fB\--insane-filesystems\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Allow descent into synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .TP
 \fB\--iso-dates\fP
-(-t mode only)
+(\fB\-t\fP
+mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
 .PP
 The default is to use the same format as 'ls -l': If the files were modified
@@ -418,18 +449,23 @@ within the past six months, print the month, day, hour, and minutes; otherwise,
 print the month, day, and year.
 .TP
 \fB\-k\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
 .TP
 \fB\--keep-going\fP
-(d and print-stats mode only)
+(\fB\-d\fP
+and
+\fB\--print-stats\fP
+modes only)
 Continue deleting or printing statistics after finding that one
 of the archives specified does not exist.
 .TP
 \fB\--keep-newer-files\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Do not overwrite existing files that are newer than the
 versions appearing in the archive being extracted.
 .TP
@@ -441,7 +477,8 @@ This file should have been generated by
 \fBtarsnap-keygen\fP(1).
 .TP
 \fB\-L\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 All symbolic links will be followed.
 Normally, symbolic links are archived as such.
 With this option, the target of the link will be archived instead.
@@ -452,19 +489,22 @@ This is a synonym for the
 option.
 .TP
 \fB\--lowmem\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Reduce memory usage by not caching small files.
 This may be useful when backing up files of average size less
 than 1 MB if the available RAM in kilobytes is less than the
 number of files being backed up.
 .TP
 \fB\-m\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Do not extract modification time.
 By default, the modification time is set to the time stored in the archive.
 .TP
 \fB\--maxbw\fP \fInumbytes\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Interrupt archival if more than
 \fInumbytes\fP
 bytes of upstream bandwidth is used (see INTERRUPTING ARCHIVAL
@@ -486,33 +526,39 @@ Limit upload bandwidth used to
 bytes per second.
 .TP
 \fB\-n\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Do not recursively archive the contents of directories.
 .TP
 \fB\--newer\fP \fIdate\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Only include files and directories newer than the specified date.
 This compares ctime entries.
 .TP
 \fB\--newer-mtime\fP \fIdate\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Like
 \fB\--newer\fP,
 except it compares mtime entries instead of ctime entries.
 .TP
 \fB\--newer-than\fP \fIfile\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Only include files and directories newer than the specified file.
 This compares ctime entries.
 .TP
 \fB\--newer-mtime-than\fP \fIfile\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Like
 \fB\--newer-than\fP,
 except it compares mtime entries instead of ctime entries.
 .TP
 \fB\--nodump\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Honor the nodump file flag by skipping this file.
 .TP
 \fB\--noisy-warnings\fP
@@ -658,19 +704,24 @@ option to
 \fBfind\fP(1).
 .TP
 \fB\--numeric-owner\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Ignore symbolic user and group names when restoring archives to disk,
 only numeric uid and gid values will be obeyed.
 .TP
 \fB\-O\fP
-(x and t modes only)
+(\fB\-x\fP
+and
+\fB\-t\fP
+modes only)
 In extract (-x) mode, files will be written to standard out rather than
 being extracted to disk.
 In list (-t) mode, the file listing will be written to stderr rather than
 the usual stdout.
 .TP
 \fB\-o\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Use the user and group of the user running the program rather
 than those specified in the archive.
 Note that this has no significance unless
@@ -681,11 +732,16 @@ the archive will be restored, but ACLs or owner information in
 the archive will be discarded.
 .TP
 \fB\--one-file-system\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Do not cross mount points.
 .TP
 \fB\-P\fP
-(c, x, and t modes only)
+(\fB\-c\fP,
+\fB\-x\fP,
+and
+\fB\-t\fP
+modes only)
 Preserve pathnames.
 By default, absolute pathnames (those that begin with a /
 character) have the leading slash removed both when creating archives
@@ -698,7 +754,8 @@ or whose target directory would be altered by a symlink.
 This option suppresses these behaviors.
 .TP
 \fB\-p\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Preserve file permissions.
 Attempt to restore the full permissions, including owner, file modes, file
 flags and ACLs, if available, for each item extracted from the archive.
@@ -713,12 +770,18 @@ is being run by root, the default is to restore the owner unless the
 option is also specified.
 .TP
 \fB\--print-stats\fP
-(c and d modes only)
+(\fB\-c\fP
+and
+\fB\-d\fP
+modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .TP
 \fB\-q\fP (\fB\--fast-read\fP)
-(x and t modes only)
+(\fB\-x\fP
+and
+\fB\-t\fP
+modes only)
 Extract or list only the first archive entry that matches each pattern
 or filename operand.
 Exit as soon as each specified pattern or filename has been matched.
@@ -749,7 +812,8 @@ since continued failures generally indicate a problem which should
 be investigated by the user.
 .TP
 \fB\-S\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Extract files as sparse files.
 For every block on disk, check first if it contains any non-NULL bytes and seek
 over it otherwise.
@@ -773,14 +837,16 @@ the original path name and the new path name should be printed to
 standard error.
 .TP
 \fB\--strip-components\fP \fIcount\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Remove the specified number of leading path elements.
 Pathnames with fewer elements will be silently skipped.
 Note that the pathname is edited after checking inclusion/exclusion patterns
 but before security checks.
 .TP
 \fB\--snaptime\fP \fIfile\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 This option MUST be specified when creating a backup from a filesystem
 snapshot, and
 \fIfile\fP
@@ -792,7 +858,8 @@ creation which could result in
 failing to recognize that a file has been modified.)
 .TP
 \fB\--store-atime\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Enable the storing of file access times.
 The default behaviour of
 \fB\%tarsnap\fP
@@ -803,7 +870,11 @@ several times (e.g., if daily backup archives are created) due to
 itself accessing files and thereby causing their access times to be changed.
 .TP
 \fB\-T\fP \fIfilename\fP
-(c, x, and t modes only)
+(\fB\-c\fP,
+\fB\-x\fP,
+and
+\fB\-t\fP
+modes only)
 In x or t mode,
 \fB\%tarsnap\fP
 will read the list of names to be extracted from
@@ -830,14 +901,16 @@ is
 then the list of names will be read from the standard input.
 .TP
 \fB\--totals\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Print the size of the archive after creating it.  This option is provided
 mainly for compatibility with GNU tar; in most situations the
 \fB\--print-stats\fP
 option will be far more useful.
 .TP
 \fB\-U\fP
-(x mode only)
+(\fB\-x\fP
+mode only)
 Unlink files before creating them.
 Without this option,
 \fB\%tarsnap\fP
@@ -846,7 +919,12 @@ With this option, existing hardlinks will be broken, as will any
 symlink that would affect the location of an extracted file.
 .TP
 \fB\-v\fP
-(c, t, x, and list-archives modes only)
+(\fB\-c\fP,
+\fB\-t\fP,
+\fB\-x\fP,
+and
+\fB\--list-archives\fP
+modes only)
 Produce verbose output.
 In create and extract modes,
 \fB\%tarsnap\fP
@@ -861,7 +939,8 @@ Additional
 options will provide additional detail.
 .TP
 \fB\--verylowmem\fP
-(c mode only)
+(\fB\-c\fP
+mode only)
 Reduce memory usage, by approximately a factor of 2 beyond
 the memory usage when
 \fB\--lowmem\fP
@@ -876,11 +955,18 @@ Print version number of
 and exit.
 .TP
 \fB\-w\fP
-(c and x modes only)
+(\fB\-c\fP
+and
+\fB\-x\fP
+modes only)
 Ask for confirmation for every action.
 .TP
 \fB\-X\fP \fIfilename\fP
-(c, x, and t modes only)
+(\fB\-c\fP,
+\fB\-x\fP,
+and
+\fB\-t\fP
+modes only)
 Read a list of exclusion patterns from the specified file.
 See
 \fB\--exclude\fP
