@@ -166,6 +166,8 @@ function splitwords(l, dest, n, o, w) {
     } else if(match(words[w],"^Ed$")) { # End display
       displaylines = 0
       dispend()
+    } else if(match(words[w],"^Pf$")) { # Suppress space after next word
+      sep = ""
     } else if(match(words[w],"^Ns$")) { # Suppress space after next word
       sep = ""
     } else if(match(words[w],"^No$")) { # Normal text
