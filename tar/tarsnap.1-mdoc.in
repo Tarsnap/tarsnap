@@ -255,7 +255,8 @@ must be at least 1000000, and a higher value is recommended since
 creating a checkpoint in an archive can take a few seconds and several
 hundred kB of bandwidth.
 .It Fl -chroot
-(x mode only)
+.Pf ( Fl x
+mode only)
 .Fn chroot
 to the current directory after processing any
 .Fl C
@@ -401,7 +402,8 @@ The default is to use the same format as 'ls -l': If the files were modified
 within the past six months, print the month, day, hour, and minutes; otherwise,
 print the month, day, and year.
 .It Fl k
-(x mode only)
+.Pf ( Fl x
+mode only)
 Do not overwrite existing files.
 In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
@@ -410,7 +412,8 @@ later copies will not overwrite earlier copies.
 Continue deleting or printing statistics after finding that one
 of the archives specified does not exist.
 .It Fl -keep-newer-files
-(x mode only)
+.Pf ( Fl x
+mode only)
 Do not overwrite existing files that are newer than the
 versions appearing in the archive being extracted.
 .It Fl -keyfile Pa key-file
@@ -437,7 +440,8 @@ This may be useful when backing up files of average size less
 than 1 MB if the available RAM in kilobytes is less than the
 number of files being backed up.
 .It Fl m
-(x mode only)
+.Pf ( Fl x
+mode only)
 Do not extract modification time.
 By default, the modification time is set to the time stored in the archive.
 .It Fl -maxbw Ar numbytes
@@ -610,7 +614,8 @@ This is often used to read filenames output by the
 option to
 .Xr find 1 .
 .It Fl -numeric-owner
-(x mode only)
+.Pf ( Fl x
+mode only)
 Ignore symbolic user and group names when restoring archives to disk,
 only numeric uid and gid values will be obeyed.
 .It Fl O
@@ -620,7 +625,8 @@ being extracted to disk.
 In list (-t) mode, the file listing will be written to stderr rather than
 the usual stdout.
 .It Fl o
-(x mode only)
+.Pf ( Fl x
+mode only)
 Use the user and group of the user running the program rather
 than those specified in the archive.
 Note that this has no significance unless
@@ -646,7 +652,8 @@ will refuse to extract archive entries whose pathnames contain
 or whose target directory would be altered by a symlink.
 This option suppresses these behaviors.
 .It Fl p
-(x mode only)
+.Pf ( Fl x
+mode only)
 Preserve file permissions.
 Attempt to restore the full permissions, including owner, file modes, file
 flags and ACLs, if available, for each item extracted from the archive.
@@ -692,7 +699,8 @@ for extended periods of time.  This is not enabled by default
 since continued failures generally indicate a problem which should
 be investigated by the user.
 .It Fl S
-(x mode only)
+.Pf ( Fl x
+mode only)
 Extract files as sparse files.
 For every block on disk, check first if it contains any non-NULL bytes and seek
 over it otherwise.
@@ -714,7 +722,8 @@ The optional trailing p specifies that after a successful substitution
 the original path name and the new path name should be printed to
 standard error.
 .It Fl -strip-components Ar count
-(x mode only)
+.Pf ( Fl x
+mode only)
 Remove the specified number of leading path elements.
 Pathnames with fewer elements will be silently skipped.
 Note that the pathname is edited after checking inclusion/exclusion patterns
@@ -776,7 +785,8 @@ mainly for compatibility with GNU tar; in most situations the
 .Fl -print-stats
 option will be far more useful.
 .It Fl U
-(x mode only)
+.Pf ( Fl x
+mode only)
 Unlink files before creating them.
 Without this option,
 .Nm
