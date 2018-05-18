@@ -630,7 +630,10 @@ mode only)
 Ignore symbolic user and group names when restoring archives to disk,
 only numeric uid and gid values will be obeyed.
 .It Fl O
-(x and t modes only)
+.Pf ( Fl x
+and
+.Fl t
+modes only)
 In extract (-x) mode, files will be written to standard out rather than
 being extracted to disk.
 In list (-t) mode, the file listing will be written to stderr rather than
@@ -686,7 +689,10 @@ option is also specified.
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 .It Fl q ( Fl -fast-read )
-(x and t modes only)
+.Pf ( Fl x
+and
+.Fl t
+modes only)
 Extract or list only the first archive entry that matches each pattern
 or filename operand.
 Exit as soon as each specified pattern or filename has been matched.
