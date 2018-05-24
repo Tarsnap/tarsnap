@@ -33,7 +33,7 @@ monoclock_get(struct timeval * tv)
 #ifdef USE_MONOTONIC
 	if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0) {
 		tv->tv_sec = tp.tv_sec;
-		tv->tv_usec = tp.tv_nsec / 1000;
+		tv->tv_usec = (suseconds_t)(tp.tv_nsec / 1000);
 	} else if ((errno != ENOSYS) && (errno != EINVAL)) {
 		warnp("clock_gettime(CLOCK_MONOTONIC)");
 		goto err0;
@@ -42,7 +42,7 @@ monoclock_get(struct timeval * tv)
 #ifdef USE_REALTIME
 	if (clock_gettime(CLOCK_REALTIME, &tp) == 0) {
 		tv->tv_sec = tp.tv_sec;
-		tv->tv_usec = tp.tv_nsec / 1000;
+		tv->tv_usec = (suseconds_t)(tp.tv_nsec / 1000);
 	} else {
 		warnp("clock_gettime(CLOCK_REALTIME)");
 		goto err0;

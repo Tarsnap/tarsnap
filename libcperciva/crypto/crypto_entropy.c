@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "cpusupport.h"
+#include "crypto_entropy_rdrand.h"
 #include "entropy.h"
 #include "insecure_memzero.h"
 
@@ -37,6 +39,21 @@ static void update(uint8_t *, size_t);
 static int reseed(void);
 static void generate(uint8_t *, size_t);
 
+#ifdef CPUSUPPORT_X86_RDRAND
+static void
+update_from_rdrand(void) {
+	unsigned int buf[8];
+
+	/* This is only *extra* entropy, so it's ok if it fails. */
+	if (generate_seed_rdrand(buf, 8))
+		return;
+	update((uint8_t *)buf, sizeof(buf));
+
+	/* Clean up. */
+	insecure_memzero(buf, sizeof(buf));
+}
+#endif
+
 /**
  * instantiate(void):
  * Initialize the DRBG state.  (Section 10.1.2.3)
@@ -57,6 +74,13 @@ instantiate(void)
 
 	/* Mix the random seed into the state. */
 	update(seed_material, 48);
+
+#ifdef CPUSUPPORT_X86_RDRAND
+	/* Add output of RDRAND into the state. */
+	if (cpusupport_x86_rdrand()) {
+		update_from_rdrand();
+	}
+#endif
 
 	/* Clean the stack. */
 	insecure_memzero(seed_material, 48);
@@ -127,6 +151,13 @@ reseed(void)
 
 	/* Mix the random seed into the state. */
 	update(seed_material, 32);
+
+#ifdef CPUSUPPORT_X86_RDRAND
+	/* Add output of RDRAND into the state. */
+	if (cpusupport_x86_rdrand()) {
+		update_from_rdrand();
+	}
+#endif
 
 	/* Reset the reseed_counter. */
 	drbg.reseed_counter = 1;

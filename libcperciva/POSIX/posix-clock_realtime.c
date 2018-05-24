@@ -1,3 +1,8 @@
 #include <time.h>
 
-int main() {return (CLOCK_REALTIME);}
+int
+main(void)
+{
+
+	return (CLOCK_REALTIME);
+}

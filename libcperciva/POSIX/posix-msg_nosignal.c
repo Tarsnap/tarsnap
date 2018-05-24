@@ -1,3 +1,8 @@
 #include <sys/socket.h>
 
-int main() {return (MSG_NOSIGNAL);}
+int
+main(void)
+{
+
+	return (MSG_NOSIGNAL);
+}

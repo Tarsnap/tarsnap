@@ -1,6 +1,8 @@
 #include <time.h>
 
-int main() {
+int
+main(void)
+{
 	struct timespec ts;
 
 	return (clock_gettime(CLOCK_REALTIME, &ts));
