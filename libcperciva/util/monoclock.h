@@ -11,4 +11,12 @@
  */
 int monoclock_get(struct timeval *);
 
+/**
+ * monoclock_get_cputime(tv):
+ * Store in ${tv} the duration the process has been running if
+ * CLOCK_PROCESS_CPUTIME_ID is available; fall back to monoclock_get()
+ * otherwise.
+ */
+int monoclock_get_cputime(struct timeval *);
+
 #endif /* !_MONOCLOCK_H_ */

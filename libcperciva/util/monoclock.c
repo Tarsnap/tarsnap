@@ -61,3 +61,36 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * monoclock_get_cputime(tv):
+ * Store in ${tv} the duration the process has been running if
+ * CLOCK_PROCESS_CPUTIME_ID is available; fall back to monoclock_get()
+ * otherwise.
+ */
+int
+monoclock_get_cputime(struct timeval * tv)
+{
+	/* Use CLOCK_PROCESS_CPUTIME_ID if available. */
+#ifdef CLOCK_PROCESS_CPUTIME_ID
+	struct timespec tp;
+
+	if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp) == 0) {
+		tv->tv_sec = tp.tv_sec;
+		tv->tv_usec = (suseconds_t)(tp.tv_nsec / 1000);
+	} else if ((errno != ENOSYS) && (errno != EINVAL)) {
+		warnp("clock_gettime(CLOCK_PROCESS_CPUTIME_ID)");
+		goto err0;
+	} else
+#endif
+	/* Fall back to monoclock_get(). */
+	if (monoclock_get(tv))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
