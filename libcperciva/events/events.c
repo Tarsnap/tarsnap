@@ -81,8 +81,8 @@ doevent(struct eventrec * r)
  * events will be run and said non-zero result will be returned; on error,
  * -1 will be returned.
  */
-int
-events_run(void)
+static int
+_events_run(void)
 {
 	struct eventrec * r;
 	struct timeval * tv;
@@ -168,6 +168,15 @@ err0:
 	return (-1);
 }
 
+/* Wrapper function for events_run. */
+int
+events_run(void)
+{
+
+	/* Call the real function. */
+	return _events_run();
+}
+
 /**
  * events_spin(done):
  * Call events_run until ${done} is non-zero (and return 0), an error occurs (and
@@ -182,7 +191,7 @@ events_spin(int * done)
 	/* Loop until we're done or have a non-zero status. */
 	while ((done[0] == 0) && (rc == 0)) {
 		/* Run events. */
-		rc = events_run();
+		rc = _events_run();
 	}
 
 	/* Return status code. */
