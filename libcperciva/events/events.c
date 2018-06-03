@@ -170,7 +170,7 @@ err0:
 
 /**
  * events_spin(done):
- * Run events until ${done} is non-zero (and return 0), an error occurs (and
+ * Call events_run until ${done} is non-zero (and return 0), an error occurs (and
  * return -1), or a callback returns a non-zero status (and return the status
  * code from the callback).
  */
