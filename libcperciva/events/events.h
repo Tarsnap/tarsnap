@@ -84,7 +84,8 @@ int events_timer_reset(void *);
  * associated with expired timers registered via events_timer_register will
  * be run.  If any event function returns a non-zero result, no further
  * events will be run and said non-zero result will be returned; on error,
- * -1 will be returned.
+ * -1 will be returned.  May be interrupted by events_interrupt, in which case
+ * 0 will be returned.
  */
 int events_run(void);
 
@@ -92,9 +93,17 @@ int events_run(void);
  * events_spin(done):
  * Call events_run until ${done} is non-zero (and return 0), an error occurs (and
  * return -1), or a callback returns a non-zero status (and return the status
- * code from the callback).
+ * code from the callback).  May be interrupted by events_interrupt (and return
+ * 0).
  */
 int events_spin(int *);
+
+/**
+ * events_interrupt():
+ * Halt the event loop after finishing the current event.  This function can
+ * be safely called from within a signal handler.
+ */
+void events_interrupt(void);
 
 /**
  * events_shutdown(void):

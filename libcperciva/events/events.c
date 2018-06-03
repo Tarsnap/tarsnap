@@ -1,5 +1,6 @@
 #include <sys/time.h>
 
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -18,6 +19,9 @@ MPOOL(eventrec, struct eventrec, 4096);
 
 /* Zero timeval, for use with non-blocking event runs. */
 static const struct timeval tv_zero = {0, 0};
+
+/* We want to interrupt a running event loop. */
+static volatile sig_atomic_t interrupt_requested = 0;
 
 /**
  * events_mkrec(func, cookie):
@@ -79,7 +83,8 @@ doevent(struct eventrec * r)
  * associated with expired timers registered via events_timer_register will
  * be run.  If any event function returns a non-zero result, no further
  * events will be run and said non-zero result will be returned; on error,
- * -1 will be returned.
+ * -1 will be returned.  May be interrupted by events_interrupt, in which case
+ * 0 will be returned.
  */
 static int
 _events_run(void)
@@ -94,6 +99,10 @@ _events_run(void)
 		while (r != NULL) {
 			/* Process the event. */
 			if ((rc = doevent(r)) != 0)
+				goto done;
+
+			/* Interrupt loop if requested. */
+			if (interrupt_requested)
 				goto done;
 
 			/* Get the next event. */
@@ -117,9 +126,13 @@ _events_run(void)
 	/*
 	 * Check for available immediate events, network events, and timer
 	 * events, in that order of priority; exit only when no more events
-	 * are available.
+	 * are available or when interrupted.
 	 */
 	do {
+		/* Interrupt loop if requested. */
+		if (interrupt_requested)
+			goto done;
+
 		/* Run an immediate event, if one is available. */
 		if ((r = events_immediate_get()) != NULL) {
 			if ((rc = doevent(r)) != 0)
@@ -168,20 +181,28 @@ err0:
 	return (-1);
 }
 
-/* Wrapper function for events_run. */
+/* Wrapper function for events_run to reset interrupt_requested. */
 int
 events_run(void)
 {
+	int rc;
 
 	/* Call the real function. */
-	return _events_run();
+	rc = _events_run();
+
+	/* Reset interrupt_requested after quitting the loop. */
+	interrupt_requested = 0;
+
+	/* Return status. */
+	return (rc);
 }
 
 /**
  * events_spin(done):
  * Call events_run until ${done} is non-zero (and return 0), an error occurs (and
  * return -1), or a callback returns a non-zero status (and return the status
- * code from the callback).
+ * code from the callback).  May be interrupted by events_interrupt (and return
+ * 0).
  */
 int
 events_spin(int * done)
@@ -189,13 +210,29 @@ events_spin(int * done)
 	int rc = 0;
 
 	/* Loop until we're done or have a non-zero status. */
-	while ((done[0] == 0) && (rc == 0)) {
+	while ((done[0] == 0) && (rc == 0) && (interrupt_requested == 0)) {
 		/* Run events. */
 		rc = _events_run();
 	}
 
+	/* Reset interrupt_requested after quitting the loop. */
+	interrupt_requested = 0;
+
 	/* Return status code. */
 	return (rc);
+}
+
+/**
+ * events_interrupt():
+ * Halt the event loop after finishing the current event.  This function can
+ * be safely called from within a signal handler.
+ */
+void
+events_interrupt(void)
+{
+
+	/* Interrupt the event loop. */
+	interrupt_requested = 1;
 }
 
 /**
