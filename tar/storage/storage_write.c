@@ -40,6 +40,9 @@ struct storage_write_internal {
 
 	/* Number of bytes of pending writes. */
 	size_t nbytespending;
+
+	/* Last time we wrote a checkpoint. */
+	uint64_t lastcheckpoint;
 };
 
 struct write_fexist_internal {
@@ -86,7 +89,6 @@ static handlepacket_callback callback_write_file_response;
 static void
 raisesigs(struct storage_write_internal * S)
 {
-	static uint64_t lastcheckpoint = 0;
 	uint64_t in, out, queued;
 	uint64_t totalout = 0;
 	size_t i;
@@ -105,8 +107,8 @@ raisesigs(struct storage_write_internal * S)
 
 	/* Send a SIGUSR2 if appropriate. */
 	if (tarsnap_opt_checkpointbytes != (uint64_t)(-1)) {
-		if (totalout > lastcheckpoint + tarsnap_opt_checkpointbytes) {
-			lastcheckpoint = totalout;
+		if (totalout > S->lastcheckpoint + tarsnap_opt_checkpointbytes) {
+			S->lastcheckpoint = totalout;
 			if (raise(SIGUSR2))
 				warnp("raise(SIGUSR2)");
 		}
@@ -142,6 +144,9 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 
 	/* No pending writes so far. */
 	S->nbytespending = 0;
+
+	/* No checkpoint yet. */
+	S->lastcheckpoint = 0;
 
 	/* Open netpacket connections. */
 	for (i = 0; i < S->numconns; i++) {
