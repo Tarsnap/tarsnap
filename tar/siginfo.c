@@ -60,6 +60,9 @@ struct siginfo_data {
 	/* When did we last print a progress message? */
 	uint64_t lastprogress;
 
+	/* How many new compressed bytes have we handled in total? */
+	uint64_t total_new;
+
 	/* Old signal handlers. */
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
@@ -94,6 +97,9 @@ siginfo_init(struct bsdtar *bsdtar)
 
 	/* We haven't printed any progress messages yet. */
 	bsdtar->siginfo->lastprogress = 0;
+
+	/* This is not set in siginfo_setinfo(), so we set it now. */
+	bsdtar->siginfo->total_new = (uint64_t)-1;
 
 	/* We want to catch SIGINFO, if it exists. */
 	sa.sa_handler = siginfo_handler;
@@ -148,12 +154,22 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	}
 }
 
+/* This is a callback which will be used in the chunk layer. */
+void
+siginfo_newbytes(void ** siginfo_data, uint64_t size)
+{
+	struct siginfo_data * S = *siginfo_data;
+
+	S->total_new = size;
+}
+
 void
 siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 {
 	char * s_progress;
 	char * s_size;
 	char * s_total_uncompressed;
+	char * s_total_new;
 
 	/* Sanity check. */
 	assert(progress >= 0);
@@ -212,6 +228,26 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				    bsdtar->siginfo->total_uncompressed);
 			}
 		}
+
+		/* Print new data (if applicable). */
+		if (bsdtar->siginfo->total_new != (uint64_t)-1) {
+			if (tarsnap_opt_humanize_numbers) {
+				if ((s_total_new = humansize(
+				    bsdtar->siginfo->total_new))
+				    == NULL)
+					goto err0;
+				safe_fprintf(stderr, "; New data: %s ",
+				    s_total_new);
+
+				/* Clean up. */
+				free(s_total_new);
+			} else {
+				safe_fprintf(stderr, "; New data: %" PRId64
+				    " bytes",
+				    bsdtar->siginfo->total_new);
+			}
+		}
+
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");
 		siginfo_received = 0;

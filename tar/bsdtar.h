@@ -292,6 +292,7 @@ void	siginfo_setinfo(struct bsdtar *, const char * oper,
 	    const char * path, int64_t size, int file_count,
 	    int64_t total_uncompressed);
 void	siginfo_printinfo(struct bsdtar *, off_t progress);
+void	siginfo_newbytes(void ** siginfo_data, uint64_t size);
 void	siginfo_done(struct bsdtar *);
 void	tarsnap_mode_print_stats(struct bsdtar *bsdtar);
 void	tarsnap_mode_c(struct bsdtar *bsdtar);
