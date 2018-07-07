@@ -101,7 +101,7 @@
  * compiled and linked in.
  */
 CPUSUPPORT_FEATURE(x86, aesni, X86_AESNI);
-CPUSUPPORT_FEATURE(x86, sse2, X86_SSE2);
 CPUSUPPORT_FEATURE(x86, rdrand, X86_RDRAND);
+CPUSUPPORT_FEATURE(x86, sse2, X86_SSE2);
 
 #endif /* !_CPUSUPPORT_H_ */
