@@ -86,6 +86,8 @@
  * fails for any reason.
  */
 #define CPUSUPPORT_FEATURE_DECL(arch, feature)				\
+	extern int cpusupport_ ## arch ## _ ## feature ## _present_1;	\
+	extern int cpusupport_ ## arch ## _ ## feature ## _init_1;	\
 	int cpusupport_ ## arch ## _ ## feature ## _present_1 = 0;	\
 	int cpusupport_ ## arch ## _ ## feature ## _init_1 = 0;		\
 	int cpusupport_ ## arch ## _ ## feature ## _detect_1(void); \
