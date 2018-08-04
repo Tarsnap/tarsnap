@@ -57,6 +57,9 @@ struct siginfo_data {
 	/* How many bytes have we handled in total? */
 	uint64_t total_uncompressed;
 
+	/* When did we last print a progress message? */
+	uint64_t lastprogress;
+
 	/* Old signal handlers. */
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
@@ -88,6 +91,9 @@ siginfo_init(struct bsdtar *bsdtar)
 
 	/* Set the strings to NULL so that free() is safe. */
 	bsdtar->siginfo->path = bsdtar->siginfo->oper = NULL;
+
+	/* We haven't printed any progress messages yet. */
+	bsdtar->siginfo->lastprogress = 0;
 
 	/* We want to catch SIGINFO, if it exists. */
 	sa.sa_handler = siginfo_handler;
@@ -124,6 +130,22 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	bsdtar->siginfo->size = size;
 	bsdtar->siginfo->file_count = file_count;
 	bsdtar->siginfo->total_uncompressed = (uint64_t)total_uncompressed;
+
+	/*
+	 * Look at how many bytes on disk have been processed since the last
+	 * update, and trigger a siginfo_printinfo() if it exceeds
+	 * tarsnap_opt_processbytes.
+	 */
+	if (tarsnap_opt_progressbytes != (uint64_t)(-1)) {
+		if ((uint64_t)total_uncompressed >
+		    bsdtar->siginfo->lastprogress + tarsnap_opt_progressbytes) {
+			bsdtar->siginfo-> lastprogress =
+			    (uint64_t)total_uncompressed;
+
+			/* Fake a SIGINFO (no need for an actual signal). */
+			siginfo_received = 1;
+		}
+	}
 }
 
 void

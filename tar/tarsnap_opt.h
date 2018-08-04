@@ -19,4 +19,7 @@ extern uint64_t tarsnap_opt_maxbytesout;
 /* Number of bytes to send between checkpoints. */
 extern uint64_t tarsnap_opt_checkpointbytes;
 
+/* Number of bytes to process before printing progress. */
+extern uint64_t tarsnap_opt_progressbytes;
+
 #endif /* !_TARSNAP_OPT_H_ */

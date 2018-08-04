@@ -105,6 +105,7 @@ struct bsdtar {
 	int		  option_maxbw_rate_up_set;
 	int		  option_nodump_set;
 	int		  option_print_stats_set;
+	int		  option_progress_bytes_set;
 	int		  option_snaptime_set;
 	int		  option_store_atime_set;
 	int		  option_totals_set;
@@ -237,6 +238,7 @@ enum {
 	OPTION_NO_MAXBW_RATE_UP,
 	OPTION_NO_NODUMP,
 	OPTION_NO_PRINT_STATS,
+	OPTION_NO_PROGRESS_BYTES,
 	OPTION_NO_QUIET,
 	OPTION_NO_RETRY_FOREVER,
 	OPTION_NO_SAME_OWNER,
@@ -251,6 +253,7 @@ enum {
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PRINT_STATS,
+	OPTION_PROGRESS_BYTES,
 	OPTION_RECOVER,
 	OPTION_RECOVER_DELETE,	/* Operation mode, not a real option */
 	OPTION_RECOVER_WRITE,	/* Operation mode, not a real option */
