@@ -7,6 +7,8 @@
   non-blank lines read from config files.
 - tarsnap now gives an error if there are unused command-line arguments.
   (i.e. "tarsnap -d -f a1 a2", where "a2" is unused.)
+- tarsnap now accepts --progress-bytes SIZE, which prints a progress message
+  each SIZE bytes processed.  This can be disabled with --no-progress-bytes.
 
 
 Tarsnap Releases
