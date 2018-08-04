@@ -286,7 +286,8 @@ void	safe_fprintf(FILE *, const char *fmt, ...);
 void	set_chdir(struct bsdtar *, const char *newdir);
 void	siginfo_init(struct bsdtar *);
 void	siginfo_setinfo(struct bsdtar *, const char * oper,
-	    const char * path, int64_t size);
+	    const char * path, int64_t size, int file_count,
+	    int64_t total_uncompressed);
 void	siginfo_printinfo(struct bsdtar *, off_t progress);
 void	siginfo_done(struct bsdtar *);
 void	tarsnap_mode_print_stats(struct bsdtar *bsdtar);

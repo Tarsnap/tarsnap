@@ -281,7 +281,9 @@ read_archive(struct bsdtar *bsdtar, char mode)
 
 			/* Tell the SIGINFO-handler code what we're doing. */
 			siginfo_setinfo(bsdtar, "extracting",
-			    archive_entry_pathname(entry), 0);
+			    archive_entry_pathname(entry), 0,
+			    archive_file_count(a),
+			    archive_position_uncompressed(a));
 			siginfo_printinfo(bsdtar, 0);
 
 			if (bsdtar->option_stdout)
