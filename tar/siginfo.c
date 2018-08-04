@@ -130,6 +130,12 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	    (bsdtar->siginfo->oper != NULL)) {
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
+
+		/* Print current operation and filename. */
+		safe_fprintf(stderr, "%s %s",
+		    bsdtar->siginfo->oper, bsdtar->siginfo->path);
+
+		/* Print progress on current file (if applicable). */
 		if (bsdtar->siginfo->size > 0) {
 			if (tarsnap_opt_humanize_numbers) {
 				if ((s_progress = humansize((uint64_t)progress))
@@ -138,23 +144,17 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				if ((s_size = humansize(
 				    (uint64_t)bsdtar->siginfo->size)) == NULL)
 					goto err1;
-				safe_fprintf(stderr, "%s %s (%s / %s bytes)",
-				    bsdtar->siginfo->oper,
-				    bsdtar->siginfo->path, s_progress,
-				    s_size);
+				safe_fprintf(stderr, " (%s / %s bytes)",
+				    s_progress, s_size);
 
 				/* Clean up. */
 				free(s_progress);
 				free(s_size);
 			} else {
-				safe_fprintf(stderr, "%s %s (%ju / %" PRId64
-				    " bytes)", bsdtar->siginfo->oper,
-				    bsdtar->siginfo->path, (uintmax_t)progress,
+				safe_fprintf(stderr, " (%ju / %" PRId64
+				    " bytes)", (uintmax_t)progress,
 				    bsdtar->siginfo->size);
 			}
-		} else {
-			safe_fprintf(stderr, "%s %s",
-			    bsdtar->siginfo->oper, bsdtar->siginfo->path);
 		}
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");
