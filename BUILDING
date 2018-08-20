@@ -42,6 +42,24 @@ for experimental development, use:
 Platform-specific notes
 -----------------------
 
+- On OS X, the version of OpenSSL included with the operating
+  system is outdated (0.9.8) and deprecated, and it is recommended
+  that scrypt be built with an updated version of OpenSSL.  On OS X
+  10.11 "El Capitan" and higher, OpenSSL was removed entirely.  After
+  installing a newer version of OpenSSL, use
+      CPPFLAGS="-I /path/to/openssl/headers"
+      LDFLAGS="-L /path/to/openssl/lib"
+  to build tarsnap.
+
+  In particular, if you installed OpenSSL using homebrew, you may
+  pass the relevant directories directly to ./configure:
+      ./configure CPPFLAGS="-I/usr/local/opt/openssl/include" LDFLAGS="-L/usr/local/opt/openssl/lib"
+
+  Alternatively, you may with to add these lines to your $HOME/.profile file:
+      export CPPFLAGS="-I/usr/local/opt/openssl/include $CPPFLAGS"
+      export LDFLAGS="-L/usr/local/opt/openssl/lib $LDFLAGS"
+  and then close & re-open your terminal window.
+
 - On Debian, Ubuntu, and related Linux distributions, the minimal set of
   dependencies is:
 
