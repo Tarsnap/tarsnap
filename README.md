@@ -1,8 +1,15 @@
-Client code for Tarsnap
-=======================
 
-Tarsnap is a secure, efficient online backup service: "Online
-backups for the truly paranoid".
+<img src="https://user-images.githubusercontent.com/59632/44454690-c825ed00-a5c1-11e8-8532-c1c9a2e7be23.png" width=100/>
+
+Tarsnap – Online backups for the truly paranoid
+----
+
+[![Slack](https://tarsnap.now.sh/badge.svg)](https://tarsnap.now.sh)
+[![Travis CI build status](https://api.travis-ci.org/Tarsnap/tarsnap.svg?branch=master)](https://travis-ci.org/Tarsnap/tarsnap)
+[![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/tarsnap)
+[![Twitter Follow](https://img.shields.io/twitter/follow/tarsnap.svg?style=social)](https://twitter.com/tarsnap)
+
+Tarsnap is a secure, efficient online backup service.
 
 :exclamation: We strongly recommend that people use the latest official
 release tarball on https://www.tarsnap.com
@@ -10,6 +17,17 @@ release tarball on https://www.tarsnap.com
 > This repository is intended for developers who may wish to watch changes in
 > progress, investigate bugs, or test new (unreleased) features.
 
+
+Usage
+----
+
+To install the latest version of Tarsnap CLI on macOS, run this command:
+
+```
+brew install tarsnap
+```
+
+Otherwise you can [build from source](https://github.com/Tarsnap/tarsnap#building).
 
 News
 ----
