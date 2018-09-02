@@ -36,6 +36,7 @@ static int reconnect_wait[MAXRECONNECTS + 1] = {
 
 /* Global tarsnap option declared in tarsnap_opt.h. */
 int tarsnap_opt_retry_forever = 0;
+int tarsnap_opt_debug_network_stats = 0;
 
 /* Time before which we shouldn't print a "connection lost" warning. */
 static struct timeval next_connlost_warning = { 0, 0};
@@ -489,6 +490,24 @@ netpacket_getstats(NETPACKET_CONNECTION * NPC, uint64_t * in, uint64_t * out,
 	*out += NPC->bytesout;
 }
 
+/* Print statistics about network usage. */
+static void
+netpacket_printstats(NETPACKET_CONNECTION * NPC)
+{
+	uint64_t in, out, queued;
+
+	/* Get & print the network traffic from this netpacket connection. */
+	netpacket_getstats(NPC, &in, &out, &queued);
+
+	/* Print warning if there's any queued data. */
+	if (queued > 0)
+		warnp("Connection ended with queued:\t" PRIu64 "\n", queued);
+
+	/* Print in/out network usage. */
+	fprintf(stderr, "Connection ended with in / out:\t"
+	    "%" PRIu64 "\t%" PRIu64 "\n", in, out);
+}
+
 /**
  * netpacket_close(NPC):
  * Close a netpacket connection.
@@ -510,6 +529,10 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 		free(NPC->pending_current);
 		NPC->pending_current = next;
 	}
+
+	/* Print statistics about network usage (if desired). */
+	if (tarsnap_opt_debug_network_stats)
+		netpacket_printstats(NPC);
 
 	/* Free string allocated by strdup. */
 	free(NPC->useragent);

@@ -80,6 +80,7 @@ static struct option {
 	{ "create",               0, 'c' },
 	{ "creationtime",         1, OPTION_CREATIONTIME },
 	{ "csv-file",		  1, OPTION_CSV_FILE },
+	{ "debug-network-stats",  0, OPTION_DEBUG_NETWORK_STATS },
 	{ "dereference",	  0, 'L' },
 	{ "directory",            1, 'C' },
 	{ "disk-pause",		  1, OPTION_DISK_PAUSE },
