@@ -132,8 +132,9 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	if (!siginfo_received)
 		return;
 
-	/* If we know what we're doing... */
+	/* Print info about current file (if applicable). */
 	if ((siginfo->path != NULL) && (siginfo->oper != NULL)) {
+		/* --verbose mode doesn't print newlines at the end of lines. */
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
 
@@ -161,8 +162,11 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				    siginfo->size);
 			}
 		}
+		/* --verbose mode doesn't want newlines at the end of lines. */
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");
+
+		/* We've handled the signal. */
 		siginfo_received = 0;
 	}
 
