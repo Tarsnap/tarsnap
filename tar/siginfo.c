@@ -128,10 +128,12 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	/* Sanity check. */
 	assert(progress >= 0);
 
-	/* If there's a signal to handle and we know what we're doing... */
-	if ((siginfo_received == 1) &&
-	    (siginfo->path != NULL) &&
-	    (siginfo->oper != NULL)) {
+	/* Quit if there's no signal to handle. */
+	if (!siginfo_received)
+		return;
+
+	/* If we know what we're doing... */
+	if ((siginfo->path != NULL) && (siginfo->oper != NULL)) {
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
 
