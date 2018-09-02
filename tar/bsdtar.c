@@ -445,6 +445,9 @@ main(int argc, char **argv)
 		case 'd': /* multitar */
 			set_mode(bsdtar, opt, "-d");
 			break;
+		case OPTION_DEBUG_NETWORK_STATS: /* tarsnap, developers only. */
+			tarsnap_opt_debug_network_stats = 1;
+			break;
 		case OPTION_DUMP_CONFIG: /* tarsnap */
 			/* Do nothing; already handled. */
 			break;

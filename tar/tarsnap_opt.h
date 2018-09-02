@@ -19,4 +19,7 @@ extern uint64_t tarsnap_opt_maxbytesout;
 /* Number of bytes to send between checkpoints. */
 extern uint64_t tarsnap_opt_checkpointbytes;
 
+/* Print statistics about netpacket transfer. */
+extern int tarsnap_opt_debug_network_stats;
+
 #endif /* !_TARSNAP_OPT_H_ */
