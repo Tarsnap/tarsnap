@@ -55,7 +55,9 @@ struct siginfo_data {
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
 #endif
+#ifdef SIGUSR1
 	struct sigaction sigusr1_old;
+#endif
 };
 
 static void		 siginfo_handler(int sig);
