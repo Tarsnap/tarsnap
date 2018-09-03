@@ -84,6 +84,9 @@ siginfo_init(struct bsdtar *bsdtar)
 		bsdtar_errc(bsdtar, 1, errno, "malloc failed");
 	bsdtar->siginfo = siginfo;
 
+	/* Initialize numeric variables of siginfo. */
+	memset(siginfo, 0, sizeof(struct siginfo_data));
+
 	/* Set the strings to NULL so that free() is safe. */
 	siginfo->path = siginfo->oper = NULL;
 
