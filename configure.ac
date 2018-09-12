@@ -154,6 +154,9 @@ AC_CHECK_HEADERS([linux/magic.h])
 # be able to find it...
 CHECK_SOLARIS_PATHS
 
+# Ditto for Darwin.
+CHECK_DARWIN_PATHS
+
 # Check if we should use mdoc versions of the man pages or versions which
 # are uglier but more portable.
 CHECK_MDOC_OR_MAN
