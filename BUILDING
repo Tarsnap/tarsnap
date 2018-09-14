@@ -35,7 +35,7 @@ for experimental development, use:
 
         configure.ac:...: error: possibly undefined macro: AC_MSG_WARN
 
-  then you need `pkg-config`.  On Debian , use the `pkg-config`
+  then you need `pkg-config`.  On Debian, use the `pkg-config`
   package; on FreeBSD, use `devel/pkgconf`.
 
 

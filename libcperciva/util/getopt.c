@@ -263,7 +263,7 @@ getopt_lookup(const char * os)
 	/*
 	 * We only take this parameter so that we can assert that it's the
 	 * same option string as we returned from getopt(); as such, it is
-	 * unused in the absense of assertions.
+	 * unused in the absence of assertions.
 	 */
 	(void)os; /* UNUSED */
 
