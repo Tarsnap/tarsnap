@@ -304,6 +304,8 @@ dh_received(void * cookie, int status)
 		goto err2;
 	case 1:
 		/* Bad signature. */
+		warn0("Diffie-Hellman parameter from server is not validly"
+		    " signed");
 		status = NETPROTO_STATUS_PROTERR;
 		goto err1;
 	case 0:
