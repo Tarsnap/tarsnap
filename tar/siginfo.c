@@ -55,7 +55,9 @@ struct siginfo_data {
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
 #endif
+#ifdef SIGUSR1
 	struct sigaction sigusr1_old;
+#endif
 };
 
 static void		 siginfo_handler(int sig);
@@ -74,26 +76,31 @@ siginfo_handler(int sig)
 void
 siginfo_init(struct bsdtar *bsdtar)
 {
+	struct siginfo_data * siginfo;
 	struct sigaction sa;
 
 	/* Allocate space for internal structure. */
-	if ((bsdtar->siginfo = malloc(sizeof(struct siginfo_data))) == NULL)
+	if ((siginfo = malloc(sizeof(struct siginfo_data))) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "malloc failed");
+	bsdtar->siginfo = siginfo;
+
+	/* Initialize numeric variables of siginfo. */
+	memset(siginfo, 0, sizeof(struct siginfo_data));
 
 	/* Set the strings to NULL so that free() is safe. */
-	bsdtar->siginfo->path = bsdtar->siginfo->oper = NULL;
+	siginfo->path = siginfo->oper = NULL;
 
 	/* We want to catch SIGINFO, if it exists. */
 	sa.sa_handler = siginfo_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 #ifdef SIGINFO
-	if (sigaction(SIGINFO, &sa, &bsdtar->siginfo->siginfo_old))
+	if (sigaction(SIGINFO, &sa, &siginfo->siginfo_old))
 		bsdtar_errc(bsdtar, 1, errno, "sigaction(SIGINFO) failed");
 #endif
 #ifdef SIGUSR1
 	/* ... and treat SIGUSR1 the same way as SIGINFO. */
-	if (sigaction(SIGUSR1, &sa, &bsdtar->siginfo->sigusr1_old))
+	if (sigaction(SIGUSR1, &sa, &siginfo->sigusr1_old))
 		bsdtar_errc(bsdtar, 1, errno, "sigaction(SIGUSR1) failed");
 #endif
 }
@@ -102,62 +109,69 @@ void
 siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
     int64_t size)
 {
+	struct siginfo_data * siginfo = bsdtar->siginfo;
 
 	/* Free old operation and path strings. */
-	free(bsdtar->siginfo->oper);
-	free(bsdtar->siginfo->path);
+	free(siginfo->oper);
+	free(siginfo->path);
 
 	/* Duplicate strings and store entry size. */
-	if ((bsdtar->siginfo->oper = strdup(oper)) == NULL)
+	if ((siginfo->oper = strdup(oper)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
-	if ((bsdtar->siginfo->path = strdup(path)) == NULL)
+	if ((siginfo->path = strdup(path)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
-	bsdtar->siginfo->size = size;
+	siginfo->size = size;
 }
 
 void
 siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 {
+	struct siginfo_data * siginfo = bsdtar->siginfo;
 	char * s_progress;
 	char * s_size;
 
 	/* Sanity check. */
 	assert(progress >= 0);
 
-	/* If there's a signal to handle and we know what we're doing... */
-	if ((siginfo_received == 1) &&
-	    (bsdtar->siginfo->path != NULL) &&
-	    (bsdtar->siginfo->oper != NULL)) {
+	/* Quit if there's no signal to handle. */
+	if (!siginfo_received)
+		return;
+
+	/* Print info about current file (if applicable). */
+	if ((siginfo->path != NULL) && (siginfo->oper != NULL)) {
+		/* --verbose mode doesn't print newlines at the end of lines. */
 		if (bsdtar->verbose)
 			fprintf(stderr, "\n");
-		if (bsdtar->siginfo->size > 0) {
+
+		/* Print current operation and filename. */
+		safe_fprintf(stderr, "%s %s", siginfo->oper, siginfo->path);
+
+		/* Print progress on current file (if applicable). */
+		if (siginfo->size > 0) {
 			if (tarsnap_opt_humanize_numbers) {
 				if ((s_progress = humansize((uint64_t)progress))
 				    == NULL)
 					goto err0;
 				if ((s_size = humansize(
-				    (uint64_t)bsdtar->siginfo->size)) == NULL)
+				    (uint64_t)siginfo->size)) == NULL)
 					goto err1;
-				safe_fprintf(stderr, "%s %s (%s / %s bytes)",
-				    bsdtar->siginfo->oper,
-				    bsdtar->siginfo->path, s_progress,
-				    s_size);
+				safe_fprintf(stderr, " (%s / %s bytes)",
+				    s_progress, s_size);
 
 				/* Clean up. */
 				free(s_progress);
 				free(s_size);
 			} else {
-				safe_fprintf(stderr, "%s %s (%ju / %" PRId64
-				    " bytes)", bsdtar->siginfo->oper,
-				    bsdtar->siginfo->path, (uintmax_t)progress,
-				    bsdtar->siginfo->size);
+				safe_fprintf(stderr, " (%ju / %" PRId64
+				    " bytes)", (uintmax_t)progress,
+				    siginfo->size);
 			}
-		} else {
-			safe_fprintf(stderr, "%s %s",
-			    bsdtar->siginfo->oper, bsdtar->siginfo->path);
 		}
+		/* --verbose mode doesn't want newlines at the end of lines. */
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");
+
+		/* We've handled the signal. */
 		siginfo_received = 0;
 	}
 
@@ -174,20 +188,21 @@ err0:
 void
 siginfo_done(struct bsdtar *bsdtar)
 {
+	struct siginfo_data * siginfo = bsdtar->siginfo;
 
 #ifdef SIGINFO
 	/* Restore old SIGINFO handler. */
-	sigaction(SIGINFO, &bsdtar->siginfo->siginfo_old, NULL);
+	sigaction(SIGINFO, &siginfo->siginfo_old, NULL);
 #endif
 #ifdef SIGUSR1
 	/* And the old SIGUSR1 handler, too. */
-	sigaction(SIGUSR1, &bsdtar->siginfo->sigusr1_old, NULL);
+	sigaction(SIGUSR1, &siginfo->sigusr1_old, NULL);
 #endif
 
 	/* Free strings. */
-	free(bsdtar->siginfo->path);
-	free(bsdtar->siginfo->oper);
+	free(siginfo->path);
+	free(siginfo->oper);
 
 	/* Free internal data structure. */
-	free(bsdtar->siginfo);
+	free(siginfo);
 }
