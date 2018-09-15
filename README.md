@@ -29,6 +29,16 @@ The official releases should build and install using autotools:
 
 See the [BUILDING](BUILDING) file for more details.
 
+Building on OSX 10.10+
+----------------------
+
+Currently tarsnap requires linking against OpenSSL, and to compile tarsnap it
+also needs to find the OpenSSL headers. On OSX 10.10+ the OpenSSL headers have
+been removed, but if you're using Homebrew you can install them via:
+
+```sh
+brew install openssl
+```
 
 Packaging notes
 ---------------
