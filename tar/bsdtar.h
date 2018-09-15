@@ -116,6 +116,7 @@ struct bsdtar {
 	int		  option_quiet;
 	int		  option_quiet_set;
 	int		  option_retry_forever_set;
+	int		  option_resume_extract;
 	int		  option_insane_filesystems;
 	int		  option_insane_filesystems_set;
 	int		  option_iso_dates;
@@ -257,6 +258,7 @@ enum {
 	OPTION_RECOVER,
 	OPTION_RECOVER_DELETE,	/* Operation mode, not a real option */
 	OPTION_RECOVER_WRITE,	/* Operation mode, not a real option */
+	OPTION_RESUME_EXTRACT,
 	OPTION_RETRY_FOREVER,
 	OPTION_QUIET,
 	OPTION_SNAPTIME,
