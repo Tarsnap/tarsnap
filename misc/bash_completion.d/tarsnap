@@ -63,7 +63,7 @@ _tarsnap ()
 		  --keep-going --verify-config --csv-file --archive-names \
 		  --initialize-cachedir --iso-dates --no-iso-dates \
 		  --force-resources --no-force-resources --dump-config \
-		  --passphrase-stdin"
+		  --passphrase-stdin --resume-extract"
 
 	# Available short options
 	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X"
