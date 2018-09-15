@@ -11,6 +11,8 @@
   number of uncompressed bytes processed, in addition to the previous output.
 - tarsnap now accepts a --passphrase-stdin option which reads the passphrase
   from stdin instead of /dev/tty.
+- tarsnap now accepts a --resume-extract option to skip extracting files whose
+  filesize and mtime match existing files on disk.
 
 
 Tarsnap Releases
