@@ -59,6 +59,18 @@ Platform-specific notes
 
       sudo yum install bzip2-devel libacl-devel libattr-devel lzma-devel xz-devel pkgconf bash-completion
 
+- on MacOS X: in addition to the normal build toolchain (probably installed via
+  XCode), you need the OpenSSL development library. This could be installed
+  manually, or via a package manager:
+
+  Homebrew:
+
+      brew install openssl
+
+  MacPorts:
+
+      sudo port install openssl
+
 
 Packaging notes
 ---------------
