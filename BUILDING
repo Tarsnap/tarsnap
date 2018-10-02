@@ -58,3 +58,18 @@ Platform-specific notes
   To enable all optional features, install:
 
       sudo yum install bzip2-devel libacl-devel libattr-devel lzma-devel xz-devel pkgconf bash-completion
+
+
+Packaging notes
+---------------
+
+Bash completion scripts: there is an optional `configure` argument
+`--with-bash-completion-dir[=DIR]`.
+
+- If `DIR` is specified, it installs to that directory.
+
+- If `DIR` is left blank, it attempts to use `pkg-config` and
+  `bash-completion >= 2.0` to determine where to put the bash
+  completion scripts.  If your system does not match those
+  requirements, please specify `DIR` explicitly.
+
