@@ -51,6 +51,12 @@ struct siginfo_data {
 	/* How large is the archive entry? */
 	int64_t size;
 
+	/* How many files have we handled in total? */
+	int file_count;
+
+	/* How many bytes have we handled in total? */
+	uint64_t total_uncompressed;
+
 	/* Old signal handlers. */
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
@@ -107,9 +113,12 @@ siginfo_init(struct bsdtar *bsdtar)
 
 void
 siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
-    int64_t size)
+    int64_t size, int file_count, int64_t archive_uncompressed)
 {
 	struct siginfo_data * siginfo = bsdtar->siginfo;
+
+	/* Sanity check. */
+	assert(archive_uncompressed >= 0);
 
 	/* Free old operation and path strings. */
 	free(siginfo->oper);
@@ -121,6 +130,8 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	if ((siginfo->path = strdup(path)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
 	siginfo->size = size;
+	siginfo->file_count = file_count;
+	siginfo->total_uncompressed = (uint64_t)archive_uncompressed;
 }
 
 void
