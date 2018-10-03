@@ -140,6 +140,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	struct siginfo_data * siginfo = bsdtar->siginfo;
 	char * s_progress;
 	char * s_size;
+	char * s_total_uncompressed;
 
 	/* Sanity check. */
 	assert(progress >= 0);
@@ -178,6 +179,36 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				    siginfo->size);
 			}
 		}
+		/* --verbose mode doesn't want newlines at the end of lines. */
+		if (!bsdtar->verbose)
+			fprintf(stderr, "\n");
+
+		/* We've handled the signal. */
+		siginfo_received = 0;
+	}
+
+	/* Print overall progress (if applicable). */
+	if (siginfo->total_uncompressed > 0) {
+		/* --verbose mode doesn't print newlines at the end of lines. */
+		if (bsdtar->verbose)
+			fprintf(stderr, "\n");
+
+		/* Print overall progress with or without --humanize-numbers. */
+		if (tarsnap_opt_humanize_numbers) {
+			if ((s_total_uncompressed = humansize(
+			    siginfo->total_uncompressed)) == NULL)
+				goto err0;
+			safe_fprintf(stderr, "Processed %i files, %s",
+			    siginfo->file_count, s_total_uncompressed);
+
+			/* Clean up. */
+			free(s_total_uncompressed);
+		} else {
+			safe_fprintf(stderr,
+			    "Processed %i files, %" PRId64 " bytes",
+			    siginfo->file_count, siginfo->total_uncompressed);
+		}
+
 		/* --verbose mode doesn't want newlines at the end of lines. */
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");
