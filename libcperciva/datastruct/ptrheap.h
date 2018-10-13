@@ -6,10 +6,10 @@
 /**
  * Pointer-heap data structure.  Arbitrary pointers can be inserted and are
  * compared using a provided callback; the usual heapy getmin / increasemin /
- * deletemin algorithms are supported.  To use two additional functions,
- * ptrheap_delete and ptrheap_increase, a setreccookie callback needs to be
- * provided.  Both functions require a record cookie to identify the element
- * to increase or delete; each time a record's record cookie changes, the
+ * deletemin algorithms are supported.  To use three additional functions,
+ * ptrheap_{delete, increase, decrease}, a setreccookie callback needs to be
+ * provided.  These functions require a record cookie to identify the element
+ * to operate upon; each time a record's record cookie changes, the
  * setreccookie callback will be called.  Functions return NULL or (int)(-1)
  * on error and set errno; other return types indicate that failure is not
  * possible.  On error, the heap will be unmodified.
@@ -64,6 +64,14 @@ void ptrheap_delete(struct ptrheap *, size_t);
  * Delete the minimum element in the heap ${H}.  The heap must not be empty.
  */
 void ptrheap_deletemin(struct ptrheap *);
+
+/**
+ * ptrheap_decrease(H, rc):
+ * Adjust the heap ${H} to account for the fact that the element ptr for
+ * which the function call setreccookie(cookie, ptr, ${rc}) was most recently
+ * made has decreased.
+ */
+void ptrheap_decrease(struct ptrheap *, size_t);
 
 /**
  * ptrheap_increase(H, rc):
