@@ -49,7 +49,7 @@ To build a Fedora package:
     sudo dnf install rpmdevtools
     sudo dnf builddep pkg/fedora/tarsnap.spec
     rpmdev-setuptree
-    cp .../tarsnap-autoconf-<version>.tgz ~/rpmbuild/SOURCES
+    spectool -g pkg/fedora/tarsnap.spec -C ~/rpmbuild/SOURCES
     rpmbuild -bb pkg/fedora/tarsnap.spec
 
 Then to install it:
