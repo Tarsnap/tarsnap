@@ -808,7 +808,9 @@ SIGINFO signal,
 .Nm
 prints the current file or directory being processed, and (for files)
 its progress within the file.
-Note that due to network buffering this position will not align precisely
+It also prints the number of files and the number of uncompressed bytes
+processed.
+Note that due to network buffering the file position will not align precisely
 with how much data has been sent to or received from the
 .Nm
 server.
