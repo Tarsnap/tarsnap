@@ -427,7 +427,7 @@ In particular, if a file appears more than once in an archive,
 later copies will not overwrite earlier copies.
 .TP
 \fB\--keep-going\fP
-(d and print-stats mode only)
+(d and print-stats modes only)
 Continue deleting or printing statistics after finding that one
 of the archives specified does not exist.
 .TP
