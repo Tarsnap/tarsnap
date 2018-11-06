@@ -279,6 +279,12 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 		goto err0;
 	}
 
+	/* Sanity-check final newline. */
+	if (!((keybuf[keylen - 1] == '\r') || (keybuf[keylen - 1] == '\n'))) {
+		warn0("Missing final end-of-line character: %s", filename);
+		goto err0;
+	}
+
 	/*
 	 * Allocate space for base64-decoded bytes.  The most space we can
 	 * possibly require for the decoded bytes is 3/4 of the base64
