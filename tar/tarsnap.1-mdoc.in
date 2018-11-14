@@ -342,6 +342,10 @@ Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when
 repeatedly creating archives from the same files/directories (e.g.,
 daily backups).
+.It Fl -force-resources
+Force the decryption of a passphrase-encrypted key file to proceed
+even if it is anticipated to require an excessive amount of memory
+or CPU time.
 .It Fl H
 (c mode only)
 Symbolic links named on the command line will be followed; the
@@ -376,10 +380,6 @@ containing only the entries from
 .Ar all-backup
 containing the string
 .Sq foo .
-.It Fl -force-resources
-Force the decryption of a passphrase-encrypted key file to proceed
-even if it is anticipated to require an excessive amount of memory
-or CPU time.
 .It Fl -insane-filesystems
 (c mode only)
 Allow descent into synthetic filesystems such as procfs.
@@ -695,12 +695,6 @@ of symbolic links.
 The optional trailing p specifies that after a successful substitution
 the original path name and the new path name should be printed to
 standard error.
-.It Fl -strip-components Ar count
-(x mode only)
-Remove the specified number of leading path elements.
-Pathnames with fewer elements will be silently skipped.
-Note that the pathname is edited after checking inclusion/exclusion patterns
-but before security checks.
 .It Fl -snaptime Pa file
 (c mode only)
 This option MUST be specified when creating a backup from a filesystem
@@ -722,6 +716,12 @@ of bandwidth and storage to be wasted when the same set of files are archived
 several times (e.g., if daily backup archives are created) due to
 .Nm
 itself accessing files and thereby causing their access times to be changed.
+.It Fl -strip-components Ar count
+(x mode only)
+Remove the specified number of leading path elements.
+Pathnames with fewer elements will be silently skipped.
+Note that the pathname is edited after checking inclusion/exclusion patterns
+but before security checks.
 .It Fl T Ar filename
 (c, x, and t modes only)
 In x or t mode,
@@ -776,18 +776,18 @@ will produce output similar to that of
 Additional
 .Fl v
 options will provide additional detail.
-.It Fl -verylowmem
-(c mode only)
-Reduce memory usage, by approximately a factor of 2 beyond
-the memory usage when
-.Fl -lowmem
-is specified, by not caching anything.
 .It Fl -verify-config
 Check the configuration file(s) for syntactic errors.
 .It Fl -version
 Print version number of
 .Nm ,
 and exit.
+.It Fl -verylowmem
+(c mode only)
+Reduce memory usage, by approximately a factor of 2 beyond
+the memory usage when
+.Fl -lowmem
+is specified, by not caching anything.
 .It Fl w
 (c and x modes only)
 Ask for confirmation for every action.
