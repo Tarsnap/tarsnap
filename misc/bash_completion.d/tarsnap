@@ -37,7 +37,7 @@ _tarsnap ()
 	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X|--archive-names|--csv-file"
 
 	# These options will be completed by the path to a directory.
-	wpatharg="--cachedir"
+	wpatharg="--cachedir|-C"
 
 	# These options require a non-completable argument.
 	# They won't be completed at all.
