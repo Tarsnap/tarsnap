@@ -34,7 +34,7 @@ _tarsnap ()
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	# These options will be completed by the path to a filename.
-	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X|--archive-names"
+	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X|--archive-names|--csv-file"
 
 	# These options will be completed by the path to a directory.
 	wpatharg="--cachedir"
@@ -43,7 +43,7 @@ _tarsnap ()
 	# They won't be completed at all.
 	wotherarg="--checkpoint-bytes|--exclude|-f|--include|--maxbw|--maxbw-rate|
 		   |--maxbw-rate-down|--maxbw-rate-up|--newer|--newer-mtime|-s|
-		   |--strip-components|--disk-pause|--creationtime|--csv-file"
+		   |--strip-components|--disk-pause|--creationtime"
 
 	# Available long options
 	longopts="--list-archives --print-stats --fsck --nuke --aggressive-networking \
