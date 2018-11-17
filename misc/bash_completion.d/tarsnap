@@ -51,9 +51,9 @@ _tarsnap ()
 		  --exclude --humanize-numbers --include --keep-newer-files --keyfile \
 		  --lowmem --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
 		  --newer --newer-mtime --newer-than --newer-mtime-than --nodump \
-		  --noisy-warnings --null --numeric-owner --one-file-system --print-stats \
+		  --noisy-warnings --null --numeric-owner --one-file-system \
 		  --fast-read --strip-components --snaptime --verylowmem --version \
-		  --disk-pause --fast-read --normalmem --no-aggressive-networking \
+		  --disk-pause --normalmem --no-aggressive-networking \
 		  --no-config-exclude --no-config-include --no-disk-pause --no-humanize-numbers \
 		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
 		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
@@ -64,7 +64,7 @@ _tarsnap ()
 		  --force-resources --no-force-resources --dump-config"
 
 	# Available short options
-	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X -q"
+	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X"
 
 	options=${longopts}" "${shortopts}
 
