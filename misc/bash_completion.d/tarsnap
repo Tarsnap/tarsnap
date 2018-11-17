@@ -57,7 +57,7 @@ _tarsnap ()
 		  --no-config-exclude --no-config-include --no-disk-pause --no-humanize-numbers \
 		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
 		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
-		  --insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune \
+		  --insane-filesystems --no-insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune \
 		  --retry-forever --no-retry-forever --creationtime \
 		  --keep-going --verify-config --csv-file --archive-names \
 		  --initialize-cachedir --iso-dates --no-iso-dates \
