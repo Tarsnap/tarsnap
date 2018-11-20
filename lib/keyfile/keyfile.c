@@ -297,13 +297,6 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 				break;
 		}
 
-		/* If we didn't find an EOL, the file is corrupt. */
-		if (llen == keylen) {
-			warn0("Key file is corrupt or truncated: %s",
-			    filename);
-			goto err1;
-		}
-
 		/* If this isn't a comment or blank line, base-64 decode it. */
 		if ((llen > 0) && (keybuf[0] != '#')) {
 			if (b64decode(keybuf, llen, &decbuf[decpos], &len))
@@ -333,12 +326,12 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 		keybuf += llen;
 		keylen -= llen;
 
-		/* Skip past the EOL. */
+		/* Skip past the EOL if we're not at EOF. */
 		if ((keylen > 1) &&
 		    (keybuf[0] == '\r') && (keybuf[1] == '\n')) {
 			keybuf += 2;
 			keylen -= 2;
-		} else {
+		} else if (keylen) {
 			keybuf += 1;
 			keylen -= 1;
 		}
