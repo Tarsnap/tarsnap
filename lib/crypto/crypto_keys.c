@@ -9,6 +9,7 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 
+#include "crypto_compat.h"
 #include "crypto_entropy.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -206,11 +207,8 @@ crypto_keys_atexit(void)
 	crypto_keys_subr_free_HMAC(&keycache.auth_get);
 	crypto_keys_subr_free_HMAC(&keycache.auth_delete);
 
-	/* Free OpenSSL error strings. */
-	ERR_free_strings();
-
-	/* A more general OpenSSL cleanup function. */
-	CRYPTO_cleanup_all_ex_data();
+	/* Free shared memory allocated by OpenSSL. */
+	crypto_compat_free();
 }
 
 /**

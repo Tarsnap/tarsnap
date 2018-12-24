@@ -213,3 +213,18 @@ err0:
 	/* Failure! */
 	return (NULL);
 }
+
+/**
+ * crypto_compat_free(void):
+ * Free the shared memory allocated by OpenSSL.
+ */
+void
+crypto_compat_free(void)
+{
+
+	/* Free OpenSSL error strings. */
+	ERR_free_strings();
+
+	/* A more general OpenSSL cleanup function. */
+	CRYPTO_cleanup_all_ex_data();
+}
