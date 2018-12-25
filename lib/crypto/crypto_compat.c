@@ -213,3 +213,27 @@ err0:
 	/* Failure! */
 	return (NULL);
 }
+
+/**
+ * crypto_compat_free(void):
+ * Free the shared memory allocated by OpenSSL.
+ */
+void
+crypto_compat_free(void)
+{
+
+	/* Free OpenSSL error queue. */
+#if OPENSSL_VERSION_NUMBER < 0x10000000L
+	ERR_remove_state(0);
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
+	ERR_remove_thread_state(NULL);
+#else
+	/* Nothing needed for OpenSSL >= 1.1. */
+#endif
+
+	/* Free OpenSSL error strings. */
+	ERR_free_strings();
+
+	/* A more general OpenSSL cleanup function. */
+	CRYPTO_cleanup_all_ex_data();
+}

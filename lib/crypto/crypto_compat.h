@@ -32,4 +32,10 @@ int crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
  */
 RSA * crypto_compat_RSA_generate_key(void);
 
+/**
+ * crypto_compat_free(void):
+ * Free the shared memory allocated by OpenSSL.
+ */
+void crypto_compat_free(void);
+
 #endif
