@@ -3,6 +3,9 @@
 
 #include <sys/time.h>
 
+#define timeval_diff(x, y) ((y.tv_sec - x.tv_sec) +			\
+    (y.tv_usec - x.tv_usec) * 0.000001)
+
 /**
  * monoclock_get(tv):
  * Store the current time in ${tv}.  If CLOCK_MONOTONIC is available, use

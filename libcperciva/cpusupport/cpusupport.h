@@ -86,6 +86,8 @@
  * fails for any reason.
  */
 #define CPUSUPPORT_FEATURE_DECL(arch, feature)				\
+	extern int cpusupport_ ## arch ## _ ## feature ## _present_1;	\
+	extern int cpusupport_ ## arch ## _ ## feature ## _init_1;	\
 	int cpusupport_ ## arch ## _ ## feature ## _present_1 = 0;	\
 	int cpusupport_ ## arch ## _ ## feature ## _init_1 = 0;		\
 	int cpusupport_ ## arch ## _ ## feature ## _detect_1(void); \
@@ -101,7 +103,7 @@
  * compiled and linked in.
  */
 CPUSUPPORT_FEATURE(x86, aesni, X86_AESNI);
-CPUSUPPORT_FEATURE(x86, sse2, X86_SSE2);
 CPUSUPPORT_FEATURE(x86, rdrand, X86_RDRAND);
+CPUSUPPORT_FEATURE(x86, sse2, X86_SSE2);
 
 #endif /* !_CPUSUPPORT_H_ */

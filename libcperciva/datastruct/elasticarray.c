@@ -161,7 +161,8 @@ elasticarray_append(struct elasticarray * EA,
 		goto err0;
 
 	/* Copy bytes in. */
-	memcpy((uint8_t *)(EA->buf) + bufpos, buf, nrec * reclen);
+	if (nrec > 0)
+		memcpy((uint8_t *)(EA->buf) + bufpos, buf, nrec * reclen);
 
 	/* Success! */
 	return (0);

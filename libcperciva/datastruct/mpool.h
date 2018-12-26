@@ -8,7 +8,8 @@
  * and reused by a subsequent allocation without returning all the way to
  * free/malloc.  In effect, this is an optimization for the case where we
  * know we will want another allocation of the same size soon, at the expense
- * of allowing the memory to be reused by some other code.
+ * of keeping memory allocated (and thus preventing any other code from
+ * allocating the same memory).
  */
 
 /**

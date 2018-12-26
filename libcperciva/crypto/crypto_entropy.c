@@ -77,9 +77,8 @@ instantiate(void)
 
 #ifdef CPUSUPPORT_X86_RDRAND
 	/* Add output of RDRAND into the state. */
-	if (cpusupport_x86_rdrand()) {
+	if (cpusupport_x86_rdrand())
 		update_from_rdrand();
-	}
 #endif
 
 	/* Clean the stack. */
@@ -154,9 +153,8 @@ reseed(void)
 
 #ifdef CPUSUPPORT_X86_RDRAND
 	/* Add output of RDRAND into the state. */
-	if (cpusupport_x86_rdrand()) {
+	if (cpusupport_x86_rdrand())
 		update_from_rdrand();
-	}
 #endif
 
 	/* Reset the reseed_counter. */

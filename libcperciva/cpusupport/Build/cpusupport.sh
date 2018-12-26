@@ -43,7 +43,10 @@ feature() {
 	esac
 }
 
+# Detect CPU-detection features
 feature X86 CPUID ""
-feature X86 SSE2 "" "-msse2" "-msse2 -Wno-cast-align"
+
+# Detect specific features
 feature X86 AESNI "" "-maes" "-maes -Wno-cast-align" "-maes -Wno-missing-prototypes -Wno-cast-qual"
 feature X86 RDRAND "" "-mrdrnd"
+feature X86 SSE2 "" "-msse2" "-msse2 -Wno-cast-align"
