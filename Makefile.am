@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_sse2.a
+noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_shani.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
 CLEANFILES=	$(man_MANS)
@@ -157,10 +157,13 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/tvmath.h				\
 		libcperciva/alg/sha256.c			\
 		libcperciva/alg/sha256.h			\
+		libcperciva/alg/sha256_shani.h			\
 		libcperciva/cpusupport/cpusupport.h		\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
 		libcperciva/cpusupport/cpusupport_x86_rdrand.c	\
+		libcperciva/cpusupport/cpusupport_x86_shani.c	\
 		libcperciva/cpusupport/cpusupport_x86_sse2.c	\
+		libcperciva/cpusupport/cpusupport_x86_ssse3.c	\
 		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aes.h			\
 		libcperciva/crypto/crypto_aesctr.c		\
@@ -259,7 +262,10 @@ EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
-		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c
+		libcperciva/cpusupport/Build/cpusupport-X86-CPUID_COUNT.c \
+		libcperciva/cpusupport/Build/cpusupport-X86-SHANI.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c	\
+		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c
 BUILT_SOURCES=	cpusupport-config.h
 CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
@@ -289,6 +295,16 @@ lib_libtarsnap_sse2_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_sse2_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
+
+lib_libtarsnap_shani_a_SOURCES=				\
+		libcperciva/alg/sha256_shani.c
+nodist_lib_libtarsnap_shani_a_SOURCES=			\
+		cpusupport-config.h
+lib_libtarsnap_shani_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_shani_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_shani.a
+
 
 #
 #
