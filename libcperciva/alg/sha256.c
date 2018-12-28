@@ -2,10 +2,17 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "cpusupport.h"
 #include "insecure_memzero.h"
+#include "sha256_shani.h"
 #include "sysendian.h"
+#include "warnp.h"
 
 #include "sha256.h"
+
+static void SHA256_Transform(uint32_t[static restrict 8],
+    const uint8_t[static restrict 64], uint32_t[static restrict 64],
+    uint32_t[static restrict 8]);
 
 /*
  * Encode a length len/4 vector of (uint32_t) into a length len vector of
@@ -61,6 +68,76 @@ static const uint32_t Krnd[64] = {
 	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
+/* Magic initialization constants. */
+static const uint32_t initial_state[8] = {
+	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+};
+
+#if CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3
+/*
+ * Test whether software and SHANI transform code produce the same results.
+ * Must be called with usesha() returning 0 (software).
+ */
+static int
+shanitest(const uint32_t state[static restrict 8],
+    const uint8_t block[static restrict 64],
+    uint32_t W[static restrict 64], uint32_t S[static restrict 8])
+{
+	uint32_t state_sw[8];
+	uint32_t state_shani[8];
+
+	/* Software transform. */
+	memcpy(state_sw, state, sizeof(state_sw));
+	SHA256_Transform(state_sw, block, W, S);
+
+	/* SHANI transform. */
+	memcpy(state_shani, state, sizeof(state_shani));
+	SHA256_Transform_shani(state_shani, block);
+
+	/* Do the results match? */
+	return (memcmp(state_sw, state_shani, sizeof(state_sw)));
+}
+
+/* Should we use SHANI? */
+static int
+useshani(void)
+{
+	static int shanigood = -1;
+	uint32_t W[64];
+	uint32_t S[8];
+	uint8_t block[64];
+	uint8_t i;
+
+	/* If we haven't decided which code to use yet, decide now. */
+	while (shanigood == -1) {
+		/* Default to software. */
+		shanigood = 0;
+
+		/* If the CPU doesn't claim to support AESNI, stop here. */
+		if (!cpusupport_x86_shani())
+			break;
+
+		/* If the CPU doesn't claim to support SSSE3, stop here. */
+		if (!cpusupport_x86_ssse3())
+			break;
+
+		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
+		for (i = 0; i < 64; i++)
+			block[i] = i;
+		if (shanitest(initial_state, block, W, S)) {
+			warn0("Disabling SHANI due to failed self-test");
+			break;
+		}
+
+		/* SHANI works; use it. */
+		shanigood = 1;
+	}
+
+	return (shanigood);
+}
+#endif /* CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3 */
+
 /* Elementary functions used by SHA256 */
 #define Ch(x, y, z)	((x & (y ^ z)) ^ z)
 #define Maj(x, y, z)	((x & (y | z)) | (y & z))
@@ -99,6 +176,14 @@ SHA256_Transform(uint32_t state[static restrict 8],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8])
 {
 	int i;
+
+#if CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3
+	/* Use SHANI if we can. */
+	if (useshani()) {
+		SHA256_Transform_shani(state, block);
+		return;
+	}
+#endif
 
 	/* 1. Prepare the first part of the message schedule W. */
 	be32dec_vect(W, block, 64);
@@ -185,12 +270,6 @@ SHA256_Pad(SHA256_CTX * ctx, uint32_t tmp32[static restrict 72])
 	/* Mix in the final block. */
 	SHA256_Transform(ctx->state, ctx->buf, &tmp32[0], &tmp32[64]);
 }
-
-/* Magic initialization constants. */
-static const uint32_t initial_state[8] = {
-	0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
-	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
-};
 
 /**
  * SHA256_Init(ctx):
