@@ -112,6 +112,7 @@ struct bsdtar {
 	int		  option_no_config_include;
 	int		  option_no_config_exclude_set;
 	int		  option_no_config_include_set;
+	int		  option_passphrase_stdin;
 	int		  option_quiet;
 	int		  option_quiet_set;
 	int		  option_retry_forever_set;
@@ -251,6 +252,7 @@ enum {
 	OPTION_NULL,
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
+	OPTION_PASSPHRASE_STDIN,
 	OPTION_PRINT_STATS,
 	OPTION_RECOVER,
 	OPTION_RECOVER_DELETE,	/* Operation mode, not a real option */

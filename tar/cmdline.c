@@ -151,6 +151,7 @@ static struct option {
 	{ "null",		  0, OPTION_NULL },
 	{ "numeric-owner",	  0, OPTION_NUMERIC_OWNER },
 	{ "one-file-system",	  0, OPTION_ONE_FILE_SYSTEM },
+	{ "passphrase-stdin",	  0, OPTION_PASSPHRASE_STDIN },
 	{ "preserve-permissions", 0, 'p' },
 	{ "print-stats",	  0, OPTION_PRINT_STATS },
 	{ "quiet",		  0, OPTION_QUIET },
