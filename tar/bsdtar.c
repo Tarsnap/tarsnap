@@ -1861,7 +1861,8 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 	uint64_t machinenum;
 
 	/* Load the key file. */
-	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources))
+	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources,
+	    1))
 		goto err0;
 
 	/* Check the machine number. */
