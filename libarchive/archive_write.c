@@ -485,5 +485,8 @@ archive_write_skip(struct archive *_a, off_t s)
 	/* Adjust raw position. */
 	a->archive.raw_position += s;
 
+	/* Adjust uncompressed position.  Used by Tarsnap. */
+	_a->file_position += s;
+
 	return ((a->format_skip_data)(a, s));
 }

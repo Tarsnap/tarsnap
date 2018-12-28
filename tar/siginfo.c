@@ -51,6 +51,12 @@ struct siginfo_data {
 	/* How large is the archive entry? */
 	int64_t size;
 
+	/* How many files have we handled in total? */
+	int file_count;
+
+	/* How many bytes have we handled in total? */
+	uint64_t total_uncompressed;
+
 	/* Old signal handlers. */
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
@@ -107,9 +113,12 @@ siginfo_init(struct bsdtar *bsdtar)
 
 void
 siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
-    int64_t size)
+    int64_t size, int file_count, int64_t archive_uncompressed)
 {
 	struct siginfo_data * siginfo = bsdtar->siginfo;
+
+	/* Sanity check. */
+	assert(archive_uncompressed >= 0);
 
 	/* Free old operation and path strings. */
 	free(siginfo->oper);
@@ -121,6 +130,8 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	if ((siginfo->path = strdup(path)) == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
 	siginfo->size = size;
+	siginfo->file_count = file_count;
+	siginfo->total_uncompressed = (uint64_t)archive_uncompressed;
 }
 
 void
@@ -129,6 +140,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	struct siginfo_data * siginfo = bsdtar->siginfo;
 	char * s_progress;
 	char * s_size;
+	char * s_total_uncompressed;
 
 	/* Sanity check. */
 	assert(progress >= 0);
@@ -167,6 +179,36 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 				    siginfo->size);
 			}
 		}
+		/* --verbose mode doesn't want newlines at the end of lines. */
+		if (!bsdtar->verbose)
+			fprintf(stderr, "\n");
+
+		/* We've handled the signal. */
+		siginfo_received = 0;
+	}
+
+	/* Print overall progress (if applicable). */
+	if (siginfo->total_uncompressed > 0) {
+		/* --verbose mode doesn't print newlines at the end of lines. */
+		if (bsdtar->verbose)
+			fprintf(stderr, "\n");
+
+		/* Print overall progress with or without --humanize-numbers. */
+		if (tarsnap_opt_humanize_numbers) {
+			if ((s_total_uncompressed = humansize(
+			    siginfo->total_uncompressed)) == NULL)
+				goto err0;
+			safe_fprintf(stderr, "Processed %i files, %s",
+			    siginfo->file_count, s_total_uncompressed);
+
+			/* Clean up. */
+			free(s_total_uncompressed);
+		} else {
+			safe_fprintf(stderr,
+			    "Processed %i files, %" PRId64 " bytes",
+			    siginfo->file_count, siginfo->total_uncompressed);
+		}
+
 		/* --verbose mode doesn't want newlines at the end of lines. */
 		if (!bsdtar->verbose)
 			fprintf(stderr, "\n");

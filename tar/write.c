@@ -627,7 +627,9 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 			    archive_entry_pathname(in_entry));
 		siginfo_setinfo(bsdtar, "copying",
 		    archive_entry_pathname(in_entry),
-		    archive_entry_size(in_entry));
+		    archive_entry_size(in_entry),
+		    archive_file_count(a),
+		    archive_position_uncompressed(a));
 		siginfo_printinfo(bsdtar, 0);
 
 		if (MODE_HEADER(bsdtar, a))
@@ -993,7 +995,9 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 
 		/* Record what we're doing, for SIGINFO / SIGUSR1. */
 		siginfo_setinfo(bsdtar, "adding",
-		    archive_entry_pathname(entry), archive_entry_size(entry));
+		    archive_entry_pathname(entry), archive_entry_size(entry),
+		    archive_file_count(a),
+		    archive_position_uncompressed(a));
 		archive_entry_linkify(bsdtar->resolver, &entry, &spare_entry);
 
 		/* Handle SIGINFO / SIGUSR1 request if one was made. */
