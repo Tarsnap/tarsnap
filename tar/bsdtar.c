@@ -697,6 +697,9 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
 			break;
+		case OPTION_PASSPHRASE_STDIN: /* tarsnap*/
+			bsdtar->option_passphrase_stdin = 1;
+			break;
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
 			break;
@@ -1861,7 +1864,8 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 	uint64_t machinenum;
 
 	/* Load the key file. */
-	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources))
+	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources,
+	    !bsdtar->option_passphrase_stdin))
 		goto err0;
 
 	/* Check the machine number. */

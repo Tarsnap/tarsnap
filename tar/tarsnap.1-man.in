@@ -283,7 +283,7 @@ Manually specify a creation time (a unix timestamp) for the
 archive.  This is unlikely to be useful when tarsnap is being
 invoked directly from the command line.
 .TP
-\fB\--csv-file\fP \fIX\fP
+\fB\--csv-file\fP \fIfilename\fP
 (only relevant with --print-stats)
 Write statistics in CSV format to a file.
 .TP
@@ -360,6 +360,11 @@ many users find it useful to include timestamps in archive names when
 repeatedly creating archives from the same files/directories (e.g.,
 daily backups).
 .TP
+\fB\--force-resources\fP
+Force the decryption of a passphrase-encrypted key file to proceed
+even if it is anticipated to require an excessive amount of memory
+or CPU time.
+.TP
 \fB\-H\fP
 (c mode only)
 Symbolic links named on the command line will be followed; the
@@ -400,11 +405,6 @@ containing only the entries from
 \fIall-backup\fP
 containing the string
 `foo'.
-.TP
-\fB\--force-resources\fP
-Force the decryption of a passphrase-encrypted key file to proceed
-even if it is anticipated to require an excessive amount of memory
-or CPU time.
 .TP
 \fB\--insane-filesystems\fP
 (c mode only)
@@ -513,21 +513,6 @@ This compares ctime entries.
 Like
 \fB\--newer-than\fP,
 except it compares mtime entries instead of ctime entries.
-.TP
-\fB\--nodump\fP
-(c mode only)
-Honor the nodump file flag by skipping this file.
-.TP
-\fB\--noisy-warnings\fP
-Be verbose when warning about network glitches.
-This is probably only useful for debugging purposes.
-.TP
-\fB\--normalmem\fP
-Ignore any
-\fBlowmem\fP
-or
-\fBverylowmem\fP
-option specified in a configuration file.
 .TP
 \fB\--no-aggressive-networking\fP
 Ignore any
@@ -647,6 +632,21 @@ Ignore any
 \fBtotals\fP
 option specified in a configuration file.
 .TP
+\fB\--nodump\fP
+(c mode only)
+Honor the nodump file flag by skipping this file.
+.TP
+\fB\--noisy-warnings\fP
+Be verbose when warning about network glitches.
+This is probably only useful for debugging purposes.
+.TP
+\fB\--normalmem\fP
+Ignore any
+\fBlowmem\fP
+or
+\fBverylowmem\fP
+option specified in a configuration file.
+.TP
 \fB\--null\fP
 (use with
 \fB\-I\fP,
@@ -715,6 +715,12 @@ is being run by root, the default is to restore the owner unless the
 \fB\-o\fP
 option is also specified.
 .TP
+\fB\--passphrase-stdin\fP
+Always read passphrase from stdin instead of /dev/tty.  Note that while this
+can be useful in automated scenarios, it must be used with care; in particular,
+if the key file and the passphrase are both present on disk, there is very
+little security gained compared to a non-passphrase-protected key file.
+.TP
 \fB\--print-stats\fP
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
@@ -775,13 +781,6 @@ The optional trailing p specifies that after a successful substitution
 the original path name and the new path name should be printed to
 standard error.
 .TP
-\fB\--strip-components\fP \fIcount\fP
-(x mode only)
-Remove the specified number of leading path elements.
-Pathnames with fewer elements will be silently skipped.
-Note that the pathname is edited after checking inclusion/exclusion patterns
-but before security checks.
-.TP
 \fB\--snaptime\fP \fIfile\fP
 (c mode only)
 This option MUST be specified when creating a backup from a filesystem
@@ -804,6 +803,13 @@ of bandwidth and storage to be wasted when the same set of files are archived
 several times (e.g., if daily backup archives are created) due to
 \fB\%tarsnap\fP
 itself accessing files and thereby causing their access times to be changed.
+.TP
+\fB\--strip-components\fP \fIcount\fP
+(x mode only)
+Remove the specified number of leading path elements.
+Pathnames with fewer elements will be silently skipped.
+Note that the pathname is edited after checking inclusion/exclusion patterns
+but before security checks.
 .TP
 \fB\-T\fP \fIfilename\fP
 (c, x, and t modes only)
@@ -863,13 +869,6 @@ Additional
 \fB\-v\fP
 options will provide additional detail.
 .TP
-\fB\--verylowmem\fP
-(c mode only)
-Reduce memory usage, by approximately a factor of 2 beyond
-the memory usage when
-\fB\--lowmem\fP
-is specified, by not caching anything.
-.TP
 \fB\--verify-config\fP
 Check the configuration file(s) for syntactic errors.
 .TP
@@ -877,6 +876,13 @@ Check the configuration file(s) for syntactic errors.
 Print version number of
 \fB\%tarsnap\fP,
 and exit.
+.TP
+\fB\--verylowmem\fP
+(c mode only)
+Reduce memory usage, by approximately a factor of 2 beyond
+the memory usage when
+\fB\--lowmem\fP
+is specified, by not caching anything.
 .TP
 \fB\-w\fP
 (c and x modes only)
@@ -901,7 +907,9 @@ SIGINFO signal,
 \fB\%tarsnap\fP
 prints the current file or directory being processed, and (for files)
 its progress within the file.
-Note that due to network buffering this position will not align precisely
+It also prints the number of files and the number of uncompressed bytes
+processed.
+Note that due to network buffering the file position will not align precisely
 with how much data has been sent to or received from the
 \fB\%tarsnap\fP
 server.

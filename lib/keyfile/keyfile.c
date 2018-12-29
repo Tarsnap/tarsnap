@@ -60,11 +60,11 @@ static int read_raw(const uint8_t *, size_t,
 static int read_plaintext(const uint8_t *, size_t,
     uint64_t *, const char *, int);
 static int read_encrypted(const uint8_t *, size_t,
-    uint64_t *, const char *, int, int);
+    uint64_t *, const char *, int, int, int);
 static int read_base256(const uint8_t *, size_t,
-    uint64_t *, const char *, int, int);
+    uint64_t *, const char *, int, int, int);
 static int read_base64(const char *, size_t,
-    uint64_t *, const char *, int, int);
+    uint64_t *, const char *, int, int, int);
 
 static int
 read_raw(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
@@ -119,7 +119,7 @@ err0:
 
 static int
 read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force)
+    const char * filename, int keys, int force, int devtty)
 {
 	char * pwprompt;
 	char * passwd;
@@ -140,7 +140,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	if (asprintf(&pwprompt, "Please enter passphrase for keyfile %s",
 	    filename) == -1)
 		goto err0;
-	if (readpass(&passwd, pwprompt, NULL, 1)) {
+	if (readpass(&passwd, pwprompt, NULL, devtty)) {
 		warnp("Error reading passphrase");
 		goto err1;
 	}
@@ -238,7 +238,7 @@ err0:
 
 static int
 read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force)
+    const char * filename, int keys, int force, int devtty)
 {
 
 	/* Sanity-check size. */
@@ -250,7 +250,7 @@ read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	/* Is this encrypted? */
 	if (memcmp(keybuf, "scrypt", 6) == 0)
 		return (read_encrypted(keybuf, keylen,
-		    machinenum, filename, keys, force));
+		    machinenum, filename, keys, force, devtty));
 
 	/* Parse this as a plaintext keyfile. */
 	return (read_plaintext(keybuf, keylen,
@@ -263,7 +263,7 @@ err0:
 
 static int
 read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force)
+    const char * filename, int keys, int force, int devtty)
 {
 	uint8_t * decbuf;
 	size_t decbuflen;
@@ -338,7 +338,8 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 	}
 
 	/* Process the decoded key file. */
-	if (read_base256(decbuf, decpos, machinenum, filename, keys, force))
+	if (read_base256(decbuf, decpos, machinenum, filename, keys, force,
+	    devtty))
 		goto err1;
 
 	/* Zero and free memory. */
@@ -359,14 +360,16 @@ err0:
 }
 
 /**
- * keyfile_read(filename, machinenum, keys, force):
+ * keyfile_read(filename, machinenum, keys, force, devtty):
  * Read keys from a tarsnap key file; and return the machine # via the
  * provided pointer.  Ignore any keys not specified in the ${keys} mask.
  * If ${force} is 1, do not check whether decryption will exceed
- * the estimated available memory or time.
+ * the estimated available memory or time.  If ${devtty} is non-zero, read a
+ * password from /dev/tty if possible; if not, read from stdin.
  */
 int
-keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force)
+keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
+    int devtty)
 {
 	struct stat sb;
 	uint8_t * keybuf;
@@ -415,7 +418,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force)
 	} else {
 		/* Otherwise, try to base64 decode it. */
 		if (read_base64((const char *)keybuf, keyfilelen,
-		    machinenum, filename, keys, force)) {
+		    machinenum, filename, keys, force, devtty)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
 			goto err1;

@@ -40,7 +40,7 @@ print_id(const char *keyfilename)
 	uint64_t machinenum = (uint64_t)(-1);
 
 	/* Read keyfile and machine name. */
-	if (keyfile_read(keyfilename, &machinenum, ~0, 0)) {
+	if (keyfile_read(keyfilename, &machinenum, ~0, 0, 1)) {
 		warnp("Cannot read key file: %s", keyfilename);
 		exit(1);
 	}
@@ -61,7 +61,7 @@ print_permissions(const char *keyfilename)
 	int has_delete;
 
 	/* Read keyfile and machine name. */
-	if (keyfile_read(keyfilename, &machinenum, ~0, 0)) {
+	if (keyfile_read(keyfilename, &machinenum, ~0, 0, 1)) {
 		warnp("Cannot read key file: %s", keyfilename);
 		exit(1);
 	}
@@ -274,7 +274,7 @@ main(int argc, char **argv)
 		 * keys we want to copy, but there's no point really since we
 		 * export keys selectively.
 		 */
-		if (keyfile_read(argv[0], &kfmachinenum, ~0, 0)) {
+		if (keyfile_read(argv[0], &kfmachinenum, ~0, 0, 1)) {
 			warnp("Cannot read key file: %s", argv[0]);
 			exit(1);
 		}

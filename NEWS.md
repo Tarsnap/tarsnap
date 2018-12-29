@@ -9,6 +9,8 @@
   (i.e. "tarsnap -d -f a1 a2", where "a2" is unused.)
 - When sent SIGINFO or SIGUSR1, tarsnap now prints the number of files and the
   number of uncompressed bytes processed, in addition to the previous output.
+- tarsnap now accepts a --passphrase-stdin option which reads the passphrase
+  from stdin instead of /dev/tty.
 
 
 Tarsnap Releases
