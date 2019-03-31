@@ -38,6 +38,7 @@
 #include "crypto_aes.h"
 #include "crypto_aesctr.h"
 #include "crypto_entropy.h"
+#include "crypto_verify_bytes.h"
 #include "humansize.h"
 #include "insecure_memzero.h"
 #include "sha256.h"
@@ -288,7 +289,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	SHA256_Init(&ctx);
 	SHA256_Update(&ctx, header, 48);
 	SHA256_Final(hbuf, &ctx);
-	if (memcmp(&header[48], hbuf, 16))
+	if (crypto_verify_bytes(&header[48], hbuf, 16))
 		return (7);
 
 	/*
@@ -309,7 +310,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
 	HMAC_SHA256_Update(&hctx, header, 64);
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (memcmp(hbuf, &header[64], 32))
+	if (crypto_verify_bytes(hbuf, &header[64], 32))
 		return (11);
 
 	/* Success! */
@@ -446,7 +447,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
 	HMAC_SHA256_Update(&hctx, inbuf, inbuflen - 32);
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (memcmp(hbuf, &inbuf[inbuflen - 32], 32)) {
+	if (crypto_verify_bytes(hbuf, &inbuf[inbuflen - 32], 32)) {
 		rc = 7;
 		goto err1;
 	}
@@ -739,7 +740,7 @@ scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 
 	/* Verify signature. */
 	HMAC_SHA256_Final(hbuf, &hctx);
-	if (memcmp(hbuf, buf, 32)) {
+	if (crypto_verify_bytes(hbuf, buf, 32)) {
 		rc = 7;
 		goto err0;
 	}
