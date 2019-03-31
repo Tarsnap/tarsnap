@@ -184,7 +184,7 @@ statstape_printall(TAPE_S * d, const char * csv_filename)
 
 		/* Free parsed metadata. */
 		multitape_metadata_free(&tmd);
-	};
+	}
 
 	/* Free the list of files. */
 	free(flist);
@@ -278,7 +278,7 @@ statstape_printlist(TAPE_S * d, int verbose)
 
 		/* Free parsed metadata. */
 		multitape_metadata_free(&tmd);
-	};
+	}
 
 	/* Free the list of files. */
 	free(flist);
