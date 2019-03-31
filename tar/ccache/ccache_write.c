@@ -235,7 +235,7 @@ ccache_write(CCACHE * cache, const char * path)
 	if (patricia_foreach(C->tree, callback_count, &W)) {
 		warnp("patricia_foreach");
 		goto err2;
-	};
+	}
 
 	/* Check that we don't have too many cache records. */
 	if (W.N > UINT32_MAX) {

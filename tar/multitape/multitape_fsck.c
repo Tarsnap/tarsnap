@@ -421,7 +421,7 @@ phase4(STORAGE_D * SD, STORAGE_R * SR, CHUNKS_S * C,
 				goto err0;
 			break;
 		}
-	};
+	}
 
 	/* Success! */
 	return (0);

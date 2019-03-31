@@ -316,7 +316,7 @@ nochunk:
 		writelen = archive_write_data(a, buff, 1);
 		if (writelen < 1)
 			return (-1);
-	};
+	}
 
 	return (0);
 }
