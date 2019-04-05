@@ -152,7 +152,7 @@ useshani(void)
 #define RND(a, b, c, d, e, f, g, h, k)			\
 	h += S1(e) + Ch(e, f, g) + k;			\
 	d += h;						\
-	h += S0(a) + Maj(a, b, c);
+	h += S0(a) + Maj(a, b, c)
 
 /* Adjusted round function for rotating state */
 #define RNDr(S, W, i, ii)			\

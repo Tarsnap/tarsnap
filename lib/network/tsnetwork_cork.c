@@ -44,7 +44,7 @@
 			goto err0;					\
 		}							\
 	}								\
-} while (0);
+} while (0)
 
 /**
  * network_cork(fd):
