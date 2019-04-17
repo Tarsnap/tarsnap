@@ -505,6 +505,9 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	/* Call the real function. */
 	_HMAC_SHA256_Final(digest, ctx, tmp32, ihash);
 
+	/* Clear the context state. */
+	insecure_memzero(ctx, sizeof(HMAC_SHA256_CTX));
+
 	/* Clean the stack. */
 	insecure_memzero(tmp32, 288);
 	insecure_memzero(ihash, 32);
