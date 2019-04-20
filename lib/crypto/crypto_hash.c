@@ -1,7 +1,7 @@
 #include "bsdtar_platform.h"
 
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "crypto_internal.h"
 #include "sha256.h"
@@ -37,9 +37,6 @@ crypto_hash_data_key_2(const uint8_t * key, size_t keylen,
 	HMAC_SHA256_Update(&hctx, data0, len0);
 	HMAC_SHA256_Update(&hctx, data1, len1);
 	HMAC_SHA256_Final(buf, &hctx);
-
-	/* Clean the stack. */
-	memset(&hctx, 0, sizeof(HMAC_SHA256_CTX));
 }
 
 /**
@@ -73,9 +70,6 @@ crypto_hash_data_2(int key, const uint8_t * data0, size_t len0,
 		SHA256_Update(&ctx, data0, len0);
 		SHA256_Update(&ctx, data1, len1);
 		SHA256_Final(buf, &ctx);
-
-		/* Clean the stack. */
-		memset(&ctx, 0, sizeof(SHA256_CTX));
 	} else {
 		if ((hkey = crypto_keys_lookup_HMAC(key)) == NULL)
 			goto err0;
@@ -85,9 +79,6 @@ crypto_hash_data_2(int key, const uint8_t * data0, size_t len0,
 		HMAC_SHA256_Update(&hctx, data0, len0);
 		HMAC_SHA256_Update(&hctx, data1, len1);
 		HMAC_SHA256_Final(buf, &hctx);
-
-		/* Clean the stack. */
-		memset(&hctx, 0, sizeof(HMAC_SHA256_CTX));
 	}
 
 	/* Success! */
