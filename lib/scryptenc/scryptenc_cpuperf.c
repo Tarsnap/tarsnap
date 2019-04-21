@@ -32,91 +32,20 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <time.h>
 
 #include "crypto_scrypt.h"
+#include "monoclock.h"
 
 #include "scryptenc_cpuperf.h"
 
-#ifdef HAVE_CLOCK_GETTIME
-
-static clockid_t clocktouse;
-
 static int
-getclockres(double * resd)
+getclockdiff(struct timeval * st, double * diffd)
 {
-	struct timespec res;
+	struct timeval en;
 
-	/*
-	 * Try clocks in order of preference until we find one which works.
-	 * (We assume that if clock_getres works, clock_gettime will, too.)
-	 * The use of if/else/if/else/if/else rather than if/elif/elif/else
-	 * is ugly but legal, and allows us to #ifdef things appropriately.
-	 */
-#ifdef CLOCK_VIRTUAL
-	if (clock_getres(CLOCK_VIRTUAL, &res) == 0)
-		clocktouse = CLOCK_VIRTUAL;
-	else
-#endif
-#ifdef CLOCK_MONOTONIC
-	if (clock_getres(CLOCK_MONOTONIC, &res) == 0)
-		clocktouse = CLOCK_MONOTONIC;
-	else
-#endif
-	if (clock_getres(CLOCK_REALTIME, &res) == 0)
-		clocktouse = CLOCK_REALTIME;
-	else
-		return (-1);
-
-	/* Convert clock resolution to a double. */
-	*resd = res.tv_sec + res.tv_nsec * 0.000000001;
-
-	return (0);
-}
-
-static int
-getclocktime(struct timespec * ts)
-{
-
-	if (clock_gettime(clocktouse, ts))
-		return (-1);
-
-	return (0);
-}
-
-#else
-static int
-getclockres(double * resd)
-{
-
-	*resd = 1.0 / CLOCKS_PER_SEC;
-
-	return (0);
-}
-
-static int
-getclocktime(struct timespec * ts)
-{
-	struct timeval tv;
-
-	if (gettimeofday(&tv, NULL))
-		return (-1);
-	ts->tv_sec = tv.tv_sec;
-	ts->tv_nsec = tv.tv_usec * 1000;
-
-	return (0);
-}
-#endif
-
-static int
-getclockdiff(struct timespec * st, double * diffd)
-{
-	struct timespec en;
-
-	if (getclocktime(&en))
+	if (monoclock_get(&en))
 		return (1);
-	*diffd = (en.tv_nsec - st->tv_nsec) * 0.000000001 +
-	    (en.tv_sec - st->tv_sec);
+	*diffd = timeval_diff((*st), en);
 
 	return (0);
 }
@@ -129,12 +58,12 @@ getclockdiff(struct timespec * st, double * diffd)
 int
 scryptenc_cpuperf(double * opps)
 {
-	struct timespec st;
+	struct timeval st;
 	double resd, diffd;
 	uint64_t i = 0;
 
 	/* Get the clock resolution. */
-	if (getclockres(&resd))
+	if (monoclock_getres(&resd))
 		return (2);
 
 #ifdef DEBUG
@@ -142,7 +71,7 @@ scryptenc_cpuperf(double * opps)
 #endif
 
 	/* Loop until the clock ticks. */
-	if (getclocktime(&st))
+	if (monoclock_get(&st))
 		return (2);
 	do {
 		/* Do an scrypt. */
@@ -157,7 +86,7 @@ scryptenc_cpuperf(double * opps)
 	} while (1);
 
 	/* Count how many scrypts we can do before the next tick. */
-	if (getclocktime(&st))
+	if (monoclock_get(&st))
 		return (2);
 	do {
 		/* Do an scrypt. */
