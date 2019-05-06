@@ -74,7 +74,7 @@ static const uint32_t initial_state[8] = {
 	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
 };
 
-#if CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 /*
  * Test whether software and SHANI transform code produce the same results.
  * Must be called with usesha() returning 0 (software).
@@ -177,7 +177,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 {
 	int i;
 
-#if CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	/* Use SHANI if we can. */
 	if (useshani()) {
 		SHA256_Transform_shani(state, block);

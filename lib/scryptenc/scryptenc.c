@@ -26,8 +26,6 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#include "bsdtar_platform.h"
-
 #include <assert.h>
 #include <inttypes.h>
 #include <stdint.h>

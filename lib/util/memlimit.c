@@ -290,6 +290,16 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	    sysconf_memlimit);
 #endif
 
+	/*
+	 * Some systems return bogus values for hw.usermem due to ZFS making
+	 * use of wired pages.  Assume that at least 50% of physical pages
+	 * are available to userland on demand.
+	 */
+	if (sysconf_memlimit != SIZE_MAX) {
+		if (usermem_memlimit < sysconf_memlimit / 2)
+			usermem_memlimit = sysconf_memlimit / 2;
+	}
+
 	/* Find the smallest of them. */
 	memlimit_min = SIZE_MAX;
 	if (memlimit_min > usermem_memlimit)
