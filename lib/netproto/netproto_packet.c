@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include <sys/select.h>
 
 #include <errno.h>
