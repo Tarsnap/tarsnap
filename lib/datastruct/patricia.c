@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include <stddef.h>	/* size_t */
 #include <stdint.h>	/* uint8_t */
 #include <stdlib.h>	/* malloc, free */
