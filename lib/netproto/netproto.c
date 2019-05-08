@@ -34,6 +34,7 @@ _netproto_printerr(int status)
 	case NETWORK_STATUS_TIMEOUT:
 		/* Server timed out. */
 		warn0("Timeout communicating with server");
+		break;
 	case NETWORK_STATUS_CTIMEOUT:
 		/* Server timed out. */
 		warn0("Timeout connecting to server");

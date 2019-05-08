@@ -620,6 +620,7 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NO_FORCE_RESOURCES:
 			optq_push(bsdtar, "no-force-resources", NULL);
+			break;
 		case OPTION_NO_HUMANIZE_NUMBERS:
 			optq_push(bsdtar, "no-humanize-numbers", NULL);
 			break;
