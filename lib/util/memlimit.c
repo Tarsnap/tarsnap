@@ -31,7 +31,7 @@
 #undef _POSIX_C_SOURCE
 #undef _XOPEN_SOURCE
 
-#include "bsdtar_platform.h"
+#include "platform.h"
 
 #include <sys/types.h>
 #include <sys/resource.h>
