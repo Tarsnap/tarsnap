@@ -1,3 +1,8 @@
+tarsnap (1.0.39-2) unstable; urgency=medium
+
+  * Package may now use libssl 1.1.x if available.
+
+ -- Graham Percival <pkg-deb@tarsnap.com>  Wed, 08 May 2019 13:00:40 -0700
 tarsnap (1.0.39-1) unstable; urgency=medium
 
   * Fix a division-by-zero crash when reading corrupt password-encrypted
