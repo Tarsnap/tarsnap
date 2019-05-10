@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include <sys/types.h>
 
 #include <inttypes.h>

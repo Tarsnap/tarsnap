@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include "chunks_internal.h"
 
 #include "chunks.h"
