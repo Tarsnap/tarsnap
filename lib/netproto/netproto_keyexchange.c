@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

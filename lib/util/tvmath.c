@@ -1,5 +1,3 @@
-#include "bsdtar_platform.h"
-
 #include <sys/time.h>
 
 #include "monoclock.h"
