@@ -112,6 +112,44 @@ progress_func(void * cookie)
 }
 
 /*
+ * Should we skip over this file if given --resume-extract?
+ * 0: skip it.  1: don't skip.  -1: error.
+ */
+static int
+check_skip_file(const char * filename, const struct stat * archive_st)
+{
+	struct stat file_st;
+
+	/* Get info about the file on disk. */
+	if (stat(filename, &file_st) == -1) {
+		if (errno == ENOENT)
+			goto noskip;
+		goto err0;
+	}
+
+	/*
+	 * Compare file size and mtime (seconds).  Some filesystems don't have
+	 * sub-second timestamp precision, so comparing the full timespecs
+	 * would produce a lot of false negatives.
+	 */
+	if (file_st.st_size != archive_st->st_size)
+		goto noskip;
+	if (file_st.st_mtim.tv_sec != archive_st->st_mtim.tv_sec)
+		goto noskip;
+
+	/* Skip file. */
+	return (0);
+
+noskip:
+	/* Don't skip. */
+	return (1);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/*
  * Handle 'x' and 't' modes.
  */
 static void
@@ -264,6 +302,21 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			/* Note: some rewrite failures prevent extraction. */
 			if (edit_pathname(bsdtar, entry))
 				continue; /* Excluded by a rewrite failure. */
+
+			/* Don't extract if the file already matches it. */
+			if (bsdtar->option_resume_extract) {
+				r = check_skip_file(
+				    archive_entry_pathname(entry), st);
+				if (r == -1) {
+					bsdtar_warnc(bsdtar, errno, "stat(%s)",
+					    archive_entry_pathname(entry));
+					goto err1;
+				}
+
+				/* Skip file. */
+				if (r == 0)
+					continue;
+			}
 
 			if (bsdtar->option_interactive &&
 			    !yes("extract '%s'", archive_entry_pathname(entry)))

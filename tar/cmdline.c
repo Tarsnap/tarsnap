@@ -157,6 +157,7 @@ static struct option {
 	{ "quiet",		  0, OPTION_QUIET },
 	{ "read-full-blocks",	  0, 'B' },
 	{ "recover",		  0, OPTION_RECOVER },
+	{ "resume-extract",	  0, OPTION_RESUME_EXTRACT },
 	{ "retry-forever",	  0, OPTION_RETRY_FOREVER },
 	{ "same-owner",	          0, OPTION_SAME_OWNER },
 	{ "same-permissions",     0, 'p' },

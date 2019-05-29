@@ -716,6 +716,9 @@ main(int argc, char **argv)
 		case OPTION_RECOVER:
 			set_mode(bsdtar, opt, "--recover");
 			break;
+		case OPTION_RESUME_EXTRACT:
+			bsdtar->option_resume_extract = 1;
+			break;
 		case OPTION_RETRY_FOREVER:
 			optq_push(bsdtar, "retry-forever", NULL);
 			break;
