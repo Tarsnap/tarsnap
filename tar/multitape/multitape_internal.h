@@ -1,6 +1,8 @@
 #ifndef _MULTITAPE_INTERNAL_H_
 #define _MULTITAPE_INTERNAL_H_
 
+#include <sys/types.h>
+
 #include <stdint.h>
 
 #include "chunks.h"
