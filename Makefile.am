@@ -101,8 +101,8 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto_keys_subr.c			\
 		lib/crypto/crypto_passwd_to_dh.c		\
 		lib/crypto/crypto_rsa.c				\
-		lib/crypto/crypto_scrypt.h			\
 		lib/crypto/crypto_scrypt.c			\
+		lib/crypto/crypto_scrypt.h			\
 		lib/crypto/crypto_scrypt_smix.c			\
 		lib/crypto/crypto_scrypt_smix.h			\
 		lib/crypto/crypto_scrypt_smix_sse2.h		\
@@ -166,9 +166,9 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/cpusupport/cpusupport_x86_ssse3.c	\
 		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aes.h			\
+		libcperciva/crypto/crypto_aes_aesni.h		\
 		libcperciva/crypto/crypto_aesctr.c		\
 		libcperciva/crypto/crypto_aesctr.h		\
-		libcperciva/crypto/crypto_aes_aesni.h		\
 		libcperciva/crypto/crypto_dh.c			\
 		libcperciva/crypto/crypto_dh.h			\
 		libcperciva/crypto/crypto_dh_group14.c		\
@@ -316,57 +316,57 @@ tarsnap_SOURCES=					\
 		tar/bsdtar.c				\
 		tar/bsdtar.h				\
 		tar/bsdtar_platform.h			\
-		tar/cmdline.c				\
-		tar/getdate.c				\
-		tar/matching.c				\
-		tar/platform.h				\
-		tar/read.c				\
-		tar/siginfo.c				\
-		tar/subst.c				\
-		tar/tree.c				\
-		tar/tree.h				\
-		tar/tarsnap_opt.h			\
-		tar/util.c				\
-		tar/write.c				\
-		tar/glue/archive_multitape.c		\
-		tar/glue/archive_multitape.h		\
-		tar/glue/tape.c				\
 		tar/ccache/ccache.h			\
 		tar/ccache/ccache_entry.c		\
 		tar/ccache/ccache_internal.h		\
 		tar/ccache/ccache_read.c		\
 		tar/ccache/ccache_write.c		\
+		tar/chunks/chunks.h			\
+		tar/chunks/chunks_delete.c		\
+		tar/chunks/chunks_directory.c		\
+		tar/chunks/chunks_internal.h		\
+		tar/chunks/chunks_read.c		\
+		tar/chunks/chunks_stats.c		\
+		tar/chunks/chunks_stats_internal.c	\
+		tar/chunks/chunks_transaction.c		\
+		tar/chunks/chunks_write.c		\
+		tar/cmdline.c				\
+		tar/getdate.c				\
+		tar/glue/archive_multitape.c		\
+		tar/glue/archive_multitape.h		\
+		tar/glue/tape.c				\
+		tar/matching.c				\
 		tar/multitape/chunkify.c		\
 		tar/multitape/chunkify.h		\
 		tar/multitape/multitape.h		\
-		tar/multitape/multitape_write.c		\
-		tar/multitape/multitape_read.c		\
+		tar/multitape/multitape_chunkiter.c	\
 		tar/multitape/multitape_delete.c	\
-		tar/multitape/multitape_stats.c		\
-		tar/multitape/multitape_recover.c	\
 		tar/multitape/multitape_fsck.c		\
 		tar/multitape/multitape_internal.h	\
-		tar/multitape/multitape_nuke.c		\
 		tar/multitape/multitape_metadata.c	\
 		tar/multitape/multitape_metaindex.c	\
-		tar/multitape/multitape_chunkiter.c	\
+		tar/multitape/multitape_nuke.c		\
+		tar/multitape/multitape_read.c		\
+		tar/multitape/multitape_recover.c	\
+		tar/multitape/multitape_stats.c		\
 		tar/multitape/multitape_transaction.c	\
-		tar/chunks/chunks.h			\
-		tar/chunks/chunks_internal.h		\
-		tar/chunks/chunks_write.c		\
-		tar/chunks/chunks_read.c		\
-		tar/chunks/chunks_stats.c		\
-		tar/chunks/chunks_delete.c		\
-		tar/chunks/chunks_transaction.c		\
-		tar/chunks/chunks_stats_internal.c	\
-		tar/chunks/chunks_directory.c		\
+		tar/multitape/multitape_write.c		\
+		tar/platform.h				\
+		tar/read.c				\
+		tar/siginfo.c				\
 		tar/storage/storage.h			\
-		tar/storage/storage_write.c		\
-		tar/storage/storage_read.c		\
 		tar/storage/storage_delete.c		\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_internal.h		\
-		tar/storage/storage_transaction.c
+		tar/storage/storage_read.c		\
+		tar/storage/storage_transaction.c	\
+		tar/storage/storage_write.c		\
+		tar/subst.c				\
+		tar/tarsnap_opt.h			\
+		tar/tree.c				\
+		tar/tree.h				\
+		tar/util.c				\
+		tar/write.c
 
 if INC_WINDOWS_FILES
 tarsnap_SOURCES+=			\
@@ -471,19 +471,19 @@ tarsnap_keyregen_man_MANS=	keyregen/tarsnap-keyregen.1
 #
 
 tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
+		tar/chunks/chunks_delete.c		\
+		tar/chunks/chunks_directory.c		\
+		tar/chunks/chunks_stats.c		\
+		tar/chunks/chunks_stats_internal.c	\
+		tar/chunks/chunks_transaction.c		\
+		tar/chunks/chunks_write.c		\
 		tar/multitape/multitape_metadata.c	\
 		tar/multitape/multitape_transaction.c	\
-		tar/chunks/chunks_write.c		\
-		tar/chunks/chunks_stats.c		\
-		tar/chunks/chunks_delete.c		\
-		tar/chunks/chunks_transaction.c		\
-		tar/chunks/chunks_stats_internal.c	\
-		tar/chunks/chunks_directory.c		\
-		tar/storage/storage_write.c		\
-		tar/storage/storage_read.c		\
 		tar/storage/storage_delete.c		\
 		tar/storage/storage_directory.c		\
-		tar/storage/storage_transaction.c
+		tar/storage/storage_read.c		\
+		tar/storage/storage_transaction.c	\
+		tar/storage/storage_write.c
 
 tarsnap_recrypt_LDADD= $(LIBTARSNAP_A)
 tarsnap_recrypt_CPPFLAGS=				\
@@ -563,19 +563,19 @@ keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat $(top_srcdir)/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
 
-EXTRA_DIST+=	tar/tarsnap.conf.sample			\
+EXTRA_DIST+=	keygen/tarsnap-keygen.1-man		\
+		keygen/tarsnap-keygen.1-mdoc		\
+		keymgmt/tarsnap-keymgmt.1-man		\
+		keymgmt/tarsnap-keymgmt.1-mdoc		\
+		keyregen/tarsnap-keyregen.1-man		\
+		keyregen/tarsnap-keyregen.1-mdoc	\
+		recrypt/tarsnap-recrypt.1-man		\
+		recrypt/tarsnap-recrypt.1-mdoc		\
 		tar/tarsnap.1-man.in			\
 		tar/tarsnap.1-mdoc.in			\
 		tar/tarsnap.conf.5-man.in		\
 		tar/tarsnap.conf.5-mdoc.in		\
-		keygen/tarsnap-keygen.1-man		\
-		keygen/tarsnap-keygen.1-mdoc		\
-		keyregen/tarsnap-keyregen.1-man		\
-		keyregen/tarsnap-keyregen.1-mdoc	\
-		keymgmt/tarsnap-keymgmt.1-man		\
-		keymgmt/tarsnap-keymgmt.1-mdoc		\
-		recrypt/tarsnap-recrypt.1-man		\
-		recrypt/tarsnap-recrypt.1-mdoc
+		tar/tarsnap.conf.sample
 CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 
 #
