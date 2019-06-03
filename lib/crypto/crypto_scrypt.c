@@ -26,7 +26,7 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#include "bsdtar_platform.h"
+#include "platform.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>

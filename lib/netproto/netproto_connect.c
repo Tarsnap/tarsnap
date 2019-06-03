@@ -1,4 +1,4 @@
-#include "bsdtar_platform.h"
+#include "platform.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

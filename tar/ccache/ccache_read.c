@@ -1,4 +1,4 @@
-#include "bsdtar_platform.h"
+#include "platform.h"
 
 #include <sys/mman.h>
 #include <sys/stat.h>

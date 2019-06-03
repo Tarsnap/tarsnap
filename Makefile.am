@@ -319,6 +319,7 @@ tarsnap_SOURCES=					\
 		tar/cmdline.c				\
 		tar/getdate.c				\
 		tar/matching.c				\
+		tar/platform.h				\
 		tar/read.c				\
 		tar/siginfo.c				\
 		tar/subst.c				\
