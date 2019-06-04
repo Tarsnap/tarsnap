@@ -232,9 +232,9 @@ nodist_lib_libtarsnap_a_SOURCES=				\
 		cpusupport-config.h
 
 lib_libtarsnap_a_CPPFLAGS=				\
-		-I${top_srcdir}/tar			\
+		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/netpacket		\
@@ -394,7 +394,7 @@ tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/tar/glue		\
 		-I$(top_srcdir)/tar/multitape		\
 		-I$(top_srcdir)/tar/storage		\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/netpacket		\
@@ -420,10 +420,10 @@ tarsnap_keygen_SOURCES=	keygen/keygen.c			\
 
 tarsnap_keygen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keygen_CPPFLAGS=				\
-		-I${top_srcdir}/libarchive		\
+		-I$(top_srcdir)/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/netpacket		\
@@ -448,10 +448,10 @@ tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
 
 tarsnap_keyregen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keyregen_CPPFLAGS=				\
-		-I${top_srcdir}/libarchive		\
+		-I$(top_srcdir)/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/netpacket		\
@@ -492,7 +492,7 @@ tarsnap_recrypt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar/chunks		\
 		-I$(top_srcdir)/tar/multitape		\
 		-I$(top_srcdir)/tar/storage		\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/netpacket		\
@@ -515,10 +515,10 @@ tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
 tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
-		-I${top_srcdir}/libarchive		\
-		-I${top_srcdir}/lib/crypto		\
+		-I$(top_srcdir)/libarchive		\
+		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
-		-I${top_srcdir}/lib/keyfile		\
+		-I$(top_srcdir)/lib/keyfile		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/util
@@ -551,16 +551,16 @@ tar/tarsnap.conf.5: tar/tarsnap.conf.5-@MANVER@
 	cat tar/tarsnap.conf.5-@MANVER@ > tar/tarsnap.conf.5.tmp
 	mv $@.tmp $@
 keygen/tarsnap-keygen.1: keygen/tarsnap-keygen.1-@MANVER@
-	cat ${top_srcdir}/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1.tmp
+	cat $(top_srcdir)/keygen/tarsnap-keygen.1-@MANVER@ > keygen/tarsnap-keygen.1.tmp
 	mv $@.tmp $@
 keyregen/tarsnap-keyregen.1: keyregen/tarsnap-keyregen.1-@MANVER@
-	cat ${top_srcdir}/keyregen/tarsnap-keyregen.1-@MANVER@ > keyregen/tarsnap-keyregen.1.tmp
+	cat $(top_srcdir)/keyregen/tarsnap-keyregen.1-@MANVER@ > keyregen/tarsnap-keyregen.1.tmp
 	mv $@.tmp $@
 recrypt/tarsnap-recrypt.1: recrypt/tarsnap-recrypt.1-@MANVER@
-	cat ${top_srcdir}/recrypt/tarsnap-recrypt.1-@MANVER@ > recrypt/tarsnap-recrypt.1.tmp
+	cat $(top_srcdir)/recrypt/tarsnap-recrypt.1-@MANVER@ > recrypt/tarsnap-recrypt.1.tmp
 	mv $@.tmp $@
 keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
-	cat ${top_srcdir}/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
+	cat $(top_srcdir)/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
 
 EXTRA_DIST+=	tar/tarsnap.conf.sample			\
