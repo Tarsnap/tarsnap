@@ -139,6 +139,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/network/tsnetwork_select.c			\
 		lib/network/tsnetwork_sleep.c			\
 		lib/network/tsnetwork_writeq.c			\
+		lib/platform.h					\
 		lib/scryptenc/scryptenc.c			\
 		lib/scryptenc/scryptenc.h			\
 		lib/scryptenc/scryptenc_cpuperf.c		\
@@ -234,6 +235,7 @@ nodist_lib_libtarsnap_a_SOURCES=				\
 lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -351,7 +353,6 @@ tarsnap_SOURCES=					\
 		tar/multitape/multitape_stats.c		\
 		tar/multitape/multitape_transaction.c	\
 		tar/multitape/multitape_write.c		\
-		tar/platform.h				\
 		tar/read.c				\
 		tar/siginfo.c				\
 		tar/storage/storage.h			\
@@ -394,6 +395,7 @@ tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/tar/glue		\
 		-I$(top_srcdir)/tar/multitape		\
 		-I$(top_srcdir)/tar/storage		\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -423,6 +425,7 @@ tarsnap_keygen_CPPFLAGS=				\
 		-I$(top_srcdir)/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -451,6 +454,7 @@ tarsnap_keyregen_CPPFLAGS=				\
 		-I$(top_srcdir)/libarchive		\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/keygen			\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -492,6 +496,7 @@ tarsnap_recrypt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar/chunks		\
 		-I$(top_srcdir)/tar/multitape		\
 		-I$(top_srcdir)/tar/storage		\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
@@ -516,6 +521,7 @@ tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/tar			\
 		-I$(top_srcdir)/libarchive		\
+		-I$(top_srcdir)/lib			\
 		-I$(top_srcdir)/lib/crypto		\
 		-I$(top_srcdir)/lib/datastruct		\
 		-I$(top_srcdir)/lib/keyfile		\
