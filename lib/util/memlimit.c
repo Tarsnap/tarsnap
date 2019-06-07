@@ -246,6 +246,12 @@ memlimit_sysconf(size_t * memlimit)
 }
 #endif
 
+/**
+ * memtouse(maxmem, maxmemfrac, memlimit):
+ * Examine the system and return via memlimit the amount of RAM which should
+ * be used -- the specified fraction of the available RAM, but no more than
+ * maxmem, and no less than 1MiB.
+ */
 int
 memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 {

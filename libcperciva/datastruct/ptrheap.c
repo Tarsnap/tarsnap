@@ -278,7 +278,7 @@ ptrheap_delete(struct ptrheap * H, size_t rc)
 
 /**
  * ptrheap_deletemin(H):
- * Delete the minimum element in the heap ${H}.
+ * Delete the minimum element in the heap ${H}.  The heap must not be empty.
  */
 void
 ptrheap_deletemin(struct ptrheap * H)
