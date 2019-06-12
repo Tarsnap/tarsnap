@@ -52,10 +52,10 @@
 			return (1);								\
 		else if (cpusupport_ ## arch_feature ## _init_ ## enabled)			\
 			return (0);								\
-		cpusupport_ ## arch_feature ## _present_ ## enabled = 				\
+		cpusupport_ ## arch_feature ## _present_ ## enabled =				\
 		    cpusupport_ ## arch_feature ## _detect_ ## enabled();			\
 		cpusupport_ ## arch_feature ## _init_ ## enabled = 1;				\
-		return (cpusupport_ ## arch_feature ## _present_ ## enabled); 			\
+		return (cpusupport_ ## arch_feature ## _present_ ## enabled);			\
 	}											\
 	static void (* cpusupport_ ## arch_feature ## _dummyptr)(void);				\
 	static inline void									\
