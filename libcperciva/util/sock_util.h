@@ -49,4 +49,4 @@ struct sock_addr * sock_addr_deserialize(const uint8_t *, size_t);
  */
 char * sock_addr_prettyprint(const struct sock_addr *);
 
-#endif /* !_SOCK_H_ */
+#endif /* !_SOCK_UTIL_H_ */

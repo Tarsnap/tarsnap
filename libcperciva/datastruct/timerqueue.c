@@ -183,7 +183,7 @@ timerqueue_getmin(struct timerqueue * Q)
  * timerqueue_getptr(Q, tv):
  * If the least timeval in ${Q} is less than or equal to ${tv}, return the
  * associated pointer and remove the pair from the priority queue.  If not,
- * return NULL.
+ * return NULL.  This function cannot fail.
  */
 void *
 timerqueue_getptr(struct timerqueue * Q, const struct timeval * tv)

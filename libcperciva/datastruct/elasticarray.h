@@ -22,7 +22,8 @@ struct elasticarray;
 /**
  * elasticarray_init(nrec, reclen):
  * Create and return an elastic array holding ${nrec} (uninitialized) records
- * of length ${reclen}.  Takes O(nrec * reclen) time.
+ * of length ${reclen}.  Takes O(nrec * reclen) time.  The value ${reclen}
+ * must be positive.
  */
 struct elasticarray * elasticarray_init(size_t, size_t);
 
@@ -31,7 +32,7 @@ struct elasticarray * elasticarray_init(size_t, size_t);
  * Resize the elastic array pointed to by ${EA} to hold ${nrec} records of
  * length ${reclen}.  If ${nrec} exceeds the number of records previously
  * held by the array, the additional records will be uninitialized.  Takes
- * O(nrec * reclen) time.
+ * O(nrec * reclen) time.  The value ${reclen} must be positive.
  */
 int elasticarray_resize(struct elasticarray *, size_t, size_t);
 
@@ -47,7 +48,8 @@ size_t elasticarray_getsize(struct elasticarray *, size_t);
 /**
  * elasticarray_append(EA, buf, nrec, reclen):
  * Append to the elastic array ${EA} the ${nrec} records of length ${reclen}
- * stored in ${buf}.  Takes O(nrec * reclen) amortized time.
+ * stored in ${buf}.  Takes O(nrec * reclen) amortized time.  The value
+ * ${reclen} must be positive.
  */
 int elasticarray_append(struct elasticarray *, const void *, size_t, size_t);
 
@@ -55,7 +57,7 @@ int elasticarray_append(struct elasticarray *, const void *, size_t, size_t);
  * elasticarray_shrink(EA, nrec, reclen):
  * Delete the final ${nrec} records of length ${reclen} from the elastic
  * array ${EA}.  If there are fewer than ${nrec} records, all records
- * present will be deleted.
+ * present will be deleted.  The value ${reclen} must be positive.
  *
  * As an exception to the normal rule, an elastic array may occupy more than
  * 4 times the optimal storage immediately following an elasticarray_shrink
@@ -77,6 +79,13 @@ int elasticarray_truncate(struct elasticarray *);
 void * elasticarray_get(struct elasticarray *, size_t, size_t);
 
 /**
+ * elasticarray_iter(EA, reclen, fp):
+ * Run the ${fp} function on every member of the array.  The value ${reclen}
+ * must be positive.
+ */
+void elasticarray_iter(struct elasticarray *, size_t, void(*)(void *));
+
+/**
  * elasticarray_free(EA):
  * Free the elastic array ${EA}.  Takes O(1) time.
  */
@@ -86,6 +95,7 @@ void elasticarray_free(struct elasticarray *);
  * elasticarray_export(EA, buf, nrec, reclen):
  * Return the data in the elastic array ${EA} as a buffer ${buf} containing
  * ${nrec} records of length ${reclen}.  Free the elastic array ${EA}.
+ * The value ${reclen} must be positive.
  */
 int elasticarray_export(struct elasticarray *, void **, size_t *, size_t);
 
@@ -93,7 +103,8 @@ int elasticarray_export(struct elasticarray *, void **, size_t *, size_t);
  * elasticarray_exportdup(EA, buf, nrec, reclen):
  * Duplicate the data in the elastic array ${EA} into a buffer ${buf}
  * containing ${nrec} records of length ${reclen}.  (Same as _export, except
- * that the elastic array remains intact.)
+ * that the elastic array remains intact.)  The value ${reclen} must be
+ * positive.
  */
 int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 
@@ -107,6 +118,7 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
  * void ${prefix}_shrink(${type} EA, size_t nrec);
  * int ${prefix}_truncate(${type} EA);
  * ${rectype} * ${prefix}_get(${type} EA, size_t pos);
+ * void ${prefix}_iter(${type} EA, void(*)(void *));
  * void ${prefix}_free(${type} EA);
  */
 #define ELASTICARRAY_DECL(type, prefix, rectype)			\
@@ -159,6 +171,13 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 		return (rec);						\
 	}								\
 	static inline void						\
+	prefix##_iter(struct prefix##_struct * EA,			\
+	    void(* free_fp)(rectype *))					\
+	{								\
+		elasticarray_iter((struct elasticarray *)EA,		\
+		    sizeof(rectype), (void (*)(void *))free_fp);	\
+	}								\
+	static inline void						\
 	prefix##_free(struct prefix##_struct * EA)			\
 	{								\
 		elasticarray_free((struct elasticarray *)EA);		\
@@ -190,6 +209,7 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 		(void)prefix##_shrink;					\
 		(void)prefix##_truncate;				\
 		(void)prefix##_get;					\
+		(void)prefix##_iter;					\
 		(void)prefix##_free;					\
 		(void)prefix##_export;					\
 		(void)prefix##_exportdup;				\

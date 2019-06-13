@@ -6,8 +6,7 @@
 
 /**
  * crypto_entropy_read(buf, buflen):
- * Fill the buffer with unpredictable bits.  The value ${buflen} must be
- * less than 2^16.
+ * Fill the buffer with unpredictable bits.
  */
 int crypto_entropy_read(uint8_t *, size_t);
 
