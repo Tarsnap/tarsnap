@@ -85,7 +85,7 @@ err0:
 }
 
 /**
- * network_accept_cancel(cookie);
+ * network_accept_cancel(cookie):
  * Cancel the connection accept for which the cookie ${cookie} was returned
  * by network_accept.  Do not invoke the callback associated with the accept.
  */
