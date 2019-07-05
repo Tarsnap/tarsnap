@@ -65,7 +65,7 @@ scryptenc_cpuperf(double * opps)
 		return (2);
 
 #ifdef DEBUG
-	fprintf(stderr, "Clock resolution is %f\n", resd);
+	fprintf(stderr, "Clock resolution is %g\n", resd);
 #endif
 
 	/* Loop until the clock ticks. */
@@ -102,7 +102,7 @@ scryptenc_cpuperf(double * opps)
 	} while (1);
 
 #ifdef DEBUG
-	fprintf(stderr, "%ju salsa20/8 cores performed in %f seconds\n",
+	fprintf(stderr, "%ju salsa20/8 cores performed in %g seconds\n",
 	    (uintmax_t)i, diffd);
 #endif
 
