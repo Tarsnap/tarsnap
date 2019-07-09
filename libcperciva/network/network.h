@@ -21,7 +21,7 @@ struct sock_addr;
 void * network_accept(int, int (*)(void *, int), void *);
 
 /**
- * network_accept_cancel(cookie);
+ * network_accept_cancel(cookie):
  * Cancel the connection accept for which the cookie ${cookie} was returned
  * by network_accept.  Do not invoke the callback associated with the accept.
  */
