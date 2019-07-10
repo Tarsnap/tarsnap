@@ -54,6 +54,7 @@ static int pickparams(size_t, double, double,
     int *, uint32_t *, uint32_t *, int);
 static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int,
     int);
+static int scryptdec_file_load_header(FILE *, uint8_t [static 96]);
 
 struct scryptdec_file_cookie {
 	FILE *	infile;		/* This is not owned by this cookie. */
@@ -573,6 +574,58 @@ scryptdec_file_cookie_free(struct scryptdec_file_cookie * C)
 	free(C);
 }
 
+/* Load the header and check the magic. */
+static int
+scryptdec_file_load_header(FILE * infile, uint8_t header[static 96])
+{
+	int rc;
+
+	/*
+	 * Read the first 7 bytes of the file; all future versions of scrypt
+	 * are guaranteed to have at least 7 bytes of header.
+	 */
+	if (fread(header, 7, 1, infile) < 1) {
+		if (ferror(infile)) {
+			rc = 13;
+			goto err0;
+		} else {
+			rc = 7;
+			goto err0;
+		}
+	}
+
+	/* Do we have the right magic? */
+	if (memcmp(header, "scrypt", 6)) {
+		rc = 7;
+		goto err0;
+	}
+	if (header[6] != 0) {
+		rc = 8;
+		goto err0;
+	}
+
+	/*
+	 * Read another 89 bytes of the file; version 0 of the scrypt file
+	 * format has a 96-byte header.
+	 */
+	if (fread(&header[7], 89, 1, infile) < 1) {
+		if (ferror(infile)) {
+			rc = 13;
+			goto err0;
+		} else {
+			rc = 7;
+			goto err0;
+		}
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (rc);
+}
+
 /**
  * scryptdec_file_prep(infile, passwd, passwdlen, maxmem, maxmemfrac,
  *     maxtime, force, cookie):
@@ -593,43 +646,9 @@ scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
 		return (6);
 	C->infile = infile;
 
-	/*
-	 * Read the first 7 bytes of the file; all future versions of scrypt
-	 * are guaranteed to have at least 7 bytes of header.
-	 */
-	if (fread(C->header, 7, 1, C->infile) < 1) {
-		if (ferror(C->infile)) {
-			rc = 13;
-			goto err1;
-		} else {
-			rc = 7;
-			goto err1;
-		}
-	}
-
-	/* Do we have the right magic? */
-	if (memcmp(C->header, "scrypt", 6)) {
-		rc = 7;
+	/* Load the header. */
+	if ((rc = scryptdec_file_load_header(infile, C->header)) != 0)
 		goto err1;
-	}
-	if (C->header[6] != 0) {
-		rc = 8;
-		goto err1;
-	}
-
-	/*
-	 * Read another 89 bytes of the file; version 0 of the scrypt file
-	 * format has a 96-byte header.
-	 */
-	if (fread(&C->header[7], 89, 1, C->infile) < 1) {
-		if (ferror(C->infile)) {
-			rc = 13;
-			goto err1;
-		} else {
-			rc = 7;
-			goto err1;
-		}
-	}
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
