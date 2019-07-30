@@ -269,7 +269,7 @@ elasticarray_iter(struct elasticarray * EA, size_t reclen, void(* fp)(void *))
 
 	/* Apply the function to every item in the list. */
 	for (i = 0; i < elasticarray_getsize(EA, reclen); i++)
-		fp(elasticarray_get(EA, reclen, i));
+		fp(elasticarray_get(EA, i, reclen));
 }
 
 /**
