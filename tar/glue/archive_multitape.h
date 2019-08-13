@@ -54,4 +54,4 @@ void archive_write_multitape_truncate(void *);
 int archive_multitape_copy(struct archive *, void *, struct archive *,
     void *);
 
-#endif /* _ARCHIVE_MULTITAPE_H_ */
+#endif /* !_ARCHIVE_MULTITAPE_H_ */
