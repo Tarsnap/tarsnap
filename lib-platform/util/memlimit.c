@@ -167,12 +167,14 @@ memlimit_rlimit(size_t * memlimit)
 		memrlimit = (uint64_t)rl.rlim_cur;
 #endif
 
-	/* ... RLIMIT_DATA... */
+#ifndef HAVE_MMAP
+	/* ... RLIMIT_DATA (if we're not using mmap)... */
 	if (getrlimit(RLIMIT_DATA, &rl))
 		return (1);
 	if ((rl.rlim_cur != RLIM_INFINITY) &&
 	    ((uint64_t)rl.rlim_cur < memrlimit))
 		memrlimit = (uint64_t)rl.rlim_cur;
+#endif
 
 	/* ... and RLIMIT_RSS. */
 #ifdef RLIMIT_RSS
