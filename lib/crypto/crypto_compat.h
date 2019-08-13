@@ -38,4 +38,4 @@ RSA * crypto_compat_RSA_generate_key(void);
  */
 void crypto_compat_free(void);
 
-#endif
+#endif /* !_CRYPTO_COMPAT_H_ */

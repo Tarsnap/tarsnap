@@ -73,4 +73,4 @@ int network_bwlimit_get(int, size_t *);
  */
 int network_bwlimit_eat(int, size_t);
 
-#endif /* !_NETWORK_H_ */
+#endif /* !_NETWORK_INTERNAL_H_ */

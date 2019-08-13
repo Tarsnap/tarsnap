@@ -1,5 +1,5 @@
-#ifndef _TARSNAP_OPT_H
-#define _TARSNAP_OPT_H
+#ifndef _TARSNAP_OPT_H_
+#define _TARSNAP_OPT_H_
 
 /* Use multiple TCP connections when writing an archive. */
 extern int tarsnap_opt_aggressive_networking;
