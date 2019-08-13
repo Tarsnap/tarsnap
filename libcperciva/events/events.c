@@ -223,7 +223,7 @@ events_spin(int * done)
 }
 
 /**
- * events_interrupt():
+ * events_interrupt(void):
  * Halt the event loop after finishing the current event.  This function can
  * be safely called from within a signal handler.
  */
