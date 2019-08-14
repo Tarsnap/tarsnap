@@ -79,11 +79,13 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 	/* Memory */
 	fprintf(stderr, "    This requires at least %s bytes of memory",
 	    human_mem_minimum);
-	fprintf(stderr, " (%s available)", human_memlimit);
+	if (memlimit > 0)
+		fprintf(stderr, " (%s available)", human_memlimit);
 
 	/* CPU time */
-	fprintf(stderr, ",\n    and will take approximately %.1f seconds "
-	    "(limit: %.1f seconds)", expected_seconds, maxtime);
+	if (opps > 0)
+		fprintf(stderr, ",\n    and will take approximately %.1f "
+		    "seconds (limit: %.1f seconds)", expected_seconds, maxtime);
 	fprintf(stderr, ".\n");
 
 	/* Clean up */
