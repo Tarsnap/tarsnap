@@ -268,6 +268,39 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 }
 
 /*
+ * scryptdec_file_printparams(infile):
+ * Print the encryption parameters (N, r, p) used for the encrypted ${infile}.
+ */
+int
+scryptdec_file_printparams(FILE * infile)
+{
+	uint8_t header[96];
+	int logN;
+	uint32_t r;
+	uint32_t p;
+	int rc;
+
+	/* Load the header. */
+	if ((rc = scryptdec_file_load_header(infile, header)) != 0)
+		goto err0;
+
+	/* Parse N, r, p. */
+	logN = header[7];
+	r = be32dec(&header[8]);
+	p = be32dec(&header[12]);
+
+	/* Print parameters. */
+	display_params(logN, r, p, 0, 0, 0);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (rc);
+}
+
+/*
  * NOTE: The caller is responsible for sanitizing ${dk}, including if this
  * function fails.
  */
