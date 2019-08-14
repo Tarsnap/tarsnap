@@ -68,17 +68,25 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 {
 	uint64_t N = (uint64_t)(1) << logN;
 	uint64_t mem_minimum = 128 * r * N;
-	double expected_seconds = 4 * N * p / opps;
+	double expected_seconds = opps > 0 ? 4 * N * p / opps : 0;
 	char * human_memlimit = humansize(memlimit);
 	char * human_mem_minimum = humansize(mem_minimum);
 
+	/* Parameters */
 	fprintf(stderr, "Parameters used: N = %" PRIu64 "; r = %" PRIu32
 	    "; p = %" PRIu32 ";\n", N, r, p);
-	fprintf(stderr, "    This requires at least %s bytes of memory "
-	    "(%s available),\n", human_mem_minimum, human_memlimit);
-	fprintf(stderr, "    and will take approximately %.1f seconds "
-	    "(limit: %.1f seconds).\n", expected_seconds, maxtime);
 
+	/* Memory */
+	fprintf(stderr, "    This requires at least %s bytes of memory",
+	    human_mem_minimum);
+	fprintf(stderr, " (%s available)", human_memlimit);
+
+	/* CPU time */
+	fprintf(stderr, ",\n    and will take approximately %.1f seconds "
+	    "(limit: %.1f seconds)", expected_seconds, maxtime);
+	fprintf(stderr, ".\n");
+
+	/* Clean up */
 	free(human_memlimit);
 	free(human_mem_minimum);
 }
