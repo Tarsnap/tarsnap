@@ -85,11 +85,4 @@ int events_timer_min(struct timeval **);
  */
 int events_timer_get(struct eventrec **);
 
-/**
- * events_timer_shutdown(void):
- * Clean up and free memory.  This call is not necessary on program exit and
- * is only expected to be useful when checking for memory leaks.
- */
-void events_timer_shutdown(void);
-
 #endif /* !_EVENTS_INTERNAL_H_ */

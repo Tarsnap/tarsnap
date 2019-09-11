@@ -15,7 +15,10 @@ struct timerrec {
 	struct timeval tv_orig;
 };
 
+/* This also tracks whether we've initialized the atexit function. */
 static struct timerqueue * Q = NULL;
+
+static void events_timer_shutdown(void);
 
 /* Set tv := <current time> + tdelta. */
 static int
@@ -54,6 +57,10 @@ events_timer_register(int (*func)(void *), void * cookie,
 	/* Create the timer queue if it doesn't exist yet. */
 	if (Q == NULL) {
 		if ((Q = timerqueue_init()) == NULL)
+			goto err0;
+
+		/* Clean up the timer queue at exit. */
+		if (atexit(events_timer_shutdown))
 			goto err0;
 	}
 
@@ -258,10 +265,9 @@ err0:
 
 /**
  * events_timer_shutdown(void):
- * Clean up and free memory.  This call is not necessary on program exit and
- * is only expected to be useful when checking for memory leaks.
+ * Clean up and free memory.  This should run automatically via atexit.
  */
-void
+static void
 events_timer_shutdown(void)
 {
 

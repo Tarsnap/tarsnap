@@ -247,5 +247,4 @@ events_shutdown(void)
 {
 
 	events_network_shutdown();
-	events_timer_shutdown();
 }
