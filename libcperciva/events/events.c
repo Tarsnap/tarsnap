@@ -245,6 +245,4 @@ events_interrupt(void)
 void
 events_shutdown(void)
 {
-
-	events_network_shutdown();
 }

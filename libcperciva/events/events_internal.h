@@ -63,13 +63,6 @@ void events_network_selectstats_select(void);
 struct eventrec * events_network_get(void);
 
 /**
- * events_network_shutdown(void):
- * Clean up and free memory.  This call is not necessary on program exit and
- * is only expected to be useful when checking for memory leaks.
- */
-void events_network_shutdown(void);
-
-/**
  * events_timer_min(timeo):
  * Return via ${timeo} a pointer to the minimum time which must be waited
  * before a timer will expire; or to NULL if there are no timers.  The caller
