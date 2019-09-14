@@ -43,6 +43,9 @@ resize(struct elasticarray * EA, size_t nsize)
 	 * to allocate zero bytes of memory.
 	 */
 	if (nalloc == 0) {
+		/* We can only get here if we set nsize to 0. */
+		assert(nsize == 0);
+
 		free(EA->buf);
 		EA->buf = NULL;
 		EA->alloc = 0;
@@ -155,6 +158,7 @@ elasticarray_append(struct elasticarray * EA,
     const void * buf, size_t nrec, size_t reclen)
 {
 	size_t bufpos = EA->size;
+	size_t nsize;
 
 	/* Check for overflow. */
 	if ((nrec > SIZE_MAX / reclen) ||
@@ -164,12 +168,18 @@ elasticarray_append(struct elasticarray * EA,
 	}
 
 	/* Resize the buffer. */
-	if (resize(EA, EA->size + nrec * reclen))
+	nsize = EA->size + nrec * reclen;
+	if (resize(EA, nsize))
 		goto err0;
 
 	/* Copy bytes in. */
-	if (nrec > 0)
+	if (nrec > 0) {
+		/* We shouldn't have requested a 0-size array. */
+		assert(nsize > 0);
+
+		/* Copy bytes in. */
 		memcpy((uint8_t *)(EA->buf) + bufpos, buf, nrec * reclen);
+	}
 
 	/* Success! */
 	return (0);
