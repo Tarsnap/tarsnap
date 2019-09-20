@@ -77,8 +77,8 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 	    "; p = %" PRIu32 ";\n", N, r, p);
 
 	/* Memory */
-	fprintf(stderr, "    This requires at least %s bytes of memory",
-	    human_mem_minimum);
+	fprintf(stderr, "    Decrypting this file requires at least"
+	    " %s bytes of memory", human_mem_minimum);
 	if (memlimit > 0)
 		fprintf(stderr, " (%s available)", human_memlimit);
 
