@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "imalloc.h"
+#include "parsenum.h"
 #include "warnp.h"
 
 #include "sock.h"
@@ -266,12 +267,8 @@ sock_resolve(const char * addr)
 	ips = &s[1];
 	ips[strlen(ips) - 1] = '\0';
 
-	/*
-	 * Parse the port number.  If strtol fails to parse the port number,
-	 * it will return 0; but that's fine since port 0 is invalid anyway.
-	 */
-	p = strtol(ports, NULL, 10);
-	if ((p <= 0) || (p >= 65536)) {
+	/* Parse the port number in base 10, no trailing characters. */
+	if (PARSENUM_EX(&p, ports, 1, 65535, 10, 0)) {
 		warn0("Invalid port number: %s", ports);
 		goto err1;
 	}
