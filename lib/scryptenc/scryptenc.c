@@ -267,7 +267,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	return (0);
 }
 
-/*
+/**
  * scryptdec_file_printparams(infile):
  * Print the encryption parameters (N, r, p) used for the encrypted ${infile}.
  */

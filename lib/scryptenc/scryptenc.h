@@ -80,6 +80,7 @@
  * 13	error reading input file
  */
 
+/* Opaque structure. */
 struct scryptdec_file_cookie;
 
 /**
@@ -111,7 +112,7 @@ int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
     size_t, double, double, int);
 
-/*
+/**
  * scryptdec_file_printparams(infile):
  * Print the encryption parameters (N, r, p) used for the encrypted ${infile}.
  */
