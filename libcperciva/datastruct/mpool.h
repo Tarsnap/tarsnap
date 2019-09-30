@@ -14,6 +14,7 @@
  * allocating the same memory).
  */
 
+/* Internal data. */
 struct mpool {
 	size_t stacklen;
 	size_t allocsize;
