@@ -17,15 +17,15 @@ feature() {
 		return
 	fi
 	printf "Checking if compiler supports $ARCH $FEATURE feature..." 1>&2
-	for CFLAG in "$@"; do
-		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CFLAG}	\
+	for CPU_CFLAGS in "$@"; do
+		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CPU_CFLAGS} \
 		    ${SRCDIR}/cpusupport-$ARCH-$FEATURE.c 2>/dev/null; then
 			rm -f a.out
 			break;
 		fi
-		CFLAG=NOTSUPPORTED;
+		CPU_CFLAGS=NOTSUPPORTED;
 	done
-	case $CFLAG in
+	case $CPU_CFLAGS in
 	NOTSUPPORTED)
 		echo " no" 1>&2
 		;;
@@ -34,10 +34,10 @@ feature() {
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		;;
 	*)
-		echo " yes, via $CFLAG" 1>&2
+		echo " yes, via $CPU_CFLAGS" 1>&2
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		echo "#ifdef cpusupport_dummy"
-		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CFLAG}\""
+		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CPU_CFLAGS}\""
 		echo "#endif"
 		;;
 	esac
