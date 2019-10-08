@@ -1,6 +1,6 @@
 language: C
 sudo: false
-dist: trusty
+dist: xenial
 # We can't use strict flags in CFLAGS as a general environment
 # variable, because that messes up ./configure.  We also need to use
 # much more permissive "strict" checks for our version of libarchive.
