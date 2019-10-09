@@ -332,10 +332,18 @@ read_archive(struct bsdtar *bsdtar, char mode)
 				fflush(stderr);
 			}
 
-			/* Tell the SIGINFO-handler code what we're doing. */
+			/*
+			 * Tell the SIGINFO-handler code what we're doing.
+			 * a->file_count is incremented by
+			 * archive_read_next_header(), which has already
+			 * been called for this file.  However,
+			 * siginfo_setinfo() takes the number of files we
+			 * have already processed (in the past), so we
+			 * need to subtract 1 from the reported file count.
+			 */
 			siginfo_setinfo(bsdtar, "extracting",
 			    archive_entry_pathname(entry), 0,
-			    archive_file_count(a),
+			    archive_file_count(a) - 1,
 			    archive_position_uncompressed(a));
 			siginfo_printinfo(bsdtar, 0);
 

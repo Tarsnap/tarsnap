@@ -385,7 +385,6 @@ archive_read_next_header2(struct archive *_a, struct archive_entry *entry)
 	    ARCHIVE_STATE_HEADER | ARCHIVE_STATE_DATA,
 	    "archive_read_next_header");
 
-	++_a->file_count;
 	archive_entry_clear(entry);
 	archive_clear_error(&a->archive);
 
@@ -419,6 +418,7 @@ archive_read_next_header2(struct archive *_a, struct archive_entry *entry)
 	/* Record start-of-header. */
 	a->header_position = a->archive.file_position;
 
+	++_a->file_count;
 	ret = (a->format->read_header)(a, entry);
 
 	/*
@@ -429,6 +429,7 @@ archive_read_next_header2(struct archive *_a, struct archive_entry *entry)
 	switch (ret) {
 	case ARCHIVE_EOF:
 		a->archive.state = ARCHIVE_STATE_EOF;
+		--_a->file_count;/* Revert a file counter. */
 		break;
 	case ARCHIVE_OK:
 		a->archive.state = ARCHIVE_STATE_DATA;
