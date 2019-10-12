@@ -18,6 +18,19 @@ Static functions may have the above form of comment, or simply a
 /* Brief description of what the function does. */
 line before the function.
 
+"Unrewrappable" comments starting in the first column should be
+/**
+ * Written like this.
+ *
+ * Because (some of) the line-breaks are important.
+ */
+whereas when such comments are indented, they should be
+	/*-
+	 * Written like this.
+	 *
+	 * Because (some of) the line-breaks are important.
+	 */
+
 Line lengths should generally be 78 characters, and not more than 80
 characters.
 
