@@ -57,6 +57,9 @@ struct siginfo_data {
 	/* How many bytes have we handled in total? */
 	uint64_t total_uncompressed;
 
+	/* When did we last print a progress message? */
+	uint64_t lastprogress;
+
 	/* Old signal handlers. */
 #ifdef SIGINFO
 	struct sigaction siginfo_old;
@@ -138,6 +141,20 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	siginfo->size = size;
 	siginfo->file_count = file_count;
 	siginfo->total_uncompressed = (uint64_t)archive_uncompressed;
+
+	/*
+	 * Look at how many bytes on disk have been processed since the last
+	 * update, and trigger a siginfo_printinfo() if desired.
+	 */
+	if (bsdtar->option_progress_bytes != 0) {
+		if (siginfo->total_uncompressed >
+		    siginfo->lastprogress + bsdtar->option_progress_bytes) {
+			siginfo->lastprogress = siginfo->total_uncompressed;
+
+			/* Fake a SIGINFO (no need for an actual signal). */
+			siginfo_received = 1;
+		}
+	}
 }
 
 void
