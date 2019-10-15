@@ -460,6 +460,9 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		bsdtar_warnc(bsdtar, 0, "Warning: Archive contains no files");
 	}
 
+	/* Print a final update (if desired). */
+	siginfo_printinfo(bsdtar, 0);
+
 	if (archive_write_close(a)) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
 		bsdtar->return_value = 1;
@@ -686,6 +689,10 @@ err_fatal:
 		    archive_error_string(a));
 		exit(1);
 	}
+
+	/* We're not processing any more files. */
+	siginfo_setinfo(bsdtar, NULL, NULL, 0, archive_file_count(a),
+	    archive_position_uncompressed(a));
 
 	/* Note: If we got here, we saw no write errors, so return success. */
 	return (0);
@@ -1017,6 +1024,10 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 	archive_entry_free(entry);
 	if (tree_close(tree))
 		bsdtar_errc(bsdtar, 1, 0, "Error traversing directory tree");
+
+	/* We're not processing any more files. */
+	siginfo_setinfo(bsdtar, NULL, NULL, 0, archive_file_count(a),
+	    archive_position_uncompressed(a));
 }
 
 /*
