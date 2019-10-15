@@ -125,10 +125,16 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 	free(siginfo->path);
 
 	/* Duplicate strings and store entry size. */
-	if ((siginfo->oper = strdup(oper)) == NULL)
-		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
-	if ((siginfo->path = strdup(path)) == NULL)
-		bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
+	if (oper != NULL) {
+		if ((siginfo->oper = strdup(oper)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
+	} else
+		siginfo->oper = NULL;
+	if (path != NULL) {
+		if ((siginfo->path = strdup(path)) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Cannot strdup");
+	} else
+		siginfo->path = NULL;
 	siginfo->size = size;
 	siginfo->file_count = file_count;
 	siginfo->total_uncompressed = (uint64_t)archive_uncompressed;
