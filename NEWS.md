@@ -13,6 +13,9 @@
   from stdin instead of /dev/tty.
 - tarsnap now accepts a --resume-extract option to skip extracting files whose
   filesize and mtime match existing files on disk.
+- tarsnap now accepts --progress-bytes SIZE, which prints a progress message
+  after each SIZE bytes are processed, up to once per file.  This can be
+  disabled with --no-progress-bytes.
 
 
 Tarsnap Releases

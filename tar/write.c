@@ -460,6 +460,10 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		bsdtar_warnc(bsdtar, 0, "Warning: Archive contains no files");
 	}
 
+	/* Always print a final message with --progress-bytes. */
+	if (bsdtar->option_progress_bytes != 0)
+		raise(SIGUSR1);
+
 	/* Print a final update (if desired). */
 	siginfo_printinfo(bsdtar, 0);
 

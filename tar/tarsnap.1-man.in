@@ -607,6 +607,11 @@ Ignore any
 \fBprint-stats\fP
 option specified in a configuration file.
 .TP
+\fB\--no-progress-bytes\fP
+Ignore any
+\fBprogress-bytes\fP
+option specified in a configuration file.
+.TP
 \fB\--no-quiet\fP
 Ignore any
 \fBquiet\fP
@@ -725,6 +730,12 @@ little security gained compared to a non-passphrase-protected key file.
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
 See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
+.TP
+\fB\--progress-bytes\fP \fIX\fP
+Display a progress message (as if generated from SIGUSR1 or SIGINFO) after
+processing each
+\fIX\fP
+bytes.  Occurs at most once per file.
 .TP
 \fB\-q\fP (\fB\--fast-read\fP)
 (x and t modes only)

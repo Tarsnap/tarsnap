@@ -61,6 +61,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/read.c,v 1.40 2008/08/21 06:41:14 kientzle E
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
+#include <signal.h>
 #include <stdio.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -382,6 +383,10 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	if (bsdtar->verbose > 2)
 		fprintf(stdout, "Archive Format: %s,  Compression: %s\n",
 		    archive_format_name(a), archive_compression_name(a));
+
+	/* Always print a final message for --progress-bytes. */
+	if ((mode == 'x') && (bsdtar->option_progress_bytes != 0))
+		raise(SIGUSR1);
 
 	/* Print a final update (if desired). */
 	siginfo_printinfo(bsdtar, 0);
