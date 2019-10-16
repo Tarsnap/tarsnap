@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -351,13 +352,15 @@ err0:
 }
 
 /**
- * events_network_select(tv):
+ * events_network_select(tv, interrupt_requested):
  * Check for socket readiness events, waiting up to ${tv} time if there are
  * no sockets immediately ready, or indefinitely if ${tv} is NULL.  The value
- * stored in ${tv} may be modified.
+ * stored in ${tv} may be modified.  If ${*interrupt_requested} is non-zero
+ * and a signal is received, exit.
  */
 int
-events_network_select(struct timeval * tv)
+events_network_select(struct timeval * tv,
+    volatile sig_atomic_t * interrupt_requested)
 {
 	int timeout;
 
@@ -381,9 +384,12 @@ events_network_select(struct timeval * tv)
 
 	/* Poll. */
 	while (poll(fds, (nfds_t)nfds, timeout) == -1) {
-		/* EINTR is harmless. */
-		if (errno == EINTR)
+		/* EINTR is harmless, unless we've requested an interrupt. */
+		if (errno == EINTR) {
+			if (*interrupt_requested)
+				break;
 			continue;
+		}
 
 		/* Anything else is an error. */
 		warnp("poll()");

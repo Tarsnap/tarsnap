@@ -121,7 +121,7 @@ _events_run(void)
 	 */
 	if (events_timer_min(&tv))
 		goto err0;
-	if (events_network_select(tv))
+	if (events_network_select(tv, &interrupt_requested))
 		goto err1;
 	free(tv);
 
@@ -151,7 +151,7 @@ _events_run(void)
 
 		/* Check if any new network events are available. */
 		memcpy(&tv2, &tv_zero, sizeof(struct timeval));
-		if (events_network_select(&tv2))
+		if (events_network_select(&tv2, &interrupt_requested))
 			goto err0;
 		if ((r = events_network_get()) != NULL) {
 			if ((rc = doevent(r)) != 0)
