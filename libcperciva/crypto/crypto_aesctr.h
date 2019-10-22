@@ -19,16 +19,16 @@ struct crypto_aesctr * crypto_aesctr_init(const struct crypto_aes_key *,
 
 /**
  * crypto_aesctr_stream(stream, inbuf, outbuf, buflen):
- * Generate the next ${buflen} bytes of the AES-CTR stream and xor them with
- * bytes from ${inbuf}, writing the result into ${outbuf}.  If the buffers
- * ${inbuf} and ${outbuf} overlap, they must be identical.
+ * Generate the next ${buflen} bytes of the AES-CTR stream ${stream} and xor
+ * them with bytes from ${inbuf}, writing the result into ${outbuf}.  If the
+ * buffers ${inbuf} and ${outbuf} overlap, they must be identical.
  */
 void crypto_aesctr_stream(struct crypto_aesctr *, const uint8_t *,
     uint8_t *, size_t);
 
 /**
  * crypto_aesctr_free(stream):
- * Free the provided stream object.
+ * Free the AES-CTR stream ${stream}.
  */
 void crypto_aesctr_free(struct crypto_aesctr *);
 

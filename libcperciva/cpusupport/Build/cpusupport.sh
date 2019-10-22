@@ -17,15 +17,15 @@ feature() {
 		return
 	fi
 	printf "Checking if compiler supports $ARCH $FEATURE feature..." 1>&2
-	for CFLAG in "$@"; do
-		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CFLAG}	\
+	for CPU_CFLAGS in "$@"; do
+		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CPU_CFLAGS} \
 		    ${SRCDIR}/cpusupport-$ARCH-$FEATURE.c 2>/dev/null; then
 			rm -f a.out
 			break;
 		fi
-		CFLAG=NOTSUPPORTED;
+		CPU_CFLAGS=NOTSUPPORTED;
 	done
-	case $CFLAG in
+	case $CPU_CFLAGS in
 	NOTSUPPORTED)
 		echo " no" 1>&2
 		;;
@@ -34,10 +34,10 @@ feature() {
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		;;
 	*)
-		echo " yes, via $CFLAG" 1>&2
+		echo " yes, via $CPU_CFLAGS" 1>&2
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		echo "#ifdef cpusupport_dummy"
-		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CFLAG}\""
+		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CPU_CFLAGS}\""
 		echo "#endif"
 		;;
 	esac
@@ -48,9 +48,18 @@ feature X86 CPUID ""
 feature X86 CPUID_COUNT ""
 
 # Detect specific features
-feature X86 AESNI "" "-maes" "-maes -Wno-cast-align" "-maes -Wno-missing-prototypes -Wno-cast-qual"
-feature X86 CRC32 "" "-msse4.2" "-msse4.2 -Wno-cast-align" "-msse4.2 -Wno-cast-align -fno-strict-aliasing"
+feature X86 AESNI "" "-maes"						\
+    "-maes -Wno-cast-align"						\
+    "-maes -Wno-missing-prototypes -Wno-cast-qual"			\
+    "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align"
+feature X86 CRC32 "" "-msse4.2"						\
+    "-msse4.2 -Wno-cast-align"						\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
 feature X86 RDRAND "" "-mrdrnd"
-feature X86 SHANI "" "-msse2 -msha" "-msse2 -msha -Wno-cast-align"
-feature X86 SSE2 "" "-msse2" "-msse2 -Wno-cast-align"
-feature X86 SSSE3 "" "-mssse3" "-mssse3 -Wno-cast-align"
+feature X86 SHANI "" "-msse2 -msha"					\
+    "-msse2 -msha -Wno-cast-align"
+feature X86 SSE2 "" "-msse2"						\
+    "-msse2 -Wno-cast-align"
+feature X86 SSSE3 "" "-mssse3"						\
+    "-mssse3 -Wno-cast-align"
