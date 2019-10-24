@@ -289,7 +289,10 @@ err0:
 
 /**
  * storage_transaction_start(NPC, machinenum, lastseq, seqnum, type):
- * Start a transaction of type ${type}.
+ * Start a transaction of type ${type}, for which 0 indicates a
+ * write transaction, 1 indicates a delete transaction, 2
+ * indicates a fsck with the delete key, and 3 indicates a fsck
+ * with the write key.
  */
 static int
 storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
@@ -494,7 +497,8 @@ storage_transaction_start_delete(NETPACKET_CONNECTION * NPC,
 /**
  * storage_transaction_start_fsck(NPC, machinenum, seqnum, whichkey):
  * Start a fsck transaction, and return the sequence number of the new
- * transaction in ${seqnum}.  Use the key specified by whichkey.
+ * transaction in ${seqnum}.  If ${whichkey} is zero, use the
+ * write key; otherwise, use the delete key.
  */
 int
 storage_transaction_start_fsck(NETPACKET_CONNECTION * NPC,
