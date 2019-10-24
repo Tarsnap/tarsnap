@@ -20,7 +20,8 @@ int storage_transaction_start_delete(NETPACKET_CONNECTION *, uint64_t,
 /**
  * storage_transaction_start_fsck(NPC, machinenum, seqnum, whichkey):
  * Start a fsck transaction, and return the sequence number of the new
- * transaction in ${seqnum}.  Use the key specified by whichkey.
+ * transaction in ${seqnum}.  If ${whichkey} is zero, use the
+ * write key; otherwise, use the delete key.
  */
 int storage_transaction_start_fsck(NETPACKET_CONNECTION *, uint64_t,
     uint8_t[32], uint8_t);

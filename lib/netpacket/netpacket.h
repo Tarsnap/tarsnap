@@ -91,8 +91,9 @@ int netpacket_transaction_getnonce(NETPACKET_CONNECTION *, uint64_t,
  *     state, callback):
  * Construct and send a NETPACKET_TRANSACTION_START packet asking to
  * start a transaction; the transaction is a write transaction if
- * ${operation} is 0, a delete transaction if ${operation} is 1, or a fsck
- * transaction if ${operation} is 2.
+ * ${operation} is 0, a delete transaction if ${operation} is 1, a fsck
+ * transaction with the delete key if ${operation} is 2, or a fsck
+ * transaction with the write key if ${operation} is 3.
  */
 int netpacket_transaction_start(NETPACKET_CONNECTION *, uint64_t,
     uint8_t, const uint8_t[32], const uint8_t[32], const uint8_t[32],
