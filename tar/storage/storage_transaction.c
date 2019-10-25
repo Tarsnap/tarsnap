@@ -338,6 +338,12 @@ storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 			    "Account balance is not positive.");
 			warn0("Please add more money to your tarsnap account");
 			goto err0;
+		case 3:
+			/* --fsck transaction using the write key. */
+			warn0("Could not begin fsck: "
+			    "Account balance is not positive");
+			warn0("Please add more money to your tarsnap account");
+			goto err0;
 		default:
 			/* We don't expect account balance for other ops. */
 			netproto_printerr(NETPROTO_STATUS_PROTERR);
