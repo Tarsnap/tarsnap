@@ -346,6 +346,8 @@ storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 			goto err0;
 		default:
 			/* We don't expect account balance for other ops. */
+			warn0("Programmer error: "
+			    "Unexpected account balance error");
 			netproto_printerr(NETPROTO_STATUS_PROTERR);
 			goto err0;
 		}
