@@ -362,8 +362,8 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose):
- * Encrypt inbuflen bytes from inbuf, writing the resulting inbuflen + 128
- * bytes to outbuf.
+ * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
+ * ${inbuflen} + 128 bytes to ${outbuf}.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -424,10 +424,10 @@ err1:
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
- * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
- * decrypted data length to outlen.  The allocated length of outbuf must
- * be at least inbuflen.  If ${force} is 1, do not check whether
- * decryption will exceed the estimated available memory or time.
+ * Decrypt ${inbuflen} bytes from ${inbuf}, writing the result into ${outbuf}
+ * and the decrypted data length to ${outlen}.  The allocated length of
+ * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
+ * whether decryption will exceed the estimated available memory or time.
  */
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -510,8 +510,8 @@ err0:
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose):
- * Read a stream from infile and encrypt it, writing the resulting stream to
- * outfile.
+ * Read a stream from ${infile} and encrypt it, writing the resulting stream
+ * to ${outfile}.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
@@ -816,8 +816,8 @@ err0:
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
- * Read a stream from infile and decrypt it, writing the resulting stream to
- * outfile.  If ${force} is 1, do not check whether decryption
+ * Read a stream from ${infile} and decrypt it, writing the resulting stream
+ * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.
  */
 int

@@ -86,8 +86,8 @@ struct scryptdec_file_cookie;
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose):
- * Encrypt inbuflen bytes from inbuf, writing the resulting inbuflen + 128
- * bytes to outbuf.
+ * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
+ * ${inbuflen} + 128 bytes to ${outbuf}.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
     const uint8_t *, size_t, size_t, double, double, int);
@@ -95,10 +95,10 @@ int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
- * Decrypt inbuflen bytes from inbuf, writing the result into outbuf and the
- * decrypted data length to outlen.  The allocated length of outbuf must
- * be at least inbuflen.  If ${force} is 1, do not check whether
- * decryption will exceed the estimated available memory or time.
+ * Decrypt ${inbuflen} bytes from ${inbuf}, writing the result into ${outbuf}
+ * and the decrypted data length to ${outlen}.  The allocated length of
+ * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
+ * whether decryption will exceed the estimated available memory or time.
  */
 int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
     const uint8_t *, size_t, size_t, double, double, int, int);
@@ -106,8 +106,8 @@ int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose):
- * Read a stream from infile and encrypt it, writing the resulting stream to
- * outfile.
+ * Read a stream from ${infile} and encrypt it, writing the resulting stream
+ * to ${outfile}.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
     size_t, double, double, int);
@@ -121,8 +121,8 @@ int scryptdec_file_printparams(FILE *);
 /**
  * scryptdec_file(infile, outfile, passwd, passwdlen,
  *     maxmem, maxmemfrac, maxtime, verbose, force):
- * Read a stream from infile and decrypt it, writing the resulting stream to
- * outfile.  If ${force} is 1, do not check whether decryption
+ * Read a stream from ${infile} and decrypt it, writing the resulting stream
+ * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.
  */
 int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
