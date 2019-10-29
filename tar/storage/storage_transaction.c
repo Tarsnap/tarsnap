@@ -330,16 +330,27 @@ storage_transaction_start(NETPACKET_CONNECTION * NPC, uint64_t machinenum,
 		warn0("Sequence number mismatch: Run --fsck");
 		goto err0;
 	case 2:
-		/* We should only get this for a write transaction start. */
-		if (type != 0) {
+		/* Non-positive balance.  What operation were we attempting? */
+		switch (type) {
+		case 0:
+			/* Write transaction. */
+			warn0("Cannot start write transaction: "
+			    "Account balance is not positive.");
+			warn0("Please add more money to your tarsnap account");
+			goto err0;
+		case 3:
+			/* --fsck transaction using the write key. */
+			warn0("Could not begin fsck: "
+			    "Account balance is not positive");
+			warn0("Please add more money to your tarsnap account");
+			goto err0;
+		default:
+			/* We don't expect account balance for other ops. */
+			warn0("Programmer error: "
+			    "Unexpected account balance error");
 			netproto_printerr(NETPROTO_STATUS_PROTERR);
 			goto err0;
 		}
-
-		warn0("Cannot start write transaction: "
-		    "Account balance is not positive.");
-		warn0("Please add more money to your tarsnap account");
-		goto err0;
 	default:
 		netproto_printerr(NETPROTO_STATUS_PROTERR);
 		goto err0;
