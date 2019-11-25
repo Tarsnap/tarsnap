@@ -500,7 +500,7 @@ netpacket_printstats(NETPACKET_CONNECTION * NPC)
 
 	/* Print warning if there's any queued data. */
 	if (queued > 0)
-		warnp("Connection ended with queued:\t" PRIu64 "\n", queued);
+		warnp("Connection ended with queued:\t" PRIu64, queued);
 
 	/* Print in/out network usage. */
 	fprintf(stderr, "Connection ended with in / out:\t"

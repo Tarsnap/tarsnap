@@ -291,7 +291,7 @@ ccache_read(const char * path)
 		goto err5;
 	}
 	if (sb.st_size != fpos + (off_t)R.datalen) {
-		warn0("Cache has incorrect size (%jd, expected %jd)\n",
+		warn0("Cache has incorrect size (%jd, expected %jd)",
 		    (intmax_t)(sb.st_size),
 		    (intmax_t)(fpos + (off_t)R.datalen));
 		goto err5;

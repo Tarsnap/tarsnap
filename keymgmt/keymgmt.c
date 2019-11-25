@@ -219,7 +219,7 @@ main(int argc, char **argv)
 			    PACKAGE_VERSION);
 			exit(0);
 		GETOPT_MISSING_ARG:
-			warn0("Missing argument to %s\n", ch);
+			warn0("Missing argument to %s", ch);
 			/* FALLTHROUGH */
 		GETOPT_DEFAULT:
 			usage();
