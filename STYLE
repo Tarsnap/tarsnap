@@ -18,6 +18,19 @@ Static functions may have the above form of comment, or simply a
 /* Brief description of what the function does. */
 line before the function.
 
+"Unrewrappable" comments starting in the first column should be
+/**
+ * Written like this.
+ *
+ * Because (some of) the line-breaks are important.
+ */
+whereas when such comments are indented, they should be
+	/*-
+	 * Written like this.
+	 *
+	 * Because (some of) the line-breaks are important.
+	 */
+
 Line lengths should generally be 78 characters, and not more than 80
 characters.
 
@@ -29,7 +42,7 @@ useful.  As an exception to this, malloc failures (i.e., errno = ENOMEM) can
 result in failure being passed back up the call chain without being printed
 immediately.  (Naturally, other errors can be passed back where a function
 definition so specifies; e.g., ENOENT in cases where a file not existing is
-not erronous.)
+not erroneous.)
 
 The first statement in main(), after variable declarations, should be
 "WARNP_INIT;" in order to set the program name used for printing warnings.
@@ -153,6 +166,9 @@ Oxford (aka. serial) comma should be used in lists.  Quotation marks
 should be placed logically, i.e., not including punctuation marks which
 do not form a logical part of the quoted text.  Two spaces should be used
 after a period which ends a sentence.
+
+The first local variable declaration in cookie-using functions should be
+	struct foo * bar = cookie;
 
 When versions of functions are written to exploit special CPU features
 (using the cpusupport framework), that code should be placed into a

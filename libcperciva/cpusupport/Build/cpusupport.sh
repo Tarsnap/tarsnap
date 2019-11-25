@@ -52,7 +52,7 @@ feature X86 AESNI "" "-maes"						\
     "-maes -Wno-cast-align"						\
     "-maes -Wno-missing-prototypes -Wno-cast-qual"			\
     "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align"
-feature X86 CRC32 "" "-msse4.2"						\
+feature X86 CRC32_64 "" "-msse4.2"					\
     "-msse4.2 -Wno-cast-align"						\
     "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
     "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
