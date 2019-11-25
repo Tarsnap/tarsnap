@@ -216,6 +216,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/insecure_memzero.h		\
 		libcperciva/util/monoclock.c			\
 		libcperciva/util/monoclock.h			\
+		libcperciva/util/parsenum.h			\
 		libcperciva/util/readpass.c			\
 		libcperciva/util/readpass.h			\
 		libcperciva/util/sock.c				\
