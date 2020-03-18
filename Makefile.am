@@ -261,6 +261,14 @@ LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+
+# Extract the ABI-changing defines.
+abi.defs:
+	$(top_srcdir)/lib/ABI/extract-abi.sh config.h > $@
+
+# Add the ABI-changing defines to the command-line defines.
+DEFS+=`cat abi.defs`
+
 EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
@@ -269,8 +277,8 @@ EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport-X86-SHANI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c
-BUILT_SOURCES=	cpusupport-config.h
-CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
+BUILT_SOURCES=	cpusupport-config.h abi.defs
+CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp abi.defs
 
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c
