@@ -371,8 +371,11 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	}
 
 	/* We're not processing any more files. */
-	siginfo_setinfo(bsdtar, NULL, NULL, 0, archive_file_count(a),
-	    archive_position_uncompressed(a));
+	if (mode == 'x') {
+		/* siginfo was not initialized in 't' mode. */
+		siginfo_setinfo(bsdtar, NULL, NULL, 0, archive_file_count(a),
+		    archive_position_uncompressed(a));
+	}
 
 	r = archive_read_close(a);
 	if (r != ARCHIVE_OK)
@@ -389,7 +392,10 @@ read_archive(struct bsdtar *bsdtar, char mode)
 		raise(SIGUSR1);
 
 	/* Print a final update (if desired). */
-	siginfo_printinfo(bsdtar, 0);
+	if (mode == 'x') {
+		/* siginfo was not initialized in 't' mode. */
+		siginfo_printinfo(bsdtar, 0);
+	}
 
 	archive_read_finish(a);
 
