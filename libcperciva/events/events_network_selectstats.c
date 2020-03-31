@@ -67,7 +67,7 @@ events_network_selectstats_select(void)
 		goto done;
 
 	/* Compute inter-select duration in seconds. */
-	t = (tnow.tv_sec - st.tv_sec) + (tnow.tv_usec - st.tv_usec) * 0.000001;
+	t = timeval_diff(st, tnow);
 
 	/* Adjust statistics.  We track running mean, variance * N, and max. */
 	N += 1.0;
