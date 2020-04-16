@@ -387,6 +387,7 @@ err0:
  * If ${force} is 1, do not check whether decryption will exceed
  * the estimated available memory or time.  If ${devtty} is non-zero, read a
  * password from /dev/tty if possible; if not, read from stdin.
+ * Return 0 for success, -2 for a bad passphrase, or -1 for other errors.
  */
 int
 keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
@@ -396,6 +397,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	uint8_t * keybuf;
 	FILE * f;
 	size_t keyfilelen;
+	int ret;
 
 	/* Stat the file. */
 	if (stat(filename, &sb)) {
@@ -438,12 +440,16 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 		}
 	} else {
 		/* Otherwise, try to base64 decode it. */
-		if (read_base64((const char *)keybuf, keyfilelen,
-		    machinenum, filename, keys, force, devtty)) {
+		if ((ret = read_base64((const char *)keybuf, keyfilelen,
+		    machinenum, filename, keys, force, devtty)) == -1) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
 			goto err1;
 		}
+
+		/* Report a bad passphrase. */
+		if (ret == -2)
+			goto badpass;
 	}
 
 	/* Zero and free memory. */
@@ -452,6 +458,14 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 
 	/* Success! */
 	return (0);
+
+badpass:
+	fclose(f);
+	insecure_memzero(keybuf, keyfilelen);
+	free(keybuf);
+
+	/* Failure: bad passphrase. */
+	return (-2);
 
 err2:
 	fclose(f);

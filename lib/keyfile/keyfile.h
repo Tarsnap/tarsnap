@@ -11,6 +11,7 @@
  * If ${force} is 1, do not check whether decryption will exceed
  * the estimated available memory or time.  If ${devtty} is non-zero, read a
  * password from /dev/tty if possible; if not, read from stdin.
+ * Return 0 for success, -2 for a bad passphrase, or -1 for other errors.
  */
 int keyfile_read(const char *, uint64_t *, int, int, int);
 
