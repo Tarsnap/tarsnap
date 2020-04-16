@@ -115,6 +115,7 @@ err0:
 	return (-1);
 }
 
+/* Return 0 on success, -1 on error, -2 on passphrase mismatch. */
 static int
 read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys, int force, int devtty)
@@ -188,7 +189,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 			break;
 		case 11:
 			warn0("Passphrase is incorrect");
-			break;
+			goto badpass;
 		default:
 			warn0("Programmer error: "
 			    "Impossible error returned by scryptdec_buf");
@@ -217,6 +218,16 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	/* Success! */
 	return (0);
 
+badpass:
+	insecure_memzero(deckeybuf, keylen);
+	free(deckeybuf);
+	insecure_memzero(passwd, strlen(passwd));
+	free(passwd);
+	free(pwprompt);
+
+	/* Failure: bad passphrase! */
+	return (-2);
+
 err3:
 	/*
 	 * Depending on the error, we might not know how much data was written
@@ -234,6 +245,7 @@ err0:
 	return (-1);
 }
 
+/* Return 0 on success, -1 on error, -2 on passphrase mismatch. */
 static int
 read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys, int force, int devtty)
@@ -259,6 +271,7 @@ err0:
 	return (-1);
 }
 
+/* Return 0 on success, -1 on error, -2 on passphrase mismatch. */
 static int
 read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
     const char * filename, int keys, int force, int devtty)
@@ -270,6 +283,7 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 	size_t llen;
 	size_t len;
 	uint8_t hbuf[32];
+	int ret;
 
 	/* Sanity-check size. */
 	if (keylen < 4) {
@@ -336,9 +350,11 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 	}
 
 	/* Process the decoded key file. */
-	if (read_base256(decbuf, decpos, machinenum, filename, keys, force,
-	    devtty))
+	if ((ret = read_base256(decbuf, decpos, machinenum, filename, keys,
+	    force, devtty)) == -1)
 		goto err1;
+	if (ret == -2)
+		goto badpass;
 
 	/* Zero and free memory. */
 	insecure_memzero(decbuf, decbuflen);
@@ -346,6 +362,13 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Success! */
 	return (0);
+
+badpass:
+	insecure_memzero(decbuf, decbuflen);
+	free(decbuf);
+
+	/* Failure: bad passphrase. */
+	return (-2);
 
 err2:
 	warn0("Key file is corrupt on line %zu: %s", lnum, filename);
