@@ -1001,9 +1001,15 @@ main(int argc, char **argv)
 
 	/* Attempt to load keyfile. */
 	if (bsdtar->keyfile != NULL) {
-		if (load_keys(bsdtar, bsdtar->keyfile) == 0)
+		switch (load_keys(bsdtar, bsdtar->keyfile)) {
+		case 0:
 			bsdtar->have_keys = 1;
-		else {
+			break;
+		case -2:
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Cannot read key file: %s", bsdtar->keyfile);
+			break;
+		case -1:
 			if (bsdtar->option_dryrun &&
 			    bsdtar->keyfile_from_config)
 				bsdtar->config_file_keyfile_failed = 1;
@@ -1887,15 +1893,18 @@ badopt:
 	    "Unrecognized configuration file option: \"%s\"", conf_opt);
 }
 
-/* Load keys from the specified file.  Return success or failure. */
+/* Load keys from the specified file.  Return 0 for success, -2
+ * for a bad passphrase, or -1 for other errors. */
 static int
 load_keys(struct bsdtar *bsdtar, const char *path)
 {
 	uint64_t machinenum;
+	int ret;
 
 	/* Load the key file. */
-	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources,
-	    !bsdtar->option_passphrase_stdin))
+	if ((ret = keyfile_read(path, &machinenum, ~0,
+	    bsdtar->option_force_resources, !bsdtar->option_passphrase_stdin))
+	    < 0)
 		goto err0;
 
 	/* Check the machine number. */
@@ -1910,7 +1919,7 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 
 err0:
 	/* Failure! */
-	return (-1);
+	return (ret);
 }
 
 static int
