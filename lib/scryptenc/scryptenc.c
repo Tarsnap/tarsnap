@@ -101,6 +101,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 	double opps;
 	double opslimit;
 	double maxN, maxrp;
+	uint64_t checkN;
 	int rc;
 
 	/* Figure out how much memory to use. */
@@ -133,19 +134,22 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		*p = 1;
 		maxN = opslimit / (*r * 4);
 		for (*logN = 1; *logN < 63; *logN += 1) {
-			if ((uint64_t)(1) << *logN > maxN / 2)
+			checkN = (uint64_t)(1) << *logN;
+			if (checkN > maxN / 2)
 				break;
 		}
 	} else {
 		/* Set N based on the memory limit. */
 		maxN = memlimit / (*r * 128);
 		for (*logN = 1; *logN < 63; *logN += 1) {
-			if ((uint64_t)(1) << *logN > maxN / 2)
+			checkN = (uint64_t)(1) << *logN;
+			if (checkN > maxN / 2)
 				break;
 		}
 
 		/* Choose p based on the CPU limit. */
-		maxrp = (opslimit / 4) / ((uint64_t)(1) << *logN);
+		checkN = (uint64_t)(1) << *logN;
+		maxrp = (opslimit / 4) / checkN;
 		if (maxrp > 0x3fffffff)
 			maxrp = 0x3fffffff;
 		*p = (uint32_t)(maxrp) / *r;
