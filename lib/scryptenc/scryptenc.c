@@ -68,7 +68,7 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 {
 	uint64_t N = (uint64_t)(1) << logN;
 	uint64_t mem_minimum = 128 * r * N;
-	double expected_seconds = opps > 0 ? 4 * N * p / opps : 0;
+	double expected_seconds = opps > 0 ? (double)(4 * N * p) / opps : 0;
 	char * human_memlimit = humansize(memlimit);
 	char * human_mem_minimum = humansize(mem_minimum);
 
@@ -145,7 +145,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		}
 	} else {
 		/* Set N based on the memory limit. */
-		maxN = memlimit / (*r * 128);
+		maxN = (double)(memlimit / (*r * 128));
 		for (*logN = 1; *logN < 63; *logN += 1) {
 			checkN = (uint64_t)(1) << *logN;
 			if ((double)checkN > maxN / 2)
@@ -200,7 +200,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		N = (uint64_t)(1) << logN;
 		if ((memlimit / N) / r < 128)
 			return (9);
-		if (((opslimit / N) / r) / p < 4)
+		if (((opslimit / (double)N) / r) / p < 4)
 			return (10);
 	} else {
 		/* We have no limit. */
