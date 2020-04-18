@@ -140,7 +140,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 			 * Find the largest power of two <= maxN, which is
 			 * also the least power of two > maxN/2.
 			 */
-			if (checkN > maxN / 2)
+			if ((double)checkN > maxN / 2)
 				break;
 		}
 	} else {
@@ -148,13 +148,13 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		maxN = memlimit / (*r * 128);
 		for (*logN = 1; *logN < 63; *logN += 1) {
 			checkN = (uint64_t)(1) << *logN;
-			if (checkN > maxN / 2)
+			if ((double)checkN > maxN / 2)
 				break;
 		}
 
 		/* Choose p based on the CPU limit. */
 		checkN = (uint64_t)(1) << *logN;
-		maxrp = (opslimit / 4) / checkN;
+		maxrp = (opslimit / 4) / (double)checkN;
 		if (maxrp > 0x3fffffff)
 			maxrp = 0x3fffffff;
 		*p = (uint32_t)(maxrp) / *r;
