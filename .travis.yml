@@ -10,6 +10,7 @@ script:
       tar/tarsnap-tree.o tar/tarsnap-util.o tar/tarsnap-write.o
       libarchive/libarchive.a
   && make "CFLAGS=$CFLAGS $CFLAGS_STRICT"
+  && make test
 env:
   - CFLAGS="-std=c99 -O2 -Wall -Wextra -Werror"
 matrix:
