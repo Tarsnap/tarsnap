@@ -464,7 +464,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Check the format. */
 	if (inbuf[6] != 0) {
-		rc = 8;
+		rc = SCRYPT_EVERSION;
 		goto err0;
 	}
 
@@ -652,7 +652,7 @@ scryptdec_file_load_header(FILE * infile, uint8_t header[static 96])
 		goto err0;
 	}
 	if (header[6] != 0) {
-		rc = 8;
+		rc = SCRYPT_EVERSION;
 		goto err0;
 	}
 

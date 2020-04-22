@@ -177,7 +177,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_EINVAL:
 			warn0("Input is not valid scrypt-encrypted block");
 			break;
-		case 8:
+		case SCRYPT_EVERSION:
 			warn0("Unrecognized scrypt format version");
 			break;
 		case 9:
