@@ -174,7 +174,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_ENOMEM:
 			/* malloc failure */
 			break;
-		case 7:
+		case SCRYPT_EINVAL:
 			warn0("Input is not valid scrypt-encrypted block");
 			break;
 		case 8:
