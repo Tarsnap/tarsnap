@@ -171,7 +171,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_EOPENSSL:
 			warnp("OpenSSL error");
 			break;
-		case 6:
+		case SCRYPT_ENOMEM:
 			/* malloc failure */
 			break;
 		case 7:
@@ -587,7 +587,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		case SCRYPT_EOPENSSL:
 			warnp("OpenSSL error");
 			break;
-		case 6:
+		case SCRYPT_ENOMEM:
 			warnp("Error allocating memory");
 			break;
 		default:

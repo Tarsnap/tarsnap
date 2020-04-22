@@ -404,7 +404,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		rc = 6;
+		rc = SCRYPT_ENOMEM;
 		goto err1;
 	}
 	crypto_aesctr_stream(AES, inbuf, &outbuf[96], inbuflen);
@@ -486,7 +486,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		rc = 6;
+		rc = SCRYPT_ENOMEM;
 		goto err1;
 	}
 	crypto_aesctr_stream(AES, &inbuf[96], outbuf, inbuflen - 128);
@@ -562,7 +562,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		rc = 6;
+		rc = SCRYPT_ENOMEM;
 		goto err1;
 	}
 	do {
@@ -695,7 +695,7 @@ scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
 
 	/* Allocate the cookie. */
 	if ((C = malloc(sizeof(struct scryptdec_file_cookie))) == NULL)
-		return (6);
+		return (SCRYPT_ENOMEM);
 	C->infile = infile;
 
 	/* Load the header. */
@@ -764,7 +764,7 @@ scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 	}
 	if ((AES = crypto_aesctr_init(key_enc_exp, 0)) == NULL) {
 		crypto_aes_key_free(key_enc_exp);
-		rc = 6;
+		rc = SCRYPT_ENOMEM;
 		goto err0;
 	}
 	do {
