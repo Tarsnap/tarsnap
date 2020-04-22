@@ -581,7 +581,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 	/* Did we exit the loop due to a read error? */
 	if (ferror(infile)) {
-		rc = 13;
+		rc = SCRYPT_ERDFILE;
 		goto err1;
 	}
 
@@ -638,7 +638,7 @@ scryptdec_file_load_header(FILE * infile, uint8_t header[static 96])
 	 */
 	if (fread(header, 7, 1, infile) < 1) {
 		if (ferror(infile)) {
-			rc = 13;
+			rc = SCRYPT_ERDFILE;
 			goto err0;
 		} else {
 			rc = SCRYPT_EINVAL;
@@ -662,7 +662,7 @@ scryptdec_file_load_header(FILE * infile, uint8_t header[static 96])
 	 */
 	if (fread(&header[7], 89, 1, infile) < 1) {
 		if (ferror(infile)) {
-			rc = 13;
+			rc = SCRYPT_ERDFILE;
 			goto err0;
 		} else {
 			rc = SCRYPT_EINVAL;
@@ -797,7 +797,7 @@ scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 
 	/* Did we exit the loop due to a read error? */
 	if (ferror(C->infile)) {
-		rc = 13;
+		rc = SCRYPT_ERDFILE;
 		goto err0;
 	}
 
