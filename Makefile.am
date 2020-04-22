@@ -7,6 +7,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_shani.a lib/libtarsnap_sse2.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
+noinst_PROGRAMS=	tests/valgrind/potential-memleaks
 man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
 CLEANFILES=	$(man_MANS)
 
@@ -531,6 +532,18 @@ tarsnap_keymgmt_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/util
 
 tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
+
+#
+# Test framework and support programs
+#
+#
+
+.PHONY: test
+test: all
+	$(top_srcdir)/tests/test_tarsnap.sh .
+
+# Detect potential memory leaks from libraries.
+tests_valgrind_potential_memleaks_SOURCES = tests/valgrind/potential-memleaks.c
 
 #  Tarsnap configuration file
 if INSTALL_CONF_NO_SAMPLE
