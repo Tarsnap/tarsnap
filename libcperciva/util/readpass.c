@@ -56,14 +56,13 @@ resetsigs(struct sigaction savedsa[NSIGS])
 
 /**
  * readpass(passwd, prompt, confirmprompt, devtty):
- * If ${devtty} is 0, read a password from stdin.
- * If ${devtty} is non-zero, read a password from /dev/tty if possible; if
- * not, read from stdin.  If reading from a tty (either /dev/tty or stdin),
- * disable echo and prompt the user by printing ${prompt} to stderr.  If
- * ${confirmprompt} is non-NULL, read a second password (prompting if a
- * terminal is being used) and repeat until the user enters the same password
- * twice.  Return the password as a malloced NUL-terminated string via
- * ${passwd}.
+ * If ${devtty} is 0, read a password from stdin.  If ${devtty} is non-zero,
+ * read a password from /dev/tty if possible; if not, read from stdin.
+ * If reading from a tty (either /dev/tty or stdin), disable echo and prompt
+ * the user by printing ${prompt} to stderr.  If ${confirmprompt} is non-NULL,
+ * read a second password (prompting if a terminal is being used) and repeat
+ * until the user enters the same password twice.  Return the password as a
+ * malloced NUL-terminated string via ${passwd}.
  */
 int
 readpass(char ** passwd, const char * prompt,
@@ -77,12 +76,18 @@ readpass(char ** passwd, const char * prompt,
 	size_t i;
 	int usingtty;
 
-	/*
-	 * If devtty != 0, try to open /dev/tty; if that fails, or if devtty
-	 * is zero, we'll read the password from stdin instead.
-	 */
-	if ((devtty == 0) || ((readfrom = fopen("/dev/tty", "r")) == NULL))
+	/* Where should we read the password from? */
+	switch (devtty) {
+	case 0:
+		/* Read directly from stdin. */
 		readfrom = stdin;
+		break;
+	default:
+		/* Try to open /dev/tty; if that fails, read from stdin. */
+		if ((readfrom = fopen("/dev/tty", "r")) == NULL)
+			readfrom = stdin;
+		break;
+	}
 
 	/* We have not received any signals yet. */
 	for (i = 0; i <= MAXBADSIG; i++)
