@@ -34,6 +34,7 @@
 #include "crypto_scrypt.h"
 #include "monoclock.h"
 
+#include "scryptenc.h"
 #include "scryptenc_cpuperf.h"
 
 static int
