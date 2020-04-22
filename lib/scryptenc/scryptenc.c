@@ -199,7 +199,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		/* Check limits. */
 		N = (uint64_t)(1) << logN;
 		if ((memlimit / N) / r < 128)
-			return (9);
+			return (SCRYPT_ETOOBIG);
 		if (((opslimit / (double)N) / r) / p < 4)
 			return (10);
 	} else {

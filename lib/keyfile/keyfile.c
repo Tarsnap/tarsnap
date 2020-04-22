@@ -180,7 +180,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_EVERSION:
 			warn0("Unrecognized scrypt format version");
 			break;
-		case 9:
+		case SCRYPT_ETOOBIG:
 			warn0("Decrypting file would require too much memory");
 			break;
 		case 10:
