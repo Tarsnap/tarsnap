@@ -548,7 +548,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);
 	HMAC_SHA256_Update(&hctx, header, 96);
 	if (fwrite(header, 96, 1, outfile) != 1) {
-		rc = 12;
+		rc = SCRYPT_EWRFILE;
 		goto err1;
 	}
 
@@ -572,7 +572,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 		HMAC_SHA256_Update(&hctx, buf, readlen);
 		if (fwrite(buf, 1, readlen, outfile) < readlen) {
 			crypto_aesctr_free(AES);
-			rc = 12;
+			rc = SCRYPT_EWRFILE;
 			goto err1;
 		}
 	} while (1);
@@ -588,7 +588,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	/* Compute the final HMAC and output it. */
 	HMAC_SHA256_Final(hbuf, &hctx);
 	if (fwrite(hbuf, 32, 1, outfile) != 1) {
-		rc = 12;
+		rc = SCRYPT_EWRFILE;
 		goto err1;
 	}
 
@@ -784,7 +784,7 @@ scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)
 		crypto_aesctr_stream(AES, buf, buf, buflen - 32);
 		if (fwrite(buf, 1, buflen - 32, outfile) < buflen - 32) {
 			crypto_aesctr_free(AES);
-			rc = 12;
+			rc = SCRYPT_EWRFILE;
 			goto err0;
 		}
 
