@@ -159,7 +159,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	    force);
 	if (rc != SCRYPT_OK) {
 		switch (rc) {
-		case 1:
+		case SCRYPT_ELIMIT:
 			warnp("Error determining amount of available memory");
 			break;
 		case 2:
@@ -572,7 +572,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		case SCRYPT_OK:
 			/* Success! */
 			break;
-		case 1:
+		case SCRYPT_ELIMIT:
 			warnp("Error determining amount of available memory");
 			break;
 		case 2:
