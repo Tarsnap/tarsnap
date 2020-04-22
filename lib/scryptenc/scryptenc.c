@@ -246,7 +246,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 
 	/* Get some salt. */
 	if (crypto_entropy_read(salt, 32))
-		return (4);
+		return (SCRYPT_ESALT);
 
 	/* Generate the derived keys. */
 	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
