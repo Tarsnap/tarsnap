@@ -1,3 +1,5 @@
+#include "platform.h"
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>

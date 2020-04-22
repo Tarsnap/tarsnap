@@ -1,3 +1,5 @@
+#include "platform.h"
+
 #include <sys/types.h>
 
 #include <inttypes.h>

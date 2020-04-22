@@ -1,3 +1,5 @@
+#include "platform.h"
+
 #include <stdint.h>
 
 #include "multitape_internal.h"
