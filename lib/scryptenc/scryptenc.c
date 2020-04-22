@@ -201,7 +201,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		if ((memlimit / N) / r < 128)
 			return (SCRYPT_ETOOBIG);
 		if (((opslimit / (double)N) / r) / p < 4)
-			return (10);
+			return (SCRYPT_ETOOSLOW);
 	} else {
 		/* We have no limit. */
 		memlimit = 0;
