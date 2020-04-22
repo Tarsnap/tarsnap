@@ -68,7 +68,7 @@
  * 1	getrlimit or sysctl(hw.usermem) failed
  * 2	clock_getres or clock_gettime failed
  * 3	error computing derived key
- * 4	could not read salt from /dev/urandom
+ * 4	could not read salt
  * 5	error in OpenSSL
  * 6	malloc failed
  * 7	data is not a valid scrypt-encrypted block
