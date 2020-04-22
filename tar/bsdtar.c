@@ -999,18 +999,24 @@ main(int argc, char **argv)
 	if (bsdtar->mode == OPTION_VERIFY_CONFIG)
 		exit(0);
 
+	/*
+	 * Special case: if we're doing a dryrun and the keyfile came
+	 * from a config file, ignore a non-existent keyfile.
+	 */
+	if (bsdtar->keyfile && bsdtar->keyfile_from_config &&
+	    bsdtar->option_dryrun && (access(bsdtar->keyfile, F_OK) == -1)) {
+		free(bsdtar->keyfile);
+		bsdtar->keyfile = NULL;
+		bsdtar->config_file_keyfile_failed = 1;
+	}
+
 	/* Attempt to load keyfile. */
 	if (bsdtar->keyfile != NULL) {
 		if (load_keys(bsdtar, bsdtar->keyfile) == 0)
 			bsdtar->have_keys = 1;
 		else {
-			if (bsdtar->option_dryrun &&
-			    bsdtar->keyfile_from_config)
-				bsdtar->config_file_keyfile_failed = 1;
-			else {
-				bsdtar_errc(bsdtar, 1, errno,
-				    "Cannot read key file: %s", bsdtar->keyfile);
-			}
+			bsdtar_errc(bsdtar, 1, errno,
+			    "Cannot read key file: %s", bsdtar->keyfile);
 		}
 	}
 
