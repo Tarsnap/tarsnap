@@ -162,7 +162,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_ELIMIT:
 			warnp("Error determining amount of available memory");
 			break;
-		case 2:
+		case SCRYPT_ECLOCK:
 			warnp("Error reading clocks");
 			break;
 		case 3:
@@ -575,7 +575,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		case SCRYPT_ELIMIT:
 			warnp("Error determining amount of available memory");
 			break;
-		case 2:
+		case SCRYPT_ECLOCK:
 			warnp("Error reading clocks");
 			break;
 		case 3:
