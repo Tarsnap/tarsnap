@@ -75,7 +75,7 @@ scryptenc_cpuperf(double * opps)
 	do {
 		/* Do an scrypt. */
 		if (crypto_scrypt(NULL, 0, NULL, 0, 16, 1, 1, NULL, 0))
-			return (3);
+			return (SCRYPT_EKEY);
 
 		/* Has the clock ticked? */
 		if (getclockdiff(&st, &diffd))
@@ -90,7 +90,7 @@ scryptenc_cpuperf(double * opps)
 	do {
 		/* Do an scrypt. */
 		if (crypto_scrypt(NULL, 0, NULL, 0, 128, 1, 1, NULL, 0))
-			return (3);
+			return (SCRYPT_EKEY);
 
 		/* We invoked the salsa20/8 core 512 times. */
 		i += 512;

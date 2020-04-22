@@ -250,7 +250,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 
 	/* Generate the derived keys. */
 	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
-		return (3);
+		return (SCRYPT_EKEY);
 
 	/* Construct the file header. */
 	memcpy(header, "scrypt", 6);
@@ -355,7 +355,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	/* Compute the derived keys. */
 	N = (uint64_t)(1) << logN;
 	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
-		return (3);
+		return (SCRYPT_EKEY);
 
 	/* Check header signature (i.e., verify password). */
 	HMAC_SHA256_Init(&hctx, key_hmac, 32);

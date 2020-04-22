@@ -165,7 +165,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 		case SCRYPT_ECLOCK:
 			warnp("Error reading clocks");
 			break;
-		case 3:
+		case SCRYPT_EKEY:
 			warnp("Error computing derived key");
 			break;
 		case 5:
@@ -578,7 +578,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		case SCRYPT_ECLOCK:
 			warnp("Error reading clocks");
 			break;
-		case 3:
+		case SCRYPT_EKEY:
 			warnp("Error computing derived key");
 			break;
 		case 4:
