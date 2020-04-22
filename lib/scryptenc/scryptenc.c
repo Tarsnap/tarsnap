@@ -362,7 +362,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	HMAC_SHA256_Update(&hctx, header, 64);
 	HMAC_SHA256_Final(hbuf, &hctx);
 	if (crypto_verify_bytes(hbuf, &header[64], 32))
-		return (11);
+		return (SCRYPT_EPASS);
 
 	/* Success! */
 	return (SCRYPT_OK);
