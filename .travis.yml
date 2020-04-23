@@ -1,6 +1,6 @@
 language: c
 os: linux
-dist: xenial
+dist: bionic
 # We can't use strict flags in CFLAGS as a general environment
 # variable, because that messes up ./configure.  We also need to use
 # much more permissive "strict" checks for our version of libarchive.
@@ -10,7 +10,7 @@ script:
       tar/tarsnap-tree.o tar/tarsnap-util.o tar/tarsnap-write.o
       libarchive/libarchive.a
   && make "CFLAGS=$CFLAGS $CFLAGS_STRICT"
-  && make test
+  && make test USE_VALGRIND=1
 env:
   - CFLAGS="-std=c99 -O2 -Wall -Wextra -Werror"
 jobs:
@@ -23,7 +23,7 @@ jobs:
            CFLAGS_LIBARCHIVE="-Weverything -Werror -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-missing-noreturn -Wno-sign-conversion -Wno-undef -Wno-shorten-64-to-32 -Wno-shadow -Wno-conversion -Wno-unused-macros -Wno-class-varargs -Wno-unreachable-code -Wno-tautological-overlap-compare -Wno-float-equal -Wno-unreachable-code-break -Wno-unused-function -Wno-reserved-id-macro -Wno-comma"
 addons:
   apt:
-    packages: libssl-dev zlib1g-dev e2fslibs-dev
+    packages: libssl-dev zlib1g-dev e2fslibs-dev valgrind
 before_install:
   - autoreconf -i
   - ./configure
