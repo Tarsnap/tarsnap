@@ -57,7 +57,8 @@ resetsigs(struct sigaction savedsa[NSIGS])
 /**
  * readpass(passwd, prompt, confirmprompt, devtty):
  * If ${devtty} is 0, read a password from stdin.  If ${devtty} is 1, read a
- * password from /dev/tty if possible; if not, read from stdin.
+ * password from /dev/tty if possible; if not, read from stdin.  If ${devtty}
+ * is 2, read a password from /dev/tty if possible; if not, exit with an error.
  * If reading from a tty (either /dev/tty or stdin), disable echo and prompt
  * the user by printing ${prompt} to stderr.  If ${confirmprompt} is non-NULL,
  * read a second password (prompting if a terminal is being used) and repeat
@@ -86,6 +87,13 @@ readpass(char ** passwd, const char * prompt,
 		/* Try to open /dev/tty; if that fails, read from stdin. */
 		if ((readfrom = fopen("/dev/tty", "r")) == NULL)
 			readfrom = stdin;
+		break;
+	case 2:
+		/* Try to open /dev/tty; if that fails, bail. */
+		if ((readfrom = fopen("/dev/tty", "r")) == NULL) {
+			warnp("fopen(\"/dev/tty\")");
+			goto err1;
+		}
 		break;
 	default:
 		warn0("readpass does not support devtty=%d", devtty);
