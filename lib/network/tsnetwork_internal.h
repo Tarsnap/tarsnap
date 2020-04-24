@@ -24,20 +24,6 @@
 } while (0)
 
 /**
- * network_cork(fd):
- * Clear the TCP_NODELAY socket option, and set TCP_CORK or TCP_NOPUSH if
- * either is defined.
- */
-int network_cork(int);
-
-/**
- * network_uncork(fd):
- * Set the TCP_NODELAY socket option, and clear TCP_CORK or TCP_NOPUSH if
- * either is defined.
- */
-int network_uncork(int);
-
-/**
  * network_register_suspend(op):
  * Suspend ${op} operations, on all file descriptors.
  */

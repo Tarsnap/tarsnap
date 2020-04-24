@@ -135,6 +135,7 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/network/tsnetwork_bwlimit.c			\
 		lib/network/tsnetwork_connect.c			\
 		lib/network/tsnetwork_cork.c			\
+		lib/network/tsnetwork_cork.h			\
 		lib/network/tsnetwork_internal.h		\
 		lib/network/tsnetwork_register.c		\
 		lib/network/tsnetwork_select.c			\

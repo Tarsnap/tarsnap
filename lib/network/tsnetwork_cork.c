@@ -10,7 +10,7 @@
 
 #include "warnp.h"
 
-#include "tsnetwork_internal.h"
+#include "tsnetwork_cork.h"
 
 /**
  * XXX Portability
