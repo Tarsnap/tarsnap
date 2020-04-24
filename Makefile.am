@@ -256,6 +256,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-D_POSIX_C_SOURCE=200809L		\
 		-D_XOPEN_SOURCE=700			\
+		-DTSSERVER=\"$(TSSERVER)\"		\
 		${CFLAGS_POSIX}
 
 LIBTARSNAP_A=	lib/libtarsnap.a

@@ -31,7 +31,7 @@ AC_DEFINE([LIBARCHIVE_VERSION_STRING],"LIBARCHIVE_VERSION_S()",
 	[Version number of libarchive])
 AC_DEFINE_UNQUOTED([LIBARCHIVE_VERSION_NUMBER],"LIBARCHIVE_VERSION_N()",
 	[Version number of libarchive as a single integer])
-AC_DEFINE([TSSERVER],"TS_SERVER()",[tarsnap server name])
+AC_SUBST([TSSERVER],"TS_SERVER()")
 
 # The shell variables here must be the same as the AC_SUBST() variables
 # below, but the shell variable names apparently cannot be the same as
