@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "tsnetwork_cork.h"
 #include "tsnetwork_internal.h"
 #include "tvmath.h"
 
