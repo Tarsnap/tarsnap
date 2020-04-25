@@ -102,8 +102,6 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto_keys_subr.c			\
 		lib/crypto/crypto_passwd_to_dh.c		\
 		lib/crypto/crypto_rsa.c				\
-		lib/crypto/crypto_scrypt.c			\
-		lib/crypto/crypto_scrypt.h			\
 		lib/crypto/crypto_scrypt_smix.c			\
 		lib/crypto/crypto_scrypt_smix.h			\
 		lib/crypto/crypto_scrypt_smix_sse2.h		\
@@ -151,6 +149,8 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/sigquit.h				\
 		lib/util/tvmath.c				\
 		lib/util/tvmath.h				\
+		lib-platform/crypto/crypto_scrypt.c		\
+		lib-platform/crypto/crypto_scrypt.h		\
 		lib-platform/platform.h				\
 		lib-platform/network/tsnetwork_cork.c		\
 		lib-platform/network/tsnetwork_cork.h		\
@@ -248,6 +248,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/lib/scryptenc		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/lib-platform		\
+		-I$(top_srcdir)/lib-platform/crypto	\
 		-I$(top_srcdir)/lib-platform/network	\
 		-I$(top_srcdir)/lib-platform/util	\
 		-I$(top_srcdir)/libcperciva/alg		\
