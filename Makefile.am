@@ -147,17 +147,17 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/scryptenc/scryptenc_cpuperf.h		\
 		lib/util/dirutil.c				\
 		lib/util/dirutil.h				\
-		lib/util/getfstype.c				\
-		lib/util/getfstype.h				\
 		lib/util/hexlink.c				\
 		lib/util/hexlink.h				\
-		lib/util/memlimit.c				\
-		lib/util/memlimit.h				\
 		lib/util/sigquit.c				\
 		lib/util/sigquit.h				\
 		lib/util/tvmath.c				\
 		lib/util/tvmath.h				\
 		lib-platform/platform.h				\
+		lib-platform/util/getfstype.c			\
+		lib-platform/util/getfstype.h			\
+		lib-platform/util/memlimit.c			\
+		lib-platform/util/memlimit.h			\
 		libcperciva/alg/sha256.c			\
 		libcperciva/alg/sha256.h			\
 		libcperciva/alg/sha256_shani.h			\
@@ -248,6 +248,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/lib/scryptenc		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/lib-platform		\
+		-I$(top_srcdir)/lib-platform/util	\
 		-I$(top_srcdir)/libcperciva/alg		\
 		-I$(top_srcdir)/libcperciva/cpusupport	\
 		-I$(top_srcdir)/libcperciva/crypto	\
@@ -409,6 +410,7 @@ tarsnap_CPPFLAGS=					\
 		-I$(top_srcdir)/lib/network		\
 		-I$(top_srcdir)/lib/util		\
 		-I$(top_srcdir)/lib-platform		\
+		-I$(top_srcdir)/lib-platform/util	\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/datastruct	\
 		-I$(top_srcdir)/libcperciva/util	\
