@@ -374,28 +374,30 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	FILE * f;
 	size_t keyfilelen;
 
-	/* Stat the file. */
-	if (stat(filename, &sb)) {
-		warnp("stat(%s)", filename);
+	/* Open the file. */
+	if ((f = fopen(filename, "r")) == NULL) {
+		warnp("fopen(%s)", filename);
 		goto err0;
+	}
+
+	/* Stat the file. */
+	if (fstat(fileno(f), &sb)) {
+		warnp("stat(%s)", filename);
+		goto err1;
 	}
 
 	/* Validate keyfile size. */
 	if ((sb.st_size == 0) || (sb.st_size > 1000000)) {
 		warn0("Key file has unreasonable size: %s", filename);
-		goto err0;
+		goto err1;
 	}
 	keyfilelen = (size_t)(sb.st_size);
 
 	/* Allocate memory. */
 	if ((keybuf = malloc(keyfilelen)) == NULL)
-		goto err0;
+		goto err1;
 
 	/* Read the file. */
-	if ((f = fopen(filename, "r")) == NULL) {
-		warnp("fopen(%s)", filename);
-		goto err1;
-	}
 	if (fread(keybuf, keyfilelen, 1, f) != 1) {
 		warnp("fread(%s)", filename);
 		goto err2;
@@ -431,10 +433,10 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	return (0);
 
 err2:
-	fclose(f);
-err1:
 	insecure_memzero(keybuf, keyfilelen);
 	free(keybuf);
+err1:
+	fclose(f);
 err0:
 	/* Failure! */
 	return (-1);
