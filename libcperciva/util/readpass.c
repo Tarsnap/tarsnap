@@ -91,7 +91,7 @@ readpass(char ** passwd, const char * prompt,
 	case 2:
 		/* Try to open /dev/tty; if that fails, bail. */
 		if ((readfrom = fopen("/dev/tty", "r")) == NULL) {
-			warnp("fopen(\"/dev/tty\")");
+			warnp("fopen(/dev/tty)");
 			goto err1;
 		}
 		break;
