@@ -24,12 +24,12 @@ if ! ${CC} -D_POSIX_C_SOURCE=200809L $D/posix-clock_realtime.c 2>/dev/null; then
 	printf %s "-DPOSIXFAIL_CLOCK_REALTIME"
 	echo "WARNING: POSIX violation: <time.h> not defining CLOCK_REALTIME" 1>&2
 fi
-if ! ${CC} -D_POSIX_C_SOURCE=200809L $D/posix-inet-addrstrlen.c 2>/dev/null; then
+if ! ${CC} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 $D/posix-inet-addrstrlen.c 2>/dev/null; then
 	[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 	printf %s "-DPOSIXFAIL_INET_ADDRSTRLEN"
 	echo "WARNING: POSIX violation: <netinet/in.h> not defining INET_ADDRSTRLEN" 1>&2
 fi
-if ! ${CC} -D_POSIX_C_SOURCE=200809L $D/posix-inet6-addrstrlen.c 2>/dev/null; then
+if ! ${CC} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 $D/posix-inet6-addrstrlen.c 2>/dev/null; then
 	[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 	printf %s "-DPOSIXFAIL_INET6_ADDRSTRLEN"
 	echo "WARNING: POSIX violation: <netinet/in.h> not defining INET6_ADDRSTRLEN" 1>&2
