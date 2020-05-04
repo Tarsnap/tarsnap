@@ -14,6 +14,13 @@
 #include "sock_internal.h"
 #include "sock_util.h"
 
+#ifdef POSIXFAIL_INET_ADDRSTRLEN
+#define INET_ADDRSTRLEN 16
+#endif
+#ifdef POSIXFAIL_INET6_ADDRSTRLEN
+#define INET6_ADDRSTRLEN 46
+#endif
+
 /**
  * sock_addr_cmp(sa1, sa2):
  * Return non-zero iff the socket addresses ${sa1} and ${sa2} are different.
