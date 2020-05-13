@@ -52,6 +52,9 @@ readpass_file(char ** passwd, const char * filename)
 		goto err1;
 	}
 
+	/* Truncate at any newline character. */
+	passbuf[strcspn(passbuf, "\r\n")] = '\0';
+
 	/* Copy the password out. */
 	if ((*passwd = strdup(passbuf)) == NULL) {
 		warnp("Cannot allocate memory");
