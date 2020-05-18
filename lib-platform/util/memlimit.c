@@ -63,6 +63,11 @@
 #undef HW_USERMEM
 #endif
 
+/* Is RLIMIT_DATA relevant on this platform? */
+#if !defined(HAVE_MMAP)
+#define USE_RLIMIT_DATA
+#endif
+
 #ifdef CTL_HW
 static int
 memlimit_sysctl_hw(size_t * memlimit, int mibleaf)
@@ -167,7 +172,7 @@ memlimit_rlimit(size_t * memlimit)
 		memrlimit = (uint64_t)rl.rlim_cur;
 #endif
 
-#ifndef HAVE_MMAP
+#ifdef USE_RLIMIT_DATA
 	/* ... RLIMIT_DATA (if we're not using mmap)... */
 	if (getrlimit(RLIMIT_DATA, &rl))
 		return (1);
