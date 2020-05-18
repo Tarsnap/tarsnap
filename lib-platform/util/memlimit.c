@@ -64,7 +64,7 @@
 #endif
 
 /* Is RLIMIT_DATA relevant on this platform? */
-#if !defined(HAVE_MMAP)
+#if !defined(HAVE_MMAP) || defined(__OpenBSD__)
 #define USE_RLIMIT_DATA
 #endif
 
