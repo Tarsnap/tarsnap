@@ -100,7 +100,7 @@ events_timer_register_double(int (*func)(void *), void * cookie,
 
 	/* Convert timeo to a struct timeval. */
 	tv.tv_sec = (time_t)timeo;
-	tv.tv_usec = (suseconds_t)((timeo - tv.tv_sec) * 1000000.0);
+	tv.tv_usec = (suseconds_t)((timeo - (double)tv.tv_sec) * 1000000.0);
 
 	/* Schedule the timeout. */
 	return (events_timer_register(func, cookie, &tv));

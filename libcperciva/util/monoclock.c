@@ -113,7 +113,7 @@ monoclock_getres(double * resd)
 #ifdef USE_MONOTONIC
 	if (clock_getres(CLOCK_MONOTONIC, &res) == 0) {
 		/* Convert clock resolution to a double. */
-		*resd = res.tv_sec + res.tv_nsec * 0.000000001;
+		*resd = (double)res.tv_sec + (double)res.tv_nsec * 0.000000001;
 	} else if ((errno != ENOSYS) && (errno != EINVAL)) {
 		warnp("clock_getres(CLOCK_MONOTONIC)");
 		goto err0;
@@ -122,7 +122,7 @@ monoclock_getres(double * resd)
 #ifdef USE_REALTIME
 	if (clock_getres(CLOCK_REALTIME, &res) == 0) {
 		/* Convert clock resolution to a double. */
-		*resd = res.tv_sec + res.tv_nsec * 0.000000001;
+		*resd = (double)res.tv_sec + (double)res.tv_nsec * 0.000000001;
 	} else {
 		warnp("clock_getres(CLOCK_REALTIME)");
 		goto err0;

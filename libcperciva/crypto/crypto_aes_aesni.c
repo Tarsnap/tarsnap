@@ -39,7 +39,7 @@ crypto_aes_key_expand_128_aesni(const uint8_t key[16], __m128i rkeys[11])
 {
 
 	/* The first round key is just the key. */
-	/**
+	/*-
 	 * XXX Compiler breakage:
 	 * The intrinsic defined by Intel for _mm_loadu_si128 defines it as
 	 * taking a (const __m128i *) parameter.  This forces us to write a
@@ -93,7 +93,7 @@ crypto_aes_key_expand_256_aesni(const uint8_t key[32], __m128i rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
-	/**
+	/*-
 	 * XXX Compiler breakage:
 	 * The intrinsic defined by Intel for _mm_loadu_si128 defines it as
 	 * taking a (const __m128i *) parameter.  This forces us to write a
