@@ -820,6 +820,14 @@ main(int argc, char **argv)
 	if ((bsdtar->mode == '\0') && (bsdtar->option_print_stats == 1))
 		set_mode(bsdtar, OPTION_PRINT_STATS, "--print-stats");
 
+	/*
+	 * We can reuse the --verify-config mode for --dump-config.
+	 * These lines must come after --print-stats, in case somebody wishes
+	 * to see the config that's being used for the --print-stats mode.
+	 */
+	if ((bsdtar->mode == '\0') && (bsdtar->option_dump_config == 1))
+		set_mode(bsdtar, OPTION_VERIFY_CONFIG, "--verify-config");
+
 	/* If no "real" mode was specified, treat -h as --help. */
 	if ((bsdtar->mode == '\0') && possible_help_request) {
 		long_help(bsdtar);
