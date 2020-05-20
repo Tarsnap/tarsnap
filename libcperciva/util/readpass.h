@@ -20,4 +20,14 @@
  */
 int readpass(char **, const char *, const char *, int);
 
+/**
+ * readpass_file(passwd, filename):
+ * Read a passphrase from ${filename} and return it as a malloced
+ * NUL-terminated string via ${passwd}.  Print an error and fail if the file
+ * is 2048 characters or more, or if it contains any newline \n or \r\n
+ * characters other than at the end of the file.  Do not include the \n or
+ * \r\n characters in the passphrase.
+ */
+int readpass_file(char **, const char *);
+
 #endif /* !_READPASS_H_ */
