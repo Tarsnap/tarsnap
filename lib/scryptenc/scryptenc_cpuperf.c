@@ -107,6 +107,6 @@ scryptenc_cpuperf(double * opps)
 #endif
 
 	/* We can do approximately i salsa20/8 cores per diffd seconds. */
-	*opps = i / diffd;
+	*opps = (double)i / diffd;
 	return (0);
 }

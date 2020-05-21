@@ -68,7 +68,7 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 {
 	uint64_t N = (uint64_t)(1) << logN;
 	uint64_t mem_minimum = 128 * r * N;
-	double expected_seconds = opps > 0 ? 4 * N * p / opps : 0;
+	double expected_seconds = opps > 0 ? (double)(4 * N * p) / opps : 0;
 	char * human_memlimit = humansize(memlimit);
 	char * human_mem_minimum = humansize(mem_minimum);
 
@@ -101,6 +101,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 	double opps;
 	double opslimit;
 	double maxN, maxrp;
+	uint64_t checkN;
 	int rc;
 
 	/* Figure out how much memory to use. */
@@ -133,19 +134,27 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		*p = 1;
 		maxN = opslimit / (*r * 4);
 		for (*logN = 1; *logN < 63; *logN += 1) {
-			if ((uint64_t)(1) << *logN > maxN / 2)
+			checkN = (uint64_t)(1) << *logN;
+
+			/*
+			 * Find the largest power of two <= maxN, which is
+			 * also the least power of two > maxN/2.
+			 */
+			if ((double)checkN > maxN / 2)
 				break;
 		}
 	} else {
 		/* Set N based on the memory limit. */
-		maxN = memlimit / (*r * 128);
+		maxN = (double)(memlimit / (*r * 128));
 		for (*logN = 1; *logN < 63; *logN += 1) {
-			if ((uint64_t)(1) << *logN > maxN / 2)
+			checkN = (uint64_t)(1) << *logN;
+			if ((double)checkN > maxN / 2)
 				break;
 		}
 
 		/* Choose p based on the CPU limit. */
-		maxrp = (opslimit / 4) / ((uint64_t)(1) << *logN);
+		checkN = (uint64_t)(1) << *logN;
+		maxrp = (opslimit / 4) / (double)checkN;
 		if (maxrp > 0x3fffffff)
 			maxrp = 0x3fffffff;
 		*p = (uint32_t)(maxrp) / *r;
@@ -191,7 +200,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		N = (uint64_t)(1) << logN;
 		if ((memlimit / N) / r < 128)
 			return (9);
-		if (((opslimit / N) / r) / p < 4)
+		if (((opslimit / (double)N) / r) / p < 4)
 			return (10);
 	} else {
 		/* We have no limit. */
