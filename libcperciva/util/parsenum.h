@@ -114,12 +114,12 @@ _Pragma("clang diagnostic pop")
 				    " float with base != 0"), 1)) :	\
 		(((*(x)) = -1) <= 0) ?					\
 			((*(x)) = parsenum_signed((s),			\
-			    (*(x) <= 0) ? (min) : 0,			\
-			    (*(x) <= 0) ? (max) : 0, (base),		\
+			    ((*(x)) <= 0) ? (min) : 0,			\
+			    ((*(x)) <= 0) ? (max) : 0, (base),		\
 			    (trailing))) :				\
 			(((*(x)) = parsenum_unsigned((s),		\
-			    (min) <= 0 ? 0 : (min),			\
-			    (uintmax_t)(max), *(x), (base),		\
+			    ((min) <= 0) ? 0 : (min),			\
+			    (uintmax_t)(max), (*(x)), (base),		\
 			    (trailing))),				\
 				((((max) < 0) && (errno == 0)) ?	\
 				    (errno = ERANGE) : 0)),		\
