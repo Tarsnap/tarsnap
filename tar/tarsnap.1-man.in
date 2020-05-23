@@ -268,9 +268,9 @@ to the current directory after processing any
 \fB\-C\fP
 options and before extracting any files.
 .TP
-\fB\--configfile\fP \fIfile\fP
+\fB\--configfile\fP \fIfilename\fP
 Add
-\fIfile\fP
+\fIfilename\fP
 to the list of configuration files to be read; options set via these take
 priority over the default configuration files.
 This option can be specified multiple times, in which case all the files
@@ -503,12 +503,12 @@ Like
 \fB\--newer\fP,
 except it compares mtime entries instead of ctime entries.
 .TP
-\fB\--newer-than\fP \fIfile\fP
+\fB\--newer-than\fP \fIfilename\fP
 (c mode only)
 Only include files and directories newer than the specified file.
 This compares ctime entries.
 .TP
-\fB\--newer-mtime-than\fP \fIfile\fP
+\fB\--newer-mtime-than\fP \fIfilename\fP
 (c mode only)
 Like
 \fB\--newer-than\fP,
@@ -804,11 +804,11 @@ The optional trailing p specifies that after a successful substitution
 the original path name and the new path name should be printed to
 standard error.
 .TP
-\fB\--snaptime\fP \fIfile\fP
+\fB\--snaptime\fP \fIfilename\fP
 (c mode only)
 This option MUST be specified when creating a backup from a filesystem
 snapshot, and
-\fIfile\fP
+\fIfilename\fP
 must have a modification time prior to when the filesystem snapshot was
 created.
 (This is necessary to prevent races between file modification and snapshot
