@@ -44,7 +44,7 @@ _tarsnap ()
 	wotherarg="--checkpoint-bytes|--exclude|-f|--include|--maxbw|--maxbw-rate|
 		   |--maxbw-rate-down|--maxbw-rate-up|--newer|--newer-mtime|-s|
 		   |--strip-components|--disk-pause|--creationtime|
-		   |--passphrase-stdin|--progress-bytes"
+		   |--progress-bytes"
 
 	# Available long options
 	longopts="--list-archives --print-stats --fsck --nuke --aggressive-networking \
