@@ -258,9 +258,9 @@ hundred kB of bandwidth.
 to the current directory after processing any
 .Fl C
 options and before extracting any files.
-.It Fl -configfile Ar file
+.It Fl -configfile Ar filename
 Add
-.Ar file
+.Ar filename
 to the list of configuration files to be read; options set via these take
 priority over the default configuration files.
 This option can be specified multiple times, in which case all the files
@@ -460,11 +460,11 @@ This compares ctime entries.
 Like
 .Fl -newer ,
 except it compares mtime entries instead of ctime entries.
-.It Fl -newer-than Pa file
+.It Fl -newer-than Pa filename
 (c mode only)
 Only include files and directories newer than the specified file.
 This compares ctime entries.
-.It Fl -newer-mtime-than Pa file
+.It Fl -newer-mtime-than Pa filename
 (c mode only)
 Like
 .Fl -newer-than ,
@@ -720,11 +720,11 @@ of symbolic links.
 The optional trailing p specifies that after a successful substitution
 the original path name and the new path name should be printed to
 standard error.
-.It Fl -snaptime Pa file
+.It Fl -snaptime Pa filename
 (c mode only)
 This option MUST be specified when creating a backup from a filesystem
 snapshot, and
-.Pa file
+.Pa filename
 must have a modification time prior to when the filesystem snapshot was
 created.
 (This is necessary to prevent races between file modification and snapshot
