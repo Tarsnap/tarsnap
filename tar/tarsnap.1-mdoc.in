@@ -460,15 +460,15 @@ This compares ctime entries.
 Like
 .Fl -newer ,
 except it compares mtime entries instead of ctime entries.
-.It Fl -newer-than Pa filename
-(c mode only)
-Only include files and directories newer than the specified file.
-This compares ctime entries.
 .It Fl -newer-mtime-than Pa filename
 (c mode only)
 Like
 .Fl -newer-than ,
 except it compares mtime entries instead of ctime entries.
+.It Fl -newer-than Pa filename
+(c mode only)
+Only include files and directories newer than the specified file.
+This compares ctime entries.
 .It Fl -no-aggressive-networking
 Ignore any
 .Cm aggressive-networking
