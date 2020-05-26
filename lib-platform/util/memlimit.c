@@ -248,9 +248,10 @@ memlimit_sysconf(size_t * memlimit)
 
 /**
  * memtouse(maxmem, maxmemfrac, memlimit):
- * Examine the system and return via memlimit the amount of RAM which should
- * be used -- the specified fraction of the available RAM, but no more than
- * maxmem, and no less than 1MiB.
+ * Examine the system and return the amount of RAM which should be
+ * used in ${memlimit}.  This value should be the specified
+ * ${maxmemfrac} fraction of available RAM, but no more than
+ * ${maxmem} and no less than 1MiB.
  */
 int
 memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
@@ -290,10 +291,11 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 #endif
 
 #ifdef DEBUG
-	fprintf(stderr, "Memory limits are %zu %zu %zu %zu %zu\n",
-	    usermem_memlimit, memsize_memlimit,
-	    sysinfo_memlimit, rlimit_memlimit,
-	    sysconf_memlimit);
+	/* rlimit has two '\t' so that they line up. */
+	fprintf(stderr, "Memory limits are:\n\tusermem:\t%zu\n"
+	    "\tmemsize:\t%zu\n\tsysinfo:\t%zu\n\trlimit:\t\t%zu\n"
+	    "\tsysconf:\t%zu\n", usermem_memlimit, memsize_memlimit,
+	    sysinfo_memlimit, rlimit_memlimit, sysconf_memlimit);
 #endif
 
 	/*
@@ -322,7 +324,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	/* Only use the specified fraction of the available memory. */
 	if ((maxmemfrac > 0.5) || (maxmemfrac == 0.0))
 		maxmemfrac = 0.5;
-	memavail = (size_t)(maxmemfrac * memlimit_min);
+	memavail = (size_t)(maxmemfrac * (double)memlimit_min);
 
 	/* Don't use more than the specified maximum. */
 	if ((maxmem > 0) && (memavail > maxmem))
