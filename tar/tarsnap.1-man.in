@@ -503,16 +503,16 @@ Like
 \fB\--newer\fP,
 except it compares mtime entries instead of ctime entries.
 .TP
-\fB\--newer-than\fP \fIfilename\fP
-(c mode only)
-Only include files and directories newer than the specified file.
-This compares ctime entries.
-.TP
 \fB\--newer-mtime-than\fP \fIfilename\fP
 (c mode only)
 Like
 \fB\--newer-than\fP,
 except it compares mtime entries instead of ctime entries.
+.TP
+\fB\--newer-than\fP \fIfilename\fP
+(c mode only)
+Only include files and directories newer than the specified file.
+This compares ctime entries.
 .TP
 \fB\--no-aggressive-networking\fP
 Ignore any
