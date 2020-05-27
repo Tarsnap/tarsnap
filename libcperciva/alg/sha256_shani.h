@@ -10,8 +10,7 @@
  * instructions, and should only be used if CPUSUPPORT_X86_SHANI and _SSSE3
  * are defined and cpusupport_x86_shani() and _ssse3() return nonzero.
  */
-void
-SHA256_Transform_shani(uint32_t[static restrict 8],
+void SHA256_Transform_shani(uint32_t[static restrict 8],
     const uint8_t[static restrict 64]);
 
 #endif /* !_SHA256_SHANI_H_ */
