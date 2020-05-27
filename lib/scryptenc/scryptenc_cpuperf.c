@@ -34,6 +34,7 @@
 #include "crypto_scrypt.h"
 #include "monoclock.h"
 
+#include "scryptenc.h"
 #include "scryptenc_cpuperf.h"
 
 static int
@@ -62,7 +63,7 @@ scryptenc_cpuperf(double * opps)
 
 	/* Get the clock resolution. */
 	if (monoclock_getres(&resd))
-		return (2);
+		return (SCRYPT_ECLOCK);
 
 #ifdef DEBUG
 	fprintf(stderr, "Clock resolution is %g\n", resd);
@@ -70,33 +71,33 @@ scryptenc_cpuperf(double * opps)
 
 	/* Loop until the clock ticks. */
 	if (monoclock_get(&st))
-		return (2);
+		return (SCRYPT_ECLOCK);
 	do {
 		/* Do an scrypt. */
 		if (crypto_scrypt(NULL, 0, NULL, 0, 16, 1, 1, NULL, 0))
-			return (3);
+			return (SCRYPT_EKEY);
 
 		/* Has the clock ticked? */
 		if (getclockdiff(&st, &diffd))
-			return (2);
+			return (SCRYPT_ECLOCK);
 		if (diffd > 0)
 			break;
 	} while (1);
 
 	/* Count how many scrypts we can do before the next tick. */
 	if (monoclock_get(&st))
-		return (2);
+		return (SCRYPT_ECLOCK);
 	do {
 		/* Do an scrypt. */
 		if (crypto_scrypt(NULL, 0, NULL, 0, 128, 1, 1, NULL, 0))
-			return (3);
+			return (SCRYPT_EKEY);
 
 		/* We invoked the salsa20/8 core 512 times. */
 		i += 512;
 
 		/* Check if we have looped for long enough. */
 		if (getclockdiff(&st, &diffd))
-			return (2);
+			return (SCRYPT_ECLOCK);
 		if (diffd > resd)
 			break;
 	} while (1);
@@ -108,5 +109,5 @@ scryptenc_cpuperf(double * opps)
 
 	/* We can do approximately i salsa20/8 cores per diffd seconds. */
 	*opps = (double)i / diffd;
-	return (0);
+	return (SCRYPT_OK);
 }
