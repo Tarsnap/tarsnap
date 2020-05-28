@@ -73,6 +73,10 @@ AM_MAINTAINER_MODE
 # Tarsnap has some of its own configure functions
 m4_include([actarsnap.m4])
 
+# Get the POSIX sh early, in case the configure script causes
+# `command -p getconf` to fail in a broken environment.
+CHECK_POSIX_SH
+
 #
 # Locate some specific link objects for cygwin
 #
@@ -501,7 +505,6 @@ AC_SUBST([BASH_COMPLETION_DIR])
 AM_CONDITIONAL([INSTALL_BASH_COMPLETION],[test "x$with_bash_completion_dir" != "xno"])
 
 # Run the libcperciva POSIX compatibility tests and pass values to the Makefile.
-CHECK_POSIX_SH
 CHECK_LIBCPERCIVA_POSIX([${srcdir}/libcperciva])
 
 AC_OUTPUT
