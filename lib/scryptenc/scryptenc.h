@@ -62,6 +62,11 @@
  * compared to the computed limits and an error is returned if decrypting
  * the data would take too much memory or CPU time.
  */
+struct scryptenc_params {
+	size_t maxmem;
+	double maxmemfrac;
+	double maxtime;
+};
 
 /* Return codes from scrypt(enc|dec)_(buf|file|prep). */
 #define SCRYPT_OK	0	/* success */
