@@ -53,11 +53,13 @@ else
 		echo "WARNING: POSIX violation: clock_gettime() is not linkable" 1>&2
 	fi
 fi
+NEED_STD_C99=""
 if ! ${CC} -D_POSIX_C_SOURCE=200809L $D/posix-restrict.c 2>/dev/null; then
 	echo "WARNING: POSIX violation: ${CC} does not accept the 'restrict' keyword" 1>&2
 	if ${CC} -D_POSIX_C_SOURCE=200809L -std=c99 $D/posix-restrict.c 2>/dev/null; then
 		[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 		printf %s "-std=c99"
+		NEED_STD_C99="-std=c99"
 	fi
 fi
 rm -f a.out
