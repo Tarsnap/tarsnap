@@ -181,14 +181,21 @@ ensure_valgrind_suppression() {
 	printf "done.\n"
 }
 
-## setup_check_variables ():
+## setup_check_variables (description):
 # Set up the "check" variables ${c_exitfile} and ${c_valgrind_cmd}, the
 # latter depending on the previously-defined ${c_valgrind_min}.
 # Advances the number of checks ${s_count} so that the next call to this
-# function will set up new filenames.
+# function will set up new filenames.  Write ${description} into a
+# file.
 setup_check_variables() {
+	description=$1
+
 	# Set up the "exit" file.
 	c_exitfile="${s_basename}-`printf %02d ${s_count}`.exit"
+
+	# Write the "description" file.
+	printf "${description}\n" >				\
+		"${s_basename}-`printf %02d ${s_count}`.desc"
 
 	# Set up the valgrind command if $USE_VALGRIND is greater
 	# than or equal to ${valgrind_min}; otherwise, produce an
@@ -246,7 +253,8 @@ expected_exitcode() {
 # Examine all "exit code" files beginning with ${log_basename} and
 # print "SUCCESS!" or "FAILED!" as appropriate.  If the test failed
 # with the code ${valgrind_exit_code}, output the appropriate
-# valgrind logfile to stdout.
+# valgrind logfile to stdout.  If the test failed and ${VERBOSE}
+# is non-zero, print the description to stderr.
 notify_success_or_fail() {
 	log_basename=$1
 	val_log_basename=$2
@@ -276,6 +284,9 @@ notify_success_or_fail() {
 			if [ ${VERBOSE} -ne 0 ]; then
 				printf "File ${exitfile} contains exit" 1>&2
 				printf " code ${ret}.\n" 1>&2
+				descfile=`echo ${exitfile} | sed 's/\.exit/\.desc/g'`
+				printf "Test description: " 1>&2
+				cat ${descfile} 1>&2
 			fi
 			if [ "${ret}" -eq "${valgrind_exit_code}" ]; then
 				val_logfilename=$( get_val_logfile \
