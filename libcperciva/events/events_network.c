@@ -69,6 +69,8 @@ static size_t fdscanpos;
  *     fds[j].revents != 0 ==> f < fdscanpos.
  */
 
+static void events_network_shutdown(void);
+
 /* Initialize data structures if we haven't already done so. */
 static int
 init(void)
@@ -85,6 +87,10 @@ init(void)
 	/* We have no poll structures allocated or initialized. */
 	fds = NULL;
 	fds_alloc = nfds = fdscanpos = 0;
+
+	/* Clean up the socket list at exit. */
+	if (atexit(events_network_shutdown))
+		goto err0;
 
 done:
 	/* Success! */
@@ -460,10 +466,9 @@ events_network_get(void)
 
 /**
  * events_network_shutdown(void):
- * Clean up and free memory.  This call is not necessary on program exit and
- * is only expected to be useful when checking for memory leaks.
+ * Clean up and free memory.  This should run automatically via atexit.
  */
-void
+static void
 events_network_shutdown(void)
 {
 

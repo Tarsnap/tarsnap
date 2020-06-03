@@ -91,7 +91,4 @@ network_fini(void)
 
 	/* Clean up sleeps. */
 	network_sleep_fini();
-
-	/* Clean the underlying events system. */
-	events_shutdown();
 }

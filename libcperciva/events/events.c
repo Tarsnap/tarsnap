@@ -239,13 +239,9 @@ events_interrupt(void)
 
 /**
  * events_shutdown(void):
- * Clean up and free memory.  This call is not necessary on program exit and
- * is only expected to be useful when checking for memory leaks.
+ * Deprecated function; does nothing.
  */
 void
 events_shutdown(void)
 {
-
-	events_network_shutdown();
-	events_timer_shutdown();
 }
