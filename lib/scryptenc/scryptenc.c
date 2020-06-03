@@ -374,14 +374,14 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    struct scryptenc_params * P, int verbose)
 {
 	uint8_t dk[64];
 	uint8_t hbuf[32];
@@ -395,7 +395,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
+	    P->maxmem, P->maxmemfrac, P->maxtime, verbose)) != 0)
 		goto err1;
 
 	/* Copy header into output buffer. */
@@ -436,7 +436,7 @@ err1:
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose, force):
+ *     params, verbose, force):
  * Decrypt ${inbuflen} bytes from ${inbuf}, writing the result into ${outbuf}
  * and the decrypted data length to ${outlen}.  The allocated length of
  * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
@@ -445,7 +445,7 @@ err1:
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
     size_t * outlen, const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
+    struct scryptenc_params * P, int verbose,
     int force)
 {
 	uint8_t hbuf[32];
@@ -480,7 +480,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(inbuf, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
+	    P->maxmem, P->maxmemfrac, P->maxtime, verbose, force)) != 0)
 		goto err1;
 
 	/* Decrypt data. */
@@ -521,15 +521,14 @@ err0:
 }
 
 /**
- * scryptenc_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
  * to ${outfile}.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    struct scryptenc_params * P, int verbose)
 {
 	uint8_t buf[ENCBLOCK];
 	uint8_t dk[64];
@@ -545,7 +544,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose)) != 0)
+	    P->maxmem, P->maxmemfrac, P->maxtime, verbose)) != 0)
 		goto err1;
 
 	/* Hash and write the header. */
@@ -683,15 +682,14 @@ err0:
 }
 
 /**
- * scryptdec_file_prep(infile, passwd, passwdlen, maxmem, maxmemfrac,
- *     maxtime, force, cookie):
+ * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy.
  */
 int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
-    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
+    size_t passwdlen, struct scryptenc_params * P,
     int verbose, int force, struct scryptdec_file_cookie ** cookie)
 {
 	struct scryptdec_file_cookie * C;
@@ -708,7 +706,7 @@ scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
-	    maxmem, maxmemfrac, maxtime, verbose, force)) != 0)
+	    P->maxmem, P->maxmemfrac, P->maxtime, verbose, force)) != 0)
 		goto err1;
 
 	/* Set cookie for calling function. */
@@ -827,23 +825,22 @@ err0:
 }
 
 /**
- * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose, force):
+ * scryptdec_file(infile, outfile, passwd, passwdlen, params, verbose, force):
  * Read a stream from ${infile} and decrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.
  */
 int
 scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
-    size_t passwdlen, size_t maxmem, double maxmemfrac, double maxtime,
+    size_t passwdlen, struct scryptenc_params * P,
     int verbose, int force)
 {
 	struct scryptdec_file_cookie * C;
 	int rc;
 
 	/* Check header, including passphrase. */
-	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, maxmem,
-	    maxmemfrac, maxtime, verbose, force, &C)) != 0)
+	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, P,
+	    verbose, force, &C)) != 0)
 		goto err0;
 
 	/* Copy unencrypted data to outfile. */
