@@ -62,4 +62,12 @@ if ! ${CC} -D_POSIX_C_SOURCE=200809L $D/posix-restrict.c 2>/dev/null; then
 		NEED_STD_C99="-std=c99"
 	fi
 fi
+if ! ${CC} ${NEED_STD_C99} -D_POSIX_C_SOURCE=200809L -DARGNAME="" $D/posix-abstract-declarator.c 2>/dev/null; then
+	echo "WARNING: POSIX violation: ${CC} does not accept qualifiers in abstract declarator" 1>&2
+	# Test compile with -DPOSIXFAIL_ABSTRACT_DECLARATOR
+	if ${CC} ${NEED_STD_C99} -D_POSIX_C_SOURCE=200809L -DPOSIXFAIL_ABSTRACT_DECLARATOR $D/posix-abstract-declarator.c 2>/dev/null; then
+		[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
+		printf %s "-DPOSIXFAIL_ABSTRACT_DECLARATOR"
+	fi
+fi
 rm -f a.out
