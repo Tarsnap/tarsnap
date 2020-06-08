@@ -28,8 +28,8 @@ static struct opt {
 	const char * os;
 	size_t olen;
 	int hasarg;
-} * opts = NULL;
-static size_t nopts;
+} * opts = NULL;	/* Probably a sparse array: some values, some NULLs. */
+static size_t nopts;	/* Maximum number of options. */
 static size_t opt_missing;
 static size_t opt_default;
 static size_t opt_found;
@@ -336,6 +336,7 @@ getopt_register_missing(size_t ln)
 	opt_missing = ln;
 }
 
+/* Prepare for the number of potential options. */
 void
 getopt_setrange(size_t ln)
 {
@@ -348,7 +349,7 @@ getopt_setrange(size_t ln)
 	/* We should only be called during initialization. */
 	assert(!getopt_initialized);
 
-	/* Allocate space for options. */
+	/* Allocate space for (potential) options. */
 	opts = malloc(ln * sizeof(struct opt));
 	if ((ln > 0) && (opts == NULL))
 		DIE("Failed to allocate memory in getopt");
