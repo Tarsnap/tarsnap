@@ -82,9 +82,9 @@ extern int optind, opterr, optreset;
  */
 #define GETOPT_SWITCH(ch)						\
 	volatile size_t getopt_ln_min = __LINE__;			\
-	volatile size_t getopt_ln = getopt_ln_min - 1;		\
+	volatile size_t getopt_ln = getopt_ln_min - 1;			\
 	volatile int getopt_default_missing = 0;			\
-	DO_SETJMP;						\
+	DO_SETJMP;							\
 	switch (getopt_initialized ? getopt_lookup(ch) + getopt_ln_min : getopt_ln++)
 
 /**
