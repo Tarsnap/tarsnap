@@ -338,7 +338,7 @@ getopt_register_missing(size_t ln)
 
 /* Prepare for the number of potential options. */
 void
-getopt_setrange(size_t ln)
+getopt_setrange(size_t maxopts)
 {
 	size_t i;
 
@@ -350,17 +350,17 @@ getopt_setrange(size_t ln)
 	assert(!getopt_initialized);
 
 	/* Allocate space for (potential) options. */
-	opts = malloc(ln * sizeof(struct opt));
-	if ((ln > 0) && (opts == NULL))
+	opts = malloc(maxopts * sizeof(struct opt));
+	if ((maxopts > 0) && (opts == NULL))
 		DIE("Failed to allocate memory in getopt");
 
 	/* Initialize options. */
-	for (i = 0; i < ln; i++)
+	for (i = 0; i < maxopts; i++)
 		opts[i].os = NULL;
 
 	/* Record the number of (potential) options. */
-	nopts = ln;
+	nopts = maxopts;
 
 	/* Record default missing-argument and no-such-option values. */
-	opt_missing = opt_default = ln + 1;
+	opt_missing = opt_default = maxopts + 1;
 }
