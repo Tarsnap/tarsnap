@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 """ Parse a man page in mdoc format, and optionally check that all
-    options are included in a completion file.
+    options are included in a completion file or update a bash completion file.
 """
 
 import argparse
 import functools
+
+import man_to_completion
 
 
 # Check that it's sorted (ignoring hyphens, and mostly alphabetical).
@@ -180,13 +182,17 @@ def parse_cmdline():
     parser = argparse.ArgumentParser(description="Check a man page.")
     parser.add_argument("filename_manpage",
                         help="man-page in mdoc format")
-    parser.add_argument("-c", "--check-file",
+    parser.add_argument("-c", "--check-file", metavar="filename",
                         help="check that all options are in the file")
+    parser.add_argument("--update-bash", metavar="filename",
+                        help="update the bash completion file")
     args = parser.parse_args()
 
     # Sanity check.
     if "mdoc" not in args.filename_manpage:
         raise Exception("man-page must be in mdoc format")
+    if args.check_file and args.update_bash:
+        assert args.check_file != args.update_bash
 
     return args
 
@@ -197,6 +203,8 @@ def main(args):
 
     if args.check_file:
         check_options_in_file(options, args.check_file)
+    if args.update_bash:
+        man_to_completion.bash_completion_update(args.update_bash, options)
 
 
 if __name__ == "__main__":
