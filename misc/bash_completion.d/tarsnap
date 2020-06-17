@@ -34,40 +34,48 @@ _tarsnap ()
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	# These options will be completed by the path to a filename.
-	wfilearg="--keyfile|--newer-than|--newer-mtime-than|--snaptime|--configfile|-T|-X|--archive-names|--csv-file"
+	wfilearg="--archive-names|--configfile|--csv-file|--keyfile|
+		  |--newer-than|--newer-mtime-than|--snaptime|-T|-X"
 
 	# These options will be completed by the path to a directory.
-	wpatharg="--cachedir|-C"
+	wpatharg="-C|--cachedir"
 
 	# These options require a non-completable argument.
 	# They won't be completed at all.
-	wotherarg="--checkpoint-bytes|--exclude|-f|--include|--maxbw|--maxbw-rate|
-		   |--maxbw-rate-down|--maxbw-rate-up|--newer|--newer-mtime|-s|
-		   |--strip-components|--disk-pause|--creationtime|
-		   |--progress-bytes"
+	wotherarg="--checkpoint-bytes|--creationtime|--disk-pause|
+		   |--exclude|-f|--include|--maxbw|--maxbw-rate|
+		   |--maxbw-rate-down|--maxbw-rate-up|--newer|
+		   |--newer-mtime|--progress-bytes|-s|--strip-components"
 
 	# Available long options
-	longopts="--list-archives --print-stats --fsck --nuke --aggressive-networking \
-	          --cachedir --check-links --checkpoint-bytes --chroot --dry-run \
-		  --exclude --humanize-numbers --include --keep-newer-files --keyfile \
-		  --lowmem --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
-		  --newer --newer-mtime --newer-than --newer-mtime-than --nodump \
-		  --noisy-warnings --null --numeric-owner --one-file-system \
-		  --fast-read --strip-components --snaptime --verylowmem --version \
-		  --disk-pause --normalmem --no-aggressive-networking \
-		  --no-config-exclude --no-config-include --no-disk-pause --no-humanize-numbers \
-		  --no-maxbw --no-maxbw-rate-down --no-maxbw-rate-up --no-nodump --no-print-stats \
-		  --no-snaptime --no-store-atime --no-totals --store-atime --totals --recover \
-		  --insane-filesystems --no-insane-filesystems --quiet --no-quiet --configfile --no-default-config --fsck-prune \
-		  --retry-forever --no-retry-forever --creationtime \
-		  --keep-going --verify-config --csv-file --archive-names \
-		  --initialize-cachedir --iso-dates --no-iso-dates \
-		  --force-resources --no-force-resources --dump-config \
-		  --passphrase-stdin --resume-extract \
-		  --progress-bytes --no-progress-bytes"
+	longopts="--aggressive-networking --archive-names --cachedir \
+		  --check-links --checkpoint-bytes --chroot --configfile \
+		  --creationtime --csv-file --disk-pause --dry-run \
+		  --dump-config --exclude --fast-read --force-resources \
+		  --fsck --fsck-prune --humanize-numbers --include \
+		  --initialize-cachedir --insane-filesystems --iso-dates \
+		  --keep-going --keep-newer-files --keyfile \
+		  --list-archives --lowmem --maxbw --maxbw-rate \
+		  --maxbw-rate-down --maxbw-rate-up --newer \
+		  --newer-mtime --newer-than --newer-mtime-than \
+		  --no-aggressive-networking --no-config-exclude \
+		  --no-config-include --no-default-config \
+		  --no-disk-pause --no-force-resources \
+		  --no-humanize-numbers --no-insane-filesystems \
+		  --no-iso-dates --no-maxbw --no-maxbw-rate-down \
+		  --no-maxbw-rate-up --no-nodump --no-print-stats \
+		  --no-progress-bytes --no-quiet --no-retry-forever \
+		  --no-snaptime --no-store-atime --no-totals --nodump \
+		  --noisy-warnings --normalmem --nuke --null \
+		  --numeric-owner --one-file-system --passphrase-stdin \
+		  --print-stats --progress-bytes --quiet --recover \
+		  --resume-extract --retry-forever --snaptime \
+		  --store-atime --strip-components --totals \
+		  --verify-config --version --verylowmem"
 
 	# Available short options
-	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P -p -q -S -s -T -U -v -w -X"
+	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P \
+		   -p -q -S -s -T -U -v -w -X"
 
 	options=${longopts}" "${shortopts}
 
