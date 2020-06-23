@@ -51,6 +51,9 @@ valgrind_exit_code=108
 # Set ${bindir} to $1 if given, else use "." for in-tree builds.
 bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 
+# Default value (should be set by tests).
+NO_EXITFILE=/dev/null
+
 
 ## prepare_directories():
 # Delete any old directories, and create new ones as necessary.  Must be run
@@ -320,7 +323,7 @@ scenario_runner() {
 	s_basename=${out}/${basename}
 	s_val_basename=${out_valgrind}/${basename}
 	s_count=0
-	c_exitfile=/dev/null
+	c_exitfile="${NO_EXITFILE}"
 	c_valgrind_min=9
 	c_valgrind_cmd=""
 
