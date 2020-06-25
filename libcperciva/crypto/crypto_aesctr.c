@@ -17,7 +17,7 @@ struct crypto_aesctr {
 /**
  * crypto_aesctr_init(key, nonce):
  * Prepare to encrypt/decrypt data with AES in CTR mode, using the provided
- * expanded key and nonce.  The key provided must remain valid for the
+ * expanded ${key} and ${nonce}.  The key provided must remain valid for the
  * lifetime of the stream.
  */
 struct crypto_aesctr *

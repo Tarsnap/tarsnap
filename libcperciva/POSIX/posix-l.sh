@@ -12,7 +12,7 @@ fi
 
 FIRST=YES
 for LIB in rt xnet; do
-	if ${CC} -l${LIB} posix-l.c 2>/dev/null; then
+	if ${CC} ${CFLAGS} -l${LIB} posix-l.c 2>/dev/null; then
 		if [ ${FIRST} = "NO" ]; then
 			printf " ";
 		fi

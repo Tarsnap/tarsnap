@@ -4,7 +4,8 @@ static int func(int ARGNAME[static restrict 1]);
 static int func(int [static restrict 1]);
 #endif
 
-int func(int arr[static restrict 1])
+int
+func(int arr[static restrict 1])
 {
 
 	(void)arr; /* UNUSED */

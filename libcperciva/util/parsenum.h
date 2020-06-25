@@ -121,8 +121,10 @@ _Pragma("clang diagnostic pop")
 			    ((min) <= 0) ? 0 : (min),			\
 			    (uintmax_t)(max), (*(x)), (base),		\
 			    (trailing))),				\
-				((((max) < 0) && (errno == 0)) ?	\
-				    (errno = ERANGE) : 0)),		\
+				(((max) <= INTMAX_MAX) ?		\
+				    (((intmax_t)(max) < 0) && (errno == 0)) ? \
+					(errno = ERANGE) :		\
+					0 : 0)),			\
 		errno != 0						\
 		PARSENUM_EPILOGUE					\
 	)

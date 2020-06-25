@@ -51,6 +51,9 @@ valgrind_exit_code=108
 # Set ${bindir} to $1 if given, else use "." for in-tree builds.
 bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 
+# Default value (should be set by tests).
+NO_EXITFILE=/dev/null
+
 
 ## prepare_directories():
 # Delete any old directories, and create new ones as necessary.  Must be run
@@ -181,14 +184,29 @@ ensure_valgrind_suppression() {
 	printf "done.\n"
 }
 
-## setup_check_variables (description):
+## setup_check_variables (description, check_prev=1):
 # Set up the "check" variables ${c_exitfile} and ${c_valgrind_cmd}, the
 # latter depending on the previously-defined ${c_valgrind_min}.
 # Advances the number of checks ${s_count} so that the next call to this
 # function will set up new filenames.  Write ${description} into a
-# file.
+# file.  If ${check_prev} is non-zero, check that the previous
+# ${c_exitfile} exists.
 setup_check_variables() {
 	description=$1
+	check_prev=${2:-1}
+
+	# Should we check for the previous exitfile?
+	if [ "${c_exitfile}" != "${NO_EXITFILE}" ] &&			\
+	    [ "${check_prev}" -gt 0 ] ; then
+		# Check for the file.
+		if [ ! -f "${c_exitfile}" ] ; then
+			# We should have written the result of the
+			# previous test to this file.
+			echo "PROGRAMMING FAILURE"
+			echo "We should already have ${c_exitfile}"
+			exit 1
+		fi
+	fi
 
 	# Set up the "exit" file.
 	c_exitfile="${s_basename}-`printf %02d ${s_count}`.exit"
@@ -320,7 +338,7 @@ scenario_runner() {
 	s_basename=${out}/${basename}
 	s_val_basename=${out_valgrind}/${basename}
 	s_count=0
-	c_exitfile=/dev/null
+	c_exitfile="${NO_EXITFILE}"
 	c_valgrind_min=9
 	c_valgrind_cmd=""
 
