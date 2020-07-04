@@ -71,6 +71,14 @@ Platform-specific notes
 
       sudo port install openssl
 
+- on Solaris: there are no problems compiling with cc, c99, or gcc.
+  To compile with clang, please use:
+
+      ./configure CC=clang CFLAGS="-U__EXTENSIONS__"
+      make
+
+  and ignore warning messages about _XOPEN_SOURCE=600.
+
 
 Packaging notes
 ---------------
