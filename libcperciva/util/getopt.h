@@ -36,6 +36,12 @@
 #define GETOPT_USE_COMPUTED_GOTO
 #endif
 
+/* Work around broken <setjmp.h> header on Solaris. */
+#if defined(__GNUC__) && (defined(sun) || defined(__sun))
+#warning Working around broken <setjmp.h> header on Solaris
+#define GETOPT_USE_COMPUTED_GOTO
+#endif
+
 #ifdef GETOPT_USE_COMPUTED_GOTO
 /* Workaround with computed goto. */
 #define DO_SETJMP _DO_SETJMP(__LINE__)
