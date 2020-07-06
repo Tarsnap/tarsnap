@@ -3,6 +3,8 @@
 
 #include <sys/time.h>
 
+#include <signal.h>
+
 /* Opaque event structure. */
 struct eventrec;
 
@@ -27,12 +29,13 @@ void events_freerec(struct eventrec *);
 struct eventrec * events_immediate_get(void);
 
 /**
- * events_network_select(tv):
+ * events_network_select(tv, interrupt_requested):
  * Check for socket readiness events, waiting up to ${tv} time if there are
  * no sockets immediately ready, or indefinitely if ${tv} is NULL.  The value
- * stored in ${tv} may be modified.
+ * stored in ${tv} may be modified.  If ${*interrupt_requested} is non-zero
+ * and a signal is received, exit.
  */
-int events_network_select(struct timeval *);
+int events_network_select(struct timeval *, volatile sig_atomic_t *);
 
 /**
  * events_network_selectstats_startclock(void):
