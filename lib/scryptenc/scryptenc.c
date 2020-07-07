@@ -322,9 +322,6 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
-	int logN;
-	uint32_t r;
-	uint32_t p;
 	uint64_t N;
 	SHA256_CTX ctx;
 	uint8_t * key_hmac = &dk[32];
@@ -332,9 +329,9 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	int rc;
 
 	/* Parse N, r, p, salt. */
-	logN = header[7];
-	r = be32dec(&header[8]);
-	p = be32dec(&header[12]);
+	P->logN = header[7];
+	P->r = be32dec(&header[8]);
+	P->p = be32dec(&header[12]);
 	memcpy(salt, &header[16], 32);
 
 	/* Verify header checksum. */
@@ -349,13 +346,13 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	 * key derivation function can be computed within the allowed memory
 	 * and CPU time, unless the user chose to disable this test.
 	 */
-	if ((rc = checkparams(P->maxmem, P->maxmemfrac, P->maxtime, logN, r, p,
-	    verbose, force)) != 0)
+	if ((rc = checkparams(P->maxmem, P->maxmemfrac, P->maxtime, P->logN,
+	    P->r, P->p, verbose, force)) != 0)
 		return (rc);
 
 	/* Compute the derived keys. */
-	N = (uint64_t)(1) << logN;
-	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
+	N = (uint64_t)(1) << P->logN;
+	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, P->r, P->p, dk, 64))
 		return (SCRYPT_EKEY);
 
 	/* Check header signature (i.e., verify password). */
@@ -443,7 +440,8 @@ err1:
  * and the decrypted data length to ${outlen}.  The allocated length of
  * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
  * whether decryption will exceed the estimated available memory or time.
- * The explicit parameters within ${params} must be zero.
+ * The explicit parameters within ${params} must be zero.  Return the explicit
+ * parameters used via ${params}.
  */
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -696,7 +694,8 @@ err0:
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy.  The
- * explicit parameters within ${params} must be zero.
+ * explicit parameters within ${params} must be zero.  Return the explicit
+ * parameters to be used via ${params}.
  */
 int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
@@ -843,7 +842,8 @@ err0:
  * Read a stream from ${infile} and decrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.  The explicit
- * parameters within ${params} must be zero.
+ * parameters within ${params} must be zero.  Return the explicit parameters
+ * used via ${params}.
  */
 int
 scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
