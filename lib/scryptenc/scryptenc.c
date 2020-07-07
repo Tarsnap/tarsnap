@@ -226,7 +226,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 static int
 scryptenc_setup(uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose)
+    struct scryptenc_params * P, int verbose)
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
@@ -240,7 +240,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	int rc;
 
 	/* Pick values for N, r, p. */
-	if ((rc = pickparams(maxmem, maxmemfrac, maxtime,
+	if ((rc = pickparams(P->maxmem, P->maxmemfrac, P->maxtime,
 	    &logN, &r, &p, verbose)) != 0)
 		return (rc);
 	N = (uint64_t)(1) << logN;
@@ -320,7 +320,7 @@ err0:
 static int
 scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
     const uint8_t * passwd, size_t passwdlen,
-    size_t maxmem, double maxmemfrac, double maxtime, int verbose,
+    struct scryptenc_params * P, int verbose,
     int force)
 {
 	uint8_t salt[32];
@@ -352,7 +352,7 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
 	 * key derivation function can be computed within the allowed memory
 	 * and CPU time, unless the user chose to disable this test.
 	 */
-	if ((rc = checkparams(maxmem, maxmemfrac, maxtime, logN, r, p,
+	if ((rc = checkparams(P->maxmem, P->maxmemfrac, P->maxtime, logN, r, p,
 	    verbose, force)) != 0)
 		return (rc);
 
@@ -395,7 +395,7 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    P->maxmem, P->maxmemfrac, P->maxtime, verbose)) != 0)
+	    P, verbose)) != 0)
 		goto err1;
 
 	/* Copy header into output buffer. */
@@ -480,7 +480,7 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(inbuf, dk, passwd, passwdlen,
-	    P->maxmem, P->maxmemfrac, P->maxtime, verbose, force)) != 0)
+	    P, verbose, force)) != 0)
 		goto err1;
 
 	/* Decrypt data. */
@@ -544,7 +544,7 @@ scryptenc_file(FILE * infile, FILE * outfile,
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
-	    P->maxmem, P->maxmemfrac, P->maxtime, verbose)) != 0)
+	    P, verbose)) != 0)
 		goto err1;
 
 	/* Hash and write the header. */
@@ -706,7 +706,7 @@ scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
 
 	/* Parse the header and generate derived keys. */
 	if ((rc = scryptdec_setup(C->header, C->dk, passwd, passwdlen,
-	    P->maxmem, P->maxmemfrac, P->maxtime, verbose, force)) != 0)
+	    P, verbose, force)) != 0)
 		goto err1;
 
 	/* Set cookie for calling function. */
