@@ -230,10 +230,7 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 {
 	uint8_t salt[32];
 	uint8_t hbuf[32];
-	int logN;
 	uint64_t N;
-	uint32_t r;
-	uint32_t p;
 	SHA256_CTX ctx;
 	uint8_t * key_hmac = &dk[32];
 	HMAC_SHA256_CTX hctx;
@@ -241,27 +238,27 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 
 	/* Pick values for N, r, p. */
 	if ((rc = pickparams(P->maxmem, P->maxmemfrac, P->maxtime,
-	    &logN, &r, &p, verbose)) != 0)
+	    &P->logN, &P->r, &P->p, verbose)) != 0)
 		return (rc);
-	N = (uint64_t)(1) << logN;
+	N = (uint64_t)(1) << P->logN;
 
 	/* Sanity check. */
-	assert((logN > 0) && (logN < 256));
+	assert((P->logN > 0) && (P->logN < 256));
 
 	/* Get some salt. */
 	if (crypto_entropy_read(salt, 32))
 		return (SCRYPT_ESALT);
 
 	/* Generate the derived keys. */
-	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, r, p, dk, 64))
+	if (crypto_scrypt(passwd, passwdlen, salt, 32, N, P->r, P->p, dk, 64))
 		return (SCRYPT_EKEY);
 
 	/* Construct the file header. */
 	memcpy(header, "scrypt", 6);
 	header[6] = 0;
-	header[7] = logN & 0xff;
-	be32enc(&header[8], r);
-	be32enc(&header[12], p);
+	header[7] = P->logN & 0xff;
+	be32enc(&header[8], P->r);
+	be32enc(&header[12], P->p);
 	memcpy(&header[16], salt, 32);
 
 	/* Add header checksum. */
@@ -377,7 +374,8 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
  *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
- * within ${params} must be zero.
+ * within ${params} must be zero.  Return the explicit parameters
+ * used via ${params}.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -532,6 +530,7 @@ err0:
  * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
  * to ${outfile}.  The explicit parameters within ${params} must be zero.
+ * Return the explicit parameters used via ${params}.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
