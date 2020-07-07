@@ -33,6 +33,17 @@
 #ifdef __clang__
 #warning Working around bug in LLVM optimizer
 #warning For more details see https://bugs.llvm.org/show_bug.cgi?id=27190
+#define GETOPT_USE_COMPUTED_GOTO
+#endif
+
+/* Work around broken <setjmp.h> header on Solaris. */
+#if defined(__GNUC__) && (defined(sun) || defined(__sun))
+#warning Working around broken <setjmp.h> header on Solaris
+#define GETOPT_USE_COMPUTED_GOTO
+#endif
+
+#ifdef GETOPT_USE_COMPUTED_GOTO
+/* Workaround with computed goto. */
 #define DO_SETJMP _DO_SETJMP(__LINE__)
 #define _DO_SETJMP(x) __DO_SETJMP(x)
 #define __DO_SETJMP(x)							\
@@ -41,6 +52,7 @@
 #define DO_LONGJMP							\
 	goto *getopt_initloop
 #else
+/* Intended code, for fully C99-compliant systems. */
 #define DO_SETJMP							\
 	sigjmp_buf getopt_initloop;					\
 	if (!getopt_initialized)					\
