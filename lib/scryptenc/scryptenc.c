@@ -376,7 +376,8 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
  *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
- * ${inbuflen} + 128 bytes to ${outbuf}.
+ * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
+ * within ${params} must be zero.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -392,6 +393,9 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	HMAC_SHA256_CTX hctx;
 	struct crypto_aes_key * key_enc_exp;
 	struct crypto_aesctr * AES;
+
+	/* The explicit parameters must be zero. */
+	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
@@ -441,6 +445,7 @@ err1:
  * and the decrypted data length to ${outlen}.  The allocated length of
  * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
  * whether decryption will exceed the estimated available memory or time.
+ * The explicit parameters within ${params} must be zero.
  */
 int
 scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -456,6 +461,9 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	HMAC_SHA256_CTX hctx;
 	struct crypto_aes_key * key_enc_exp;
 	struct crypto_aesctr * AES;
+
+	/* The explicit parameters must be zero. */
+	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
 
 	/*
 	 * All versions of the scrypt format will start with "scrypt" and
@@ -523,7 +531,7 @@ err0:
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
- * to ${outfile}.
+ * to ${outfile}.  The explicit parameters within ${params} must be zero.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
@@ -541,6 +549,9 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	struct crypto_aes_key * key_enc_exp;
 	struct crypto_aesctr * AES;
 	int rc;
+
+	/* The explicit parameters must be zero. */
+	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
@@ -685,7 +696,8 @@ err0:
  * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
- * be modified until the decryption is completed by scryptdec_file_copy.
+ * be modified until the decryption is completed by scryptdec_file_copy.  The
+ * explicit parameters within ${params} must be zero.
  */
 int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
@@ -694,6 +706,9 @@ scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
 {
 	struct scryptdec_file_cookie * C;
 	int rc;
+
+	/* The explicit parameters must be zero. */
+	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
 
 	/* Allocate the cookie. */
 	if ((C = malloc(sizeof(struct scryptdec_file_cookie))) == NULL)
@@ -828,7 +843,8 @@ err0:
  * scryptdec_file(infile, outfile, passwd, passwdlen, params, verbose, force):
  * Read a stream from ${infile} and decrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption
- * will exceed the estimated available memory or time.
+ * will exceed the estimated available memory or time.  The explicit
+ * parameters within ${params} must be zero.
  */
 int
 scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
@@ -837,6 +853,9 @@ scryptdec_file(FILE * infile, FILE * outfile, const uint8_t * passwd,
 {
 	struct scryptdec_file_cookie * C;
 	int rc;
+
+	/* The explicit parameters must be zero. */
+	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
 
 	/* Check header, including passphrase. */
 	if ((rc = scryptdec_file_prep(infile, passwd, passwdlen, P,
