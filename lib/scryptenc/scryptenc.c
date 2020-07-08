@@ -383,8 +383,8 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
  *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
- * within ${params} must be zero.  Return the explicit parameters
- * used via ${params}.
+ * within ${params} must be zero or must all be non-zero.  Return
+ * the explicit parameters used via ${params}.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -401,8 +401,9 @@ scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	struct crypto_aes_key * key_enc_exp;
 	struct crypto_aesctr * AES;
 
-	/* The explicit parameters must be zero. */
-	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
+	/* The explicit parameters must be zero, or all non-zero. */
+	assert(((P->logN == 0) && (P->r == 0) && (P->p == 0)) ||
+	    ((P->logN != 0) && (P->r != 0) && (P->p != 0)));
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
@@ -539,8 +540,8 @@ err0:
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
- * to ${outfile}.  The explicit parameters within ${params} must be zero.
- * Return the explicit parameters used via ${params}.
+ * to ${outfile}.  The explicit parameters within ${params} must be zero
+ * or must all be non-zero.  Return the explicit parameters used via ${params}.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
@@ -559,8 +560,9 @@ scryptenc_file(FILE * infile, FILE * outfile,
 	struct crypto_aesctr * AES;
 	int rc;
 
-	/* The explicit parameters must be zero. */
-	assert((P->logN == 0) && (P->r == 0) && (P->p == 0));
+	/* The explicit parameters must be zero, or all non-zero. */
+	assert(((P->logN == 0) && (P->r == 0) && (P->p == 0)) ||
+	    ((P->logN != 0) && (P->r != 0) && (P->p != 0)));
 
 	/* Generate the header and derived key. */
 	if ((rc = scryptenc_setup(header, dk, passwd, passwdlen,
