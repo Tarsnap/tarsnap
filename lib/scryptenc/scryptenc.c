@@ -236,10 +236,22 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 	HMAC_SHA256_CTX hctx;
 	int rc;
 
-	/* Pick values for N, r, p. */
-	if ((rc = pickparams(P->maxmem, P->maxmemfrac, P->maxtime,
-	    &P->logN, &P->r, &P->p, verbose)) != 0)
-		return (rc);
+	/* Determine parameters. */
+	if (P->logN != 0) {
+		/* Check logN, r, p, without any resource limits. */
+		if ((rc = checkparams(0, 0, 0, P->logN, P->r, P->p,
+		    verbose, 1)) != 0) {
+			/* Provide a more meaningful error message. */
+			if (rc == SCRYPT_EINVAL)
+				rc = SCRYPT_EPARAM;
+			return (rc);
+		}
+	} else {
+		/* Pick values for N, r, p. */
+		if ((rc = pickparams(P->maxmem, P->maxmemfrac, P->maxtime,
+		    &P->logN, &P->r, &P->p, verbose)) != 0)
+			return (rc);
+	}
 	N = (uint64_t)(1) << P->logN;
 
 	/* Sanity check. */
