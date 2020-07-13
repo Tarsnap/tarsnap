@@ -74,11 +74,18 @@ prepare_directories() {
 	fi
 }
 
-## find_system (cmd, args...):
+## find_system (cmd, args):
 # Look for ${cmd} in the $PATH, and ensure that it supports ${args}.
 find_system() {
 	cmd=$1
-	cmd_with_args=$@
+	cmd_with_args="$1 ${2:-}"
+
+	# Sanity check.
+	if [ "$#" -gt "2" ]; then
+		printf "Programmer error: find_system: too many args\n" 1>&2
+		exit 1
+	fi
+
 	# Look for ${cmd}; the "|| true" and -} make this work with set -e.
 	system_binary=`command -v ${cmd}` || true
 	if [ -z "${system_binary-}" ]; then
