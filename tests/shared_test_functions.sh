@@ -383,8 +383,7 @@ run_scenarios() {
 
 	printf -- "Running tests\n"
 	printf -- "-------------\n"
-	scenario_filenames=$@
-	for scenario in ${scenario_filenames}; do
+	for scenario in "$@"; do
 		# We can't call this function with $( ... ) because we
 		# want to allow it to echo values to stdout.
 		scenario_runner ${scenario}
