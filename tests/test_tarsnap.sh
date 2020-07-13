@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### Find script directory and load helper functions.
-scriptdir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+scriptdir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)
 . ${scriptdir}/shared_test_functions.sh
 
 
