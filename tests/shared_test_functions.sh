@@ -216,11 +216,12 @@ setup_check_variables() {
 	fi
 
 	# Set up the "exit" file.
-	c_exitfile="${s_basename}-`printf %02d ${s_count}`.exit"
+	count_str=$(printf "%02d" "${s_count}")
+	c_exitfile="${s_basename}-${count_str}.exit"
 
 	# Write the "description" file.
 	printf "${description}\n" >				\
-		"${s_basename}-`printf %02d ${s_count}`.desc"
+		"${s_basename}-${count_str}.desc"
 
 	# Set up the valgrind command if $USE_VALGRIND is greater
 	# than or equal to ${valgrind_min}; otherwise, produce an
@@ -233,7 +234,7 @@ setup_check_variables() {
 	# is that we only receive an exit code of 0 if both the
 	# program and valgrind are happy.
 	if [ "$USE_VALGRIND" -ge "${c_valgrind_min}" ]; then
-		val_logfilename=${s_val_basename}-`printf %02d ${s_count}`.log
+		val_logfilename="${s_val_basename}-${count_str}.log"
 		c_valgrind_cmd="valgrind \
 			--log-file=${val_logfilename} \
 			--leak-check=full --show-leak-kinds=all \
@@ -305,7 +306,6 @@ notify_success_or_fail() {
 		fi
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!"
-			retval=${ret}
 			if [ ${VERBOSE} -ne 0 ]; then
 				printf "File ${exitfile} contains exit" 1>&2
 				printf " code ${ret}.\n" 1>&2
