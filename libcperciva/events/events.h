@@ -57,7 +57,7 @@ void * events_timer_register(int (*)(void *), void *, const struct timeval *);
 
 /**
  * events_timer_register_double(func, cookie, timeo):
- * As events_timer_register, but ${timeo} is a double-precision floating point
+ * As events_timer_register, but ${timeo} is a double-precision floating-point
  * value specifying a number of seconds.
  */
 void * events_timer_register_double(int (*)(void *), void *, double);
