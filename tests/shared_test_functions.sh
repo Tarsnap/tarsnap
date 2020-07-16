@@ -137,7 +137,7 @@ check_optional_valgrind() {
 	fi
 }
 
-## ensure_valgrind_suppresssion (potential_memleaks_binary):
+## ensure_valgrind_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
 # those leaks when testing other binaries.
@@ -277,10 +277,10 @@ expected_exitcode() {
 
 ## notify_success_or_fail (log_basename, val_log_basename):
 # Examine all "exit code" files beginning with ${log_basename} and
-# print "SUCCESS!" or "FAILED!" as appropriate.  If the test failed
-# with the code ${valgrind_exit_code}, output the appropriate
-# valgrind logfile to stdout.  If the test failed and ${VERBOSE}
-# is non-zero, print the description to stderr.
+# print "SUCCESS!", "FAILED!", "SKIP!", or "PARTIAL SUCCESS / SKIP!"
+# as appropriate.  If the test failed with the code ${valgrind_exit_code},
+# output the appropriate valgrind logfile to stdout.  If the test
+# failed and ${VERBOSE} is non-zero, print the description to stderr.
 notify_success_or_fail() {
 	log_basename=$1
 	val_log_basename=$2
@@ -304,6 +304,7 @@ notify_success_or_fail() {
 		if [ "${ret}" -lt 0 ]; then
 			skip_exitfiles=$(( skip_exitfiles + 1 ))
 		fi
+		# Check for test failure.
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!"
 			if [ ${VERBOSE} -ne 0 ]; then
@@ -313,6 +314,7 @@ notify_success_or_fail() {
 				printf "Test description: " 1>&2
 				cat ${descfile} 1>&2
 			fi
+			# Check valgrind.
 			if [ "${ret}" -eq "${valgrind_exit_code}" ]; then
 				val_logfilename=$( get_val_logfile \
 					${val_log_basename} ${exitfile} )
@@ -323,6 +325,7 @@ notify_success_or_fail() {
 		fi
 	done
 
+	# Notify about skip or success.
 	if [ ${skip_exitfiles} -gt 0 ]; then
 		if [ ${skip_exitfiles} -eq ${total_exitfiles} ]; then
 			echo "SKIP!"
