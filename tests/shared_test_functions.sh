@@ -300,6 +300,35 @@ check_valgrind_logfile() {
 	fi
 }
 
+## check_valgrind_basenames (exitfile):
+# Check for any memory leaks recorded in valgrind logfiles associated with a
+# test exitfile.  Return the filename if there's a leak; otherwise return an
+# empty string.
+check_valgrind_basenames() {
+	exitfile="$1"
+	val_basename=$( get_val_basename ${val_log_basename} ${exitfile} )
+
+	# Get list of files to check.  (Yes, the star goes outside the quotes.)
+	logfiles=$(ls "${val_basename}"* 2>/dev/null)
+	num_logfiles=$(echo "${logfiles}" | wc -w)
+
+	# Bail if we don't have any valgrind logfiles to check.
+	# Use numberic comparsion, because wc leaves a tab in the output.
+	if [ "${num_logfiles}" -eq "0" ] ; then
+		return
+	fi
+
+	# Check a single file.
+	if [ "${num_logfiles}" -eq "1" ]; then
+		check_valgrind_logfile "${logfiles}"
+		return
+	fi
+
+	# Programmer error; hard bail.
+	echo "Programmer error: wrong number of valgrind logfiles!" 1>&2
+	exit 1
+}
+
 ## notify_success_or_fail (log_basename, val_log_basename):
 # Examine all "exit code" files beginning with ${log_basename} and
 # print "SUCCESS!", "FAILED!", "SKIP!", or "PARTIAL SUCCESS / SKIP!"
@@ -344,14 +373,8 @@ notify_success_or_fail() {
 			return
 		fi
 
-		# Check valgrind logfile.
-		val_logfile="$(get_val_logfile ${val_log_basename}	\
-		    ${exitfile}).log"
-		if [ -e "${val_logfile}" ]; then
-			val_failed="$(check_valgrind_logfile "${val_logfile}")"
-		else
-			val_failed=""
-		fi
+		# Check valgrind logfile(s).
+		val_failed="$(check_valgrind_basenames "${exitfile}")"
 		if [ -n "${val_failed}" ]; then
 			echo "FAILED!"
 			s_retval="${valgrind_exit_code}"
