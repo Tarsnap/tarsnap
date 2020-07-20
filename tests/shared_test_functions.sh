@@ -241,13 +241,14 @@ setup_check_variables() {
 	s_count=$((s_count + 1))
 }
 
-## get_val_logfile (val_basename, exitfile):
-# Return the valgrind logfile corresponding to ${exitfile}.
-get_val_logfile() {
+## get_val_basename (val_basename, exitfile):
+# Return the filename without ".log" of the valgrind logfile corresponding to
+# ${exitfile}.
+get_val_basename() {
 	val_basename=$1
 	exitfile=$2
 	num=`echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2 `
-	echo "${val_basename}-${num}.log"
+	echo "${val_basename}-${num}"
 }
 
 ## expected_exitcode (expected, exitcode):
@@ -345,7 +346,7 @@ notify_success_or_fail() {
 
 		# Check valgrind logfile.
 		val_logfile="$(get_val_logfile ${val_log_basename}	\
-		    ${exitfile})"
+		    ${exitfile}).log"
 		if [ -e "${val_logfile}" ]; then
 			val_failed="$(check_valgrind_logfile "${val_logfile}")"
 		else
