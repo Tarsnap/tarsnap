@@ -134,6 +134,19 @@ check_optional_valgrind() {
 			printf "valgrind not found\n" 1>&2
 			exit 1
 		fi
+
+		# Check the version.
+		version=$(valgrind --version | cut -d "-" -f 2)
+		major=$(echo "${version}" | cut -d "." -f 1)
+		minor=$(echo "${version}" | cut -d "." -f 2)
+		if [ "${major}" -lt "3" ]; then
+			printf "valgrind must be at least version 3.13\n" 1>&2
+			exit 1;
+		fi
+		if [ "${major}" -eq "3" ] && [ "${minor}" -lt "13" ]; then
+			printf "valgrind must be at least version 3.13\n" 1>&2
+			exit 1;
+		fi
 	fi
 }
 
