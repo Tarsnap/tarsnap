@@ -227,7 +227,7 @@ setup_check_variables() {
 	# than or equal to ${valgrind_min}; otherwise, produce an
 	# empty string.
 	if [ "$USE_VALGRIND" -ge "${c_valgrind_min}" ]; then
-		val_logfilename="${s_val_basename}-${count_str}.log"
+		val_logfilename="${s_val_basename}-${count_str}-%p.log"
 		c_valgrind_cmd="valgrind \
 			--log-file=${val_logfilename} \
 			--leak-check=full --show-leak-kinds=all \
