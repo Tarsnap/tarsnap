@@ -337,6 +337,28 @@ check_valgrind_basenames() {
 		return
 	fi
 
+	# If there's two files, there's a fork() -- likely within
+	# daemonize() -- so only pay attention to the child.
+	if [ "${num_logfiles}" -eq "2" ]; then
+		# Find both pids.
+		val_pids=""
+		for logfile in ${logfiles} ; do
+			val_pid=$(head -n 1 "${logfile}" | cut -d "=" -f 3)
+			val_pids="${val_pids} ${val_pid}"
+		done
+
+		# Find the logfile which has a parent in the list of pids.
+		for logfile in ${logfiles} ; do
+			val_parent_pid=$(grep "Parent PID:" "${logfile}" | \
+			    awk '{ print $4 }')
+			if [ "${val_pids#*$val_parent_pid}" !=		\
+			    "${val_pids}" ]; then
+				check_valgrind_logfile "${logfile}"
+				return "$?"
+			fi
+		done
+	fi
+
 	# Programmer error; hard bail.
 	echo "Programmer error: wrong number of valgrind logfiles!" 1>&2
 	exit 1
