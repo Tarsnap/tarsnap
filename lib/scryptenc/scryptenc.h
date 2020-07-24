@@ -95,14 +95,14 @@ struct scryptdec_file_cookie;
 
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
- *     params, verbose):
+ *     params, verbose, force):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
  * within ${params} must be zero or must all be non-zero.  Return
  * the explicit parameters used via ${params}.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
-    const uint8_t *, size_t, struct scryptenc_params *, int);
+    const uint8_t *, size_t, struct scryptenc_params *, int, int);
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
@@ -118,13 +118,13 @@ int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
     const uint8_t *, size_t, struct scryptenc_params *, int, int);
 
 /**
- * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
+ * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose, force):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
  * to ${outfile}.  The explicit parameters within ${params} must be zero
  * or must all be non-zero.  Return the explicit parameters used via ${params}.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
-    struct scryptenc_params *, int);
+    struct scryptenc_params *, int, int);
 
 /**
  * scryptdec_file_printparams(infile):
