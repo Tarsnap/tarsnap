@@ -42,6 +42,7 @@
 #define GETOPT_USE_COMPUTED_GOTO
 #endif
 
+/* Select the method of performing local jumps. */
 #ifdef GETOPT_USE_COMPUTED_GOTO
 /* Workaround with computed goto. */
 #define DO_SETJMP _DO_SETJMP(__LINE__)
