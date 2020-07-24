@@ -8,6 +8,12 @@
 #define warn libcperciva_warn
 #define warnx libcperciva_warnx
 
+/*
+ * Maximum length of messages sent to syslog; longer warnings will
+ * be truncated.
+ */
+#define WARNP_SYSLOG_MAX_LINE 4095
+
 /**
  * warnp_setprogname(progname):
  * Set the program name to be used by warn() and warnx() to ${progname}.
