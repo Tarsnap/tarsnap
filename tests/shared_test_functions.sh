@@ -134,6 +134,19 @@ check_optional_valgrind() {
 			printf "valgrind not found\n" 1>&2
 			exit 1
 		fi
+
+		# Check the version.
+		version=$(valgrind --version | cut -d "-" -f 2)
+		major=$(echo "${version}" | cut -d "." -f 1)
+		minor=$(echo "${version}" | cut -d "." -f 2)
+		if [ "${major}" -lt "3" ]; then
+			printf "valgrind must be at least version 3.13\n" 1>&2
+			exit 1;
+		fi
+		if [ "${major}" -eq "3" ] && [ "${minor}" -lt "13" ]; then
+			printf "valgrind must be at least version 3.13\n" 1>&2
+			exit 1;
+		fi
 	fi
 }
 
@@ -227,7 +240,7 @@ setup_check_variables() {
 	# than or equal to ${valgrind_min}; otherwise, produce an
 	# empty string.
 	if [ "$USE_VALGRIND" -ge "${c_valgrind_min}" ]; then
-		val_logfilename="${s_val_basename}-${count_str}.log"
+		val_logfilename="${s_val_basename}-${count_str}-%p.log"
 		c_valgrind_cmd="valgrind \
 			--log-file=${val_logfilename} \
 			--leak-check=full --show-leak-kinds=all \
@@ -241,13 +254,14 @@ setup_check_variables() {
 	s_count=$((s_count + 1))
 }
 
-## get_val_logfile (val_basename, exitfile):
-# Return the valgrind logfile corresponding to ${exitfile}.
-get_val_logfile() {
+## get_val_basename (val_basename, exitfile):
+# Return the filename without ".log" of the valgrind logfile corresponding to
+# ${exitfile}.
+get_val_basename() {
 	val_basename=$1
 	exitfile=$2
 	num=`echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2 `
-	echo "${val_basename}-${num}.log"
+	echo "${val_basename}-${num}"
 }
 
 ## expected_exitcode (expected, exitcode):
@@ -299,6 +313,57 @@ check_valgrind_logfile() {
 	fi
 }
 
+## check_valgrind_basenames (exitfile):
+# Check for any memory leaks recorded in valgrind logfiles associated with a
+# test exitfile.  Return the filename if there's a leak; otherwise return an
+# empty string.
+check_valgrind_basenames() {
+	exitfile="$1"
+	val_basename=$( get_val_basename ${val_log_basename} ${exitfile} )
+
+	# Get list of files to check.  (Yes, the star goes outside the quotes.)
+	logfiles=$(ls "${val_basename}"* 2>/dev/null)
+	num_logfiles=$(echo "${logfiles}" | wc -w)
+
+	# Bail if we don't have any valgrind logfiles to check.
+	# Use numberic comparsion, because wc leaves a tab in the output.
+	if [ "${num_logfiles}" -eq "0" ] ; then
+		return
+	fi
+
+	# Check a single file.
+	if [ "${num_logfiles}" -eq "1" ]; then
+		check_valgrind_logfile "${logfiles}"
+		return
+	fi
+
+	# If there's two files, there's a fork() -- likely within
+	# daemonize() -- so only pay attention to the child.
+	if [ "${num_logfiles}" -eq "2" ]; then
+		# Find both pids.
+		val_pids=""
+		for logfile in ${logfiles} ; do
+			val_pid=$(head -n 1 "${logfile}" | cut -d "=" -f 3)
+			val_pids="${val_pids} ${val_pid}"
+		done
+
+		# Find the logfile which has a parent in the list of pids.
+		for logfile in ${logfiles} ; do
+			val_parent_pid=$(grep "Parent PID:" "${logfile}" | \
+			    awk '{ print $4 }')
+			if [ "${val_pids#*$val_parent_pid}" !=		\
+			    "${val_pids}" ]; then
+				check_valgrind_logfile "${logfile}"
+				return "$?"
+			fi
+		done
+	fi
+
+	# Programmer error; hard bail.
+	echo "Programmer error: wrong number of valgrind logfiles!" 1>&2
+	exit 1
+}
+
 ## notify_success_or_fail (log_basename, val_log_basename):
 # Examine all "exit code" files beginning with ${log_basename} and
 # print "SUCCESS!", "FAILED!", "SKIP!", or "PARTIAL SUCCESS / SKIP!"
@@ -343,14 +408,8 @@ notify_success_or_fail() {
 			return
 		fi
 
-		# Check valgrind logfile.
-		val_logfile="$(get_val_logfile ${val_log_basename}	\
-		    ${exitfile})"
-		if [ -e "${val_logfile}" ]; then
-			val_failed="$(check_valgrind_logfile "${val_logfile}")"
-		else
-			val_failed=""
-		fi
+		# Check valgrind logfile(s).
+		val_failed="$(check_valgrind_basenames "${exitfile}")"
 		if [ -n "${val_failed}" ]; then
 			echo "FAILED!"
 			s_retval="${valgrind_exit_code}"
