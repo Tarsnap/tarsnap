@@ -102,3 +102,27 @@ warnx(const char * fmt, ...)
 	}
 	va_end(ap);
 }
+
+/**
+ * warnp_syslog(enable):
+ * Send future messages to syslog if ${enable} is non-zero.  Messages to
+ * syslog will be truncated at WARNP_SYSLOG_MAX_LINE characters.
+ */
+void
+warnp_syslog(int enable)
+{
+
+	use_syslog = enable;
+}
+
+/**
+ * warnp_syslog_priority(priority):
+ * Tag future syslog messages with priority ${priority}.  Do not enable
+ * syslog messages; for that, use warnp_syslog.
+ */
+void
+warnp_syslog_priority(int priority)
+{
+
+	syslog_priority = priority;
+}
