@@ -8,6 +8,7 @@
 
 static int initialized = 0;
 static char * name = NULL;
+static int use_syslog = 0;
 
 /* Free the name string. */
 static void
@@ -51,12 +52,18 @@ warn(const char * fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
-	if (fmt != NULL) {
-		fprintf(stderr, ": ");
-		vfprintf(stderr, fmt, ap);
+	if (use_syslog == 0) {
+		/* Print to stderr. */
+		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
+		if (fmt != NULL) {
+			fprintf(stderr, ": ");
+			vfprintf(stderr, fmt, ap);
+		}
+		fprintf(stderr, ": %s\n", strerror(errno));
+	} else {
+		/* Print to syslog. */
+		/* Not implemented. */
 	}
-	fprintf(stderr, ": %s\n", strerror(errno));
 	va_end(ap);
 }
 
@@ -66,11 +73,17 @@ warnx(const char * fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
-	if (fmt != NULL) {
-		fprintf(stderr, ": ");
-		vfprintf(stderr, fmt, ap);
+	if (use_syslog == 0) {
+		/* Print to stderr. */
+		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
+		if (fmt != NULL) {
+			fprintf(stderr, ": ");
+			vfprintf(stderr, fmt, ap);
+		}
+		fprintf(stderr, "\n");
+	} else {
+		/* Print to syslog. */
+		/* Not implemented. */
 	}
-	fprintf(stderr, "\n");
 	va_end(ap);
 }
