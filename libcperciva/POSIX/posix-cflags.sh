@@ -11,7 +11,7 @@ if ! [ ${PATH} = "$1" ]; then
 fi
 
 # Find directory of this script and the source files
-D=`dirname $0`
+D=$(dirname $0)
 
 FIRST=YES
 if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L $D/posix-msg_nosignal.c 2>/dev/null; then
