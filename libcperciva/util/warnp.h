@@ -8,6 +8,12 @@
 #define warn libcperciva_warn
 #define warnx libcperciva_warnx
 
+/*
+ * Maximum length of messages sent to syslog; longer warnings will
+ * be truncated.
+ */
+#define WARNP_SYSLOG_MAX_LINE 4095
+
 /**
  * warnp_setprogname(progname):
  * Set the program name to be used by warn() and warnx() to ${progname}.
@@ -17,6 +23,20 @@ void warnp_setprogname(const char *);
 	if (argv[0] != NULL)		\
 		warnp_setprogname(argv[0]);	\
 } while (0)
+
+/**
+ * warnp_syslog(enable):
+ * Send future messages to syslog if ${enable} is non-zero.  Messages to
+ * syslog will be truncated at WARNP_SYSLOG_MAX_LINE characters.
+ */
+void warnp_syslog(int);
+
+/**
+ * warnp_syslog_priority(priority):
+ * Tag future syslog messages with priority ${priority}.  Do not enable
+ * syslog messages; for that, use warnp_syslog.
+ */
+void warnp_syslog_priority(int);
 
 /* As in BSD <err.h>. */
 void warn(const char *, ...);

@@ -3,11 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 #include "warnp.h"
 
 static int initialized = 0;
 static char * name = NULL;
+static int use_syslog = 0;
+static int syslog_priority = LOG_WARNING;
 
 /* Free the name string. */
 static void
@@ -49,14 +52,27 @@ void
 warn(const char * fmt, ...)
 {
 	va_list ap;
+	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
 
 	va_start(ap, fmt);
-	fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
-	if (fmt != NULL) {
-		fprintf(stderr, ": ");
-		vfprintf(stderr, fmt, ap);
+	if (use_syslog == 0) {
+		/* Print to stderr. */
+		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
+		if (fmt != NULL) {
+			fprintf(stderr, ": ");
+			vfprintf(stderr, fmt, ap);
+		}
+		fprintf(stderr, ": %s\n", strerror(errno));
+	} else {
+		/* Print to syslog. */
+		if (fmt != NULL) {
+			/* No need to print "${name}: "; syslog does it. */
+			vsnprintf(msgbuf, WARNP_SYSLOG_MAX_LINE + 1, fmt, ap);
+			syslog(syslog_priority, "%s: %s\n", msgbuf,
+			    strerror(errno));
+		} else
+			syslog(syslog_priority, "%s\n", strerror(errno));
 	}
-	fprintf(stderr, ": %s\n", strerror(errno));
 	va_end(ap);
 }
 
@@ -64,13 +80,49 @@ void
 warnx(const char * fmt, ...)
 {
 	va_list ap;
+	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
 
 	va_start(ap, fmt);
-	fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
-	if (fmt != NULL) {
-		fprintf(stderr, ": ");
-		vfprintf(stderr, fmt, ap);
+	if (use_syslog == 0) {
+		/* Print to stderr. */
+		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
+		if (fmt != NULL) {
+			fprintf(stderr, ": ");
+			vfprintf(stderr, fmt, ap);
+		}
+		fprintf(stderr, "\n");
+	} else {
+		/* Print to syslog. */
+		if (fmt != NULL) {
+			/* No need to print "${name}: "; syslog does it. */
+			vsnprintf(msgbuf, WARNP_SYSLOG_MAX_LINE + 1, fmt, ap);
+			syslog(syslog_priority, "%s\n", msgbuf);
+		} else
+			syslog(syslog_priority, "\n");
 	}
-	fprintf(stderr, "\n");
 	va_end(ap);
+}
+
+/**
+ * warnp_syslog(enable):
+ * Send future messages to syslog if ${enable} is non-zero.  Messages to
+ * syslog will be truncated at WARNP_SYSLOG_MAX_LINE characters.
+ */
+void
+warnp_syslog(int enable)
+{
+
+	use_syslog = enable;
+}
+
+/**
+ * warnp_syslog_priority(priority):
+ * Tag future syslog messages with priority ${priority}.  Do not enable
+ * syslog messages; for that, use warnp_syslog.
+ */
+void
+warnp_syslog_priority(int priority)
+{
+
+	syslog_priority = priority;
 }

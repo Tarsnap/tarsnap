@@ -143,6 +143,9 @@ parsenum_float(const char * s, double min, double max, int trailing)
 	char * eptr;
 	double val;
 
+	/* Sanity check. */
+	assert(s != NULL);
+
 	val = strtod(s, &eptr);
 	if (eptr == s || (!trailing && (*eptr != '\0')))
 		errno = EINVAL;
@@ -157,6 +160,9 @@ parsenum_signed(const char * s, intmax_t min, intmax_t max, int base,
 {
 	char * eptr;
 	intmax_t val;
+
+	/* Sanity check. */
+	assert(s != NULL);
 
 	val = strtoimax(s, &eptr, base);
 	if (eptr == s || (!trailing && (*eptr != '\0')))
@@ -174,6 +180,9 @@ parsenum_unsigned(const char * s, uintmax_t min, uintmax_t max,
 {
 	char * eptr;
 	uintmax_t val;
+
+	/* Sanity check. */
+	assert(s != NULL);
 
 	val = strtoumax(s, &eptr, base);
 	if (eptr == s || (!trailing && (*eptr != '\0')))

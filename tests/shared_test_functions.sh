@@ -87,7 +87,7 @@ find_system() {
 	fi
 
 	# Look for ${cmd}; the "|| true" and -} make this work with set -e.
-	system_binary=`command -v ${cmd}` || true
+	system_binary=$(command -v ${cmd}) || true
 	if [ -z "${system_binary-}" ]; then
 		system_binary=""
 		printf "System ${cmd} not found.\n" 1>&2
@@ -105,7 +105,7 @@ find_system() {
 # Look for ${cmd} in ps; return 0 if ${cmd} exists.
 has_pid() {
 	cmd=$1
-	pid=`ps -Aopid,args | grep -F "${cmd}" | grep -v "grep"` || true
+	pid=$(ps -Aopid,args | grep -F "${cmd}" | grep -v "grep") || true
 	if [ -n "${pid}" ]; then
 		return 0
 	fi
@@ -260,7 +260,7 @@ setup_check_variables() {
 get_val_basename() {
 	val_basename=$1
 	exitfile=$2
-	num=`echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2 `
+	num=$(echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2)
 	echo "${val_basename}-${num}"
 }
 
@@ -376,7 +376,7 @@ notify_success_or_fail() {
 	val_log_basename=$2
 
 	# Bail if there's no exitfiles.
-	exitfiles=`ls ${log_basename}-*.exit` || true
+	exitfiles=$(ls ${log_basename}-*.exit) || true
 	if [ -z "$exitfiles" ]; then
 		echo "FAILED"
 		s_retval=1
@@ -388,8 +388,8 @@ notify_success_or_fail() {
 	skip_exitfiles=0
 
 	# Check each exitfile.
-	for exitfile in `echo $exitfiles | sort`; do
-		ret=`cat ${exitfile}`
+	for exitfile in $(echo $exitfiles | sort); do
+		ret=$(cat ${exitfile})
 		total_exitfiles=$(( total_exitfiles + 1 ))
 		if [ "${ret}" -lt 0 ]; then
 			skip_exitfiles=$(( skip_exitfiles + 1 ))
@@ -400,7 +400,8 @@ notify_success_or_fail() {
 			if [ ${VERBOSE} -ne 0 ]; then
 				printf "File ${exitfile} contains exit" 1>&2
 				printf " code ${ret}.\n" 1>&2
-				descfile=`echo ${exitfile} | sed 's/\.exit/\.desc/g'`
+				descfile=$(echo ${exitfile} |		\
+				    sed 's/\.exit/\.desc/g')
 				printf "Test description: " 1>&2
 				cat ${descfile} 1>&2
 			fi
@@ -434,7 +435,7 @@ notify_success_or_fail() {
 # Run a test scenario from ${scenario_filename}.
 scenario_runner() {
 	scenario_filename=$1
-	basename=`basename ${scenario_filename} .sh`
+	basename=$(basename ${scenario_filename} .sh)
 	printf "  ${basename}... " 1>&2
 
 	# Initialize "scenario" and "check" variables.
