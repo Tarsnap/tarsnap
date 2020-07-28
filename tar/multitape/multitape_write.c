@@ -416,6 +416,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err0;
 	memset(d, 0, sizeof(struct multitape_write_internal));
 
+	/* Initialize lockfd as "not locked". */
+	d->lockfd = -1;
+
 	/* Tape starts in "end of entry" mode. */
 	d->mode = 2;
 
@@ -528,7 +531,8 @@ err6:
 err5:
 	storage_write_free(d->S);
 err4:
-	close(d->lockfd);
+	if (d->lockfd != -1)
+		close(d->lockfd);
 err3:
 	free(d->cachedir);
 err2:
@@ -972,8 +976,9 @@ writetape_close(TAPE_W * d)
 			goto err1;
 	}
 
-	/* Unlock the cache directory. */
-	close(d->lockfd);
+	/* Unlock the cache directory (if applicable). */
+	if (d->lockfd != -1)
+		close(d->lockfd);
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
@@ -995,7 +1000,8 @@ err2:
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 err1:
-	close(d->lockfd);
+	if (d->lockfd != -1)
+		close(d->lockfd);
 	chunkify_free(d->c_file);
 	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
@@ -1023,7 +1029,8 @@ writetape_free(TAPE_W * d)
 
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
-	close(d->lockfd);
+	if (d->lockfd != -1)
+		close(d->lockfd);
 	chunkify_free(d->c_file);
 	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
