@@ -883,12 +883,15 @@ With this option, existing hardlinks will be broken, as will any
 symlink that would affect the location of an extracted file.
 .TP
 \fB\-v\fP
-(c, t, x, and list-archives modes only)
+(c, d, t, x, and list-archives modes only)
 Produce verbose output.
 In create and extract modes,
 \fB\%tarsnap\fP
 will list each file name as it is read from or written to
 the archive.
+In delete mode,
+\fB\%tarsnap\fP
+will list the name of each archive as it is deleted.
 In list mode,
 \fB\%tarsnap\fP
 will produce output similar to that of
