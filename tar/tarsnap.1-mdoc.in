@@ -793,12 +793,15 @@ overwrites existing files, which preserves existing hardlinks.
 With this option, existing hardlinks will be broken, as will any
 symlink that would affect the location of an extracted file.
 .It Fl v
-(c, t, x, and list-archives modes only)
+(c, d, t, x, and list-archives modes only)
 Produce verbose output.
 In create and extract modes,
 .Nm
 will list each file name as it is read from or written to
 the archive.
+In delete mode,
+.Nm
+will list the name of each archive as it is deleted.
 In list mode,
 .Nm
 will produce output similar to that of
