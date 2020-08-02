@@ -70,7 +70,7 @@ callback_buf(void * cookie)
 	void (*oldsig)(int);
 #endif
 
-	/* If we don't have MSG_NOSIGNAL, catch SIGPIPE. */
+	/* If we don't have MSG_NOSIGNAL, ignore SIGPIPE. */
 #ifdef POSIXFAIL_MSG_NOSIGNAL
 	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
@@ -85,7 +85,7 @@ callback_buf(void * cookie)
 	/* We should never see a send length of zero. */
 	assert(len != 0);
 
-	/* If we set a SIGPIPE handler, restore the old one. */
+	/* If we ignored SIGPIPE, restore the old handler. */
 #ifdef POSIXFAIL_MSG_NOSIGNAL
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
