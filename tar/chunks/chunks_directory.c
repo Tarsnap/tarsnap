@@ -521,7 +521,7 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 
 	/* Create a link from ${cachedir}/directory.tmp. */
 	if (link(t, s)) {
-		if ((errno != ENOSYS) && (errno != EPERM)) {
+		if ((errno != ENOSYS) && (errno != EPERM) && (errno != EACCES)) {
 			warnp("link(%s, %s)", t, s);
 			goto err2;
 		}
