@@ -12,10 +12,14 @@ static char * name = NULL;
 static int use_syslog = 0;
 static int syslog_priority = LOG_WARNING;
 
-/* Free the name string. */
+/* Free the name string and clean up writing to the syslog (if applicable). */
 static void
 done(void)
 {
+
+	/* Clean up writing to the syslog (if applicable).  */
+	if (use_syslog)
+		closelog();
 
 	free(name);
 	name = NULL;
@@ -111,6 +115,10 @@ warnx(const char * fmt, ...)
 void
 warnp_syslog(int enable)
 {
+
+	/* Clean up writing to the syslog (if applicable).  */
+	if (use_syslog && !enable)
+		closelog();
 
 	use_syslog = enable;
 }
