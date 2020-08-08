@@ -60,6 +60,9 @@ warn(const char * fmt, ...)
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
+		/* Stop other threads writing to stderr. */
+		flockfile(stderr);
+
 		/* Print to stderr. */
 		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
 		if (fmt != NULL) {
@@ -67,6 +70,9 @@ warn(const char * fmt, ...)
 			vfprintf(stderr, fmt, ap);
 		}
 		fprintf(stderr, ": %s\n", strerror(errno));
+
+		/* Allow other threads to write to stderr. */
+		funlockfile(stderr);
 	} else {
 		/* Print to syslog. */
 		if (fmt != NULL) {
@@ -88,6 +94,9 @@ warnx(const char * fmt, ...)
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
+		/* Stop other threads writing to stderr. */
+		flockfile(stderr);
+
 		/* Print to stderr. */
 		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
 		if (fmt != NULL) {
@@ -95,6 +104,9 @@ warnx(const char * fmt, ...)
 			vfprintf(stderr, fmt, ap);
 		}
 		fprintf(stderr, "\n");
+
+		/* Allow other threads to write to stderr. */
+		funlockfile(stderr);
 	} else {
 		/* Print to syslog. */
 		if (fmt != NULL) {
