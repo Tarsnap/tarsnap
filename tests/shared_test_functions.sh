@@ -153,7 +153,8 @@ check_optional_valgrind() {
 ## ensure_valgrind_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
-# those leaks when testing other binaries.
+# those leaks when testing other binaries.  Record how many file descriptors
+# are open at exit in ${valgrind_fds}.
 ensure_valgrind_suppression() {
 	potential_memleaks_binary=$1
 
@@ -169,9 +170,12 @@ ensure_valgrind_suppression() {
 	# Start off with an empty suppression file
 	touch ${valgrind_suppressions}
 
-	# Get list of tests
+	# Get list of tests and the number of open descriptors at a normal exit
 	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
-	${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
+	thislog="${out_valgrind}/fds.log"
+	valgrind --track-fds=yes --log-file=${thislog}			\
+	    ${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
+	valgrind_fds=$(grep "FILE DESCRIPTORS" "${thislog}" | awk '{print $4}')
 
 	# Generate suppressions for each test
 	while read testname; do
