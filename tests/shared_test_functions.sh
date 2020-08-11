@@ -170,7 +170,11 @@ ensure_valgrind_suppression() {
 	touch ${valgrind_suppressions}
 
 	# Get list of tests
-	${potential_memleaks_binary} | while read testname; do
+	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
+	${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
+
+	# Generate suppressions for each test
+	while read testname; do
 		this_valgrind_supp="${valgrind_suppressions_log}-${testname}"
 
 		# Run valgrind on the binary, sending it a "\n" so that
@@ -197,7 +201,7 @@ ensure_valgrind_suppression() {
 			| grep -v "   fun:main" -			\
 			| grep -v -E "   obj:.*/potential-memleaks" -	\
 			>> ${valgrind_suppressions} ) || true
-	done
+	done < "${valgrind_suppressions_tests}"
 
 	# Clean up
 	rm -f ${valgrind_suppressions_log}
