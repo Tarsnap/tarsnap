@@ -138,7 +138,7 @@ failed:
  * When at least ${minwrite} bytes have been written or on error, invoke
  * ${callback}(${cookie}, lenwrit), where lenwrit is -1 on error and the
  * number of bytes written (between ${minwrite} and ${buflen} inclusive)
- * otherwise.  Return a cookie which can be passed to network_write_cancel in
+ * otherwise.  Return a cookie which can be passed to network_write_cancel() in
  * order to cancel the write.
  */
 void *
@@ -182,7 +182,7 @@ err0:
 /**
  * network_write_cancel(cookie):
  * Cancel the buffer write for which the cookie ${cookie} was returned by
- * network_write.  Do not invoke the callback associated with the write.
+ * network_write().  Do not invoke the callback associated with the write.
  */
 void
 network_write_cancel(void * cookie)

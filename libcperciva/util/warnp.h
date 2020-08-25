@@ -34,7 +34,7 @@ void warnp_syslog(int);
 /**
  * warnp_syslog_priority(priority):
  * Tag future syslog messages with priority ${priority}.  Do not enable
- * syslog messages; for that, use warnp_syslog.
+ * syslog messages; for that, use warnp_syslog().
  */
 void warnp_syslog_priority(int);
 
@@ -67,7 +67,7 @@ void warnx(const char *, ...);
 } while (0)
 
 /*
- * Call warnx(3) and set errno == 0.  Unlike warnp, this should be used
+ * Call warnx(3) and set errno == 0.  Unlike warnp(), this should be used
  * in cases where we're reporting a problem which we discover ourselves
  * rather than one which is reported to us from a library or the kernel.
  */

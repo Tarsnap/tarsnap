@@ -138,7 +138,7 @@ warnp_syslog(int enable)
 /**
  * warnp_syslog_priority(priority):
  * Tag future syslog messages with priority ${priority}.  Do not enable
- * syslog messages; for that, use warnp_syslog.
+ * syslog messages; for that, use warnp_syslog().
  */
 void
 warnp_syslog_priority(int priority)

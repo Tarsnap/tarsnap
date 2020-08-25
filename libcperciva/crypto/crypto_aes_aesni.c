@@ -135,7 +135,7 @@ crypto_aes_key_expand_256_aesni(const uint8_t key[32], __m128i rkeys[15])
 /**
  * crypto_aes_key_expand_aesni(key, len):
  * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block_aesni.  The length must be 16 or 32.  This
+ * to crypto_aes_encrypt_block_aesni().  The length must be 16 or 32.  This
  * implementation uses x86 AESNI instructions, and should only be used if
  * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
  */
