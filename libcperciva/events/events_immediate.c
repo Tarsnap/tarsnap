@@ -31,10 +31,10 @@ static int minq = 32;
 
 /**
  * events_immediate_register(func, cookie, prio):
- * Register ${func}(${cookie}) to be run the next time events_run() is invoked,
- * after immediate events with smaller ${prio} values and before events with
- * larger ${prio} values.  The value ${prio} must be in the range [0, 31].
- * Return a cookie which can be passed to events_immediate_cancel().
+ * Register ${func}(${cookie}) to be run the next time events_run() is
+ * invoked, after immediate events with smaller ${prio} values and before
+ * events with larger ${prio} values.  The value ${prio} must be in the range
+ * [0, 31].  Return a cookie which can be passed to events_immediate_cancel().
  */
 void *
 events_immediate_register(int (*func)(void *), void * cookie, int prio)

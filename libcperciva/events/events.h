@@ -5,10 +5,10 @@
 
 /**
  * events_immediate_register(func, cookie, prio):
- * Register ${func}(${cookie}) to be run the next time events_run() is invoked,
- * after immediate events with smaller ${prio} values and before events with
- * larger ${prio} values.  The value ${prio} must be in the range [0, 31].
- * Return a cookie which can be passed to events_immediate_cancel().
+ * Register ${func}(${cookie}) to be run the next time events_run() is
+ * invoked, after immediate events with smaller ${prio} values and before
+ * events with larger ${prio} values.  The value ${prio} must be in the range
+ * [0, 31].  Return a cookie which can be passed to events_immediate_cancel().
  */
 void * events_immediate_register(int (*)(void *), void *, int);
 
@@ -57,8 +57,8 @@ void * events_timer_register(int (*)(void *), void *, const struct timeval *);
 
 /**
  * events_timer_register_double(func, cookie, timeo):
- * As events_timer_register(), but ${timeo} is a double-precision floating-point
- * value specifying a number of seconds.
+ * As events_timer_register(), but ${timeo} is a double-precision
+ * floating-point value specifying a number of seconds.
  */
 void * events_timer_register_double(int (*)(void *), void *, double);
 
@@ -82,21 +82,21 @@ int events_timer_reset(void *);
  * first, in order of increasing ${prio} values; then events associated with
  * ready sockets registered via events_network_register(); finally, events
  * associated with expired timers registered via events_timer_register() will
- * be run.  If any event function returns a non-zero result, no further
- * events will be run and said non-zero result will be returned; on error,
- * -1 will be returned.  May be interrupted by events_interrupt(), in which case
- * 0 will be returned.  If there are runnable events, events_run() is guaranteed
- * to run at least one; but it may return while there are still more runnable
- * events.
+ * be run.  If any event function returns a non-zero result, no further events
+ * will be run and said non-zero result will be returned; on error,
+ * -1 will be returned.  May be interrupted by events_interrupt(), in which
+ * case 0 will be returned.  If there are runnable events, events_run() is
+ * guaranteed to run at least one; but it may return while there are still
+ * more runnable events.
  */
 int events_run(void);
 
 /**
  * events_spin(done):
- * Call events_run() until ${done} is non-zero (and return 0), an error occurs (and
- * return -1), or a callback returns a non-zero status (and return the status
- * code from the callback).  May be interrupted by events_interrupt() (and return
- * 0).
+ * Call events_run() until ${done} is non-zero (and return 0), an error occurs
+ * (and return -1), or a callback returns a non-zero status (and return the
+ * status code from the callback).  May be interrupted by events_interrupt()
+ * (and return 0).
  */
 int events_spin(int *);
 
