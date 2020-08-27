@@ -179,9 +179,9 @@ err0:
 /**
  * crypto_aes_encrypt_block_aesni(in, out, key):
  * Using the expanded AES key ${key}, encrypt the block ${in} and write the
- * resulting ciphertext to ${out}.  This implementation uses x86 AESNI
- * instructions, and should only be used if CPUSUPPORT_X86_AESNI is defined
- * and cpusupport_x86_aesni() returns nonzero.
+ * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.  This
+ * implementation uses x86 AESNI instructions, and should only be used if
+ * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
  */
 void
 crypto_aes_encrypt_block_aesni(const uint8_t * in, uint8_t * out,
