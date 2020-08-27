@@ -19,7 +19,7 @@ struct crypto_aes_key * crypto_aes_key_expand(const uint8_t *, size_t);
  * Using the expanded AES key ${key}, encrypt the block ${in} and write the
  * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.
  */
-void crypto_aes_encrypt_block(const uint8_t *, uint8_t *,
+void crypto_aes_encrypt_block(const uint8_t[16], uint8_t[16],
     const struct crypto_aes_key *);
 
 /**

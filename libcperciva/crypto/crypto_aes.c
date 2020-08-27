@@ -131,7 +131,7 @@ err0:
  * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.
  */
 void
-crypto_aes_encrypt_block(const uint8_t * in, uint8_t * out,
+crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
     const struct crypto_aes_key * key)
 {
 

@@ -20,7 +20,8 @@ void * crypto_aes_key_expand_aesni(const uint8_t *, size_t);
  * implementation uses x86 AESNI instructions, and should only be used if
  * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
  */
-void crypto_aes_encrypt_block_aesni(const uint8_t *, uint8_t *, const void *);
+void crypto_aes_encrypt_block_aesni(const uint8_t[16], uint8_t[16],
+    const void *);
 
 /**
  * crypto_aes_key_free_aesni(key):

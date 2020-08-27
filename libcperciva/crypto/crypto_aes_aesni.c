@@ -184,7 +184,7 @@ err0:
  * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
  */
 void
-crypto_aes_encrypt_block_aesni(const uint8_t * in, uint8_t * out,
+crypto_aes_encrypt_block_aesni(const uint8_t in[16], uint8_t out[16],
     const void * key)
 {
 	const struct crypto_aes_key_aesni * _key = key;
