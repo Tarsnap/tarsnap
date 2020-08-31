@@ -723,7 +723,7 @@ err0:
  * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
- * be modified until the decryption is completed by scryptdec_file_copy.  The
+ * be modified until the decryption is completed by scryptdec_file_copy().  The
  * explicit parameters within ${params} must be zero.  Return the explicit
  * parameters to be used via ${params}.
  */
@@ -768,9 +768,9 @@ err1:
 /**
  * scryptdec_file_copy(cookie, outfile):
  * Read a stream from the file that was passed into the ${cookie} by
- * scryptdec_file_prep, decrypt it, and write the resulting stream to
+ * scryptdec_file_prep(), decrypt it, and write the resulting stream to
  * ${outfile}.  After this function completes, it is safe to modify/close
- * ${outfile} and the ${infile} which was given to scryptdec_file_prep.
+ * ${outfile} and the ${infile} which was given to scryptdec_file_prep().
  */
 int
 scryptdec_file_copy(struct scryptdec_file_cookie * C, FILE * outfile)

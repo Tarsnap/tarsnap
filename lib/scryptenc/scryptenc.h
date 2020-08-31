@@ -36,8 +36,8 @@
  * NOTE: This file provides prototypes for routines which encrypt/decrypt data
  * using a key derived from a password by using the scrypt key derivation
  * function.  If you are just trying to "hash" a password for user logins,
- * this is not the code you are looking for.  You want to use the crypto_scrypt
- * function directly.
+ * this is not the code you are looking for.  You want to use the
+ * crypto_scrypt() function directly.
  */
 
 /**
@@ -147,7 +147,7 @@ int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
  * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
- * be modified until the decryption is completed by scryptdec_file_copy.  The
+ * be modified until the decryption is completed by scryptdec_file_copy().  The
  * explicit parameters within ${params} must be zero.  Return the explicit
  * parameters to be used via ${params}.
  */
@@ -157,9 +157,9 @@ int scryptdec_file_prep(FILE *, const uint8_t *, size_t,
 /**
  * scryptdec_file_copy(cookie, outfile):
  * Read a stream from the file that was passed into the ${cookie} by
- * scryptdec_file_prep, decrypt it, and write the resulting stream to
+ * scryptdec_file_prep(), decrypt it, and write the resulting stream to
  * ${outfile}.  After this function completes, it is safe to modify/close
- * ${outfile} and the ${infile} which was given to scryptdec_file_prep.
+ * ${outfile} and the ${infile} which was given to scryptdec_file_prep().
  */
 int scryptdec_file_copy(struct scryptdec_file_cookie *, FILE *);
 
