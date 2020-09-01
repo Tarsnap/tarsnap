@@ -94,7 +94,7 @@ useaesni(void)
 /**
  * crypto_aes_key_expand(key, len):
  * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block.  The length must be 16 or 32.
+ * to crypto_aes_encrypt_block().  The length must be 16 or 32.
  */
 struct crypto_aes_key *
 crypto_aes_key_expand(const uint8_t * key, size_t len)
@@ -128,10 +128,10 @@ err0:
 /**
  * crypto_aes_encrypt_block(in, out, key):
  * Using the expanded AES key ${key}, encrypt the block ${in} and write the
- * resulting ciphertext to ${out}.
+ * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.
  */
 void
-crypto_aes_encrypt_block(const uint8_t * in, uint8_t * out,
+crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
     const struct crypto_aes_key * key)
 {
 

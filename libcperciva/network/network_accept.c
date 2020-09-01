@@ -52,7 +52,7 @@ tryagain:
  * already marked as listening and non-blocking.  When a connection has been
  * accepted or an error occurs, invoke ${callback}(${cookie}, s) where s is
  * the accepted connection or -1 on error.  Return a cookie which can be
- * passed to network_accept_cancel in order to cancel the accept.
+ * passed to network_accept_cancel() in order to cancel the accept.
  */
 void *
 network_accept(int fd, int (* callback)(void *, int), void * cookie)
@@ -87,7 +87,7 @@ err0:
 /**
  * network_accept_cancel(cookie):
  * Cancel the connection accept for which the cookie ${cookie} was returned
- * by network_accept.  Do not invoke the callback associated with the accept.
+ * by network_accept().  Do not invoke the callback associated with the accept.
  */
 void
 network_accept_cancel(void * cookie)

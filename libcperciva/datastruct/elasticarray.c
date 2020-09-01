@@ -196,7 +196,7 @@ err0:
  * present will be deleted.  The value ${reclen} must be positive.
  *
  * As an exception to the normal rule, an elastic array may occupy more than
- * 4 times the optimal storage immediately following an elasticarray_shrink
+ * 4 times the optimal storage immediately following an elasticarray_shrink()
  * call; but only if realloc(3) failed to shrink a memory allocation.
  */
 void

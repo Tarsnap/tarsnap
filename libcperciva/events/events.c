@@ -77,16 +77,16 @@ doevent(struct eventrec * r)
 
 /**
  * events_run(void):
- * Run events.  Events registered via events_immediate_register will be run
+ * Run events.  Events registered via events_immediate_register() will be run
  * first, in order of increasing ${prio} values; then events associated with
- * ready sockets registered via events_network_register; finally, events
- * associated with expired timers registered via events_timer_register will
- * be run.  If any event function returns a non-zero result, no further
- * events will be run and said non-zero result will be returned; on error,
- * -1 will be returned.  May be interrupted by events_interrupt, in which case
- * 0 will be returned.  If there are runnable events, events_run is guaranteed
- * to run at least one; but it may return while there are still more runnable
- * events.
+ * ready sockets registered via events_network_register(); finally, events
+ * associated with expired timers registered via events_timer_register() will
+ * be run.  If any event function returns a non-zero result, no further events
+ * will be run and said non-zero result will be returned; on error,
+ * -1 will be returned.  May be interrupted by events_interrupt(), in which
+ * case 0 will be returned.  If there are runnable events, events_run() is
+ * guaranteed to run at least one; but it may return while there are still
+ * more runnable events.
  */
 static int
 _events_run(void)
@@ -201,10 +201,10 @@ events_run(void)
 
 /**
  * events_spin(done):
- * Call events_run until ${done} is non-zero (and return 0), an error occurs (and
- * return -1), or a callback returns a non-zero status (and return the status
- * code from the callback).  May be interrupted by events_interrupt (and return
- * 0).
+ * Call events_run() until ${done} is non-zero (and return 0), an error occurs
+ * (and return -1), or a callback returns a non-zero status (and return the
+ * status code from the callback).  May be interrupted by events_interrupt()
+ * (and return 0).
  */
 int
 events_spin(int * done)

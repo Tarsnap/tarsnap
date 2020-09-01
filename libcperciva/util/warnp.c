@@ -12,10 +12,14 @@ static char * name = NULL;
 static int use_syslog = 0;
 static int syslog_priority = LOG_WARNING;
 
-/* Free the name string. */
+/* Free the name string and clean up writing to the syslog (if applicable). */
 static void
 done(void)
 {
+
+	/* Clean up writing to the syslog (if applicable).  */
+	if (use_syslog)
+		closelog();
 
 	free(name);
 	name = NULL;
@@ -56,6 +60,9 @@ warn(const char * fmt, ...)
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
+		/* Stop other threads writing to stderr. */
+		flockfile(stderr);
+
 		/* Print to stderr. */
 		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
 		if (fmt != NULL) {
@@ -63,6 +70,9 @@ warn(const char * fmt, ...)
 			vfprintf(stderr, fmt, ap);
 		}
 		fprintf(stderr, ": %s\n", strerror(errno));
+
+		/* Allow other threads to write to stderr. */
+		funlockfile(stderr);
 	} else {
 		/* Print to syslog. */
 		if (fmt != NULL) {
@@ -84,6 +94,9 @@ warnx(const char * fmt, ...)
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
+		/* Stop other threads writing to stderr. */
+		flockfile(stderr);
+
 		/* Print to stderr. */
 		fprintf(stderr, "%s", (name != NULL) ? name : "(unknown)");
 		if (fmt != NULL) {
@@ -91,6 +104,9 @@ warnx(const char * fmt, ...)
 			vfprintf(stderr, fmt, ap);
 		}
 		fprintf(stderr, "\n");
+
+		/* Allow other threads to write to stderr. */
+		funlockfile(stderr);
 	} else {
 		/* Print to syslog. */
 		if (fmt != NULL) {
@@ -112,13 +128,17 @@ void
 warnp_syslog(int enable)
 {
 
+	/* Clean up writing to the syslog (if applicable).  */
+	if (use_syslog && !enable)
+		closelog();
+
 	use_syslog = enable;
 }
 
 /**
  * warnp_syslog_priority(priority):
  * Tag future syslog messages with priority ${priority}.  Do not enable
- * syslog messages; for that, use warnp_syslog.
+ * syslog messages; for that, use warnp_syslog().
  */
 void
 warnp_syslog_priority(int priority)

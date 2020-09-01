@@ -153,7 +153,8 @@ check_optional_valgrind() {
 ## ensure_valgrind_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
-# those leaks when testing other binaries.
+# those leaks when testing other binaries.  Record how many file descriptors
+# are open at exit in ${valgrind_fds}.
 ensure_valgrind_suppression() {
 	potential_memleaks_binary=$1
 
@@ -169,8 +170,15 @@ ensure_valgrind_suppression() {
 	# Start off with an empty suppression file
 	touch ${valgrind_suppressions}
 
-	# Get list of tests
-	${potential_memleaks_binary} | while read testname; do
+	# Get list of tests and the number of open descriptors at a normal exit
+	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
+	thislog="${out_valgrind}/fds.log"
+	valgrind --track-fds=yes --log-file=${thislog}			\
+	    ${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
+	valgrind_fds=$(grep "FILE DESCRIPTORS" "${thislog}" | awk '{print $4}')
+
+	# Generate suppressions for each test
+	while read testname; do
 		this_valgrind_supp="${valgrind_suppressions_log}-${testname}"
 
 		# Run valgrind on the binary, sending it a "\n" so that
@@ -197,7 +205,7 @@ ensure_valgrind_suppression() {
 			| grep -v "   fun:main" -			\
 			| grep -v -E "   obj:.*/potential-memleaks" -	\
 			>> ${valgrind_suppressions} ) || true
-	done
+	done < "${valgrind_suppressions_tests}"
 
 	# Clean up
 	rm -f ${valgrind_suppressions_log}
@@ -243,6 +251,7 @@ setup_check_variables() {
 		val_logfilename="${s_val_basename}-${count_str}-%p.log"
 		c_valgrind_cmd="valgrind \
 			--log-file=${val_logfilename} \
+			--track-fds=yes \
 			--leak-check=full --show-leak-kinds=all \
 			--errors-for-leak-kinds=all \
 			--suppressions=${valgrind_suppressions}"
@@ -310,6 +319,19 @@ check_valgrind_logfile() {
 			# There is an unsuppressed leak.
 			echo "${logfile}"
 		fi
+	fi
+
+	# Check for the wrong number of open fds.  On a normal desktop
+	# computer, we expect 4: std{in,out,err}, plus the valgrind logfile.
+	# If this is running inside a virtualized OS or container or shared
+	# CI setup (such as Travis-CI), there might be other open
+	# descriptors.  The important thing is that the number of fds should
+	# match the simple test case (executing potential_memleaks without
+	# running any actual tests).
+	fds_in_use=$(grep "FILE DESCRIPTORS" "${logfile}" | awk '{print $4}')
+	if [ "${fds_in_use}" != "${valgrind_fds}" ] ; then
+		# There is an unsuppressed leak.
+		echo "${logfile}"
 	fi
 }
 

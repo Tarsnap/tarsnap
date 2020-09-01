@@ -133,7 +133,7 @@ ptrheap_init(int (* compar)(void *, const void *, const void *),
 
 /**
  * ptrheap_create(compar, setreccookie, cookie, N, ptrs):
- * Create and return a heap, as in ptrheap_init, but with the ${N} pointers
+ * Create and return a heap, as in ptrheap_init(), but with the ${N} pointers
  * in ${ptrs} as heap elements.  This is faster than creating an empty heap
  * and adding the elements individually.
  */

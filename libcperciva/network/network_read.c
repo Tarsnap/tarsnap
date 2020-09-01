@@ -104,7 +104,7 @@ failed:
  * When at least ${minread} bytes have been read or on error, invoke
  * ${callback}(${cookie}, lenread), where lenread is 0 on EOF or -1 on error,
  * and the number of bytes read (between ${minread} and ${buflen} inclusive)
- * otherwise.  Return a cookie which can be passed to network_read_cancel in
+ * otherwise.  Return a cookie which can be passed to network_read_cancel() in
  * order to cancel the read.
  */
 void *
@@ -148,7 +148,7 @@ err0:
 /**
  * network_read_cancel(cookie):
  * Cancel the buffer read for which the cookie ${cookie} was returned by
- * network_read.  Do not invoke the callback associated with the read.
+ * network_read().  Do not invoke the callback associated with the read.
  */
 void
 network_read_cancel(void * cookie)

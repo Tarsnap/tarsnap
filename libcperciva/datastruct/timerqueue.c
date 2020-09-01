@@ -91,7 +91,7 @@ err0:
 /**
  * timerqueue_add(Q, tv, ptr):
  * Add the pair (${tv}, ${ptr}) to the priority queue ${Q}.  Return a cookie
- * which can be passed to timerqueue_delete or timerqueue_increase.
+ * which can be passed to timerqueue_delete() or timerqueue_increase().
  */
 void *
 timerqueue_add(struct timerqueue * Q, const struct timeval * tv, void * ptr)

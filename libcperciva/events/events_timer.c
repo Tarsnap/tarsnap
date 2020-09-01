@@ -44,7 +44,7 @@ err0:
 /**
  * events_timer_register(func, cookie, timeo):
  * Register ${func}(${cookie}) to be run ${timeo} in the future.  Return a
- * cookie which can be passed to events_timer_cancel or events_timer_reset.
+ * cookie which can be passed to events_timer_cancel() or events_timer_reset().
  */
 void *
 events_timer_register(int (*func)(void *), void * cookie,
@@ -96,8 +96,8 @@ err0:
 
 /**
  * events_timer_register_double(func, cookie, timeo):
- * As events_timer_register, but ${timeo} is a double-precision floating-point
- * value specifying a number of seconds.
+ * As events_timer_register(), but ${timeo} is a double-precision
+ * floating-point value specifying a number of seconds.
  */
 void *
 events_timer_register_double(int (*func)(void *), void * cookie,
@@ -116,7 +116,7 @@ events_timer_register_double(int (*func)(void *), void * cookie,
 /**
  * events_timer_cancel(cookie):
  * Cancel the timer for which the cookie ${cookie} was returned by
- * events_timer_register.
+ * events_timer_register().
  */
 void
 events_timer_cancel(void * cookie)
@@ -134,7 +134,7 @@ events_timer_cancel(void * cookie)
 /**
  * events_timer_reset(cookie):
  * Reset the timer for which the cookie ${cookie} was returned by
- * events_timer_register to its initial value.
+ * events_timer_register() to its initial value.
  */
 int
 events_timer_reset(void * cookie)

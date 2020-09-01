@@ -70,7 +70,7 @@ callback_buf(void * cookie)
 	void (*oldsig)(int);
 #endif
 
-	/* If we don't have MSG_NOSIGNAL, catch SIGPIPE. */
+	/* If we don't have MSG_NOSIGNAL, ignore SIGPIPE. */
 #ifdef POSIXFAIL_MSG_NOSIGNAL
 	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
@@ -85,7 +85,7 @@ callback_buf(void * cookie)
 	/* We should never see a send length of zero. */
 	assert(len != 0);
 
-	/* If we set a SIGPIPE handler, restore the old one. */
+	/* If we ignored SIGPIPE, restore the old handler. */
 #ifdef POSIXFAIL_MSG_NOSIGNAL
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
@@ -138,7 +138,7 @@ failed:
  * When at least ${minwrite} bytes have been written or on error, invoke
  * ${callback}(${cookie}, lenwrit), where lenwrit is -1 on error and the
  * number of bytes written (between ${minwrite} and ${buflen} inclusive)
- * otherwise.  Return a cookie which can be passed to network_write_cancel in
+ * otherwise.  Return a cookie which can be passed to network_write_cancel() in
  * order to cancel the write.
  */
 void *
@@ -182,7 +182,7 @@ err0:
 /**
  * network_write_cancel(cookie):
  * Cancel the buffer write for which the cookie ${cookie} was returned by
- * network_write.  Do not invoke the callback associated with the write.
+ * network_write().  Do not invoke the callback associated with the write.
  */
 void
 network_write_cancel(void * cookie)
