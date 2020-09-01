@@ -20,6 +20,7 @@ AC_INIT([tarsnap],[TAR_VERS()],[cperciva@tarsnap.com])
 AC_CONFIG_SRCDIR([libarchive])
 # Use auxiliary subscripts from this subdirectory (cleans up root)
 AC_CONFIG_AUX_DIR([config.aux])
+AC_CONFIG_MACRO_DIR([m4])
 # Check for host and target type
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -69,9 +70,6 @@ AC_GNU_SOURCE
 
 # Don't rebuild the configure script.  I'm distributing a perfectly good one.
 AM_MAINTAINER_MODE
-
-# Tarsnap has some of its own configure functions
-m4_include([actarsnap.m4])
 
 # Get the POSIX sh early, in case the configure script causes
 # `command -p getconf` to fail in a broken environment.
