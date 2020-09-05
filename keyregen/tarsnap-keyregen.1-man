@@ -29,19 +29,22 @@ and
 \fBtarsnap\fP(1).
 The term "compatible"
 here means that it is possible to re-encrypt archives stored with
-the first set of keys to be stored with the second set of keys.  This is
-required because Tarsnap has some keys which need to stay the same when
-re-encrypting data; otherwise, existing archives will become unreadable and
-cannot be used for deduplication.
+the first set of keys to be stored with the second set of keys.
+This is required because Tarsnap has some keys which need to stay the same
+when re-encrypting data; otherwise, existing archives will become unreadable
+and cannot be used for deduplication.
 .PP
 The
 \fB\--keyfile\fP \fIkey-file\fP
 option specifies the name of the file in which to write the newly-generated
-keys.  The
+keys.
+The
 \fB\--oldkey\fP \fIold-key-file\fP
-option specifies the name of the file containing the old keys.  The
+option specifies the name of the file containing the old keys.
+The
 \fB\--user\fP \fIuser-name\fP
-option specifies the name (i.e. email address) of the Tarsnap account.  The
+option specifies the name (i.e. email address) of the Tarsnap account.
+The
 \fB\--machine\fP \fImachine-name\fP
 option specifies a name which will be displayed in accounting reports so that
 you can see how much data each machine is storing.
