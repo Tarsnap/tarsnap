@@ -1091,8 +1091,8 @@ an archive while preserving any absolute pathnames,
 components, or symlinks to other directories.
 .Sh SEE ALSO
 .Xr tarsnap-keygen 1 ,
-.Xr tarsnap.conf 5 ,
-.Xr tar 5
+.Xr tar 5 ,
+.Xr tarsnap.conf 5
 .Sh HISTORY
 A
 .Nm tar
