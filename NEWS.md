@@ -1,8 +1,5 @@
 ### Tarsnap 1.0.40 (unreleased)
 
-- Fix `clock_gettime()` problem on OSX on OSX 10.11 with XCode 8, which
-  includes `CLOCK_REALTIME` in `<time.h>` but does not include the symbol
-  in the standard library.
 - tarsnap now accepts a --dump-config option to print the command-line and all
   non-blank lines read from config files.
 - tarsnap now gives an error if there are unused command-line arguments.
@@ -18,6 +15,8 @@
 - tarsnap now accepts --progress-bytes SIZE, which prints a progress message
   after each SIZE bytes are processed, up to once per file.  This can be
   disabled with --no-progress-bytes.
+- Assorted compatibility fixes for MacOS X, FreeBSD, OpenBSD, Solaris, ZFS,
+  and gcc 4.2.1.
 
 
 Tarsnap Releases
