@@ -29,19 +29,22 @@ and
 .Xr tarsnap 1 .
 The term "compatible"
 here means that it is possible to re-encrypt archives stored with
-the first set of keys to be stored with the second set of keys.  This is
-required because Tarsnap has some keys which need to stay the same when
-re-encrypting data; otherwise, existing archives will become unreadable and
-cannot be used for deduplication.
+the first set of keys to be stored with the second set of keys.
+This is required because Tarsnap has some keys which need to stay the same
+when re-encrypting data; otherwise, existing archives will become unreadable
+and cannot be used for deduplication.
 .Pp
 The
 .Fl -keyfile Ar key-file
 option specifies the name of the file in which to write the newly-generated
-keys.  The
+keys.
+The
 .Fl -oldkey Ar old-key-file
-option specifies the name of the file containing the old keys.  The
+option specifies the name of the file containing the old keys.
+The
 .Fl -user Ar user-name
-option specifies the name (i.e. email address) of the Tarsnap account.  The
+option specifies the name (i.e. email address) of the Tarsnap account.
+The
 .Fl -machine Ar machine-name
 option specifies a name which will be displayed in accounting reports so that
 you can see how much data each machine is storing.
