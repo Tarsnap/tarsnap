@@ -538,6 +538,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	size_t writepos;
 	size_t linelen;
 	uint8_t hbuf[32];
+	double maxmemfrac = (maxmem != 0) ? 0.5 : 0.125;
 
 	/* Export keys. */
 	if (crypto_keys_export(keys, &keybuf, &keybuflen)) {
@@ -568,7 +569,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		/* Encrypt. */
 		switch ((rc = scryptenc_buf(tskeybuf, tskeylen, encrbuf,
 		    (uint8_t *)passphrase, strlen(passphrase),
-		    maxmem, (maxmem != 0) ? 0.5 : 0.125, cputime, 0))) {
+		    maxmem, maxmemfrac, cputime, 0))) {
 		case SCRYPT_OK:
 			/* Success! */
 			break;
