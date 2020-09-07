@@ -17,8 +17,19 @@ compiler.
   - DPOSIXFAIL_CLOCK_REALTIME: <time.h> not defining CLOCK_REALTIME.
   - DPOSIXFAIL_CLOCK_GETTIME: <time.h> not declaring clock_gettime(), or
     clock_gettime() is not linkable.
+  - DPOSIXFAIL_INET_ADDRSTRLEN: <netinet/in.h> not defining
+    INET_ADDRSTRLEN.
+  - DPOSIXFAIL_INET6_ADDRSTRLEN: <netinet/in.h> not defining
+    INET6_ADDRSTRLEN.
+  - DPOSIXFAIL_ABSTRACT_DECLARATOR: ${CC} does not accept
+    qualifiers in an abstract declarator.
   - std=c99: ${CC} does not accept the `restrict` keyword by default, but
     accepts it when given this flag.
+
+- posix-cflags-filter.sh: Detects if ${CC} supports expected ${CFLAG} value(s).
+
+  The potential ${CFLAGS} flags it checks are:
+  - O2: some compilers only accept -O.
 
 - posix-l.sh: Detects whether the linker supports certain POSIX features.
 
