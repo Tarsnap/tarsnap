@@ -348,7 +348,7 @@ check_valgrind_basenames() {
 	num_logfiles=$(echo "${logfiles}" | wc -w)
 
 	# Bail if we don't have any valgrind logfiles to check.
-	# Use numberic comparsion, because wc leaves a tab in the output.
+	# Use numeric comparison, because wc leaves a tab in the output.
 	if [ "${num_logfiles}" -eq "0" ] ; then
 		return
 	fi
