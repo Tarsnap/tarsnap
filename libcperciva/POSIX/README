@@ -20,7 +20,7 @@ compiler.
   - std=c99: ${CC} does not accept the `restrict` keyword by default, but
     accepts it when given this flag.
 
-posix-l.sh: Detects whether the linker supports certain POSIX features.
+- posix-l.sh: Detects whether the linker supports certain POSIX features.
 
   The potential command-line flags are:
   - lrt lxnet: c99 is required to understand these options, and ignore them if
