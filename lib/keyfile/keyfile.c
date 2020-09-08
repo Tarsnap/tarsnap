@@ -124,6 +124,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	uint8_t * deckeybuf;
 	size_t deckeylen;
 	int rc;
+	struct scryptenc_params params = {0, 0.5, 86400.0};
 
 	/* The caller must pass a file name to be read. */
 	assert(filename != NULL);
@@ -155,7 +156,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Decrypt the key file. */
 	rc = scryptdec_buf(keybuf, keylen, deckeybuf, &deckeylen,
-	    (const uint8_t *)passwd, strlen(passwd), 0, 0.5, 86400.0, 0,
+	    (const uint8_t *)passwd, strlen(passwd), &params, 0,
 	    force);
 	if (rc != SCRYPT_OK) {
 		switch (rc) {
@@ -538,6 +539,8 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	size_t writepos;
 	size_t linelen;
 	uint8_t hbuf[32];
+	double maxmemfrac = (maxmem != 0) ? 0.5 : 0.125;
+	struct scryptenc_params params = {maxmem, maxmemfrac, cputime};
 
 	/* Export keys. */
 	if (crypto_keys_export(keys, &keybuf, &keybuflen)) {
@@ -568,7 +571,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		/* Encrypt. */
 		switch ((rc = scryptenc_buf(tskeybuf, tskeylen, encrbuf,
 		    (uint8_t *)passphrase, strlen(passphrase),
-		    maxmem, (maxmem != 0) ? 0.5 : 0.125, cputime, 0))) {
+		    &params, 0))) {
 		case SCRYPT_OK:
 			/* Success! */
 			break;

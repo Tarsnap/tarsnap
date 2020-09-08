@@ -62,6 +62,11 @@
  * compared to the computed limits and an error is returned if decrypting
  * the data would take too much memory or CPU time.
  */
+struct scryptenc_params {
+	size_t maxmem;
+	double maxmemfrac;
+	double maxtime;
+};
 
 /* Return codes from scrypt(enc|dec)_(buf|file|prep). */
 #define SCRYPT_OK	0	/* success */
@@ -84,32 +89,31 @@ struct scryptdec_file_cookie;
 
 /**
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
-    const uint8_t *, size_t, size_t, double, double, int);
+    const uint8_t *, size_t, struct scryptenc_params *, int);
 
 /**
  * scryptdec_buf(inbuf, inbuflen, outbuf, outlen, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose, force):
+ *     params, verbose, force):
  * Decrypt ${inbuflen} bytes from ${inbuf}, writing the result into ${outbuf}
  * and the decrypted data length to ${outlen}.  The allocated length of
  * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
  * whether decryption will exceed the estimated available memory or time.
  */
 int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
-    const uint8_t *, size_t, size_t, double, double, int, int);
+    const uint8_t *, size_t, struct scryptenc_params *, int, int);
 
 /**
- * scryptenc_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose):
+ * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
  * to ${outfile}.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
-    size_t, double, double, int);
+    struct scryptenc_params *, int);
 
 /**
  * scryptdec_file_printparams(infile):
@@ -118,24 +122,22 @@ int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
 int scryptdec_file_printparams(FILE *);
 
 /**
- * scryptdec_file(infile, outfile, passwd, passwdlen,
- *     maxmem, maxmemfrac, maxtime, verbose, force):
+ * scryptdec_file(infile, outfile, passwd, passwdlen, params, verbose, force):
  * Read a stream from ${infile} and decrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.
  */
 int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
-    size_t, double, double, int, int);
+    struct scryptenc_params *, int, int);
 
 /**
- * scryptdec_file_prep(infile, passwd, passwdlen, maxmem, maxmemfrac,
- *     maxtime, force, cookie):
+ * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy.
  */
-int scryptdec_file_prep(FILE *, const uint8_t *, size_t, size_t, double,
-    double, int, int, struct scryptdec_file_cookie **);
+int scryptdec_file_prep(FILE *, const uint8_t *, size_t,
+    struct scryptenc_params *, int, int, struct scryptdec_file_cookie **);
 
 /**
  * scryptdec_file_copy(cookie, outfile):
