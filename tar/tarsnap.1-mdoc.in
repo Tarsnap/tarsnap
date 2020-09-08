@@ -143,8 +143,8 @@ Run as
 .Fl -fsck ,
 but if corrupt archives are detected, prune the broken data.
 .It Fl -initialize-cachedir
-Create and initialize the cachedir.  This option is intended for the GUI and
-is not needed for command-line usage.
+Create and initialize the cachedir.
+This option is intended for the GUI and is not needed for command-line usage.
 .It Fl -nuke
 Delete all of the archives stored.
 To protect against accidental data loss,
@@ -182,8 +182,9 @@ Note that these follow the POSIX rules for pattern matching, e.g.,
 are special characters which can be escaped with a backslash.
 .Pp
 Two concurrent create or delete operations may not be performed with the same
-key.  Extracting or listing archives may be performed in parallel with any
-other operation.
+key.
+Extracting or listing archives may be performed in parallel with any other
+operation.
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Cm @ Ns Pa archive-file
@@ -268,9 +269,9 @@ will be read; where settings conflict, the earlier configuration file will
 take priority.
 .It Fl -creationtime Ar X
 (c mode only)
-Manually specify a creation time (a unix timestamp) for the
-archive.  This is unlikely to be useful when tarsnap is being
-invoked directly from the command line.
+Manually specify a creation time (a unix timestamp) for the archive.
+This is unlikely to be useful when tarsnap is being invoked directly from the
+command line.
 .It Fl -csv-file Ar filename
 (only relevant with --print-stats)
 Write statistics in CSV format to a file.
@@ -646,10 +647,11 @@ is being run by root, the default is to restore the owner unless the
 .Fl o
 option is also specified.
 .It Fl -passphrase-stdin
-Always read passphrase from stdin instead of /dev/tty.  Note that while this
-can be useful in automated scenarios, it must be used with care; in particular,
-if the key file and the passphrase are both present on disk, there is very
-little security gained compared to a non-passphrase-protected key file.
+Always read passphrase from stdin instead of /dev/tty.
+Note that while this can be useful in automated scenarios, it must be used
+with care; in particular, if the key file and the passphrase are both present
+on disk, there is very little security gained compared to a
+non-passphrase-protected key file.
 .It Fl -print-stats
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).
@@ -658,7 +660,8 @@ See "PRINTING ARCHIVE STATISTICS" below for information on the output format.
 Display a progress message (as if generated from SIGUSR1 or SIGINFO) after
 processing each
 .Ar X
-bytes.  Occurs at most once per file.
+bytes.
+Occurs at most once per file.
 .It Fl q ( Fl -fast-read )
 (x and t modes only)
 Extract or list only the first archive entry that matches each pattern
@@ -682,9 +685,11 @@ warnings will be silenced by this option in future versions of
 .It Fl -resume-extract
 (x mode only)
 Don't extract files whose filesize and mtime matches existing files on the
-disk.  Primarily used to resume an archive extraction which was interrupted.
+disk.
+Primarily used to resume an archive extraction which was interrupted.
 The mtime comparison ignores sub-second timestamp precision, as this is not
-supported on all filesystems.  This differs from
+supported on all filesystems.
+This differs from
 .Fl k
 in that
 .Fl -resume-extract
@@ -695,9 +700,9 @@ This option causes tarsnap to continue trying to reconnect to the
 tarsnap server forever, instead of giving up after 5-10 minutes.
 This may be useful for people with excessively flaky networks, or
 on mobile devices which regularly lose their internet connections
-for extended periods of time.  This is not enabled by default
-since continued failures generally indicate a problem which should
-be investigated by the user.
+for extended periods of time.
+This is not enabled by default since continued failures generally indicate a
+problem which should be investigated by the user.
 .It Fl S
 (x mode only)
 Extract files as sparse files.
@@ -780,8 +785,9 @@ you probably want to use
 as well.
 .It Fl -totals
 (c mode only)
-Print the size of the archive after creating it.  This option is provided
-mainly for compatibility with GNU tar; in most situations the
+Print the size of the archive after creating it.
+This option is provided mainly for compatibility with GNU tar; in most
+situations the
 .Fl -print-stats
 option will be far more useful.
 .It Fl U
@@ -1085,8 +1091,8 @@ an archive while preserving any absolute pathnames,
 components, or symlinks to other directories.
 .Sh SEE ALSO
 .Xr tarsnap-keygen 1 ,
-.Xr tarsnap.conf 5 ,
-.Xr tar 5
+.Xr tar 5 ,
+.Xr tarsnap.conf 5
 .Sh HISTORY
 A
 .Nm tar
@@ -1100,15 +1106,15 @@ public-domain implementation (circa November, 1987)
 was quite influential, and formed the basis of GNU tar.
 GNU tar was included as the standard system tar
 in
-FreeBSD
+.Fx
 beginning with
-FreeBSD 1.0,
+.Fx 1.0 ,
 but was replaced by Tim Kientzle's
 .Nm bsdtar
 utility and
 .Xr libarchive 3
 library in
-FreeBSD 5.3.
+.Fx 5.3 .
 .Pp
 .Nm
 is built around

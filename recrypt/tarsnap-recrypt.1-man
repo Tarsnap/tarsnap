@@ -3,7 +3,7 @@
 .ad l
 \fB\%tarsnap-recrypt\fP
 \- re-encrypts data stored using
-\fBtarsnap\fP(1).
+\fBtarsnap\fP(1)
 .SH SYNOPSIS
 .ad l
 .br

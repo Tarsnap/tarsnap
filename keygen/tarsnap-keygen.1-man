@@ -27,9 +27,11 @@ tarsnap server, and writes a key file for use with
 The
 \fB\--keyfile\fP \fIkey-file\fP
 option specifies the name of the file in which to write the newly-generated
-keys.  The
+keys.
+The
 \fB\--user\fP \fIuser-name\fP
-option specifies the name (i.e. email address) of the Tarsnap account.  The
+option specifies the name (i.e. email address) of the Tarsnap account.
+The
 \fB\--machine\fP \fImachine-name\fP
 option specifies a name which will be displayed in accounting reports so that
 you can see how much data each machine is storing.

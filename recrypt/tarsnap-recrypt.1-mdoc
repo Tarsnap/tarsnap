@@ -7,7 +7,7 @@
 .Sh NAME
 .Nm tarsnap-recrypt
 .Nd re-encrypts data stored using
-.Xr tarsnap 1 .
+.Xr tarsnap 1
 .Sh SYNOPSIS
 .Nm
 .Fl -oldkey Ar old-key-file
