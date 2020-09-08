@@ -124,7 +124,7 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	uint8_t * deckeybuf;
 	size_t deckeylen;
 	int rc;
-	struct scryptenc_params params = {0, 0.5, 86400.0};
+	struct scryptenc_params params = {0, 0.5, 86400.0, 0, 0, 0};
 
 	/* The caller must pass a file name to be read. */
 	assert(filename != NULL);
@@ -540,7 +540,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 	size_t linelen;
 	uint8_t hbuf[32];
 	double maxmemfrac = (maxmem != 0) ? 0.5 : 0.125;
-	struct scryptenc_params params = {maxmem, maxmemfrac, cputime};
+	struct scryptenc_params params = {maxmem, maxmemfrac, cputime, 0, 0, 0};
 
 	/* Export keys. */
 	if (crypto_keys_export(keys, &keybuf, &keybuflen)) {
