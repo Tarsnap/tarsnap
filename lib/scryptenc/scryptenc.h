@@ -88,6 +88,7 @@ struct scryptenc_params {
 #define SCRYPT_EPASS	11	/* password is incorrect */
 #define SCRYPT_EWRFILE	12	/* error writing output file */
 #define SCRYPT_ERDFILE	13	/* error reading input file */
+#define SCRYPT_EPARAM	14	/* error in explicit parameters */
 
 /* Opaque structure. */
 struct scryptdec_file_cookie;
@@ -97,7 +98,8 @@ struct scryptdec_file_cookie;
  *     params, verbose):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
  * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
- * within ${params} must be zero.
+ * within ${params} must be zero or must all be non-zero.  Return
+ * the explicit parameters used via ${params}.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
     const uint8_t *, size_t, struct scryptenc_params *, int);
@@ -109,7 +111,8 @@ int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
  * and the decrypted data length to ${outlen}.  The allocated length of
  * ${outbuf} must be at least ${inbuflen}.  If ${force} is 1, do not check
  * whether decryption will exceed the estimated available memory or time.
- * The explicit parameters within ${params} must be zero.
+ * The explicit parameters within ${params} must be zero.  Return the explicit
+ * parameters used via ${params}.
  */
 int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
     const uint8_t *, size_t, struct scryptenc_params *, int, int);
@@ -117,7 +120,8 @@ int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
- * to ${outfile}.  The explicit parameters within ${params} must be zero.
+ * to ${outfile}.  The explicit parameters within ${params} must be zero
+ * or must all be non-zero.  Return the explicit parameters used via ${params}.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
     struct scryptenc_params *, int);
@@ -133,7 +137,8 @@ int scryptdec_file_printparams(FILE *);
  * Read a stream from ${infile} and decrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption
  * will exceed the estimated available memory or time.  The explicit
- * parameters within ${params} must be zero.
+ * parameters within ${params} must be zero.  Return the explicit parameters
+ * used via ${params}.
  */
 int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
     struct scryptenc_params *, int, int);
@@ -143,7 +148,8 @@ int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy.  The
- * explicit parameters within ${params} must be zero.
+ * explicit parameters within ${params} must be zero.  Return the explicit
+ * parameters to be used via ${params}.
  */
 int scryptdec_file_prep(FILE *, const uint8_t *, size_t,
     struct scryptenc_params *, int, int, struct scryptdec_file_cookie **);
