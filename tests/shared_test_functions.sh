@@ -263,12 +263,11 @@ setup_check_variables() {
 	s_count=$((s_count + 1))
 }
 
-## get_val_basename (val_basename, exitfile):
+## get_val_basename (exitfile):
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
 get_val_basename() {
-	val_basename=$1
-	exitfile=$2
+	exitfile=$1
 	basename=$(basename "${exitfile}" ".exit")
 	echo "${out_valgrind}/${basename}"
 }
@@ -341,7 +340,7 @@ check_valgrind_logfile() {
 # empty string.
 check_valgrind_basenames() {
 	exitfile="$1"
-	val_basename=$( get_val_basename ${val_log_basename} ${exitfile} )
+	val_basename=$( get_val_basename ${exitfile} )
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
 	logfiles=$(ls "${val_basename}"* 2>/dev/null)
