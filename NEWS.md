@@ -1,12 +1,11 @@
 ### Tarsnap 1.0.40 (unreleased)
 
-- Fix `clock_gettime()` problem on OSX on OSX 10.11 with XCode 8, which
-  includes `CLOCK_REALTIME` in `<time.h>` but does not include the symbol
-  in the standard library.
 - tarsnap now accepts a --dump-config option to print the command-line and all
   non-blank lines read from config files.
 - tarsnap now gives an error if there are unused command-line arguments.
   (i.e. "tarsnap -d -f a1 a2", where "a2" is unused.)
+- Use RDRAND as an additional source of entropy on CPUs which support it.
+- Use SHANI instructions on CPUs which support them.
 - When sent SIGINFO or SIGUSR1, tarsnap now prints the number of files and the
   number of uncompressed bytes processed, in addition to the previous output.
 - tarsnap now accepts a --passphrase-stdin option which reads the passphrase
@@ -16,6 +15,8 @@
 - tarsnap now accepts --progress-bytes SIZE, which prints a progress message
   after each SIZE bytes are processed, up to once per file.  This can be
   disabled with --no-progress-bytes.
+- Assorted compatibility fixes for MacOS X, FreeBSD, OpenBSD, Solaris, ZFS,
+  and gcc 4.2.1.
 
 
 Tarsnap Releases
