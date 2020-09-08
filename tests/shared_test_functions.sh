@@ -269,8 +269,8 @@ setup_check_variables() {
 get_val_basename() {
 	val_basename=$1
 	exitfile=$2
-	num=$(echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2)
-	echo "${val_basename}-${num}"
+	basename=$(basename "${exitfile}" ".exit")
+	echo "${out_valgrind}/${basename}"
 }
 
 ## expected_exitcode (expected, exitcode):
