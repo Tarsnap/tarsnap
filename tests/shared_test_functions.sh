@@ -263,14 +263,13 @@ setup_check_variables() {
 	s_count=$((s_count + 1))
 }
 
-## get_val_basename (val_basename, exitfile):
+## get_val_basename (exitfile):
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
 get_val_basename() {
-	val_basename=$1
-	exitfile=$2
-	num=$(echo "${exitfile}" | rev | cut -c 1-7 | rev | cut -c 1-2)
-	echo "${val_basename}-${num}"
+	exitfile=$1
+	basename=$(basename "${exitfile}" ".exit")
+	echo "${out_valgrind}/${basename}"
 }
 
 ## expected_exitcode (expected, exitcode):
@@ -341,14 +340,14 @@ check_valgrind_logfile() {
 # empty string.
 check_valgrind_basenames() {
 	exitfile="$1"
-	val_basename=$( get_val_basename ${val_log_basename} ${exitfile} )
+	val_basename=$( get_val_basename ${exitfile} )
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
 	logfiles=$(ls "${val_basename}"* 2>/dev/null)
 	num_logfiles=$(echo "${logfiles}" | wc -w)
 
 	# Bail if we don't have any valgrind logfiles to check.
-	# Use numberic comparsion, because wc leaves a tab in the output.
+	# Use numeric comparison, because wc leaves a tab in the output.
 	if [ "${num_logfiles}" -eq "0" ] ; then
 		return
 	fi
