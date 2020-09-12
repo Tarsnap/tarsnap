@@ -571,7 +571,7 @@ keyfile_write_file(FILE * f, uint64_t machinenum, int keys,
 		/* Encrypt. */
 		switch ((rc = scryptenc_buf(tskeybuf, tskeylen, encrbuf,
 		    (uint8_t *)passphrase, strlen(passphrase),
-		    &params, 0))) {
+		    &params, 0, 0))) {
 		case SCRYPT_OK:
 			/* Success! */
 			break;
