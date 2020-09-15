@@ -228,7 +228,7 @@ the following files.
 In x mode, change directories after opening the archive
 but before extracting entries from the archive.
 .It Fl -cachedir Ar cache-dir
-(c, d, print-stats, and fsck modes)
+(c, d, print-stats, and fsck modes only)
 Cache information about the archives stored by
 .Nm
 in the directory
@@ -273,7 +273,8 @@ Manually specify a creation time (a unix timestamp) for the archive.
 This is unlikely to be useful when tarsnap is being invoked directly from the
 command line.
 .It Fl -csv-file Ar filename
-(only relevant with --print-stats)
+(use with
+.Fl -print-stats )
 Write statistics in CSV format to a file.
 .It Fl -disk-pause Ar X
 (c mode only)
@@ -387,7 +388,7 @@ Allow descent into synthetic filesystems such as procfs.
 Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .It Fl -iso-dates
-(-t mode only)
+(t mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
 .Pp
 The default is to use the same format as 'ls -l': If the files were modified
