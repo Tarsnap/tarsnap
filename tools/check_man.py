@@ -14,11 +14,11 @@ class OptList(list):
     """ List of options, plus a few convenience classes. """
     def append_optarg(self, opt, arg):
         """ Append object to the end of the list. """
-        super().append([opt, arg])
+        super().append([opt, arg, ""])
 
     def insert_optarg(self, index, opt, arg):
         """ Insert object before index. """
-        super().insert(index, [opt, arg])
+        super().insert(index, [opt, arg, ""])
 
     def append(self, value):
         raise Exception("Not supported; use append_optarg")
@@ -44,6 +44,21 @@ class OptList(list):
             if optarg[0] == opt:
                 return i
         return None
+
+    def set_only_modes(self, modes):
+        """ Set the previous option to only refer to the given modes. """
+        self[-1][2] = modes
+
+    def get_opts_no_leading(self):
+        """ Return a list of every --opt, without any leading hyphens. """
+        opts = []
+        for opt in self.get_opts():
+            if opt.startswith("--"):
+                opt = opt[2:]
+            elif opt.startswith("-"):
+                opt = opt[1:]
+            opts.append(opt)
+        return opts
 
 
 def sort_tarsnap_opts(two, one):
@@ -113,9 +128,35 @@ def parse_opt_arg(line):
     return opt, arg
 
 
+def parse_modes_only(line):
+    """ Parse a "([x, y, and z] mode(s) only)" line. """
+    # Bail if the option don't specify a limited set of modes.
+    if not line.startswith("("):
+        return None
+    if line.startswith("(use with"):
+        return None
+    if line == "(all modes)\n":
+        return None
+
+    # Check that the "mode(s) only" fits onto one line.
+    if not line.endswith("only)\n"):
+        print("man error: %s" % (line))
+        exit(1)
+
+    # Strip the initial '(' and the ending.
+    for ending in (" mode only)\n", " modes only)\n"):
+        if ending in line:
+            end_chars = len(ending)
+    actual = line[1:-end_chars].replace("and ", "").replace(",", "")
+
+    # Return the modes.
+    return actual.split(" ")
+
+
 def get_sections_options(filename_manpage):
     """ Parse the man-page to get options from each section. """
     sections = {}
+    getmodes = False
 
     with open(filename_manpage) as filep:
         lines = filep.readlines()
@@ -137,11 +178,20 @@ def get_sections_options(filename_manpage):
                 # If we failed to find it, something went wrong
                 assert index is not None
                 sections[section].insert_optarg(index, "--fast-read", None)
+
                 # There's no arg for -q
                 arg = None
 
             # Record the value
             sections[section].append_optarg(opt, arg)
+            getmodes = True
+            continue
+
+        if getmodes:
+            getmodes = False
+            modes = parse_modes_only(line)
+            if modes:
+                sections[section].set_only_modes(modes)
 
     return sections
 
@@ -153,6 +203,15 @@ def get_options(filename_manpage):
     # The OPTIONS section should already be sorted, but the DESCRIPTION
     # section should not.
     check_sorted(sections["options"])
+
+    # Check that there's no unknown modes.
+    modes = sections["description"].get_opts_no_leading()
+    for optarg in sections["options"]:
+        only_modes = optarg[2]
+        for mode in only_modes:
+            if mode not in modes:
+                print("Unrecognized mode: %s" % (optarg))
+                exit(1)
 
     options = {}
 
