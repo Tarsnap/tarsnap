@@ -10,7 +10,42 @@ import functools
 import man_to_completion
 
 
-# Check that it's sorted (ignoring hyphens, and mostly alphabetical).
+class OptList(list):
+    """ List of options, plus a few convenience classes. """
+    def append_optarg(self, opt, arg):
+        """ Append object to the end of the list. """
+        super().append([opt, arg])
+
+    def insert_optarg(self, index, opt, arg):
+        """ Insert object before index. """
+        super().insert(index, [opt, arg])
+
+    def append(self, value):
+        raise Exception("Not supported; use append_optarg")
+
+    def insert(self, index, value):
+        raise Exception("Not supported; use insert_optarg")
+
+    def get_opts(self):
+        """ Return a list of every --opt. """
+        return [optarg[0] for optarg in self]
+
+    def get_opts_with_func_opt(self, func):
+        """ Return a list of every --opt which satisfies func(opt). """
+        return [optarg[0] for optarg in self if func(optarg[0])]
+
+    def get_opts_with_func_arg(self, func):
+        """ Return a list of every --opt which satisfies func(arg). """
+        return [optarg[0] for optarg in self if func(optarg[1])]
+
+    def index_of_opt(self, opt):
+        """ Return the index of opt, or None. """
+        for i, optarg in enumerate(self):
+            if optarg[0] == opt:
+                return i
+        return None
+
+
 def sort_tarsnap_opts(two, one):
     """ Sort options in the same way as the tarsnap man page.
 
@@ -47,9 +82,9 @@ def sort_tarsnap_opts(two, one):
     raise Exception("Something weird happened: %s" % one)
 
 
-def check_sorted(optargs):
-    """ Check that the optargs list of pairs is sorted. """
-    optlist = [opt for opt, arg in optargs]
+def check_sorted(optlist):
+    """ Check that the optlist is sorted. """
+    optlist = optlist.get_opts()
     optlist_sorted = sorted(optlist,
                             key=functools.cmp_to_key(sort_tarsnap_opts))
 
@@ -89,7 +124,7 @@ def get_sections_options(filename_manpage):
         # Do we have a new section?
         if line.startswith(".Sh "):
             section = line.split()[1].lower()
-            sections[section] = []
+            sections[section] = OptList()
             continue
 
         if line.startswith(".It Fl"):
@@ -98,24 +133,17 @@ def get_sections_options(filename_manpage):
             # Special case for: -q (--fast-read)
             if opt == "-q":
                 # Insert --fast-read before --force-resources
-                index = sections[section].index(("--force-resources", None))
-                sections[section].insert(index, ("--fast-read", None))
+                index = sections[section].index_of_opt("--force-resources")
+                # If we failed to find it, something went wrong
+                assert index is not None
+                sections[section].insert_optarg(index, "--fast-read", None)
                 # There's no arg for -q
                 arg = None
 
             # Record the value
-            sections[section].append((opt, arg))
+            sections[section].append_optarg(opt, arg)
 
     return sections
-
-
-def get_options_with_arg(optargs, containslist):
-    """ Get options which have an argument which is is containslist."""
-    found = []
-    for optarg in optargs:
-        if optarg[1] in containslist:
-            found.append(optarg[0])
-    return found
 
 
 def get_options(filename_manpage):
@@ -129,29 +157,31 @@ def get_options(filename_manpage):
     options = {}
 
     # Options which require an argument.
-    options["filenameargs"] = get_options_with_arg(sections["options"],
-                                                   ["filename", "key-file"])
-    options["dirargs"] = get_options_with_arg(sections["options"],
-                                              ["directory", "cache-dir"])
-    options["otherargs"] = [opt for opt, arg in sections["options"]
-                            if arg is not None and
+    options["filenameargs"] = sections["options"].get_opts_with_func_arg(
+        lambda x: x in ["filename", "key-file"])
+    options["dirargs"] = sections["options"].get_opts_with_func_arg(
+        lambda x: x in ["directory", "cache-dir"])
+    opts_which_have_arg = sections["options"].get_opts_with_func_arg(
+        lambda x: x)
+    options["otherargs"] = [opt for opt in opts_which_have_arg if
                             opt not in options["filenameargs"] and
                             opt not in options["dirargs"]]
 
     # Some short options (such as -x) are only mentioned in the DESCRIPTION.
-    shortargs_description = [opt for opt, arg in sections["description"]
-                             if len(opt) == 2]
-    shortargs_options = [opt for opt, arg in sections["options"]
-                         if len(opt) == 2]
+    shortargs_description = sections["description"].get_opts_with_func_opt(
+        lambda x: len(x) == 2)
+    shortargs_options = sections["options"].get_opts_with_func_opt(
+        lambda x: len(x) == 2)
     options["shortargs"] = shortargs_description + [
         opt for opt in shortargs_options
         if opt not in shortargs_description]
 
-    options["longargs"] = [opt for opt, arg in sections["options"]
-                           if len(opt) > 2]
-    options["longargs"] += [opt for opt, arg in sections["description"]
-                            if opt not in options["longargs"] and
-                            len(opt) > 2]
+    options["longargs"] = sections["options"].get_opts_with_func_opt(
+        lambda x: len(x) > 2)
+    opts_desc = sections["description"].get_opts_with_func_opt(
+        lambda x: len(x) > 2)
+    options["longargs"] += [opt for opt in opts_desc
+                            if opt not in options["longargs"]]
 
     # Sort longargs, but not shortargs.
     options["longargs"] = sorted(options["longargs"],
