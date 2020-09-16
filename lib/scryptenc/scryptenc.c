@@ -723,9 +723,10 @@ err0:
  * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
- * be modified until the decryption is completed by scryptdec_file_copy().  The
- * explicit parameters within ${params} must be zero.  Return the explicit
- * parameters to be used via ${params}.
+ * be modified until the decryption is completed by scryptdec_file_copy().
+ * If ${force} is 1, do not check whether decryption will exceed the estimated
+ * available memory or time.  The explicit parameters within ${params} must be
+ * zero.  Return the explicit parameters to be used via ${params}.
  */
 int
 scryptdec_file_prep(FILE * infile, const uint8_t * passwd,
