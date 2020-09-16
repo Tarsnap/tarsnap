@@ -398,9 +398,10 @@ scryptdec_setup(const uint8_t header[96], uint8_t dk[64],
  * scryptenc_buf(inbuf, inbuflen, outbuf, passwd, passwdlen,
  *     params, verbose, force):
  * Encrypt ${inbuflen} bytes from ${inbuf}, writing the resulting
- * ${inbuflen} + 128 bytes to ${outbuf}.  The explicit parameters
- * within ${params} must be zero or must all be non-zero.  Return
- * the explicit parameters used via ${params}.
+ * ${inbuflen} + 128 bytes to ${outbuf}.  If ${force} is 1, do not check
+ * whether decryption will exceed the estimated available memory or time.
+ * The explicit parameters within ${params} must be zero or must all be
+ * non-zero.  Return the explicit parameters used via ${params}.
  */
 int
 scryptenc_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
@@ -556,8 +557,10 @@ err0:
 /**
  * scryptenc_file(infile, outfile, passwd, passwdlen, params, verbose, force):
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
- * to ${outfile}.  The explicit parameters within ${params} must be zero
- * or must all be non-zero.  Return the explicit parameters used via ${params}.
+ * to ${outfile}.  If ${force} is 1, do not check whether decryption will
+ * exceed the estimated available memory or time.  The explicit parameters
+ * within ${params} must be zero or must all be non-zero.  Return the explicit
+ * parameters used via ${params}.
  */
 int
 scryptenc_file(FILE * infile, FILE * outfile,
