@@ -234,7 +234,7 @@ In x mode, change directories after opening the archive
 but before extracting entries from the archive.
 .TP
 \fB\--cachedir\fP \fIcache-dir\fP
-(c, d, print-stats, and fsck modes)
+(c, d, print-stats, and fsck modes only)
 Cache information about the archives stored by
 \fB\%tarsnap\fP
 in the directory
@@ -285,7 +285,8 @@ This is unlikely to be useful when tarsnap is being invoked directly from the
 command line.
 .TP
 \fB\--csv-file\fP \fIfilename\fP
-(only relevant with --print-stats)
+(use with
+\fB\--print-stats\fP)
 Write statistics in CSV format to a file.
 .TP
 \fB\--disk-pause\fP \fIX\fP
@@ -414,7 +415,7 @@ Normally archiving of such filesystems is a silly thing to do, hence the
 name of the option.
 .TP
 \fB\--iso-dates\fP
-(-t mode only)
+(t mode only)
 Print file and directory dates as yyyy-mm-dd hh:mm:ss.
 .PP
 The default is to use the same format as 'ls -l': If the files were modified
