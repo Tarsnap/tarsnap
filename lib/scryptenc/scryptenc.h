@@ -100,7 +100,9 @@ struct scryptdec_file_cookie;
  * ${inbuflen} + 128 bytes to ${outbuf}.  If ${force} is 1, do not check
  * whether decryption will exceed the estimated available memory or time.
  * The explicit parameters within ${params} must be zero or must all be
- * non-zero.  Return the explicit parameters used via ${params}.
+ * non-zero.  If explicit parameters are used and the computation is estimated
+ * to exceed resource limits, print a warning instead of returning an error.
+ * Return the explicit parameters used via ${params}.
  */
 int scryptenc_buf(const uint8_t *, size_t, uint8_t *,
     const uint8_t *, size_t, struct scryptenc_params *, int, int);
@@ -123,7 +125,9 @@ int scryptdec_buf(const uint8_t *, size_t, uint8_t *, size_t *,
  * Read a stream from ${infile} and encrypt it, writing the resulting stream
  * to ${outfile}.  If ${force} is 1, do not check whether decryption will
  * exceed the estimated available memory or time.  The explicit parameters
- * within ${params} must be zero or must all be non-zero.  Return the explicit
+ * within ${params} must be zero or must all be non-zero.  If explicit
+ * parameters are used and the computation is estimated to exceed resource
+ * limits, print a warning instead of returning an error.  Return the explicit
  * parameters used via ${params}.
  */
 int scryptenc_file(FILE *, FILE *, const uint8_t *, size_t,
