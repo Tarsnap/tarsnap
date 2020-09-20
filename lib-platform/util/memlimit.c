@@ -258,7 +258,7 @@ memlimit_sysconf(size_t * memlimit)
  * Examine the system and return the amount of RAM which should be
  * used in ${memlimit}.  This value should be the specified
  * ${maxmemfrac} fraction of available RAM, but no more than
- * ${maxmem} and no less than 1MiB.
+ * ${maxmem} and no less than 1 MiB.
  */
 int
 memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
