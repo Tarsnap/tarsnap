@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -27,12 +28,7 @@ entropy_read(uint8_t * buf, size_t buflen)
 	ssize_t lenread;
 
 	/* Sanity-check the buffer size. */
-	if (buflen > SSIZE_MAX) {
-		warn0("Programmer error: "
-		    "Trying to read insane amount of random data: %zu",
-		    buflen);
-		goto err0;
-	}
+	assert(buflen <= SSIZE_MAX);
 
 	/* Open /dev/urandom. */
 	if ((fd = open("/dev/urandom", O_RDONLY)) == -1) {
