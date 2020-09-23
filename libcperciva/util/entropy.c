@@ -32,7 +32,7 @@ struct entropy_read_cookie {
  * Initialize the ability to produce random bytes from the operating system,
  * and return a cookie.
  */
-static struct entropy_read_cookie *
+struct entropy_read_cookie *
 entropy_read_init(void)
 {
 	struct entropy_read_cookie * er;
@@ -64,7 +64,7 @@ err0:
  * Fill the given buffer with random bytes provided by the operating system
  * using the resources in ${er}.
  */
-static int
+int
 entropy_read_fill(struct entropy_read_cookie * er, uint8_t * buf,
     size_t buflen)
 {
@@ -104,7 +104,7 @@ err0:
  * entropy_read_done(er):
  * Release any resources used by {er}.
  */
-static int
+int
 entropy_read_done(struct entropy_read_cookie * er)
 {
 
