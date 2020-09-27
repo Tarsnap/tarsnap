@@ -1,0 +1,93 @@
+name: tarsnap
+base: core20
+version: '1.0.39'
+summary: Command-line client client for Tarsnap.  
+description: |
+  Tarsnap is a secure, efficient online backup service:
+  "Online backups for the truly paranoid".
+  Sample config file is stored at:
+    /snap/tarsnap-thefenriswolf/current/usr/local/bin/etc/tarsnap.conf.sample
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: [amd64, armhf, arm64]
+    run-on: [amd64, armhf, arm64]
+
+apps:
+  tarsnap:
+    command: ./usr/local/bin/bin/tarsnap
+    environment:
+      LC_ALL: "C.UTF-8"
+      LANG: "C.UTF-8"
+    plugs:
+      - home
+      - removable-media
+      - network
+
+  tarsnap-keygen:
+    command: ./usr/local/bin/bin/tarsnap-keygen
+    environment:
+      LC_ALL: "C.UTF-8"
+      LANG: "C.UTF-8"
+    plugs:
+      - home
+      - removable-media
+      - network
+
+  tarsnap-keymgmt:
+    command: ./usr/local/bin/bin/tarsnap-keymgmt
+    environment:
+      LC_ALL: "C.UTF-8"
+      LANG: "C.UTF-8"
+    plugs:
+      - home
+      - removable-media
+      - network
+
+  tarsnap-keyregen:
+    command: ./usr/local/bin/bin/tarsnap-keyregen
+    environment:
+      LC_ALL: "C.UTF-8"
+      LANG: "C.UTF-8"
+    plugs:
+      - home
+      - removable-media
+      - network
+
+  tarsnap-recrypt:
+    command: ./usr/local/bin/bin/tarsnap-recrypt
+    environment:
+      LC_ALL: "C.UTF-8"
+      LANG: "C.UTF-8"
+    plugs:
+      - home
+      - removable-media
+      - network
+
+parts:
+  tarsnap:
+    plugin: autotools
+    source: https://github.com/Tarsnap/tarsnap.git
+    source-type: git
+    source-commit: bb01b5e4e5a6f76ac54a153a28db32c6943ba168
+    autotools-configure-parameters: [
+      "--prefix=/usr/local/bin",
+      "CC=clang"
+    ]
+    build-packages:
+      - autoconf-archive
+      - pkg-config
+      - clang
+      - bash-completion
+      - libc6-dev
+      - libssl-dev
+      - zlib1g-dev
+      - e2fslibs-dev
+      - libacl1-dev
+      - libattr1-dev
+      - libbz2-dev
+      - liblzma-dev
+    stage-packages:
+      - openssl
