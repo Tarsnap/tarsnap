@@ -133,8 +133,7 @@ poke(void)
 
 	/* Compute the duration since the last poke. */
 	if (tlast_set)
-		t = (tnow.tv_sec - tlast.tv_sec) +
-		    (tnow.tv_usec - tlast.tv_usec) * 0.000001;
+		t = timeval_diff(tlast, tnow);
 	else
 		t = 0.0;
 
@@ -232,9 +231,9 @@ network_bwlimit_eat(int op, size_t len)
 
 	/* Eat tokens from the bucket. */
 	if (op == NETWORK_OP_READ)
-		limit_read.bucket -= len;
+		limit_read.bucket -= (double)len;
 	else
-		limit_write.bucket -= len;
+		limit_write.bucket -= (double)len;
 
 	/* Update state. */
 	return (poke());
