@@ -18,16 +18,16 @@ PATRICIA * patricia_init(void);
 
 /**
  * patricia_insert(tree, key, keylen, rec):
- * Associate the provided ${key} of length ${keylen} bytes with the pointer ${rec},
- * which must be non-NULL.  Return (-1) on error, 0 on success, and 1 if the
- * key already exists.
+ * Associate the provided ${key} of length ${keylen} bytes with the pointer
+ * ${rec}, which must be non-NULL.  Return (-1) on error, 0 on success, and 1
+ * if the key already exists.
  */
 int patricia_insert(PATRICIA *, const uint8_t *, size_t, void *);
 
 /**
  * patricia_lookup(tree, key, keylen):
- * Look up the provided ${key} of length ${keylen} bytes.  Return a pointer to the
- * associated _record pointer_ if the key is present in the tree (this can
+ * Look up the provided ${key} of length ${keylen} bytes.  Return a pointer to
+ * the associated _record pointer_ if the key is present in the tree (this can
  * be used to change the record pointer associated with the key); or NULL
  * otherwise.
  *

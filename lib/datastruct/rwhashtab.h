@@ -40,8 +40,8 @@ void * rwhashtab_read(RWHASHTAB *, const uint8_t *);
 
 /**
  * rwhashtab_foreach(table, func, cookie):
- * Call ${func(record, cookie)} for each ${record} in the hash ${table}.  Stop the
- * iteration early if ${func} returns a non-zero value; return 0 or the
+ * Call ${func(record, cookie)} for each ${record} in the hash ${table}.  Stop
+ * the iteration early if ${func} returns a non-zero value; return 0 or the
  * non-zero value returned by ${func}.
  */
 int rwhashtab_foreach(RWHASHTAB *, int(void *, void *), void *);

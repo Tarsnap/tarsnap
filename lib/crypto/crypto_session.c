@@ -98,7 +98,8 @@ err0:
 
 /**
  * crypto_session_encrypt(CS, inbuf, outbuf, buflen):
- * Encrypt ${inbuf} with the session write key and write ciphertext to ${outbuf}.
+ * Encrypt ${inbuf} with the session write key and write ciphertext to
+ * ${outbuf}.
  */
 void
 crypto_session_encrypt(CRYPTO_SESSION * CS, const uint8_t * inbuf,

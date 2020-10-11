@@ -244,8 +244,8 @@ rwhashtab_read(RWHASHTAB * H, const uint8_t * key)
 
 /**
  * rwhashtab_foreach(table, func, cookie):
- * Call ${func(record, cookie)} for each ${record} in the hash ${table}.  Stop the
- * iteration early if ${func} returns a non-zero value; return 0 or the
+ * Call ${func(record, cookie)} for each ${record} in the hash ${table}.  Stop
+ * the iteration early if ${func} returns a non-zero value; return 0 or the
  * non-zero value returned by ${func}.
  */
 int

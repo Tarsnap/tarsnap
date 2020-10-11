@@ -165,24 +165,25 @@ int crypto_rsa_sign(int, const uint8_t *, size_t, uint8_t *, size_t);
 
 /**
  * crypto_rsa_verify(key, data, len, sig, siglen):
- * Verify that the provided signature ${sig} matches the provided ${data}.  Return 0
- * if the signature is valid, 1 if the signature is invalid, or -1 on error.
+ * Verify that the provided signature ${sig} matches the provided ${data}.
+ * Return 0 if the signature is valid, 1 if the signature is invalid, or -1
+ * on error.
  */
 int crypto_rsa_verify(int, const uint8_t *, size_t, const uint8_t *, size_t);
 
 /**
  * crypto_rsa_encrypt(key, data, len, out, outlen):
- * Encrypt the provided ${data} with the specified ${key}, writing the ciphertext
- * into ${out} (of length ${outlen}).
+ * Encrypt the provided ${data} with the specified ${key}, writing the
+ * ciphertext into ${out} (of length ${outlen}).
  */
 int crypto_rsa_encrypt(int, const uint8_t *, size_t, uint8_t *, size_t);
 
 /**
  * crypto_rsa_decrypt(key, data, len, out, outlen):
- * Decrypt the provided ${data} with the specified ${key}, writing the ciphertext
- * into ${out} (of length ${*outlen}).  Set ${*outlen} to the length of the
- * plaintext, and return 0 on success, 1 if the ciphertext is invalid, or
- * -1 on error.
+ * Decrypt the provided ${data} with the specified ${key}, writing the
+ * ciphertext into ${out} (of length ${*outlen}).  Set ${*outlen} to the
+ * length of the plaintext, and return 0 on success, 1 if the ciphertext is
+ * invalid, or 1 on error.
  */
 int crypto_rsa_decrypt(int, const uint8_t *, size_t, uint8_t *, size_t *);
 
@@ -213,7 +214,8 @@ CRYPTO_SESSION * crypto_session_init(uint8_t[CRYPTO_DH_PUBLEN],
 
 /**
  * crypto_session_encrypt(CS, inbuf, outbuf, buflen):
- * Encrypt ${inbuf} with the session write key and write ciphertext to ${outbuf}.
+ * Encrypt ${inbuf} with the session write key and write ciphertext to
+ * ${outbuf}.
  */
 void crypto_session_encrypt(CRYPTO_SESSION *, const uint8_t *, uint8_t *,
     size_t);
