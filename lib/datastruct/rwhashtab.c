@@ -130,7 +130,7 @@ rwhashtab_search(RWHASHTAB * H, const uint8_t * key)
  * rwhashtab_init(keyoffset, keylength):
  * Create an empty hash ${table} for storing records which contain keys of
  * length ${keylength} bytes starting at offset ${keyoffset} from the start
- * of each record.  Returns NULL on failure.
+ * of each record.  Return NULL on failure.
  */
 RWHASHTAB *
 rwhashtab_init(size_t keyoffset, size_t keylength)
@@ -185,7 +185,7 @@ rwhashtab_getsize(RWHASHTAB * H)
 
 /**
  * rwhashtab_insert(table, record):
- * Insert the provided ${record} into the hash ${table}.  Returns (-1) on error,
+ * Insert the provided ${record} into the hash ${table}.  Return (-1) on error,
  * 0 on success, and 1 if the table already contains a record with the same
  * key.
  */

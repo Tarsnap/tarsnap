@@ -48,7 +48,7 @@ static int minorder(uint32_t ar, uint32_t ord, uint32_t p, uint32_t pp);
 static uint32_t isqrt(uint32_t x);
 static void chunkify_start(CHUNKIFIER * c);
 
-/* Returns nonzero iff n is prime. */
+/* Return nonzero iff n is prime. */
 static int
 isprime(uint32_t n)
 {
@@ -62,7 +62,7 @@ isprime(uint32_t n)
 }
 
 /*
- * Returns the smallest prime satisfying n <= p < 2^32, or 0 if none exist.
+ * Return the smallest prime satisfying n <= p < 2^32, or 0 if none exist.
  */
 static uint32_t
 nextprime(uint32_t n)
@@ -93,7 +93,7 @@ mmul(uint32_t a, uint32_t b, uint32_t p, uint32_t pp)
 }
 
 /*
- * Returns nonzero if (ar / 2^32) has multiplicative order at least ord mod p.
+ * Return nonzero if (ar / 2^32) has multiplicative order at least ord mod p.
  */
 static int
 minorder(uint32_t ar, uint32_t ord, uint32_t p, uint32_t pp)
