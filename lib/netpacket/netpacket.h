@@ -71,7 +71,7 @@ int netpacket_register_request(NETPACKET_CONNECTION *, const char *,
 /**
  * netpacket_register_cha_response(NPC, keys, name, register_key, callback):
  * Construct and send a NETPACKET_REGISTER_CHA_RESPONSE packet providing the
- * given access keys and user-friendly name, signed using the shared key
+ * given access ${keys} and user-friendly ${name}, signed using the shared key
  * ${register_key} computed by hashing the Diffie-Hellman shared secret K.
  */
 int netpacket_register_cha_response(NETPACKET_CONNECTION *,
@@ -217,7 +217,7 @@ int netpacket_op(NETPACKET_CONNECTION *, sendpacket_callback *, void *);
 /**
  * netpacket_getstats(NPC, in, out, queued):
  * Obtain the number of bytes received and sent via the connection, and the
- * number of bytes queued to be written.
+ * number of bytes ${queued} to be written.
  */
 void netpacket_getstats(NETPACKET_CONNECTION *, uint64_t *, uint64_t *,
     uint64_t *);

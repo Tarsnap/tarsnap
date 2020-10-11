@@ -96,7 +96,7 @@ write_close(struct archive * a, void * cookie)
 /**
  * archive_read_open_multitape(a, machinenum, tapename):
  * Open the multitape tape ${tapename} for reading (and skipping) and
- * associate it with the archive $a$.  Return a cookie which can be passed
+ * associate it with the archive ${a}.  Return a cookie which can be passed
  * to the multitape layer.
  */
 void *
@@ -123,7 +123,7 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
  * archive_write_open_multitape(a, machinenum, cachedir, tapename, argc,
  *     argv, printstats, dryrun, creationtime, csv_filename):
  * Open the multitape tape ${tapename} for writing and associate it with the
- * archive $a$.  If ${printstats} is non-zero, print archive statistics when
+ * archive ${a}.  If ${printstats} is non-zero, print archive statistics when
  * the tape is closed.  If ${dryrun} is non-zero, perform a dry run.
  * Record ${creationtime} as the creation time in the archive metadata.
  * If ${csv_filename} is given, write statistics in CSV format.
@@ -156,7 +156,7 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 
 /**
  * archive_write_multitape_setmode(a, cookie, mode):
- * Set the tape mode to 0 (HEADER) or 1 (DATA).
+ * Set the tape mode to 0 (HEADER), 1 (DATA), or 2 (finished archive entry).
  */
 int
 archive_write_multitape_setmode(struct archive * a, void * cookie, int mode)

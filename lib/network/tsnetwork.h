@@ -155,7 +155,7 @@ void network_writeq_free(NETWORK_WRITEQ *);
 
 /**
  * network_getselectstats(N, mu, va, max):
- * Return statistics on the time between select(2) calls.
+ * Return and zero statistics on the time between select(2) calls.
  */
 void network_getselectstats(double *, double *, double *, double *);
 

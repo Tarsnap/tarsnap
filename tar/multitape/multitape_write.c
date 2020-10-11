@@ -683,7 +683,7 @@ err0:
 
 /**
  * writetape_setmode(d, mode):
- * Set the tape mode to 0 (HEADER) or 1 (DATA).
+ * Set the tape mode to 0 (HEADER), 1 (DATA), or 2 (finished archive entry).
  */
 int
 writetape_setmode(TAPE_W * d, int mode)

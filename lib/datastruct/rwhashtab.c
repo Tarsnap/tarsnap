@@ -128,9 +128,9 @@ rwhashtab_search(RWHASHTAB * H, const uint8_t * key)
 
 /**
  * rwhashtab_init(keyoffset, keylength):
- * Create an empty hash table for storing records which contain keys of
- * length keylength bytes starting at offset keyoffset from the start
- * of each record.  Returns NULL on failure.
+ * Create an empty hash ${table} for storing records which contain keys of
+ * length ${keylength} bytes starting at offset ${keyoffset} from the start
+ * of each record.  Return NULL on failure.
  */
 RWHASHTAB *
 rwhashtab_init(size_t keyoffset, size_t keylength)
@@ -173,7 +173,7 @@ rwhashtab_init(size_t keyoffset, size_t keylength)
 
 /**
  * rwhashtab_getsize(table):
- * Return the number of entries in the table.
+ * Return the number of entries in the ${table}.
  */
 size_t
 rwhashtab_getsize(RWHASHTAB * H)
@@ -185,7 +185,7 @@ rwhashtab_getsize(RWHASHTAB * H)
 
 /**
  * rwhashtab_insert(table, record):
- * Insert the provided record into the hash table.  Returns (-1) on error,
+ * Insert the provided ${record} into the hash ${table}.  Return (-1) on error,
  * 0 on success, and 1 if the table already contains a record with the same
  * key.
  */
@@ -227,7 +227,7 @@ rwhashtab_insert(RWHASHTAB * H, void * rec)
 
 /**
  * rwhashtab_read(table, key):
- * Return a pointer to the record in the table with the specified key, or
+ * Return a pointer to the record in the ${table} with the specified ${key}, or
  * NULL if no such record exists.
  */
 void *
@@ -244,9 +244,9 @@ rwhashtab_read(RWHASHTAB * H, const uint8_t * key)
 
 /**
  * rwhashtab_foreach(table, func, cookie):
- * Call func(record, cookie) for each record in the hash table.  Stop the
- * iteration early if func returns a non-zero value; return 0 or the
- * non-zero value returned by func.
+ * Call ${func(record, cookie)} for each ${record} in the hash ${table}.  Stop
+ * the iteration early if ${func} returns a non-zero value; return 0 or the
+ * non-zero value returned by ${func}.
  */
 int
 rwhashtab_foreach(RWHASHTAB * H, int func(void *, void *), void * cookie)
@@ -267,7 +267,7 @@ rwhashtab_foreach(RWHASHTAB * H, int func(void *, void *), void * cookie)
 
 /**
  * rwhashtab_free(table):
- * Free the hash table.
+ * Free the hash ${table}.
  */
 void
 rwhashtab_free(RWHASHTAB * H)

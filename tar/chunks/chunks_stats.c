@@ -421,7 +421,7 @@ chunks_stats_free(CHUNKS_S * C)
 }
 
 /**
- * chunks_initialize(const char * cachepath):
+ * chunks_initialize(cachepath):
  * Initialize the chunk directory (file) in ${cachepath}.  Return 0 on
  * success, -1 on error, and 1 if the file already exists.
  */

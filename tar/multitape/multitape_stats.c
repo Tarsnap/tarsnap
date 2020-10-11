@@ -133,7 +133,7 @@ err0:
 }
 
 /**
- * statstape_printall(d):
+ * statstape_printall(d, csv_filename):
  * Print statistics relating to each of the archives in a set.  If
  * ${csv_filename} is not NULL, output will be written in CSV format to that
  * filename.
@@ -210,8 +210,8 @@ err0:
 
 /**
  * statstape_printlist(d, verbose):
- * Print the names of each of the archives in a set.  If verbose > 0, print
- * the creation times; if verbose > 1, print the argument vector of the
+ * Print the names of each of the archives in a set.  If ${verbose} > 0, print
+ * the creation times; if ${verbose} > 1, print the argument vector of the
  * program invocation which created the archive.
  */
 int

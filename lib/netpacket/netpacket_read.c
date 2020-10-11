@@ -12,9 +12,9 @@
 
 /**
  * netpacket_read_file(NPC, machinenum, class, name, size, callback):
- * Construct and send a NETPACKET_READ_FILE packet over the network
- * protocol connection ${NC} asking to read the specified file, which should
- * be ${size} (<= 262144) bytes long if ${size} is not (uint32_t)(-1).
+ * Construct and send a NETPACKET_READ_FILE packet asking to read the
+ * specified file, which should be ${size} (<= 262144) bytes long if ${size}
+ * is not (uint32_t)(-1).
  */
 int
 netpacket_read_file(NETPACKET_CONNECTION * NPC,
