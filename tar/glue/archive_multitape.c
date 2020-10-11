@@ -156,7 +156,7 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 
 /**
  * archive_write_multitape_setmode(a, cookie, mode):
- * Set the tape mode to 0 (HEADER) or 1 (DATA).
+ * Set the tape mode to 0 (HEADER), 1 (DATA), or 2 (finished archive entry).
  */
 int
 archive_write_multitape_setmode(struct archive * a, void * cookie, int mode)

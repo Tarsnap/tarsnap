@@ -360,7 +360,7 @@ err0:
 /**
  * crypto_rsa_decrypt(key, data, len, out, outlen):
  * Decrypt the provided data with the specified key, writing the ciphertext
- * into ${out} (of length ${outlen}).  Set ${*outlen} to the length of the
+ * into ${out} (of length ${*outlen}).  Set ${*outlen} to the length of the
  * plaintext, and return 0 on success, 1 if the ciphertext is invalid, or
  * -1 on error.
  */

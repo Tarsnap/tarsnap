@@ -11,7 +11,7 @@ typedef struct ccache_entry CCACHE_ENTRY;
 /**
  * ccache_read(path):
  * Read the chunkification cache (if present) from the directory ${path};
- * return a patricia tree mapping absolute paths to cache entries.
+ * return a Patricia tree mapping absolute paths to cache entries.
  */
 CCACHE * ccache_read(const char *);
 
