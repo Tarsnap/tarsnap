@@ -429,7 +429,7 @@ crypto_keys_missing(int keys)
 
 /**
  * crypto_keys_export(keys, buf, buflen):
- * Export the keys specified to a buffer allocated using malloc.
+ * Export the ${keys} specified to a buffer allocated using malloc.
  */
 int
 crypto_keys_export(int keys, uint8_t ** buf, size_t * buflen)
@@ -509,7 +509,7 @@ err0:
 
 /**
  * crypto_keys_generate(keys):
- * Create the keys specified.
+ * Create the ${keys} specified.
  */
 int
 crypto_keys_generate(int keys)

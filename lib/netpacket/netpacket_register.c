@@ -45,7 +45,7 @@ err0:
 /**
  * netpacket_register_cha_response(NPC, keys, name, register_key, callback):
  * Construct and send a NETPACKET_REGISTER_CHA_RESPONSE packet providing the
- * given access keys and user-friendly name, signed using the shared key
+ * given access ${keys} and user-friendly ${name}, signed using the shared key
  * ${register_key} computed by hashing the Diffie-Hellman shared secret K.
  */
 int

@@ -110,13 +110,13 @@ const char * crypto_keys_missing(int);
 
 /**
  * crypto_keys_export(keys, buf, buflen):
- * Export the keys specified to a buffer allocated using malloc.
+ * Export the ${keys} specified to a buffer allocated using malloc.
  */
 int crypto_keys_export(int, uint8_t **, size_t *);
 
 /**
  * crypto_keys_generate(keys):
- * Create the keys specified.
+ * Create the ${keys} specified.
  */
 int crypto_keys_generate(int);
 
@@ -130,21 +130,21 @@ int crypto_keys_raw_export_auth(uint8_t[96]);
 
 /**
  * crypto_hash_data_key(key, keylen, data, len, buf):
- * Hash the provided data with the provided HMAC-SHA256 key.
+ * Hash the provided ${data} with the provided HMAC-SHA256 ${key}.
  */
 void crypto_hash_data_key(const uint8_t *, size_t,
     const uint8_t *, size_t, uint8_t[32]);
 
 /**
  * crypto_hash_data_key_2(key, keylen, data0, len0, data1, len1, buf):
- * Hash the concatenation of two buffers with the provided HMAC-SHA256 key.
+ * Hash the concatenation of two buffers with the provided HMAC-SHA256 ${key}.
  */
 void crypto_hash_data_key_2(const uint8_t *, size_t,
     const uint8_t *, size_t, const uint8_t *, size_t, uint8_t[32]);
 
 /**
  * crypto_hash_data(key, data, len, buf):
- * Hash the provided data with the HMAC-SHA256 key specified; or if
+ * Hash the provided ${data} with the HMAC-SHA256 ${key} specified; or if
  * ${key} == CRYPTO_KEY_HMAC_SHA256, just SHA256 the data.
  */
 int crypto_hash_data(int, const uint8_t *, size_t, uint8_t[32]);
@@ -158,28 +158,28 @@ int crypto_hash_data_2(int, const uint8_t *, size_t,
 
 /**
  * crypto_rsa_sign(key, data, len, sig, siglen):
- * Sign the provided data with the specified key, writing the signature
+ * Sign the provided ${data} with the specified ${key}, writing the signature
  * into ${sig}.
  */
 int crypto_rsa_sign(int, const uint8_t *, size_t, uint8_t *, size_t);
 
 /**
  * crypto_rsa_verify(key, data, len, sig, siglen):
- * Verify that the provided signature matches the provided data.  Return 0
+ * Verify that the provided signature ${sig} matches the provided ${data}.  Return 0
  * if the signature is valid, 1 if the signature is invalid, or -1 on error.
  */
 int crypto_rsa_verify(int, const uint8_t *, size_t, const uint8_t *, size_t);
 
 /**
  * crypto_rsa_encrypt(key, data, len, out, outlen):
- * Encrypt the provided data with the specified key, writing the ciphertext
+ * Encrypt the provided ${data} with the specified ${key}, writing the ciphertext
  * into ${out} (of length ${outlen}).
  */
 int crypto_rsa_encrypt(int, const uint8_t *, size_t, uint8_t *, size_t);
 
 /**
  * crypto_rsa_decrypt(key, data, len, out, outlen):
- * Decrypt the provided data with the specified key, writing the ciphertext
+ * Decrypt the provided ${data} with the specified ${key}, writing the ciphertext
  * into ${out} (of length ${*outlen}).  Set ${*outlen} to the length of the
  * plaintext, and return 0 on success, 1 if the ciphertext is invalid, or
  * -1 on error.
@@ -213,14 +213,14 @@ CRYPTO_SESSION * crypto_session_init(uint8_t[CRYPTO_DH_PUBLEN],
 
 /**
  * crypto_session_encrypt(CS, inbuf, outbuf, buflen):
- * Encrypt inbuf with the session write key and write ciphertext to outbuf.
+ * Encrypt ${inbuf} with the session write key and write ciphertext to ${outbuf}.
  */
 void crypto_session_encrypt(CRYPTO_SESSION *, const uint8_t *, uint8_t *,
     size_t);
 
 /**
  * crypto_session_decrypt(CS, inbuf, outbuf, buflen):
- * Decrypt inbuf with the session read key and write plaintext to outbuf.
+ * Decrypt ${inbuf} with the session read key and write plaintext to ${outbuf}.
  */
 void crypto_session_decrypt(CRYPTO_SESSION *, const uint8_t *, uint8_t *,
     size_t);

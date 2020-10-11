@@ -118,7 +118,7 @@ err0:
 /**
  * netproto_getstats(C, in, out, queued):
  * Obtain the number of bytes received and sent via the connection, and the
- * number of bytes queued to be written.
+ * number of bytes ${queued} to be written.
  */
 void
 netproto_getstats(NETPROTO_CONNECTION * C, uint64_t * in, uint64_t * out,

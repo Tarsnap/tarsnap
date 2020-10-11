@@ -17,7 +17,7 @@ int keyfile_read(const char *, uint64_t *, int, int, int);
 /**
  * keyfile_write(filename, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
- * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
+ * If ${passphrase} is non-NULL, use up to ${cputime} seconds and ${maxmem} bytes of
  * memory to encrypt the key file.
  */
 int keyfile_write(const char *, uint64_t, int, char *, size_t, double);
@@ -31,7 +31,7 @@ FILE * keyfile_write_open(const char *);
 /**
  * keyfile_write_file(f, machinenum, keys, passphrase, maxmem, cputime):
  * Write a key file for the specified machine containing the specified keys.
- * If passphrase is non-NULL, use up to cputime seconds and maxmem bytes of
+ * If ${passphrase} is non-NULL, use up to ${cputime} seconds and ${maxmem} bytes of
  * memory to encrypt the key file.
  */
 int keyfile_write_file(FILE *, uint64_t, int, char *, size_t, double);

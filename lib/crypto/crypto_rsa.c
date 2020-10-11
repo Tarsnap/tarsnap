@@ -58,7 +58,7 @@ crypto_MGF1(uint8_t * seed, size_t seedlen, uint8_t * buf, size_t buflen)
 
 /**
  * crypto_rsa_sign(key, data, len, sig, siglen):
- * Sign the provided data with the specified key, writing the signature
+ * Sign the provided ${data} with the specified ${key}, writing the signature
  * into ${sig}.
  */
 int
@@ -148,7 +148,7 @@ err0:
 
 /**
  * crypto_rsa_verify(key, data, len, sig, siglen):
- * Verify that the provided signature matches the provided data.  Return 0
+ * Verify that the provided signature ${sig} matches the provided ${data}.  Return 0
  * if the signature is valid, 1 if the signature is invalid, or -1 on error.
  */
 int
@@ -269,7 +269,7 @@ err0:
 
 /**
  * crypto_rsa_encrypt(key, data, len, out, outlen):
- * Encrypt the provided data with the specified key, writing the ciphertext
+ * Encrypt the provided ${data} with the specified ${key}, writing the ciphertext
  * into ${out} (of length ${outlen}).
  */
 int
@@ -359,7 +359,7 @@ err0:
 
 /**
  * crypto_rsa_decrypt(key, data, len, out, outlen):
- * Decrypt the provided data with the specified key, writing the ciphertext
+ * Decrypt the provided ${data} with the specified ${key}, writing the ciphertext
  * into ${out} (of length ${*outlen}).  Set ${*outlen} to the length of the
  * plaintext, and return 0 on success, 1 if the ciphertext is invalid, or
  * -1 on error.

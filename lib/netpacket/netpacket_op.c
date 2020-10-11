@@ -471,7 +471,7 @@ err0:
 /**
  * netpacket_getstats(NPC, in, out, queued):
  * Obtain the number of bytes received and sent via the connection, and the
- * number of bytes queued to be written.
+ * number of bytes ${queued} to be written.
  */
 void
 netpacket_getstats(NETPACKET_CONNECTION * NPC, uint64_t * in, uint64_t * out,

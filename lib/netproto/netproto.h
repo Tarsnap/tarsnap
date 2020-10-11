@@ -56,7 +56,7 @@ int netproto_readpacket(NETPROTO_CONNECTION *,
 /**
  * netproto_getstats(C, in, out, queued):
  * Obtain the number of bytes received and sent via the connection, and the
- * number of bytes queued to be written.
+ * number of bytes ${queued} to be written.
  */
 void netproto_getstats(NETPROTO_CONNECTION *, uint64_t *, uint64_t *,
     uint64_t *);

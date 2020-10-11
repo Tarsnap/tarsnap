@@ -210,8 +210,8 @@ err0:
 
 /**
  * statstape_printlist(d, verbose):
- * Print the names of each of the archives in a set.  If verbose > 0, print
- * the creation times; if verbose > 1, print the argument vector of the
+ * Print the names of each of the archives in a set.  If ${verbose} > 0, print
+ * the creation times; if ${verbose} > 1, print the argument vector of the
  * program invocation which created the archive.
  */
 int
