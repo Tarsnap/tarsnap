@@ -284,6 +284,7 @@ chunks_stats_getdirsz(CHUNKS_S * C)
 int
 chunks_stats_printglobal(FILE * stream, CHUNKS_S * C, int csv)
 {
+
 	/* Print header. */
 	if (chunks_stats_printheader(stream, csv))
 		goto err0;
@@ -382,6 +383,7 @@ int
 chunks_stats_printarchive(FILE * stream, CHUNKS_S * C, const char * name,
     int csv)
 {
+
 	/* Print statistics for this archive. */
 	if (chunks_stats_print(stream, &C->stats_tape, name,
 	    &C->stats_tapee, csv))

@@ -701,7 +701,7 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
 			break;
-		case OPTION_PASSPHRASE_STDIN: /* tarsnap*/
+		case OPTION_PASSPHRASE_STDIN: /* tarsnap */
 			bsdtar->option_passphrase_stdin = 1;
 			break;
 		case OPTION_PRINT_STATS: /* multitar */
