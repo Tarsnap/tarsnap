@@ -25,7 +25,9 @@ callback_accept(void * cookie)
 	if ((s = accept(C->fd, NULL, NULL)) == -1) {
 		/* If a connection isn't available, reset the callback. */
 		if ((errno == EAGAIN) ||
+#if EAGAIN != EWOULDBLOCK
 		    (errno == EWOULDBLOCK) ||
+#endif
 		    (errno == ECONNABORTED) ||
 		    (errno == EINTR))
 			goto tryagain;

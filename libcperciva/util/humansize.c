@@ -152,7 +152,7 @@ humansize_parse(const char * s, uint64_t * size)
 
 		/* Move on to the next character. */
 		s++;
-	} while (*s != '\0');
+	} while ((state != -1) && (*s != '\0'));
 
 	/* Multiply by multiplier. */
 	if (*size > UINT64_MAX / multiplier)

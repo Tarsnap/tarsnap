@@ -97,7 +97,9 @@ callback_buf(void * cookie)
 	if (len == -1) {
 		/* Was it really an error, or just a try-again? */
 		if ((errno == EAGAIN) ||
+#if EAGAIN != EWOULDBLOCK
 		    (errno == EWOULDBLOCK) ||
+#endif
 		    (errno == EINTR))
 			goto tryagain;
 
