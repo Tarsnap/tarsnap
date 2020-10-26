@@ -116,7 +116,7 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 {
 	struct chunkstats s;
 	char * s_lenstr, * s_zlenstr;
-	char * format_string;
+	const char * format_string;
 
 	/* Compute sum of stats and stats_extra. */
 	s.nchunks = stats->nchunks + stats_extra->nchunks;
