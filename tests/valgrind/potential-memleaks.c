@@ -4,7 +4,7 @@
 
 /* Checking merely linking. */
 static void
-pl_nothing()
+pl_nothing(void)
 {
 	/* Do nothing. */
 }
