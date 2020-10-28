@@ -405,8 +405,10 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	}
 	if (fclose(f)) {
 		warnp("fclose(%s)", filename);
-		goto err1;
+		f = NULL;
+		goto err2;
 	}
+	f = NULL;
 
 	/* If this is a raw key file, process it. */
 	if ((keybuf[0] == 0x00) || (keybuf[0] == 0xff)) {
@@ -414,7 +416,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 		    machinenum, filename, keys)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
-			goto err1;
+			goto err2;
 		}
 	} else {
 		/* Otherwise, try to base64 decode it. */
@@ -422,7 +424,7 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 		    machinenum, filename, keys, force, devtty)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
-			goto err1;
+			goto err2;
 		}
 	}
 
@@ -437,7 +439,8 @@ err2:
 	insecure_memzero(keybuf, keyfilelen);
 	free(keybuf);
 err1:
-	fclose(f);
+	if (f != NULL)
+		fclose(f);
 err0:
 	/* Failure! */
 	return (-1);
