@@ -158,6 +158,9 @@ CHECK_SOLARIS_PATHS
 # Ditto for Darwin.
 CHECK_DARWIN_PATHS
 
+# Check if we need -std=c99 in LDFLAGS (for gcc on Solaris).
+CHECK_SOLARIS_C99
+
 # Check if we should use mdoc versions of the man pages or versions which
 # are uglier but more portable.
 CHECK_MDOC_OR_MAN
