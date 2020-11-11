@@ -127,7 +127,9 @@ callback_buf(void * cookie, int status)
 	if (len == -1) {
 		/* If no data is available, reset the callback. */
 		if ((errno == EAGAIN) ||
+#if EAGAIN != EWOULDBLOCK
 		    (errno == EWOULDBLOCK) ||
+#endif
 		    (errno == EINTR))
 			goto tryagain;
 
