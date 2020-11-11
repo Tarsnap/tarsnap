@@ -53,6 +53,11 @@ else
 		echo "WARNING: POSIX violation: clock_gettime() is not linkable" 1>&2
 	fi
 fi
+if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 $D/posix-stat-st_mtim.c 2>/dev/null; then
+	[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
+	printf %s "-DPOSIXFAIL_STAT_ST_MTIM"
+	echo "WARNING: POSIX violation: struct stat does not contain st_mtim" 1>&2
+fi
 NEED_STD_C99=""
 if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L $D/posix-restrict.c 2>/dev/null; then
 	echo "WARNING: POSIX violation: ${CC} does not accept the 'restrict' keyword" 1>&2
