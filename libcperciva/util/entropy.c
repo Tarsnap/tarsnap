@@ -28,7 +28,7 @@ struct entropy_read_cookie {
 };
 
 /**
- * entropy_read_init():
+ * entropy_read_init(void):
  * Initialize the ability to produce random bytes from the operating system,
  * and return a cookie.
  */

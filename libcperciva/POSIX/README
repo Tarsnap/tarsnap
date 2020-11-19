@@ -23,6 +23,7 @@ compiler.
     INET6_ADDRSTRLEN.
   - DPOSIXFAIL_ABSTRACT_DECLARATOR: ${CC} does not accept
     qualifiers in an abstract declarator.
+  - DPOSIXFAIL_STAT_ST_MTIM: struct stat does not contain st_mtim.
   - std=c99: ${CC} does not accept the `restrict` keyword by default, but
     accepts it when given this flag.
 

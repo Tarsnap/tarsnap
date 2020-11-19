@@ -163,7 +163,7 @@ ensure_valgrind_suppression() {
 		return
 	fi;
 
-	printf "Generating valgrind suppressions... "
+	printf "Generating valgrind suppressions... " 1>&2
 	valgrind_suppressions="${out_valgrind}/suppressions"
 	valgrind_suppressions_log="${out_valgrind}/suppressions.pre"
 
@@ -189,7 +189,8 @@ ensure_valgrind_suppression() {
 		    --suppressions=${valgrind_suppressions}		\
 		    --log-file=${this_valgrind_supp}			\
 		    ${potential_memleaks_binary}			\
-		    ${testname})
+		    ${testname})					\
+		    > /dev/null
 
 		# Append name to suppressions file
 		printf "# ${testname}\n" >> ${valgrind_suppressions}
@@ -209,7 +210,7 @@ ensure_valgrind_suppression() {
 
 	# Clean up
 	rm -f ${valgrind_suppressions_log}
-	printf "done.\n"
+	printf "done.\n" 1>&2
 }
 
 ## setup_check_variables (description, check_prev=1):
@@ -230,8 +231,8 @@ setup_check_variables() {
 		if [ ! -f "${c_exitfile}" ] ; then
 			# We should have written the result of the
 			# previous test to this file.
-			echo "PROGRAMMING FAILURE"
-			echo "We should already have ${c_exitfile}"
+			echo "PROGRAMMING FAILURE" 1>&2
+			echo "We should already have ${c_exitfile}" 1>&2
 			exit 1
 		fi
 	fi
@@ -399,7 +400,7 @@ notify_success_or_fail() {
 	# Bail if there's no exitfiles.
 	exitfiles=$(ls ${log_basename}-*.exit) || true
 	if [ -z "$exitfiles" ]; then
-		echo "FAILED"
+		echo "FAILED" 1>&2
 		s_retval=1
 		return
 	fi
@@ -417,7 +418,7 @@ notify_success_or_fail() {
 		fi
 		# Check for test failure.
 		if [ "${ret}" -gt 0 ]; then
-			echo "FAILED!"
+			echo "FAILED!" 1>&2
 			if [ ${VERBOSE} -ne 0 ]; then
 				printf "File ${exitfile} contains exit" 1>&2
 				printf " code ${ret}.\n" 1>&2
@@ -433,9 +434,9 @@ notify_success_or_fail() {
 		# Check valgrind logfile(s).
 		val_failed="$(check_valgrind_basenames "${exitfile}")"
 		if [ -n "${val_failed}" ]; then
-			echo "FAILED!"
+			echo "FAILED!" 1>&2
 			s_retval="${valgrind_exit_code}"
-			cat "${val_failed}"
+			cat "${val_failed}" 1>&2
 			return
 		fi
 	done
@@ -443,12 +444,12 @@ notify_success_or_fail() {
 	# Notify about skip or success.
 	if [ ${skip_exitfiles} -gt 0 ]; then
 		if [ ${skip_exitfiles} -eq ${total_exitfiles} ]; then
-			echo "SKIP!"
+			echo "SKIP!" 1>&2
 		else
-			echo "PARTIAL SUCCESS / SKIP!"
+			echo "PARTIAL SUCCESS / SKIP!" 1>&2
 		fi
 	else
-		echo "SUCCESS!"
+		echo "SUCCESS!" 1>&2
 	fi
 }
 
@@ -471,8 +472,8 @@ scenario_runner() {
 	unset scenario_cmd
 	. ${scenario_filename}
 	if ! command -v scenario_cmd 1>/dev/null ; then
-		printf "ERROR: scenario_cmd() is not defined in\n"
-		printf "  ${scenario_filename}\n"
+		printf "ERROR: scenario_cmd() is not defined in\n" 1>&2
+		printf "  ${scenario_filename}\n" 1>&2
 		exit 1
 	fi
 
@@ -499,8 +500,8 @@ run_scenarios() {
 	# done after preparing directories.
 	ensure_valgrind_suppression ${bindir}/tests/valgrind/potential-memleaks
 
-	printf -- "Running tests\n"
-	printf -- "-------------\n"
+	printf -- "Running tests\n" 1>&2
+	printf -- "-------------\n" 1>&2
 	for scenario in "$@"; do
 		# We can't call this function with $( ... ) because we
 		# want to allow it to echo values to stdout.
