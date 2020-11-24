@@ -135,8 +135,15 @@ check_skip_file(const char * filename, const struct stat * archive_st)
 	 */
 	if (file_st.st_size != archive_st->st_size)
 		goto noskip;
+#ifdef POSIXFAIL_STAT_ST_MTIM
+	/* POSIX Issue 7. */
 	if (file_st.st_mtim.tv_sec != archive_st->st_mtim.tv_sec)
 		goto noskip;
+#else
+	/* POSIX Issue 6 and below: use time_t st_mtime instead of st_mtim. */
+	if (file_st.st_mtime != archive_st->st_mtime)
+		goto noskip;
+#endif
 
 	/* Skip file. */
 	return (0);
