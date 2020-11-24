@@ -1,0 +1,134 @@
+name: Compile & test
+
+# Run whenever we push to any branch without a "/", other than [coverity-scan].
+on:
+  push:
+    branches:
+    - '*'
+    - '!coverity-scan'
+
+env:
+  # Shared variables amongst all projects / platforms / compilers.
+  CFLAGS_ALL: -std=c99 -O2
+  CFLAGS_CLANG_LIBCPERCIVA: -Wall -Wextra -Werror -Weverything
+                            -Wno-#warnings -Wno-pedantic -Wno-padded
+                            -Wno-format-nonliteral
+                            -Wno-disabled-macro-expansion
+                            -Wno-missing-noreturn -Wno-reserved-id-macro
+                            -Wno-unused-macros
+                            -Wno-documentation-unknown-command
+  CFLAGS_GCC_LIBCPERCIVA: -Wall -Wextra -Werror -Wpedantic
+                          -pedantic-errors -Wno-clobbered
+  # Variables for specific projects / platforms / compilers.
+  LIBARCHIVE_OBJECTS: tar/tarsnap-bsdtar.o tar/tarsnap-getdate.o
+                      tar/tarsnap-read.o tar/tarsnap-subst.o
+                      tar/tarsnap-tree.o tar/tarsnap-util.o
+                      tar/tarsnap-write.o libarchive/libarchive.a
+  CFLAGS_CLANG_PROJECT: -Wno-undef -Wno-implicit-fallthrough
+  CFLAGS_GCC_PROJECT:
+  # Needed for major() / minor() / makedev() thing.
+  CFLAGS_LIBARCHIVE_GCC: -Wno-error
+  CFLAGS_OSX: -Wno-poison-system-directories -I/usr/local/opt/openssl/include
+  LDFLAGS_OSX: -L/usr/local/opt/openssl/lib
+
+jobs:
+  Ubuntu:
+    name: Ubuntu
+    # Ubuntu 16.04 comes with valgrind-3.11, which can't handle RDRAND
+    # instructions.  We need at least Ubuntu 18.04, which has valgrind-3.13.
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Install software
+      run: sudo apt-get install --no-install-recommends valgrind e2fslibs-dev
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: autoreconf
+      run:
+        autoreconf -i
+    - name: configure with clang
+      env:
+        CC: clang-9
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+      run: ./configure
+    - name: Compile libarchive with clang
+      env:
+        CC: clang-9
+        # We need to use more permissive CFLAGS for libarchive code.
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+      run: make ${{ env.LIBARCHIVE_OBJECTS }}
+    - name: Compile with clang
+      env:
+        CC: clang-9
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+                ${{ env.CFLAGS_CLANG_LIBCPERCIVA }}
+                ${{ env.CFLAGS_CLANG_PROJECT }}
+      # make(1) doesn't automatically override the CFLAGS macro set inside
+      # Makefile with the environment variable.
+      run: make CFLAGS="${{ env.CFLAGS }}"
+    - name: Test clang binaries
+      env:
+        USE_VALGRIND: 1
+      run: make test
+    - name: Clean
+      run: make clean
+    - name: configure with gcc
+      env:
+        CC: gcc-10
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+      run: ./configure
+    - name: Compile libarchive with gcc
+      env:
+        CC: gcc-10
+        # We need to use more permissive CFLAGS for libarchive code.
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+                ${{ env.CFLAGS_LIBARCHIVE_GCC }}
+      run: make ${{ env.LIBARCHIVE_OBJECTS }}
+    - name: Compile with gcc
+      env:
+        CC: gcc-10
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+                ${{ env.CFLAGS_GCC_LIBCPERCIVA }}
+                ${{ env.CFLAGS_GCC_PROJECT }}
+      # make(1) doesn't automatically override the CFLAGS macro set inside
+      # Makefile with the environment variable.
+      run: make CFLAGS="${{ env.CFLAGS }}"
+    - name: Test gcc binaries
+      env:
+        USE_VALGRIND: 1
+      run: make test
+  macOS:
+    name: macOS
+    runs-on: macOS-10.15
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install software
+      run: brew install automake
+    - name: autoreconf
+      run: autoreconf -i
+    - name: configure with clang
+      env:
+        CC: clang
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+                ${{ env.CFLAGS_OSX }}
+        LDFLAGS: ${{ env.LDFLAGS_OSX }}
+      run: ./configure
+    - name: Compile libarchive with clang
+      env:
+        CC: clang
+        # We need to use more permissive CFLAGS for libarchive code.
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+      run: make ${{ env.LIBARCHIVE_OBJECTS }}
+    - name: Compile with clang
+      env:
+        CC: clang
+        CFLAGS: ${{ env.CFLAGS_ALL }}
+                ${{ env.CFLAGS_CLANG_LIBCPERCIVA }}
+                ${{ env.CFLAGS_CLANG_PROJECT }}
+                ${{ env.CFLAGS_OSX }}
+        LDFLAGS: ${{ env.LDFLAGS_OSX }}
+      # make(1) doesn't automatically override the CFLAGS macro set inside
+      # Makefile with the environment variable.
+      run: make CFLAGS="${{ env.CFLAGS }}"
+    - name: Tests clang binaries
+      run: make test
