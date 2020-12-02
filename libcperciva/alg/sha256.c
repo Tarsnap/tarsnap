@@ -360,7 +360,7 @@ SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
 /**
  * SHA256_Final(digest, ctx):
  * Output the SHA256 hash of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 static void
 _SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx,
@@ -492,7 +492,7 @@ HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
 /**
  * HMAC_SHA256_Final(digest, ctx):
  * Output the HMAC-SHA256 of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 static void
 _HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx,
