@@ -65,6 +65,68 @@ valgrind_check_optional() {
 	fi
 }
 
+## valgrind_process_suppresion_file(filename):
+# Generalize suppressions from a valgrind suppression file by omitting the
+# "fun:pl_*" and "fun:main" lines and anything below them.
+valgrind_process_suppression_file() {
+	filename=$1
+
+	# How many segments do we have?
+	num_segments="$(grep -c "^{" "${filename}")"
+
+	# Bail if there's nothing to do.
+	if [ "${num_segments}" -eq "0" ]; then
+		return
+	fi
+
+	# Sanity check.
+	if [ "${num_segments}" -gt 100 ]; then
+		printf "More than 100 valgrind suppressions?!\n" 1>&2
+		exit 1
+	fi
+
+	# Split into segments.
+	csplit -f "${filename}" "${filename}" "/{/"		\
+	    "{$((num_segments - 1))}" > /dev/null
+
+	# Skip "${filename}00" because that doesn't contain a suppression.
+	i=1
+	while [ "$i" -le "${num_segments}" ]; do
+		segfilename="$(printf "%s%02i" "${filename}" "$i")"
+
+		# Find last relevant line.
+		lastline="$(grep -n "}" "${segfilename}" | cut -f1 -d:)"
+
+		# Cut off anything below "fun:pl_" (including that line).
+		funcline="$(grep -n "fun:pl_" "${segfilename}" | cut -f1 -d:)"
+		if [ -n "${funcline}" ]; then
+			if [ "${lastline}" -gt "${funcline}" ]; then
+				lastline="${funcline}"
+			fi
+		fi
+
+		# Cut off anything below "fun:main" (including that line).
+		# (Due to linking and/or optimizations, some memory leaks
+		# occur without "fun:pl_" appearing in the valgrind
+		# suppression.)
+		funcline="$(grep -n "fun:main" "${segfilename}" | cut -f1 -d:)"
+		if [ -n "${funcline}" ]; then
+			if [ "${lastline}" -gt "${funcline}" ]; then
+				lastline="${funcline}"
+			fi
+		fi
+
+		# Only keep the beginning of each suppression.
+		lastline="$((lastline - 1))"
+		head -n "$lastline" "${segfilename}" >>	\
+		    "${valgrind_suppressions}"
+		printf "}\n" >> "${valgrind_suppressions}"
+
+		# Advance to the next suppression.
+		i=$((i + 1))
+	done
+}
+
 ## valgrind_ensure_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
@@ -111,16 +173,8 @@ valgrind_ensure_suppression() {
 		printf "# ${testname}\n" >> ${valgrind_suppressions}
 
 		# Strip out useless parts from the log file, and allow the
-		# suppressions to apply to other binaries by removing:
-		# - references to the main() function,
-		# - "pl_*" ("potential loss") functions,
-		# - references to the binary itself.
-		# Append to suppressions file.
-		(grep -v "^==" ${this_valgrind_supp}			\
-			| grep -v "   fun:pl_" -			\
-			| grep -v "   fun:main" -			\
-			| grep -v -E "   obj:.*/potential-memleaks" -	\
-			>> ${valgrind_suppressions} ) || true
+		# suppressions to apply to other binaries.
+		valgrind_process_suppression_file "${this_valgrind_supp}"
 	done < "${valgrind_suppressions_tests}"
 
 	# Clean up
