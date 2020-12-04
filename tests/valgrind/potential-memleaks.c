@@ -9,12 +9,22 @@ pl_nothing(void)
 	/* Do nothing. */
 }
 
+/* Problem with FreeBSD 12.0 and strerror(). */
+static void
+pl_freebsd_strerror(void)
+{
+	char * str = strerror(0);
+
+	(void)str; /* UNUSED */
+}
+
 #define MEMLEAKTEST(x) { #x, x }
 static const struct memleaktest {
 	const char * const name;
 	void (* const volatile func)(void);
 } tests[] = {
-	MEMLEAKTEST(pl_nothing)
+	MEMLEAKTEST(pl_nothing),
+	MEMLEAKTEST(pl_freebsd_strerror)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
