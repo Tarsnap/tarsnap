@@ -44,9 +44,10 @@ VERBOSE=${VERBOSE:-0}
 # tests).
 USE_VALGRIND=${USE_VALGRIND:-0}
 
-# A non-zero value unlikely to be used as an exit code by the programs being
-# tested.
-valgrind_exit_code=108
+# Load valgrind-related functions.  These functions will bail on a per-check
+# basis if the ${USE_VALGRIND} value does not indicate that we should run a
+# valgrind for that check.
+. ${scriptdir}/shared_valgrind_functions.sh
 
 # Set ${bindir} to $1 if given, else use "." for in-tree builds.
 bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
