@@ -55,23 +55,13 @@ bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 NO_EXITFILE=/dev/null
 
 
-## prepare_directories():
-# Delete any old directories, and create new ones as necessary.  Must be run
-# after check_optional_valgrind().
-prepare_directories() {
-	# Clean up previous directories.
+## prepare_directory():
+# Delete the previous test output directory, and create a new one.
+prepare_directory() {
 	if [ -d "${out}" ]; then
 		rm -rf ${out}
 	fi
-	if [ -d "${out_valgrind}" ]; then
-		rm -rf ${out_valgrind}
-	fi
-
-	# Make new directories.
 	mkdir ${out}
-	if [ "$USE_VALGRIND" -gt 0 ]; then
-		mkdir ${out_valgrind}
-	fi
 }
 
 ## find_system (cmd, args):
@@ -99,6 +89,23 @@ find_system() {
 		printf " support necessary arguments.\n" 1>&2
 	fi
 	echo "${system_binary}"
+}
+
+## valgrind_prepare_directory ():
+# Clean up a previous valgrind directory, and prepare for new valgrind tests
+# (if applicable).
+valgrind_prepare_directory() {
+	# Always delete any previous valgrind directory.
+	if [ -d "${out_valgrind}" ]; then
+		rm -rf ${out_valgrind}
+	fi
+
+	# Bail if we don't want valgrind at all.
+	if [ "$USE_VALGRIND" -eq 0 ]; then
+		return
+	fi
+
+	mkdir ${out_valgrind}
 }
 
 ## has_pid (cmd):
@@ -460,6 +467,21 @@ notify_success_or_fail() {
 	fi
 }
 
+## valgrind_init():
+# Clear previous valgrind output, and prepare for running valgrind tests
+# (if applicable).
+valgrind_init() {
+	# If we want valgrind, check that the version is high enough.
+	valgrind_check_optional
+
+	# Remove any previous directory, and create a new one.
+	valgrind_prepare_directory
+
+	# Generate valgrind suppression file if it is required.  Must be
+	# done after preparing the directory.
+	valgrind_ensure_suppression ${bindir}/tests/valgrind/potential-memleaks
+}
+
 ## scenario_runner (scenario_filename):
 # Run a test scenario from ${scenario_filename}.
 scenario_runner() {
@@ -497,15 +519,12 @@ scenario_runner() {
 ## run_scenarios (scenario_filenames):
 # Run all scenarios matching ${scenario_filenames}.
 run_scenarios() {
-	# Check for optional valgrind.
-	valgrind_check_optional
+	# Clean up any previous directory, and create a new one.
+	prepare_directory
 
-	# Clean up previous directories, and create new ones.
-	prepare_directories
-
-	# Generate valgrind suppression file if it is required.  Must be
-	# done after preparing directories.
-	valgrind_ensure_suppression ${bindir}/tests/valgrind/potential-memleaks
+	# Clean up any previous valgrind directory, and prepare for new
+	# valgrind tests (if applicable).
+	valgrind_init
 
 	printf -- "Running tests\n" 1>&2
 	printf -- "-------------\n" 1>&2
