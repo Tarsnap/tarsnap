@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -24,6 +25,9 @@ struct crypto_aesctr *
 crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
 {
 	struct crypto_aesctr * stream;
+
+	/* Sanity check. */
+	assert(key != NULL);
 
 	/* Allocate memory. */
 	if ((stream = malloc(sizeof(struct crypto_aesctr))) == NULL)
@@ -105,6 +109,9 @@ crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
 {
 	struct crypto_aesctr stream_rec;
 	struct crypto_aesctr * stream = &stream_rec;
+
+	/* Sanity check. */
+	assert(key != NULL);
 
 	/* Initialize values. */
 	stream->key = key;
