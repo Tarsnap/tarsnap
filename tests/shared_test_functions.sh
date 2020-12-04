@@ -124,10 +124,10 @@ wait_for_file() {
 	done
 }
 
-## check_optional_valgrind ():
+## valgrind_check_optional ():
 # Return a $USE_VALGRIND variable defined; if it was previously defined and
 # was greater than 0, then check that valgrind is available in the $PATH.
-check_optional_valgrind() {
+valgrind_check_optional() {
 	if [ "$USE_VALGRIND" -gt 0 ]; then
 		# Look for valgrind in $PATH.
 		if ! command -v valgrind >/dev/null 2>&1; then
@@ -150,12 +150,12 @@ check_optional_valgrind() {
 	fi
 }
 
-## ensure_valgrind_suppression (potential_memleaks_binary):
+## valgrind_ensure_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
 # those leaks when testing other binaries.  Record how many file descriptors
 # are open at exit in ${valgrind_fds}.
-ensure_valgrind_suppression() {
+valgrind_ensure_suppression() {
 	potential_memleaks_binary=$1
 
 	# Quit if we're not using valgrind.
@@ -264,10 +264,10 @@ setup_check_variables() {
 	s_count=$((s_count + 1))
 }
 
-## get_val_basename (exitfile):
+## valgrind_get_basename (exitfile):
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
-get_val_basename() {
+valgrind_get_basename() {
 	exitfile=$1
 	basename=$(basename "${exitfile}" ".exit")
 	echo "${out_valgrind}/${basename}"
@@ -290,10 +290,10 @@ expected_exitcode() {
 	fi
 }
 
-## check_valgrind_logfile(logfile)
+## valgrind_check_logfile(logfile)
 # Check for any (unsuppressed) memory leaks recorded in a valgrind logfile.
 # Echo the filename if there's a leak; otherwise, echo nothing.
-check_valgrind_logfile() {
+valgrind_check_logfile() {
 	logfile=$1
 
 	# Bytes in use at exit.
@@ -335,13 +335,13 @@ check_valgrind_logfile() {
 	fi
 }
 
-## check_valgrind_basenames (exitfile):
+## valgrind_check_basenames (exitfile):
 # Check for any memory leaks recorded in valgrind logfiles associated with a
 # test exitfile.  Return the filename if there's a leak; otherwise return an
 # empty string.
-check_valgrind_basenames() {
+valgrind_check_basenames() {
 	exitfile="$1"
-	val_basename=$( get_val_basename ${exitfile} )
+	val_basename=$( valgrind_get_basename ${exitfile} )
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
 	logfiles=$(ls "${val_basename}"* 2>/dev/null)
@@ -355,7 +355,7 @@ check_valgrind_basenames() {
 
 	# Check a single file.
 	if [ "${num_logfiles}" -eq "1" ]; then
-		check_valgrind_logfile "${logfiles}"
+		valgrind_check_logfile "${logfiles}"
 		return
 	fi
 
@@ -375,7 +375,7 @@ check_valgrind_basenames() {
 			    awk '{ print $4 }')
 			if [ "${val_pids#*$val_parent_pid}" !=		\
 			    "${val_pids}" ]; then
-				check_valgrind_logfile "${logfile}"
+				valgrind_check_logfile "${logfile}"
 				return "$?"
 			fi
 		done
@@ -432,7 +432,7 @@ notify_success_or_fail() {
 		fi
 
 		# Check valgrind logfile(s).
-		val_failed="$(check_valgrind_basenames "${exitfile}")"
+		val_failed="$(valgrind_check_basenames "${exitfile}")"
 		if [ -n "${val_failed}" ]; then
 			echo "FAILED!" 1>&2
 			s_retval="${valgrind_exit_code}"
@@ -491,14 +491,14 @@ scenario_runner() {
 # Run all scenarios matching ${scenario_filenames}.
 run_scenarios() {
 	# Check for optional valgrind.
-	check_optional_valgrind
+	valgrind_check_optional
 
 	# Clean up previous directories, and create new ones.
 	prepare_directories
 
 	# Generate valgrind suppression file if it is required.  Must be
 	# done after preparing directories.
-	ensure_valgrind_suppression ${bindir}/tests/valgrind/potential-memleaks
+	valgrind_ensure_suppression ${bindir}/tests/valgrind/potential-memleaks
 
 	printf -- "Running tests\n" 1>&2
 	printf -- "-------------\n" 1>&2
