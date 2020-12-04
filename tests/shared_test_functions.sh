@@ -213,6 +213,25 @@ valgrind_ensure_suppression() {
 	printf "done.\n" 1>&2
 }
 
+## valgrind_setup_cmd ():
+# Set up the valgrind command if $USE_VALGRIND is greater than or equal to
+# ${valgrind_min}.
+valgrind_setup_cmd() {
+	# Bail if we don't want to use valgrind for this check.
+	if [ "${USE_VALGRIND}" -lt "${c_valgrind_min}" ]; then
+		return
+	fi
+
+	val_logfilename="${s_val_basename}-${count_str}-%p.log"
+	c_valgrind_cmd="valgrind \
+		--log-file=${val_logfilename} \
+		--track-fds=yes \
+		--leak-check=full --show-leak-kinds=all \
+		--errors-for-leak-kinds=all \
+		--suppressions=${valgrind_suppressions}"
+	echo "${c_valgrind_cmd}"
+}
+
 ## setup_check_variables (description, check_prev=1):
 # Set up the "check" variables ${c_exitfile} and ${c_valgrind_cmd}, the
 # latter depending on the previously-defined ${c_valgrind_min}.
@@ -245,20 +264,8 @@ setup_check_variables() {
 	printf "${description}\n" >				\
 		"${s_basename}-${count_str}.desc"
 
-	# Set up the valgrind command if $USE_VALGRIND is greater
-	# than or equal to ${valgrind_min}; otherwise, produce an
-	# empty string.
-	if [ "$USE_VALGRIND" -ge "${c_valgrind_min}" ]; then
-		val_logfilename="${s_val_basename}-${count_str}-%p.log"
-		c_valgrind_cmd="valgrind \
-			--log-file=${val_logfilename} \
-			--track-fds=yes \
-			--leak-check=full --show-leak-kinds=all \
-			--errors-for-leak-kinds=all \
-			--suppressions=${valgrind_suppressions}"
-	else
-		c_valgrind_cmd=""
-	fi
+	# Set up the valgrind command (or an empty string).
+	c_valgrind_cmd="$(valgrind_setup_cmd)"
 
 	# Advances the number of checks.
 	s_count=$((s_count + 1))
