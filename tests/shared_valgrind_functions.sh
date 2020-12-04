@@ -238,6 +238,7 @@ valgrind_check_logfile() {
 		if [ "${in_use}" != "${suppressed}" ]; then
 			# There is an unsuppressed leak.
 			echo "${logfile}"
+			return
 		fi
 	fi
 
@@ -252,6 +253,17 @@ valgrind_check_logfile() {
 	if [ "${fds_in_use}" != "${valgrind_fds}" ] ; then
 		# There is an unsuppressed leak.
 		echo "${logfile}"
+		return
+	fi
+
+	# Check the error summary.
+	num_errors=$(grep "ERROR SUMMARY: " "${logfile}" | awk '{print $4}')
+	if [ "${num_errors}" -gt 0 ]; then
+		# There was some other error(s) -- invalid read or write,
+		# conditional jump based on uninitialized value(s), invalid
+		# free, etc.
+		echo "${logfile}"
+		return
 	fi
 }
 
