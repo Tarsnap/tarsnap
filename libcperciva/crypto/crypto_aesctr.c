@@ -16,10 +16,55 @@ struct crypto_aesctr {
 };
 
 /**
+ * crypto_aesctr_alloc(void):
+ * Allocate an object for performing AES in CTR code.  This must be followed
+ * by calling _init2().
+ */
+struct crypto_aesctr *
+crypto_aesctr_alloc(void)
+{
+	struct crypto_aesctr * stream;
+
+	/* Allocate memory. */
+	if ((stream = malloc(sizeof(struct crypto_aesctr))) == NULL)
+		goto err0;
+
+	/* Success! */
+	return (stream);
+
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * crypto_aesctr_init2(stream, key, nonce):
+ * Reset the AES-CTR stream ${stream}, using the ${key} and ${nonce}.  If ${key}
+ * is NULL, retain the previous AES key.
+ */
+void
+crypto_aesctr_init2(struct crypto_aesctr * stream,
+    const struct crypto_aes_key * key, uint64_t nonce)
+{
+
+	/* If the key is NULL, retain the previous AES key. */
+	if (key != NULL)
+		stream->key = key;
+
+	/* Set nonce as provided and reset bytectr. */
+	stream->nonce = nonce;
+	stream->bytectr = 0;
+
+	/* Sanity check. */
+	assert(stream->key != NULL);
+}
+
+/**
  * crypto_aesctr_init(key, nonce):
  * Prepare to encrypt/decrypt data with AES in CTR mode, using the provided
  * expanded ${key} and ${nonce}.  The key provided must remain valid for the
- * lifetime of the stream.
+ * lifetime of the stream.  This is the same as calling _alloc() followed by
+ * _init2().
  */
 struct crypto_aesctr *
 crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
@@ -30,13 +75,11 @@ crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
 	assert(key != NULL);
 
 	/* Allocate memory. */
-	if ((stream = malloc(sizeof(struct crypto_aesctr))) == NULL)
+	if ((stream = crypto_aesctr_alloc()) == NULL)
 		goto err0;
 
 	/* Initialize values. */
-	stream->key = key;
-	stream->nonce = nonce;
-	stream->bytectr = 0;
+	crypto_aesctr_init2(stream, key, nonce);
 
 	/* Success! */
 	return (stream);
@@ -114,9 +157,7 @@ crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
 	assert(key != NULL);
 
 	/* Initialize values. */
-	stream->key = key;
-	stream->nonce = nonce;
-	stream->bytectr = 0;
+	crypto_aesctr_init2(stream, key, nonce);
 
 	/* Perform the encryption. */
 	crypto_aesctr_stream(stream, inbuf, outbuf, buflen);
