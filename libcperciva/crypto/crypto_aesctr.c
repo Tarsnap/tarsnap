@@ -101,7 +101,7 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 {
 	uint8_t pblk[16];
 	size_t pos;
-	int bytemod;
+	size_t bytemod;
 
 	for (pos = 0; pos < buflen; pos++) {
 		/* How far through the buffer are we? */
