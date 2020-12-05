@@ -89,6 +89,20 @@ err0:
 	return (NULL);
 }
 
+/* Generate a block of cipherstream. */
+static inline void
+crypto_aesctr_stream_cipherblock_generate(struct crypto_aesctr * stream)
+{
+	uint8_t pblk[16];
+
+	/* Prepare nonce and counter. */
+	be64enc(pblk, stream->nonce);
+	be64enc(pblk + 8, stream->bytectr / 16);
+
+	/* Encrypt the cipherblock. */
+	crypto_aes_encrypt_block(pblk, stream->buf, stream->key);
+}
+
 /**
  * crypto_aesctr_stream(stream, inbuf, outbuf, buflen):
  * Generate the next ${buflen} bytes of the AES-CTR stream ${stream} and xor
@@ -99,7 +113,6 @@ void
 crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
-	uint8_t pblk[16];
 	size_t pos;
 	size_t bytemod;
 
@@ -108,12 +121,8 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 		bytemod = stream->bytectr % 16;
 
 		/* Generate a block of cipherstream if needed. */
-		if (bytemod == 0) {
-			be64enc(pblk, stream->nonce);
-			be64enc(pblk + 8, stream->bytectr / 16);
-			crypto_aes_encrypt_block(pblk, stream->buf,
-			    stream->key);
-		}
+		if (bytemod == 0)
+			crypto_aesctr_stream_cipherblock_generate(stream);
 
 		/* Encrypt a byte. */
 		outbuf[pos] = inbuf[pos] ^ stream->buf[bytemod];
