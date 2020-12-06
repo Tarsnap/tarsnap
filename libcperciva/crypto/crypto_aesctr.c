@@ -136,6 +136,22 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 {
 	size_t bytemod;
 
+	/* Do we have any bytes left in the current cipherblock? */
+	bytemod = stream->bytectr % 16;
+	if (bytemod != 0) {
+		/* Do we have enough to complete the request? */
+		if (bytemod + buflen <= 16) {
+			/* Process only buflen bytes, then return. */
+			crypto_aesctr_stream_cipherblock_use(stream, &inbuf,
+			    &outbuf, &buflen, buflen, bytemod);
+			return;
+		}
+
+		/* Encrypt the byte(s) and update the positions. */
+		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
+		    &buflen, 16 - bytemod, bytemod);
+	}
+
 	while (buflen > 0) {
 		/* How far through the buffer are we? */
 		bytemod = stream->bytectr % 16;
