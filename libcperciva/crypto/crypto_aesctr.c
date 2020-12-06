@@ -152,6 +152,16 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 		    &buflen, 16 - bytemod, bytemod);
 	}
 
+	/* Process blocks of 16 bytes; we need a new cipherblock. */
+	while (buflen >= 16) {
+		/* Generate a block of cipherstream. */
+		crypto_aesctr_stream_cipherblock_generate(stream);
+
+		/* Encrypt the bytes and update the positions. */
+		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
+		    &buflen, 16, 0);
+	}
+
 	while (buflen > 0) {
 		/* How far through the buffer are we? */
 		bytemod = stream->bytectr % 16;
