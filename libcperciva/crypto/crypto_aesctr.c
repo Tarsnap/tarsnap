@@ -103,6 +103,27 @@ crypto_aesctr_stream_cipherblock_generate(struct crypto_aesctr * stream)
 	crypto_aes_encrypt_block(pblk, stream->buf, stream->key);
 }
 
+/* Encrypt ${nbytes} bytes, then update ${inbuf}, ${outbuf}, and ${buflen}. */
+static inline void
+crypto_aesctr_stream_cipherblock_use(struct crypto_aesctr * stream,
+    const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen, size_t nbytes,
+    size_t bytemod)
+{
+	size_t i;
+
+	/* Encrypt the byte(s). */
+	for (i = 0; i < nbytes; i++)
+		(*outbuf)[i] = (*inbuf)[i] ^ stream->buf[bytemod + i];
+
+	/* Move to the next byte(s) of cipherstream. */
+	stream->bytectr += nbytes;
+
+	/* Update the positions. */
+	*inbuf += nbytes;
+	*outbuf += nbytes;
+	*buflen -= nbytes;
+}
+
 /**
  * crypto_aesctr_stream(stream, inbuf, outbuf, buflen):
  * Generate the next ${buflen} bytes of the AES-CTR stream ${stream} and xor
@@ -113,10 +134,9 @@ void
 crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
-	size_t pos;
 	size_t bytemod;
 
-	for (pos = 0; pos < buflen; pos++) {
+	while (buflen > 0) {
 		/* How far through the buffer are we? */
 		bytemod = stream->bytectr % 16;
 
@@ -124,11 +144,9 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 		if (bytemod == 0)
 			crypto_aesctr_stream_cipherblock_generate(stream);
 
-		/* Encrypt a byte. */
-		outbuf[pos] = inbuf[pos] ^ stream->buf[bytemod];
-
-		/* Move to the next byte of cipherstream. */
-		stream->bytectr += 1;
+		/* Encrypt a byte and update the positions. */
+		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
+		    &buflen, 1, bytemod);
 	}
 }
 
