@@ -44,6 +44,7 @@ feature() {
 }
 
 # Detect CPU-detection features
+feature HWCAP GETAUXVAL ""
 feature X86 CPUID ""
 feature X86 CPUID_COUNT ""
 
