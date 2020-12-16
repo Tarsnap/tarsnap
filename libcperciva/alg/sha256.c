@@ -91,18 +91,18 @@ shanitest(const uint32_t state[static restrict 8],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8])
 {
 	uint32_t state_sw[8];
-	uint32_t state_shani[8];
+	uint32_t state_hw[8];
 
 	/* Software transform. */
 	memcpy(state_sw, state, sizeof(state_sw));
 	SHA256_Transform(state_sw, block, W, S);
 
-	/* SHANI transform. */
-	memcpy(state_shani, state, sizeof(state_shani));
-	SHA256_Transform_shani(state_shani, block);
+	/* Hardware transform. */
+	memcpy(state_hw, state, sizeof(state_hw));
+	SHA256_Transform_shani(state_hw, block);
 
 	/* Do the results match? */
-	return (memcmp(state_sw, state_shani, sizeof(state_sw)));
+	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
 }
 
 /* Should we use SHANI? */

@@ -26,27 +26,25 @@ static int
 aesnitest(uint8_t ptext[16], uint8_t * key, size_t len)
 {
 	AES_KEY kexp_openssl;
-	void * kexp_aesni;
 	uint8_t ctext_openssl[16];
-	uint8_t ctext_aesni[16];
+	void * kexp_hw;
+	uint8_t ctext_hw[16];
 
 	/* Sanity-check. */
 	assert((len == 16) || (len == 32));
 
-	/* Expand the key. */
+	/* Expand the key and encrypt with OpenSSL. */
 	AES_set_encrypt_key(key, (int)(len * 8), &kexp_openssl);
-	if ((kexp_aesni = crypto_aes_key_expand_aesni(key, len)) == NULL)
-		goto err0;
-
-	/* Encrypt the block. */
 	AES_encrypt(ptext, ctext_openssl, &kexp_openssl);
-	crypto_aes_encrypt_block_aesni(ptext, ctext_aesni, kexp_aesni);
 
-	/* Free the AESNI expanded key. */
-	crypto_aes_key_free_aesni(kexp_aesni);
+	/* Expand the key and encrypt with hardware intrinstics. */
+	if ((kexp_hw = crypto_aes_key_expand_aesni(key, len)) == NULL)
+		goto err0;
+	crypto_aes_encrypt_block_aesni(ptext, ctext_hw, kexp_hw);
+	crypto_aes_key_free_aesni(kexp_hw);
 
 	/* Do the outputs match? */
-	return (memcmp(ctext_openssl, ctext_aesni, 16));
+	return (memcmp(ctext_openssl, ctext_hw, 16));
 
 err0:
 	/* Failure! */
