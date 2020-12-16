@@ -55,6 +55,12 @@ crypto_aesctr_init2(struct crypto_aesctr * stream,
 	be64enc(stream->pblk, nonce);
 	stream->bytectr = 0;
 
+	/*
+	 * Set the counter such that the least significant byte will wrap once
+	 * incremented.
+	 */
+	stream->pblk[15] = 0xff;
+
 	/* Sanity check. */
 	assert(stream->key != NULL);
 }
@@ -98,7 +104,14 @@ crypto_aesctr_stream_cipherblock_generate(struct crypto_aesctr * stream)
 	assert(stream->bytectr % 16 == 0);
 
 	/* Prepare counter. */
-	be64enc(stream->pblk + 8, stream->bytectr / 16);
+	stream->pblk[15]++;
+	if (stream->pblk[15] == 0) {
+		/*
+		 * If incrementing the least significant byte resulted in it
+		 * wrapping, re-encode the complete 64-bit value.
+		 */
+		be64enc(stream->pblk + 8, stream->bytectr / 16);
+	}
 
 	/* Encrypt the cipherblock. */
 	crypto_aes_encrypt_block(stream->pblk, stream->buf, stream->key);
