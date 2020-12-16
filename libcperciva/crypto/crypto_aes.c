@@ -12,6 +12,10 @@
 
 #include "crypto_aes.h"
 
+#if defined(CPUSUPPORT_X86_AESNI)
+#define HWACCEL
+#endif
+
 /**
  * This represents either an AES_KEY or a struct crypto_aes_key_aesni; we
  * know which it is based on whether we're using AESNI code or not.  As such,
@@ -20,7 +24,7 @@
  */
 struct crypto_aes_key;
 
-#ifdef CPUSUPPORT_X86_AESNI
+#ifdef HWACCEL
 /* Test whether OpenSSL and AESNI code produce the same AES ciphertext. */
 static int
 aesnitest(uint8_t ptext[16], uint8_t * key, size_t len)
@@ -38,10 +42,12 @@ aesnitest(uint8_t ptext[16], uint8_t * key, size_t len)
 	AES_encrypt(ptext, ctext_openssl, &kexp_openssl);
 
 	/* Expand the key and encrypt with hardware intrinstics. */
+#if defined(CPUSUPPORT_X86_AESNI)
 	if ((kexp_hw = crypto_aes_key_expand_aesni(key, len)) == NULL)
 		goto err0;
 	crypto_aes_encrypt_block_aesni(ptext, ctext_hw, kexp_hw);
 	crypto_aes_key_free_aesni(kexp_hw);
+#endif
 
 	/* Do the outputs match? */
 	return (memcmp(ctext_openssl, ctext_hw, 16));
@@ -65,9 +71,11 @@ useaesni(void)
 		/* Default to OpenSSL. */
 		aesnigood = 0;
 
+#if defined(CPUSUPPORT_X86_AESNI)
 		/* If the CPU doesn't claim to support AESNI, stop here. */
 		if (!cpusupport_x86_aesni())
 			break;
+#endif
 
 		/* Test cases: key is 0x00010203..., ptext is 0x00112233... */
 		for (i = 0; i < 16; i++)
@@ -87,7 +95,7 @@ useaesni(void)
 
 	return (aesnigood);
 }
-#endif /* CPUSUPPORT_X86_AESNI */
+#endif /* HWACCEL */
 
 /**
  * crypto_aes_key_expand(key, len):
