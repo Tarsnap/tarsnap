@@ -13,6 +13,7 @@ struct crypto_aesctr {
 	uint64_t nonce;
 	uint64_t bytectr;
 	uint8_t buf[16];
+	uint8_t pblk[16];
 };
 
 /**
@@ -93,17 +94,16 @@ err0:
 static inline void
 crypto_aesctr_stream_cipherblock_generate(struct crypto_aesctr * stream)
 {
-	uint8_t pblk[16];
 
 	/* Sanity check. */
 	assert(stream->bytectr % 16 == 0);
 
 	/* Prepare nonce and counter. */
-	be64enc(pblk, stream->nonce);
-	be64enc(pblk + 8, stream->bytectr / 16);
+	be64enc(stream->pblk, stream->nonce);
+	be64enc(stream->pblk + 8, stream->bytectr / 16);
 
 	/* Encrypt the cipherblock. */
-	crypto_aes_encrypt_block(pblk, stream->buf, stream->key);
+	crypto_aes_encrypt_block(stream->pblk, stream->buf, stream->key);
 }
 
 /* Encrypt ${nbytes} bytes, then update ${inbuf}, ${outbuf}, and ${buflen}. */
