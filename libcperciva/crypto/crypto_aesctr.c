@@ -95,6 +95,9 @@ crypto_aesctr_stream_cipherblock_generate(struct crypto_aesctr * stream)
 {
 	uint8_t pblk[16];
 
+	/* Sanity check. */
+	assert(stream->bytectr % 16 == 0);
+
 	/* Prepare nonce and counter. */
 	be64enc(pblk, stream->nonce);
 	be64enc(pblk + 8, stream->bytectr / 16);
