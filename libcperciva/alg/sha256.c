@@ -86,11 +86,11 @@ static const uint32_t initial_state[8] = {
 
 #ifdef HWACCEL
 /*
- * Test whether software and SHANI transform code produce the same results.
- * Must be called with usesha() returning 0 (software).
+ * Test whether software and hardware extensions transform code produce the
+ * same results.  Must be called with usesha() returning 0 (software).
  */
 static int
-shanitest(const uint32_t state[static restrict 8],
+hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8])
 {
@@ -139,7 +139,7 @@ useshani(void)
 		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
 		for (i = 0; i < 64; i++)
 			block[i] = i;
-		if (shanitest(initial_state, block, W, S)) {
+		if (hwtest(initial_state, block, W, S)) {
 			warn0("Disabling SHANI due to failed self-test");
 			break;
 		}

@@ -25,9 +25,12 @@
 struct crypto_aes_key;
 
 #ifdef HWACCEL
-/* Test whether OpenSSL and AESNI code produce the same AES ciphertext. */
+/*
+ * Test whether OpenSSL and hardware extensions code produce the same AES
+ * ciphertext.
+ */
 static int
-aesnitest(uint8_t ptext[16], uint8_t * key, size_t len)
+hwtest(uint8_t ptext[16], uint8_t * key, size_t len)
 {
 	AES_KEY kexp_openssl;
 	uint8_t ctext_openssl[16];
@@ -83,8 +86,11 @@ useaesni(void)
 		for (i = 0; i < 32; i++)
 			key[i] = i & 0xff;
 
-		/* Test that AESNI and OpenSSL produce the same results. */
-		if (aesnitest(ptext, key, 16) || aesnitest(ptext, key, 32)) {
+		/*
+		 * Test that hardware intrinsics and OpenSSL produce the same
+		 * results.
+		 */
+		if (hwtest(ptext, key, 16) || hwtest(ptext, key, 32)) {
 			warn0("Disabling AESNI due to failed self-test");
 			break;
 		}
