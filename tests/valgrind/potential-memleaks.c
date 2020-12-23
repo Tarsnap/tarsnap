@@ -1,3 +1,4 @@
+#include <locale.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +34,17 @@ pl_freebsd_getpwuid(void)
 	/* POSIX says that we *shall not* free `pwd`. */
 }
 
+/* Problem with FreeBSD 12.1 and setlocale(). */
+static void
+pl_freebsd_setlocale(void)
+{
+
+	if (setlocale(LC_ALL, "") == NULL) {
+		fprintf(stderr, "setlocale failure\n");
+		exit(1);
+	}
+}
+
 #define MEMLEAKTEST(x) { #x, x }
 static const struct memleaktest {
 	const char * const name;
@@ -40,7 +52,8 @@ static const struct memleaktest {
 } tests[] = {
 	MEMLEAKTEST(pl_nothing),
 	MEMLEAKTEST(pl_freebsd_strerror),
-	MEMLEAKTEST(pl_freebsd_getpwuid)
+	MEMLEAKTEST(pl_freebsd_getpwuid),
+	MEMLEAKTEST(pl_freebsd_setlocale)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
