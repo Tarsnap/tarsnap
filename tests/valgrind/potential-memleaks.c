@@ -1,3 +1,4 @@
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,13 +19,28 @@ pl_freebsd_strerror(void)
 	(void)str; /* UNUSED */
 }
 
+/* Problem with FreeBSD 12.0 and getpwuid(). */
+static void
+pl_freebsd_getpwuid(void)
+{
+	struct passwd * pwd;
+
+	if ((pwd = getpwuid(0)) == NULL) {
+		fprintf(stderr, "getpwuid\n");
+		exit(1);
+	}
+
+	/* POSIX says that we *shall not* free `pwd`. */
+}
+
 #define MEMLEAKTEST(x) { #x, x }
 static const struct memleaktest {
 	const char * const name;
 	void (* const volatile func)(void);
 } tests[] = {
 	MEMLEAKTEST(pl_nothing),
-	MEMLEAKTEST(pl_freebsd_strerror)
+	MEMLEAKTEST(pl_freebsd_strerror),
+	MEMLEAKTEST(pl_freebsd_getpwuid)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
