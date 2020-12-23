@@ -1,4 +1,6 @@
-# Should be sourced by `command -p sh posix-cflags.sh "$PATH"` from within a Makefile
+# Should be sourced by
+#     command -p sh posix-cflags.sh "$PATH"
+# from within a Makefile.
 
 # Sanity check environment variables
 if [ -z "${CC}" ]; then

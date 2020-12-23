@@ -10,6 +10,10 @@
 
 #include "sha256.h"
 
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+#define HWACCEL
+#endif
+
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
 static void SHA256_Transform(uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
@@ -80,29 +84,31 @@ static const uint32_t initial_state[8] = {
 	0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
 };
 
-#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+#ifdef HWACCEL
 /*
- * Test whether software and SHANI transform code produce the same results.
- * Must be called with usesha() returning 0 (software).
+ * Test whether software and hardware extensions transform code produce the
+ * same results.  Must be called with usesha() returning 0 (software).
  */
 static int
-shanitest(const uint32_t state[static restrict 8],
+hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8])
 {
 	uint32_t state_sw[8];
-	uint32_t state_shani[8];
+	uint32_t state_hw[8];
 
 	/* Software transform. */
 	memcpy(state_sw, state, sizeof(state_sw));
 	SHA256_Transform(state_sw, block, W, S);
 
-	/* SHANI transform. */
-	memcpy(state_shani, state, sizeof(state_shani));
-	SHA256_Transform_shani(state_shani, block);
+	/* Hardware transform. */
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+	memcpy(state_hw, state, sizeof(state_hw));
+	SHA256_Transform_shani(state_hw, block);
+#endif
 
 	/* Do the results match? */
-	return (memcmp(state_sw, state_shani, sizeof(state_sw)));
+	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
 }
 
 /* Should we use SHANI? */
@@ -120,6 +126,7 @@ useshani(void)
 		/* Default to software. */
 		shanigood = 0;
 
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 		/* If the CPU doesn't claim to support AESNI, stop here. */
 		if (!cpusupport_x86_shani())
 			break;
@@ -127,11 +134,12 @@ useshani(void)
 		/* If the CPU doesn't claim to support SSSE3, stop here. */
 		if (!cpusupport_x86_ssse3())
 			break;
+#endif
 
 		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
 		for (i = 0; i < 64; i++)
 			block[i] = i;
-		if (shanitest(initial_state, block, W, S)) {
+		if (hwtest(initial_state, block, W, S)) {
 			warn0("Disabling SHANI due to failed self-test");
 			break;
 		}
@@ -142,7 +150,7 @@ useshani(void)
 
 	return (shanigood);
 }
-#endif /* CPUSUPPORT_X86_SHANI && CPUSUPPORT_X86_SSSE3 */
+#endif /* HWACCEL */
 
 /* Elementary functions used by SHA256 */
 #define Ch(x, y, z)	((x & (y ^ z)) ^ z)
