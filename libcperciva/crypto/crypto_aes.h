@@ -8,6 +8,12 @@
 struct crypto_aes_key;
 
 /**
+ * crypto_aes_use_x86_aesni(void):
+ * Return non-zero if AESNI operations are available.
+ */
+int crypto_aes_use_x86_aesni(void);
+
+/**
  * crypto_aes_key_expand(key, len):
  * Expand the ${len}-byte AES key ${key} into a structure which can be passed
  * to crypto_aes_encrypt_block().  The length must be 16 or 32.

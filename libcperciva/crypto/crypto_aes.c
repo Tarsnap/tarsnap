@@ -65,7 +65,7 @@ err0:
  * crypto_aes_use_x86_aesni(void):
  * Return non-zero if AESNI operations are available.
  */
-static int
+int
 crypto_aes_use_x86_aesni(void)
 {
 	static int aesnigood = -1;
