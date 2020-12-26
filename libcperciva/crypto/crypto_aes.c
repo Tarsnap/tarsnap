@@ -59,6 +59,7 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+#endif /* HWACCEL */
 
 /**
  * crypto_aes_use_x86_aesni(void):
@@ -68,6 +69,7 @@ static int
 crypto_aes_use_x86_aesni(void)
 {
 	static int aesnigood = -1;
+#ifdef HWACCEL
 	uint8_t key[32];
 	uint8_t ptext[16];
 	size_t i;
@@ -101,10 +103,12 @@ crypto_aes_use_x86_aesni(void)
 		/* AESNI works; use it. */
 		aesnigood = 1;
 	}
+#else /* !HWACCEL */
+	aesnigood = 0;
+#endif /* HWACCEL */
 
 	return (aesnigood);
 }
-#endif /* HWACCEL */
 
 /**
  * crypto_aes_key_expand(key, len):
