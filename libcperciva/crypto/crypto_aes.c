@@ -60,9 +60,12 @@ err0:
 	return (-1);
 }
 
-/* Should we use AESNI? */
+/**
+ * crypto_aes_use_x86_aesni(void):
+ * Return non-zero if AESNI operations are available.
+ */
 static int
-useaesni(void)
+crypto_aes_use_x86_aesni(void)
 {
 	static int aesnigood = -1;
 	uint8_t key[32];
@@ -118,7 +121,7 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 
 #ifdef CPUSUPPORT_X86_AESNI
 	/* Use AESNI if we can. */
-	if (useaesni())
+	if (crypto_aes_use_x86_aesni())
 		return (crypto_aes_key_expand_aesni(key, len));
 #endif
 
@@ -148,7 +151,7 @@ crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
 {
 
 #ifdef CPUSUPPORT_X86_AESNI
-	if (useaesni()) {
+	if (crypto_aes_use_x86_aesni()) {
 		crypto_aes_encrypt_block_aesni(in, out, (const void *)key);
 		return;
 	}
@@ -167,7 +170,7 @@ crypto_aes_key_free(struct crypto_aes_key * key)
 {
 
 #ifdef CPUSUPPORT_X86_AESNI
-	if (useaesni()) {
+	if (crypto_aes_use_x86_aesni()) {
 		crypto_aes_key_free_aesni((void *)key);
 		return;
 	}
