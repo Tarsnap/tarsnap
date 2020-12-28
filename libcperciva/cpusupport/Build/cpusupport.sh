@@ -60,7 +60,9 @@ feature X86 CRC32_64 "" "-msse4.2"					\
 feature X86 RDRAND "" "-mrdrnd"
 feature X86 SHANI "" "-msse2 -msha"					\
     "-msse2 -msha -Wno-cast-align"
-feature X86 SSE2 "" "-msse2"						\
+feature X86 SSE2 ""							\
+    "-Wno-cast-align"							\
+    "-msse2"								\
     "-msse2 -Wno-cast-align"
 feature X86 SSSE3 "" "-mssse3"						\
     "-mssse3 -Wno-cast-align"
