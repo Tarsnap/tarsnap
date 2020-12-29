@@ -64,3 +64,9 @@ feature X86 SSE2 "" "-msse2"						\
     "-msse2 -Wno-cast-align"
 feature X86 SSSE3 "" "-mssse3"						\
     "-mssse3 -Wno-cast-align"
+
+# Detect specific ARM features
+feature ARM CRC32_64 "-march=armv8.1-a"					\
+    "-march=armv8.1-a+crc"						\
+    "-march=armv8.1-a+crc -Wno-cast-align"				\
+    "-march=armv8.1-a -D__ARM_ACLE=200"
