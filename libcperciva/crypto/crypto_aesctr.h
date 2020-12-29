@@ -12,9 +12,25 @@ struct crypto_aesctr;
  * crypto_aesctr_init(key, nonce):
  * Prepare to encrypt/decrypt data with AES in CTR mode, using the provided
  * expanded ${key} and ${nonce}.  The key provided must remain valid for the
- * lifetime of the stream.
+ * lifetime of the stream.  This is the same as calling _alloc() followed by
+ * _init2().
  */
 struct crypto_aesctr * crypto_aesctr_init(const struct crypto_aes_key *,
+    uint64_t);
+
+/**
+ * crypto_aesctr_alloc(void):
+ * Allocate an object for performing AES in CTR code.  This must be followed
+ * by calling _init2().
+ */
+struct crypto_aesctr * crypto_aesctr_alloc(void);
+
+/**
+ * crypto_aesctr_init2(stream, key, nonce):
+ * Reset the AES-CTR stream ${stream}, using the ${key} and ${nonce}.  If ${key}
+ * is NULL, retain the previous AES key.
+ */
+void crypto_aesctr_init2(struct crypto_aesctr *, const struct crypto_aes_key *,
     uint64_t);
 
 /**

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -15,13 +16,12 @@ struct crypto_aesctr {
 };
 
 /**
- * crypto_aesctr_init(key, nonce):
- * Prepare to encrypt/decrypt data with AES in CTR mode, using the provided
- * expanded ${key} and ${nonce}.  The key provided must remain valid for the
- * lifetime of the stream.
+ * crypto_aesctr_alloc(void):
+ * Allocate an object for performing AES in CTR code.  This must be followed
+ * by calling _init2().
  */
 struct crypto_aesctr *
-crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
+crypto_aesctr_alloc(void)
 {
 	struct crypto_aesctr * stream;
 
@@ -29,10 +29,57 @@ crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
 	if ((stream = malloc(sizeof(struct crypto_aesctr))) == NULL)
 		goto err0;
 
-	/* Initialize values. */
-	stream->key = key;
+	/* Success! */
+	return (stream);
+
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * crypto_aesctr_init2(stream, key, nonce):
+ * Reset the AES-CTR stream ${stream}, using the ${key} and ${nonce}.  If ${key}
+ * is NULL, retain the previous AES key.
+ */
+void
+crypto_aesctr_init2(struct crypto_aesctr * stream,
+    const struct crypto_aes_key * key, uint64_t nonce)
+{
+
+	/* If the key is NULL, retain the previous AES key. */
+	if (key != NULL)
+		stream->key = key;
+
+	/* Set nonce as provided and reset bytectr. */
 	stream->nonce = nonce;
 	stream->bytectr = 0;
+
+	/* Sanity check. */
+	assert(stream->key != NULL);
+}
+
+/**
+ * crypto_aesctr_init(key, nonce):
+ * Prepare to encrypt/decrypt data with AES in CTR mode, using the provided
+ * expanded ${key} and ${nonce}.  The key provided must remain valid for the
+ * lifetime of the stream.  This is the same as calling _alloc() followed by
+ * _init2().
+ */
+struct crypto_aesctr *
+crypto_aesctr_init(const struct crypto_aes_key * key, uint64_t nonce)
+{
+	struct crypto_aesctr * stream;
+
+	/* Sanity check. */
+	assert(key != NULL);
+
+	/* Allocate memory. */
+	if ((stream = crypto_aesctr_alloc()) == NULL)
+		goto err0;
+
+	/* Initialize values. */
+	crypto_aesctr_init2(stream, key, nonce);
 
 	/* Success! */
 	return (stream);
@@ -54,7 +101,7 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 {
 	uint8_t pblk[16];
 	size_t pos;
-	int bytemod;
+	size_t bytemod;
 
 	for (pos = 0; pos < buflen; pos++) {
 		/* How far through the buffer are we? */
@@ -106,10 +153,11 @@ crypto_aesctr_buf(const struct crypto_aes_key * key, uint64_t nonce,
 	struct crypto_aesctr stream_rec;
 	struct crypto_aesctr * stream = &stream_rec;
 
+	/* Sanity check. */
+	assert(key != NULL);
+
 	/* Initialize values. */
-	stream->key = key;
-	stream->nonce = nonce;
-	stream->bytectr = 0;
+	crypto_aesctr_init2(stream, key, nonce);
 
 	/* Perform the encryption. */
 	crypto_aesctr_stream(stream, inbuf, outbuf, buflen);
