@@ -43,6 +43,14 @@ feature() {
 	esac
 }
 
+if [ "$2" = "--all" ]; then
+	feature() {
+		ARCH=$1
+		FEATURE=$2
+		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
+	}
+fi
+
 # Detect CPU-detection features
 feature HWCAP GETAUXVAL ""
 feature X86 CPUID ""
