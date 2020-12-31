@@ -59,12 +59,17 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+#endif /* HWACCEL */
 
-/* Should we use AESNI? */
-static int
-useaesni(void)
+/**
+ * crypto_aes_use_x86_aesni(void):
+ * Return non-zero if AESNI operations are available.
+ */
+int
+crypto_aes_use_x86_aesni(void)
 {
 	static int aesnigood = -1;
+#ifdef HWACCEL
 	uint8_t key[32];
 	uint8_t ptext[16];
 	size_t i;
@@ -98,10 +103,12 @@ useaesni(void)
 		/* AESNI works; use it. */
 		aesnigood = 1;
 	}
+#else /* !HWACCEL */
+	aesnigood = 0;
+#endif /* HWACCEL */
 
 	return (aesnigood);
 }
-#endif /* HWACCEL */
 
 /**
  * crypto_aes_key_expand(key, len):
@@ -118,7 +125,7 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 
 #ifdef CPUSUPPORT_X86_AESNI
 	/* Use AESNI if we can. */
-	if (useaesni())
+	if (crypto_aes_use_x86_aesni())
 		return (crypto_aes_key_expand_aesni(key, len));
 #endif
 
@@ -148,7 +155,7 @@ crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
 {
 
 #ifdef CPUSUPPORT_X86_AESNI
-	if (useaesni()) {
+	if (crypto_aes_use_x86_aesni()) {
 		crypto_aes_encrypt_block_aesni(in, out, (const void *)key);
 		return;
 	}
@@ -167,7 +174,7 @@ crypto_aes_key_free(struct crypto_aes_key * key)
 {
 
 #ifdef CPUSUPPORT_X86_AESNI
-	if (useaesni()) {
+	if (crypto_aes_use_x86_aesni()) {
 		crypto_aes_key_free_aesni((void *)key);
 		return;
 	}

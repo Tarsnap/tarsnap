@@ -206,11 +206,8 @@ crypto_aes_encrypt_block_aesni(const uint8_t in[16], uint8_t out[16],
 	if (nr > 10) {
 		aes_state = _mm_aesenc_si128(aes_state, aes_key[10]);
 		aes_state = _mm_aesenc_si128(aes_state, aes_key[11]);
-
-		if (nr > 12) {
-			aes_state = _mm_aesenc_si128(aes_state, aes_key[12]);
-			aes_state = _mm_aesenc_si128(aes_state, aes_key[13]);
-		}
+		aes_state = _mm_aesenc_si128(aes_state, aes_key[12]);
+		aes_state = _mm_aesenc_si128(aes_state, aes_key[13]);
 	}
 
 	aes_state = _mm_aesenclast_si128(aes_state, aes_key[nr]);
