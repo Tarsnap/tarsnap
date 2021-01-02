@@ -10,6 +10,7 @@
 #include "warnp.h"
 
 #include "crypto_aes_aesni.h"
+#include "crypto_aes_aesni_m128i.h"
 
 /* Expanded-key structure. */
 struct crypto_aes_key_aesni {
@@ -180,7 +181,7 @@ err0:
  * and should only be used if CPUSUPPORT_X86_AESNI is defined and
  * cpusupport_x86_aesni() returns nonzero.
  */
-static __m128i
+__m128i
 crypto_aes_encrypt_block_aesni_m128i(__m128i aes_state, const void * key)
 {
 	const struct crypto_aes_key_aesni * _key = key;
