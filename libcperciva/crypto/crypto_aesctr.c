@@ -112,25 +112,13 @@ void
 crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
-	size_t bytemod;
 
-	/* Do we have any bytes left in the current cipherblock? */
-	bytemod = stream->bytectr % 16;
-	if (bytemod != 0) {
-		/* Do we have enough to complete the request? */
-		if (bytemod + buflen <= 16) {
-			/* Process only buflen bytes, then return. */
-			crypto_aesctr_stream_cipherblock_use(stream, &inbuf,
-			    &outbuf, &buflen, buflen, bytemod);
-			return;
-		}
+	/* Process any bytes before we can process a whole block. */
+	if (crypto_aesctr_stream_pre_wholeblock(stream, &inbuf, &outbuf,
+	    &buflen))
+		return;
 
-		/* Encrypt the byte(s) and update the positions. */
-		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
-		    &buflen, 16 - bytemod, bytemod);
-	}
-
-	/* Process blocks of 16 bytes; we need a new cipherblock. */
+	/* Process whole blocks of 16 bytes. */
 	while (buflen >= 16) {
 		/* Generate a block of cipherstream. */
 		crypto_aesctr_stream_cipherblock_generate(stream);
@@ -140,15 +128,8 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 		    &buflen, 16, 0);
 	}
 
-	/* Process any final bytes; we need a new cipherblock. */
-	if (buflen > 0) {
-		/* Generate a block of cipherstream. */
-		crypto_aesctr_stream_cipherblock_generate(stream);
-
-		/* Encrypt the byte(s) and update the positions. */
-		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
-		    &buflen, buflen, 0);
-	}
+	/* Process any final bytes after finishing all whole blocks. */
+	crypto_aesctr_stream_post_wholeblock(stream, &inbuf, &outbuf, &buflen);
 }
 
 /**
