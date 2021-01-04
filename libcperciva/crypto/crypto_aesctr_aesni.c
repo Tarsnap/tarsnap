@@ -7,6 +7,7 @@
 #include <emmintrin.h>
 
 #include "crypto_aes.h"
+#include "crypto_aes_aesni_m128i.h"
 #include "sysendian.h"
 
 #include "crypto_aesctr_aesni.h"
@@ -44,8 +45,8 @@ crypto_aesctr_aesni_stream_wholeblock(struct crypto_aesctr * stream,
 	}
 
 	/* Encrypt the cipherblock. */
-	crypto_aes_encrypt_block(stream->pblk, stream->buf, stream->key);
-	bufsse = _mm_loadu_si128((const __m128i *)stream->buf);
+	bufsse = _mm_loadu_si128((const __m128i *)stream->pblk);
+	bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse, stream->key);
 
 	/* Encrypt the byte(s). */
 	inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
