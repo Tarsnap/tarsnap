@@ -4,6 +4,7 @@
 
 #include "cpusupport.h"
 #include "crypto_aes.h"
+#include "crypto_aesctr_aesni.h"
 #include "insecure_memzero.h"
 #include "sysendian.h"
 
@@ -135,6 +136,13 @@ void
 crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
+
+#if defined(CPUSUPPORT_X86_AESNI)
+	if ((buflen >= 16) && crypto_aesctr_use_x86_aesni()) {
+		crypto_aesctr_aesni_stream(stream, inbuf, outbuf, buflen);
+		return;
+	}
+#endif
 
 	/* Process any bytes before we can process a whole block. */
 	if (crypto_aesctr_stream_pre_wholeblock(stream, &inbuf, &outbuf,
