@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include <emmintrin.h>
+
 #include "crypto_aes.h"
 #include "sysendian.h"
 
@@ -28,7 +30,8 @@ static void
 crypto_aesctr_aesni_stream_wholeblock(struct crypto_aesctr * stream,
     const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen_p)
 {
-	size_t i;
+	__m128i bufsse;
+	__m128i inbufsse;
 
 	/* Prepare counter. */
 	stream->pblk[15]++;
@@ -42,10 +45,12 @@ crypto_aesctr_aesni_stream_wholeblock(struct crypto_aesctr * stream,
 
 	/* Encrypt the cipherblock. */
 	crypto_aes_encrypt_block(stream->pblk, stream->buf, stream->key);
+	bufsse = _mm_loadu_si128((const __m128i *)stream->buf);
 
 	/* Encrypt the byte(s). */
-	for (i = 0; i < 16; i++)
-		(*outbuf)[i] = (*inbuf)[i] ^ stream->buf[i];
+	inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
+	bufsse = _mm_xor_si128(inbufsse, bufsse);
+	_mm_storeu_si128((__m128i *)(*outbuf), bufsse);
 
 	/* Update the positions. */
 	stream->bytectr += 16;
