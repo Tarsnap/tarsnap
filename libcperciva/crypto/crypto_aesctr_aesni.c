@@ -23,6 +23,37 @@
  */
 #include "crypto_aesctr_shared.c"
 
+/* Process one whole block of generating & using a cipherblock. */
+static void
+crypto_aesctr_aesni_stream_wholeblock(struct crypto_aesctr * stream,
+    const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen_p)
+{
+	size_t i;
+
+	/* Prepare counter. */
+	stream->pblk[15]++;
+	if (stream->pblk[15] == 0) {
+		/*
+		 * If incrementing the least significant byte resulted in it
+		 * wrapping, re-encode the complete 64-bit value.
+		 */
+		be64enc(stream->pblk + 8, stream->bytectr / 16);
+	}
+
+	/* Encrypt the cipherblock. */
+	crypto_aes_encrypt_block(stream->pblk, stream->buf, stream->key);
+
+	/* Encrypt the byte(s). */
+	for (i = 0; i < 16; i++)
+		(*outbuf)[i] = (*inbuf)[i] ^ stream->buf[i];
+
+	/* Update the positions. */
+	stream->bytectr += 16;
+	*inbuf += 16;
+	*outbuf += 16;
+	*buflen_p -= 16;
+}
+
 /**
  * crypto_aesctr_aesni_stream(stream, inbuf, outbuf, buflen):
  * Generate the next ${buflen} bytes of the AES-CTR stream ${stream} and xor
@@ -39,14 +70,9 @@ crypto_aesctr_aesni_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 		return;
 
 	/* Process whole blocks of 16 bytes. */
-	while (buflen >= 16) {
-		/* Generate a block of cipherstream. */
-		crypto_aesctr_stream_cipherblock_generate(stream);
-
-		/* Encrypt the bytes and update the positions. */
-		crypto_aesctr_stream_cipherblock_use(stream, &inbuf, &outbuf,
-		    &buflen, 16, 0);
-	}
+	while (buflen >= 16)
+		crypto_aesctr_aesni_stream_wholeblock(stream, &inbuf, &outbuf,
+		    &buflen);
 
 	/* Process any final bytes after finishing all whole blocks. */
 	crypto_aesctr_stream_post_wholeblock(stream, &inbuf, &outbuf, &buflen);
