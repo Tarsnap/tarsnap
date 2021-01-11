@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "cpusupport.h"
 #include "crypto_aes.h"
+#include "crypto_aesctr_aesni.h"
 #include "insecure_memzero.h"
 #include "sysendian.h"
 
@@ -21,6 +23,28 @@
  * file which is included in each of the platform-specific variants.
  */
 #include "crypto_aesctr_shared.c"
+
+#if defined(CPUSUPPORT_X86_AESNI)
+/**
+ * crypto_aes_use_x86_aesni(void):
+ * Return non-zero if AESNI operations are available.
+ */
+static int
+crypto_aesctr_use_x86_aesni(void)
+{
+	static int aesnigood = -1;
+
+	/* Can we use AESNI? */
+	if (aesnigood == -1) {
+		if (crypto_aes_use_x86_aesni())
+			aesnigood = 1;
+		else
+			aesnigood = 0;
+	}
+
+	return (aesnigood);
+}
+#endif
 
 /**
  * crypto_aesctr_alloc(void):
@@ -112,6 +136,13 @@ void
 crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
+
+#if defined(CPUSUPPORT_X86_AESNI)
+	if ((buflen >= 16) && crypto_aesctr_use_x86_aesni()) {
+		crypto_aesctr_aesni_stream(stream, inbuf, outbuf, buflen);
+		return;
+	}
+#endif
 
 	/* Process any bytes before we can process a whole block. */
 	if (crypto_aesctr_stream_pre_wholeblock(stream, &inbuf, &outbuf,
