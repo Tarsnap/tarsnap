@@ -175,6 +175,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/crypto/crypto_aes_aesni_m128i.h	\
 		libcperciva/crypto/crypto_aesctr.c		\
 		libcperciva/crypto/crypto_aesctr.h		\
+		libcperciva/crypto/crypto_aesctr_aesni.h	\
 		libcperciva/crypto/crypto_dh.c			\
 		libcperciva/crypto/crypto_dh.h			\
 		libcperciva/crypto/crypto_dh_group14.c		\
@@ -290,7 +291,8 @@ BUILT_SOURCES=	cpusupport-config.h
 CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
 lib_libtarsnap_aesni_a_SOURCES=				\
-		libcperciva/crypto/crypto_aes_aesni.c
+		libcperciva/crypto/crypto_aes_aesni.c	\
+		libcperciva/crypto/crypto_aesctr_aesni.c
 nodist_lib_libtarsnap_aesni_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
