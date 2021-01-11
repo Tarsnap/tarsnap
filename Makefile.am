@@ -90,6 +90,8 @@ libarchive_libarchive_a_CPPFLAGS=-I$(top_builddir)/libarchive
 # Tarsnap internal library code
 #
 #
+# Don't include crypto_aesctr_shared.c in this list, as it should be included
+# directly into other translation unit(s), and not compiled on its own.
 lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto.h				\
 		lib/crypto/crypto_compat.c			\
@@ -170,6 +172,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aes.h			\
 		libcperciva/crypto/crypto_aes_aesni.h		\
+		libcperciva/crypto/crypto_aes_aesni_m128i.h	\
 		libcperciva/crypto/crypto_aesctr.c		\
 		libcperciva/crypto/crypto_aesctr.h		\
 		libcperciva/crypto/crypto_dh.c			\
@@ -200,6 +203,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/network/network_connect.c		\
 		libcperciva/network/network_read.c		\
 		libcperciva/network/network_write.c		\
+		libcperciva/util/align_ptr.h			\
 		libcperciva/util/asprintf.c			\
 		libcperciva/util/asprintf.h			\
 		libcperciva/util/b64encode.c			\
@@ -268,6 +272,10 @@ LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
+
+# crypto_aesctr_shared.c is in this list because it can't be included in the
+# _SOURCES because it should only be included as part of another translation
+# unit.
 EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
@@ -275,7 +283,9 @@ EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID_COUNT.c \
 		libcperciva/cpusupport/Build/cpusupport-X86-SHANI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c	\
-		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c
+		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c	\
+		libcperciva/crypto/crypto_aesctr_shared.c
+
 BUILT_SOURCES=	cpusupport-config.h
 CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
 
