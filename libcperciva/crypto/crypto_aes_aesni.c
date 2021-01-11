@@ -10,6 +10,7 @@
 #include "warnp.h"
 
 #include "crypto_aes_aesni.h"
+#include "crypto_aes_aesni_m128i.h"
 
 /* Expanded-key structure. */
 struct crypto_aes_key_aesni {
@@ -174,22 +175,19 @@ err0:
 }
 
 /**
- * crypto_aes_encrypt_block_aesni(in, out, key):
- * Using the expanded AES key ${key}, encrypt the block ${in} and write the
- * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.  This
- * implementation uses x86 AESNI instructions, and should only be used if
- * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
+ * crypto_aes_encrypt_block_aesni_m128i(in, key):
+ * Using the expanded AES key ${key}, encrypt the block ${in} and return the
+ * resulting ciphertext.  This implementation uses x86 AESNI instructions,
+ * and should only be used if CPUSUPPORT_X86_AESNI is defined and
+ * cpusupport_x86_aesni() returns nonzero.
  */
-void
-crypto_aes_encrypt_block_aesni(const uint8_t in[16], uint8_t out[16],
-    const void * key)
+__m128i
+crypto_aes_encrypt_block_aesni_m128i(__m128i aes_state, const void * key)
 {
 	const struct crypto_aes_key_aesni * _key = key;
 	const __m128i * aes_key = _key->rkeys;
-	__m128i aes_state;
 	size_t nr = _key->nr;
 
-	aes_state = _mm_loadu_si128((const __m128i *)in);
 	aes_state = _mm_xor_si128(aes_state, aes_key[0]);
 	aes_state = _mm_aesenc_si128(aes_state, aes_key[1]);
 	aes_state = _mm_aesenc_si128(aes_state, aes_key[2]);
@@ -208,6 +206,24 @@ crypto_aes_encrypt_block_aesni(const uint8_t in[16], uint8_t out[16],
 	}
 
 	aes_state = _mm_aesenclast_si128(aes_state, aes_key[nr]);
+	return (aes_state);
+}
+
+/**
+ * crypto_aes_encrypt_block_aesni(in, out, key):
+ * Using the expanded AES key ${key}, encrypt the block ${in} and write the
+ * resulting ciphertext to ${out}.  ${in} and ${out} can overlap.  This
+ * implementation uses x86 AESNI instructions, and should only be used if
+ * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
+ */
+void
+crypto_aes_encrypt_block_aesni(const uint8_t in[16], uint8_t out[16],
+    const void * key)
+{
+	__m128i aes_state;
+
+	aes_state = _mm_loadu_si128((const __m128i *)in);
+	aes_state = crypto_aes_encrypt_block_aesni_m128i(aes_state, key);
 	_mm_storeu_si128((__m128i *)out, aes_state);
 }
 
