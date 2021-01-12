@@ -92,7 +92,9 @@ static const uint32_t initial_state[8] = {
 static int
 hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
-    uint32_t W[static restrict 64], uint32_t S[static restrict 8])
+    uint32_t W[static restrict 64], uint32_t S[static restrict 8],
+    void(* func)(uint32_t [static restrict 8],
+    const uint8_t [static restrict 64]))
 {
 	uint32_t state_sw[8];
 	uint32_t state_hw[8];
@@ -102,10 +104,8 @@ hwtest(const uint32_t state[static restrict 8],
 	SHA256_Transform(state_sw, block, W, S);
 
 	/* Hardware transform. */
-#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	memcpy(state_hw, state, sizeof(state_hw));
-	SHA256_Transform_shani(state_hw, block);
-#endif
+	func(state_hw, block);
 
 	/* Do the results match? */
 	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
@@ -142,7 +142,8 @@ usehw(void)
 		if (!cpusupport_x86_ssse3())
 			break;
 
-		if (hwtest(initial_state, block, W, S)) {
+		if (hwtest(initial_state, block, W, S,
+		    SHA256_Transform_shani)) {
 			warn0("Disabling SHANI due to failed self-test");
 			break;
 		}
