@@ -33,8 +33,12 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 {
 	__m128i bufsse;
 	__m128i inbufsse;
+	__m128i nonce_be;
 	size_t num_blocks;
 	size_t i;
+
+	/* Load local variables from stream. */
+	nonce_be = _mm_loadu_si64(stream->pblk);
 
 	/* How many blocks should we process? */
 	num_blocks = (*buflen) / 16;
@@ -52,7 +56,8 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 		}
 
 		/* Encrypt the cipherblock. */
-		bufsse = _mm_loadu_si128((const __m128i *)stream->pblk);
+		bufsse = _mm_loadu_si64(stream->pblk + 8);
+		bufsse = _mm_unpacklo_epi64(nonce_be, bufsse);
 		bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse,
 		    stream->key);
 
