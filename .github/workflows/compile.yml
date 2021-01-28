@@ -98,6 +98,8 @@ jobs:
       env:
         USE_VALGRIND: 1
       run: make test
+    - name: Check for untracked files
+      run: test -z "$(git status --porcelain=v1)"
   macOS:
     name: macOS
     runs-on: macOS-10.15
