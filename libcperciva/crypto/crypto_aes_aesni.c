@@ -182,10 +182,11 @@ err0:
  * cpusupport_x86_aesni() returns nonzero.
  */
 __m128i
-crypto_aes_encrypt_block_aesni_m128i(__m128i aes_state, const void * key)
+crypto_aes_encrypt_block_aesni_m128i(__m128i in, const void * key)
 {
 	const struct crypto_aes_key_aesni * _key = key;
 	const __m128i * aes_key = _key->rkeys;
+	__m128i aes_state = in;
 	size_t nr = _key->nr;
 
 	aes_state = _mm_xor_si128(aes_state, aes_key[0]);
