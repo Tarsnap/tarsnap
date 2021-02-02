@@ -12,6 +12,10 @@
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 #define HWACCEL
+
+#define HW_UNSET -1
+#define HW_SOFTWARE 0
+#define HW_X86_SHANI 1
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
@@ -87,7 +91,7 @@ static const uint32_t initial_state[8] = {
 #ifdef HWACCEL
 /*
  * Test whether software and hardware extensions transform code produce the
- * same results.  Must be called with usesha() returning 0 (software).
+ * same results.  Must be called with usehw() returning HW_SOFTWARE.
  */
 static int
 hwtest(const uint32_t state[static restrict 8],
@@ -111,23 +115,20 @@ hwtest(const uint32_t state[static restrict 8],
 	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
 }
 
-/*
- * Should we use hardware acceleration?  Return 1 if we can use SHANI, or 0
- * if no intrinsics are available.
- */
+/* Which type of hardware acceleration should we use, if any? */
 static int
 usehw(void)
 {
-	static int hwgood = -1;
+	static int hwgood = HW_UNSET;
 	uint32_t W[64];
 	uint32_t S[8];
 	uint8_t block[64];
 	uint8_t i;
 
 	/* If we haven't decided which code to use yet, decide now. */
-	while (hwgood == -1) {
+	while (hwgood == HW_UNSET) {
 		/* Default to software. */
-		hwgood = 0;
+		hwgood = HW_SOFTWARE;
 
 		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
 		for (i = 0; i < 64; i++)
@@ -149,7 +150,7 @@ usehw(void)
 		}
 
 		/* SHANI works; use it. */
-		hwgood = 1;
+		hwgood = HW_X86_SHANI;
 #endif
 	}
 
@@ -199,7 +200,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	/* Use SHANI if we can. */
-	if (usehw()) {
+	if (usehw() == HW_X86_SHANI) {
 		SHA256_Transform_shani(state, block);
 		return;
 	}
