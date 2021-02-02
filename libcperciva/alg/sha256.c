@@ -135,25 +135,24 @@ usehw(void)
 			block[i] = i;
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
-		/* If the CPU doesn't claim to support SHANI, stop here. */
-		if (!cpusupport_x86_shani())
-			break;
-
-		/* If the CPU doesn't claim to support SSSE3, stop here. */
-		if (!cpusupport_x86_ssse3())
-			break;
-
-		if (hwtest(initial_state, block, W, S,
-		    SHA256_Transform_shani)) {
-			warn0("Disabling SHANI due to failed self-test");
-			break;
+		/* If the CPU claims to be able to do it... */
+		if (cpusupport_x86_shani() && cpusupport_x86_ssse3()) {
+			/* ... test if it works... */
+			if (hwtest(initial_state, block, W, S,
+			    SHA256_Transform_shani) == 0) {
+				/* ... if it works, use it and bail. */
+				hwgood = HW_X86_SHANI;
+				goto done;
+			} else {
+				/* ... else, print a warning and fallthrough. */
+				warn0("Disabling SHANI due to failed"
+				    " self-test");
+			}
 		}
-
-		/* SHANI works; use it. */
-		hwgood = HW_X86_SHANI;
 #endif
 	}
 
+done:
 	return (hwgood);
 }
 #endif /* HWACCEL */
@@ -198,13 +197,21 @@ SHA256_Transform(uint32_t state[static restrict 8],
 {
 	int i;
 
+#ifdef HWACCEL
+	switch(usehw()) {
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
-	/* Use SHANI if we can. */
-	if (usehw() == HW_X86_SHANI) {
+	case HW_X86_SHANI:
 		SHA256_Transform_shani(state, block);
 		return;
-	}
 #endif
+	case HW_SOFTWARE:
+		break;
+	default:
+		/* UNREACHABLE */
+		warn0("Programmer error: unreachable usehw value.");
+		assert(0);
+	}
+#endif /* HWACCEL */
 
 	/* 1. Prepare the first part of the message schedule W. */
 	be32dec_vect(W, block, 64);
