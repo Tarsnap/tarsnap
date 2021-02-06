@@ -5,17 +5,20 @@
 #include "cpusupport.h"
 #include "insecure_memzero.h"
 #include "sha256_shani.h"
+#include "sha256_sse2.h"
 #include "sysendian.h"
 #include "warnp.h"
 
 #include "sha256.h"
 
-#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3) ||	\
+    defined(CPUSUPPORT_X86_SSE2)
 #define HWACCEL
 
 #define HW_UNSET -1
 #define HW_SOFTWARE 0
 #define HW_X86_SHANI 1
+#define HW_X86_SSE2 2
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
@@ -166,6 +169,22 @@ usehw(void)
 			}
 		}
 #endif
+#if defined(CPUSUPPORT_X86_SSE2)
+		/* If the CPU claims to be able to do it... */
+		if (cpusupport_x86_sse2()) {
+			/* ... test if it works. */
+			if (hwtest(initial_state, block, W, S,
+			    SHA256_Transform_sse2) == 0) {
+				/* ... if it works, use it and bail. */
+				hwgood = HW_X86_SSE2;
+				goto done;
+			} else {
+				/* ... else, print a warning and fallthrough. */
+				warn0("Disabling SSE2 due to failed"
+				    " self-test");
+			}
+		}
+#endif
 	}
 
 done:
@@ -218,6 +237,11 @@ SHA256_Transform(uint32_t state[static restrict 8],
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	case HW_X86_SHANI:
 		SHA256_Transform_shani(state, block);
+		return;
+#endif
+#if defined(CPUSUPPORT_X86_SSE2)
+	case HW_X86_SSE2:
+		SHA256_Transform_sse2(state, block, W, S);
 		return;
 #endif
 	case HW_SOFTWARE:
