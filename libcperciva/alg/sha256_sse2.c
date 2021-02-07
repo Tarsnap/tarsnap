@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <immintrin.h>
+
 #include "sysendian.h"
 
 #include "sha256_sse2.h"
@@ -49,12 +51,9 @@ static const uint32_t Krnd[64] = {
 /* Elementary functions used by SHA256 */
 #define Ch(x, y, z)	((x & (y ^ z)) ^ z)
 #define Maj(x, y, z)	((x & (y | z)) | (y & z))
-#define SHR(x, n)	(x >> n)
 #define ROTR(x, n)	((x >> n) | (x << (32 - n)))
 #define S0(x)		(ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
 #define S1(x)		(ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define s0(x)		(ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define s1(x)		(ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
 
 /* SHA256 round function */
 #define RND(a, b, c, d, e, f, g, h, k)			\
@@ -71,9 +70,19 @@ static const uint32_t Krnd[64] = {
 	    W[i + ii] + Krnd[i + ii])
 
 /* Message schedule computation */
+#define SHR32(x, n) (_mm_srli_epi32(x, n))
+#define ROTR32(x, n) (_mm_or_si128(SHR32(x, n), _mm_slli_epi32(x, (32-n))))
+#define s0_128(x) _mm_xor_si128(_mm_xor_si128(			\
+	ROTR32(x, 7), ROTR32(x, 18)), SHR32(x, 3))
+#define s1_128(x) _mm_xor_si128(_mm_xor_si128(			\
+	ROTR32(x, 17), ROTR32(x, 19)), SHR32(x, 10))
+
 static inline void
 MSG4(uint32_t W[64], int ii, int i)
 {
+	__m128i X0, X1, X2, X3;
+	__m128i X4;
+	__m128i Xj_minus_seven, Xj_minus_fifteen;
 	int j;
 
 	/*
@@ -85,10 +94,26 @@ MSG4(uint32_t W[64], int ii, int i)
 	 */
 	j = i + ii + 16;
 
-	W[j + 0] = s1(W[j - 2 + 0]) + W[j - 7 + 0] + s0(W[j - 15 + 0]) + W[j - 16 + 0];
-	W[j + 1] = s1(W[j - 2 + 1]) + W[j - 7 + 1] + s0(W[j - 15 + 1]) + W[j - 16 + 1];
-	W[j + 2] = s1(W[j - 2 + 2]) + W[j - 7 + 2] + s0(W[j - 15 + 2]) + W[j - 16 + 2];
-	W[j + 3] = s1(W[j - 2 + 3]) + W[j - 7 + 3] + s0(W[j - 15 + 3]) + W[j - 16 + 3];
+	/* Set up variables with various portions of W. */
+	X0 = _mm_loadu_si128((const __m128i *)&W[j - 16]);
+	X1 = _mm_loadu_si128((const __m128i *)&W[j - 12]);
+	X2 = _mm_loadu_si128((const __m128i *)&W[j - 8]);
+	X3 = _mm_loadu_si128((const __m128i *)&W[j - 4]);
+	Xj_minus_seven = _mm_loadu_si128((const __m128i *)&W[j - 7]);
+	Xj_minus_fifteen = _mm_loadu_si128((const __m128i *)&W[j - 15]);
+
+	/* Begin computing X4. */
+	X4 = _mm_add_epi32(X0, Xj_minus_seven);
+	X4 = _mm_add_epi32(X4, s0_128(Xj_minus_fifteen));
+
+	/* First half of s1. */
+	X4 = _mm_add_epi32(X4, s1_128(_mm_srli_si128(X3, 8)));
+
+	/* Second half of s1; this depends on the above value of X4. */
+	X4 = _mm_add_epi32(X4, s1_128(_mm_slli_si128(X4, 8)));
+
+	/* Update W. */
+	_mm_storeu_si128((__m128i *)&W[j], X4);
 }
 
 /**
