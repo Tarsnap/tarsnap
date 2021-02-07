@@ -71,8 +71,25 @@ static const uint32_t Krnd[64] = {
 	    W[i + ii] + Krnd[i + ii])
 
 /* Message schedule computation */
-#define MSCH(W, ii, i)				\
-	W[i + ii + 16] = s1(W[i + ii + 14]) + W[i + ii + 9] + s0(W[i + ii + 1]) + W[i + ii]
+static inline void
+MSG4(uint32_t W[64], int ii, int i)
+{
+	int j;
+
+	/*
+	 * Most algorithms express "the next unknown value of the message
+	 * schedule" as ${W[i]}, and write other indices relative to ${i}.
+	 * Unfortunately, our main loop uses ${i} to indicate 0, 16, 32, or
+	 * 48.  To avoid confusion, this implementation of the message
+	 * scheduling will use ${W[j]} to indicate "the next unknown value".
+	 */
+	j = i + ii + 16;
+
+	W[j + 0] = s1(W[j - 2 + 0]) + W[j - 7 + 0] + s0(W[j - 15 + 0]) + W[j - 16 + 0];
+	W[j + 1] = s1(W[j - 2 + 1]) + W[j - 7 + 1] + s0(W[j - 15 + 1]) + W[j - 16 + 1];
+	W[j + 2] = s1(W[j - 2 + 2]) + W[j - 7 + 2] + s0(W[j - 15 + 2]) + W[j - 16 + 2];
+	W[j + 3] = s1(W[j - 2 + 3]) + W[j - 7 + 3] + s0(W[j - 15 + 3]) + W[j - 16 + 3];
+}
 
 /**
  * SHA256_Transform_sse2(state, block):
@@ -122,22 +139,10 @@ SHA256_Transform_sse2(uint32_t state[static restrict 8],
 
 		if (i == 48)
 			break;
-		MSCH(W, 0, i);
-		MSCH(W, 1, i);
-		MSCH(W, 2, i);
-		MSCH(W, 3, i);
-		MSCH(W, 4, i);
-		MSCH(W, 5, i);
-		MSCH(W, 6, i);
-		MSCH(W, 7, i);
-		MSCH(W, 8, i);
-		MSCH(W, 9, i);
-		MSCH(W, 10, i);
-		MSCH(W, 11, i);
-		MSCH(W, 12, i);
-		MSCH(W, 13, i);
-		MSCH(W, 14, i);
-		MSCH(W, 15, i);
+		MSG4(W, 0, i);
+		MSG4(W, 4, i);
+		MSG4(W, 8, i);
+		MSG4(W, 12, i);
 	}
 
 	/* 4. Mix local working variables into global state. */
