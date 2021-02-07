@@ -74,8 +74,46 @@ static const uint32_t Krnd[64] = {
 #define ROTR32(x, n) (_mm_or_si128(SHR32(x, n), _mm_slli_epi32(x, (32-n))))
 #define s0_128(x) _mm_xor_si128(_mm_xor_si128(			\
 	ROTR32(x, 7), ROTR32(x, 18)), SHR32(x, 3))
-#define s1_128(x) _mm_xor_si128(_mm_xor_si128(			\
-	ROTR32(x, 17), ROTR32(x, 19)), SHR32(x, 10))
+
+static inline __m128i
+s1_128_high(__m128i a)
+{
+	__m128i b;
+	__m128i c;
+
+	/* ROTR, loading data as {B, B, A, A}; lanes 1 & 3 will be junk. */
+	b = _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 1, 0, 0));
+	c = _mm_xor_si128(_mm_srli_epi64(b, 17), _mm_srli_epi64(b, 19));
+
+	/* Shift and XOR with rotated data; lanes 1 & 3 will be junk. */
+	c = _mm_xor_si128(c, _mm_srli_epi32(b, 10));
+
+	/* Shuffle good data back and zero unwanted lanes. */
+	c = _mm_shuffle_epi32(c, _MM_SHUFFLE(2, 0, 2, 0));
+	c = _mm_slli_si128(c, 8);
+
+	return (c);
+}
+
+static inline __m128i
+s1_128_low(__m128i a)
+{
+	__m128i b;
+	__m128i c;
+
+	/* ROTR, loading data as {B, B, A, A}; lanes 1 & 3 will be junk. */
+	b = _mm_shuffle_epi32(a, _MM_SHUFFLE(3, 3, 2, 2));
+	c = _mm_xor_si128(_mm_srli_epi64(b, 17), _mm_srli_epi64(b, 19));
+
+	/* Shift and XOR with rotated data; lanes 1 & 3 will be junk. */
+	c = _mm_xor_si128(c, _mm_srli_epi32(b, 10));
+
+	/* Shuffle good data back and zero unwanted lanes. */
+	c = _mm_shuffle_epi32(c, _MM_SHUFFLE(2, 0, 2, 0));
+	c = _mm_srli_si128(c, 8);
+
+	return (c);
+}
 
 /**
  * SPAN_ONE_THREE(a, b):
@@ -121,10 +159,10 @@ MSG4(uint32_t W[64], int ii, int i)
 	X4 = _mm_add_epi32(X4, s0_128(Xj_minus_fifteen));
 
 	/* First half of s1. */
-	X4 = _mm_add_epi32(X4, s1_128(_mm_srli_si128(X3, 8)));
+	X4 = _mm_add_epi32(X4, s1_128_low(X3));
 
 	/* Second half of s1; this depends on the above value of X4. */
-	X4 = _mm_add_epi32(X4, s1_128(_mm_slli_si128(X4, 8)));
+	X4 = _mm_add_epi32(X4, s1_128_high(X4));
 
 	/* Update W. */
 	_mm_storeu_si128((__m128i *)&W[j], X4);
