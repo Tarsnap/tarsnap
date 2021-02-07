@@ -77,6 +77,20 @@ static const uint32_t Krnd[64] = {
 #define s1_128(x) _mm_xor_si128(_mm_xor_si128(			\
 	ROTR32(x, 17), ROTR32(x, 19)), SHR32(x, 10))
 
+/**
+ * SPAN_ONE_THREE(a, b):
+ * Combine the lowest word of ${a} with the upper three words of ${b}.  This
+ * could also be thought of returning bits [159:32] of the 256-bit value
+ * consisting of (a[127:0] b[127:0]).  In other words, set:
+ *     dst[31:0] := b[63:32]
+ *     dst[63:32] := b[95:64]
+ *     dst[95:64] := b[127:96]
+ *     dst[127:96] := a[31:0]
+ */
+#define SPAN_ONE_THREE(a, b) (_mm_shuffle_epi32(_mm_castps_si128(	\
+	_mm_move_ss(_mm_castsi128_ps(a), _mm_castsi128_ps(b))),		\
+	_MM_SHUFFLE(0, 3, 2, 1)))
+
 static inline void
 MSG4(uint32_t W[64], int ii, int i)
 {
@@ -99,8 +113,8 @@ MSG4(uint32_t W[64], int ii, int i)
 	X1 = _mm_loadu_si128((const __m128i *)&W[j - 12]);
 	X2 = _mm_loadu_si128((const __m128i *)&W[j - 8]);
 	X3 = _mm_loadu_si128((const __m128i *)&W[j - 4]);
-	Xj_minus_seven = _mm_loadu_si128((const __m128i *)&W[j - 7]);
-	Xj_minus_fifteen = _mm_loadu_si128((const __m128i *)&W[j - 15]);
+	Xj_minus_seven = SPAN_ONE_THREE(X2, X3);
+	Xj_minus_fifteen = SPAN_ONE_THREE(X0, X1);
 
 	/* Begin computing X4. */
 	X4 = _mm_add_epi32(X0, Xj_minus_seven);
