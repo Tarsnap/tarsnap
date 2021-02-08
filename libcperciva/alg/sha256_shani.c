@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+/**
+ * CPUSUPPORT CFLAGS: X86_SHANI X86_SSSE3
+ */
 
 #include <immintrin.h>
 #include <stdint.h>
