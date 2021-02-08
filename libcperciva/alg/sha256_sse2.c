@@ -7,25 +7,24 @@
 
 #include <immintrin.h>
 
-#include "sysendian.h"
-
 #include "sha256_sse2.h"
 
-/*
- * Decode a big-endian length len vector of (uint8_t) into a length
- * len/4 vector of (uint32_t).  Assumes len is a multiple of 4.
+/**
+ * _mm_bswap_epi32(a):
+ * Byte-swap each 32-bit word.
  */
-static void
-be32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
+static inline __m128i
+_mm_bswap_epi32(__m128i a)
 {
-	size_t i;
 
-	/* Sanity-check. */
-	assert(len % 4 == 0);
+	/* Swap bytes in each 16-bit word. */
+        a = _mm_or_si128(_mm_slli_epi16(a, 8), _mm_srli_epi16(a, 8));
 
-	/* Decode vector, one word at a time. */
-	for (i = 0; i < len / 4; i++)
-		dst[i] = be32dec(src + i * 4);
+	/* Swap all 16-bit words. */
+	a = _mm_shufflelo_epi16(a, _MM_SHUFFLE(2, 3, 0, 1));
+	a = _mm_shufflehi_epi16(a, _MM_SHUFFLE(2, 3, 0, 1));
+
+	return (a);
 }
 
 /* SHA256 round constants. */
@@ -190,7 +189,14 @@ SHA256_Transform_sse2(uint32_t state[static restrict 8],
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
-	be32dec_vect(W, block, 64);
+	_mm_storeu_si128((__m128i *)&W[0],
+	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[0])));
+	_mm_storeu_si128((__m128i *)&W[4],
+	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[16])));
+	_mm_storeu_si128((__m128i *)&W[8],
+	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[32])));
+	_mm_storeu_si128((__m128i *)&W[12],
+	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[48])));
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, 32);
