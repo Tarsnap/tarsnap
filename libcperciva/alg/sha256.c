@@ -92,7 +92,9 @@ static const uint32_t initial_state[8] = {
 static int
 hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
-    uint32_t W[static restrict 64], uint32_t S[static restrict 8])
+    uint32_t W[static restrict 64], uint32_t S[static restrict 8],
+    void(* func)(uint32_t [static restrict 8],
+    const uint8_t [static restrict 64]))
 {
 	uint32_t state_sw[8];
 	uint32_t state_hw[8];
@@ -102,53 +104,56 @@ hwtest(const uint32_t state[static restrict 8],
 	SHA256_Transform(state_sw, block, W, S);
 
 	/* Hardware transform. */
-#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	memcpy(state_hw, state, sizeof(state_hw));
-	SHA256_Transform_shani(state_hw, block);
-#endif
+	func(state_hw, block);
 
 	/* Do the results match? */
 	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
 }
 
-/* Should we use SHANI? */
+/*
+ * Should we use hardware acceleration?  Return 1 if we can use SHANI, or 0
+ * if no intrinsics are available.
+ */
 static int
-useshani(void)
+usehw(void)
 {
-	static int shanigood = -1;
+	static int hwgood = -1;
 	uint32_t W[64];
 	uint32_t S[8];
 	uint8_t block[64];
 	uint8_t i;
 
 	/* If we haven't decided which code to use yet, decide now. */
-	while (shanigood == -1) {
+	while (hwgood == -1) {
 		/* Default to software. */
-		shanigood = 0;
+		hwgood = 0;
+
+		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
+		for (i = 0; i < 64; i++)
+			block[i] = i;
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
-		/* If the CPU doesn't claim to support AESNI, stop here. */
+		/* If the CPU doesn't claim to support SHANI, stop here. */
 		if (!cpusupport_x86_shani())
 			break;
 
 		/* If the CPU doesn't claim to support SSSE3, stop here. */
 		if (!cpusupport_x86_ssse3())
 			break;
-#endif
 
-		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
-		for (i = 0; i < 64; i++)
-			block[i] = i;
-		if (hwtest(initial_state, block, W, S)) {
+		if (hwtest(initial_state, block, W, S,
+		    SHA256_Transform_shani)) {
 			warn0("Disabling SHANI due to failed self-test");
 			break;
 		}
 
 		/* SHANI works; use it. */
-		shanigood = 1;
+		hwgood = 1;
+#endif
 	}
 
-	return (shanigood);
+	return (hwgood);
 }
 #endif /* HWACCEL */
 
@@ -182,7 +187,8 @@ useshani(void)
 
 /*
  * SHA256 block compression function.  The 256-bit state is transformed via
- * the 512-bit input block to produce a new state.
+ * the 512-bit input block to produce a new state.  The arrays W and S may be
+ * filled with sensitive data, and should be sanitized by the callee.
  */
 static void
 SHA256_Transform(uint32_t state[static restrict 8],
@@ -193,7 +199,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	/* Use SHANI if we can. */
-	if (useshani()) {
+	if (usehw()) {
 		SHA256_Transform_shani(state, block);
 		return;
 	}
@@ -354,7 +360,7 @@ SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
 	_SHA256_Update(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 }
 
 /**
@@ -387,7 +393,7 @@ SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx)
 	insecure_memzero(ctx, sizeof(SHA256_CTX));
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 }
 
 /**
@@ -406,7 +412,7 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
 
 	/* Clean the stack. */
 	insecure_memzero(&ctx, sizeof(SHA256_CTX));
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 }
 
 /**
@@ -458,7 +464,7 @@ HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
 	_HMAC_SHA256_Init(ctx, _K, Klen, tmp32, pad, khash);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 	insecure_memzero(khash, 32);
 	insecure_memzero(pad, 64);
 }
@@ -486,7 +492,7 @@ HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
 	_HMAC_SHA256_Update(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 }
 
 /**
@@ -523,7 +529,7 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	insecure_memzero(ctx, sizeof(HMAC_SHA256_CTX));
 
 	/* Clean the stack. */
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 	insecure_memzero(ihash, 32);
 }
 
@@ -546,7 +552,7 @@ HMAC_SHA256_Buf(const void * K, size_t Klen, const void * in, size_t len,
 
 	/* Clean the stack. */
 	insecure_memzero(&ctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 	insecure_memzero(tmp8, 96);
 }
 
@@ -616,7 +622,7 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 	insecure_memzero(&Phctx, sizeof(HMAC_SHA256_CTX));
 	insecure_memzero(&PShctx, sizeof(HMAC_SHA256_CTX));
 	insecure_memzero(&hctx, sizeof(HMAC_SHA256_CTX));
-	insecure_memzero(tmp32, 288);
+	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
 	insecure_memzero(tmp8, 96);
 	insecure_memzero(U, 32);
 	insecure_memzero(T, 32);

@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* The resulting length after base-64 encoding, not including the NUL byte. */
+#define b64len(origlen) (((origlen + 2) / 3) * 4)
+
 /**
  * b64encode(in, out, len):
  * Convert ${len} bytes from ${in} into RFC 1421 base-64 encoding, writing
