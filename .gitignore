@@ -19,6 +19,9 @@ confmf
 /config.status
 /cpusupport-config.h
 /stamp-h1
+tests-output/
+tests-valgrind/
+tests/valgrind/potential-memleaks
 
 # ignore installed files
 /keygen/tarsnap-keygen.1
