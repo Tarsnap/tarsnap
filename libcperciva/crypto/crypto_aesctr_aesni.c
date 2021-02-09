@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <emmintrin.h>
 
@@ -26,38 +27,62 @@
  */
 #include "crypto_aesctr_shared.c"
 
-/* Process one whole block of generating & using a cipherblock. */
+/* Process multiple whole blocks by generating & using a cipherblock. */
 static void
-crypto_aesctr_aesni_stream_wholeblock(struct crypto_aesctr * stream,
-    const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen_p)
+crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
+    const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen)
 {
 	__m128i bufsse;
 	__m128i inbufsse;
+	__m128i nonce_be;
+	uint8_t block_counter_be_arr[8];
+	uint64_t block_counter;
+	size_t num_blocks;
+	size_t i;
 
-	/* Prepare counter. */
-	stream->pblk[15]++;
-	if (stream->pblk[15] == 0) {
-		/*
-		 * If incrementing the least significant byte resulted in it
-		 * wrapping, re-encode the complete 64-bit value.
-		 */
-		be64enc(stream->pblk + 8, stream->bytectr / 16);
+	/* Load local variables from stream. */
+	nonce_be = _mm_loadu_si64(stream->pblk);
+	memcpy(block_counter_be_arr, stream->pblk + 8, 8);
+	block_counter = stream->bytectr / 16;
+
+	/* How many blocks should we process? */
+	num_blocks = (*buflen) / 16;
+
+	for (i = 0; i < num_blocks; i++) {
+		/* Prepare counter. */
+		block_counter_be_arr[7]++;
+		if (block_counter_be_arr[7] == 0) {
+			/*
+			 * If incrementing the least significant byte resulted
+			 * in it wrapping, re-encode the complete 64-bit
+			 * value.
+			 */
+			be64enc(block_counter_be_arr, block_counter);
+		}
+
+		/* Encrypt the cipherblock. */
+		bufsse = _mm_loadu_si64(block_counter_be_arr);
+		bufsse = _mm_unpacklo_epi64(nonce_be, bufsse);
+		bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse,
+		    stream->key);
+
+		/* Encrypt the byte(s). */
+		inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
+		bufsse = _mm_xor_si128(inbufsse, bufsse);
+		_mm_storeu_si128((__m128i *)(*outbuf), bufsse);
+
+		/* Update the positions. */
+		block_counter++;
+		*inbuf += 16;
+		*outbuf += 16;
 	}
 
-	/* Encrypt the cipherblock. */
-	bufsse = _mm_loadu_si128((const __m128i *)stream->pblk);
-	bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse, stream->key);
+	/* Update the overall buffer length. */
+	*buflen -= 16 * num_blocks;
 
-	/* Encrypt the byte(s). */
-	inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
-	bufsse = _mm_xor_si128(inbufsse, bufsse);
-	_mm_storeu_si128((__m128i *)(*outbuf), bufsse);
-
-	/* Update the positions. */
-	stream->bytectr += 16;
-	*inbuf += 16;
-	*outbuf += 16;
-	*buflen_p -= 16;
+	/* Update variables in stream. */
+	memcpy(stream->pblk + 8, block_counter_be_arr, 8);
+	stream->bytectr += 16 * num_blocks;
 }
 
 /**
@@ -70,19 +95,19 @@ void
 crypto_aesctr_aesni_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
+
 	/* Process any bytes before we can process a whole block. */
 	if (crypto_aesctr_stream_pre_wholeblock(stream, &inbuf, &outbuf,
 	    &buflen))
 		return;
 
 	/* Process whole blocks of 16 bytes. */
-	while (buflen >= 16)
-		crypto_aesctr_aesni_stream_wholeblock(stream, &inbuf, &outbuf,
-		    &buflen);
+	if (buflen >= 16)
+		crypto_aesctr_aesni_stream_wholeblocks(stream, &inbuf,
+		    &outbuf, &buflen);
 
 	/* Process any final bytes after finishing all whole blocks. */
 	crypto_aesctr_stream_post_wholeblock(stream, &inbuf, &outbuf, &buflen);
-
 }
 
 #endif /* CPUSUPPORT_X86_AESNI */
