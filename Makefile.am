@@ -163,6 +163,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/alg/sha256.c			\
 		libcperciva/alg/sha256.h			\
 		libcperciva/alg/sha256_shani.h			\
+		libcperciva/alg/sha256_sse2.h			\
 		libcperciva/cpusupport/cpusupport.h		\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
 		libcperciva/cpusupport/cpusupport_x86_rdrand.c	\
@@ -310,6 +311,7 @@ lib_libtarsnap_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDRA
 LIBTARSNAP_A+=	lib/libtarsnap_rdrand.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
+		libcperciva/alg/sha256_sse2.c		\
 		lib/crypto/crypto_scrypt_smix_sse2.c
 nodist_lib_libtarsnap_sse2_a_SOURCES=			\
 		cpusupport-config.h
