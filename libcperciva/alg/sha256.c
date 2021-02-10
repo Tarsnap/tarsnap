@@ -5,17 +5,20 @@
 #include "cpusupport.h"
 #include "insecure_memzero.h"
 #include "sha256_shani.h"
+#include "sha256_sse2.h"
 #include "sysendian.h"
 #include "warnp.h"
 
 #include "sha256.h"
 
-#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3) ||	\
+    defined(CPUSUPPORT_X86_SSE2)
 #define HWACCEL
 
 #define HW_UNSET -1
 #define HW_SOFTWARE 0
 #define HW_X86_SHANI 1
+#define HW_X86_SSE2 2
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
@@ -89,6 +92,21 @@ static const uint32_t initial_state[8] = {
 };
 
 #ifdef HWACCEL
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
+/* Shim so that we can test SHA256_Transform_shani() in the standard manner. */
+static void
+SHA256_Transform_shani_with_W_S(uint32_t state[static restrict 8],
+    const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
+    uint32_t S[static restrict 8])
+{
+
+	(void)W; /* UNUSED */
+	(void)S; /* UNUSED */
+
+	SHA256_Transform_shani(state, block);
+}
+#endif
+
 /*
  * Test whether software and hardware extensions transform code produce the
  * same results.  Must be called with usehw() returning HW_SOFTWARE.
@@ -98,7 +116,8 @@ hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8],
     void(* func)(uint32_t [static restrict 8],
-    const uint8_t [static restrict 64]))
+    const uint8_t [static restrict 64], uint32_t W[static restrict 64],
+    uint32_t S[static restrict 8]))
 {
 	uint32_t state_sw[8];
 	uint32_t state_hw[8];
@@ -109,7 +128,7 @@ hwtest(const uint32_t state[static restrict 8],
 
 	/* Hardware transform. */
 	memcpy(state_hw, state, sizeof(state_hw));
-	func(state_hw, block);
+	func(state_hw, block, W, S);
 
 	/* Do the results match? */
 	return (memcmp(state_sw, state_hw, sizeof(state_sw)));
@@ -139,13 +158,29 @@ usehw(void)
 		if (cpusupport_x86_shani() && cpusupport_x86_ssse3()) {
 			/* ... test if it works... */
 			if (hwtest(initial_state, block, W, S,
-			    SHA256_Transform_shani) == 0) {
+			    SHA256_Transform_shani_with_W_S) == 0) {
 				/* ... if it works, use it and bail. */
 				hwgood = HW_X86_SHANI;
 				goto done;
 			} else {
 				/* ... else, print a warning and fallthrough. */
 				warn0("Disabling SHANI due to failed"
+				    " self-test");
+			}
+		}
+#endif
+#if defined(CPUSUPPORT_X86_SSE2)
+		/* If the CPU claims to be able to do it... */
+		if (cpusupport_x86_sse2()) {
+			/* ... test if it works. */
+			if (hwtest(initial_state, block, W, S,
+			    SHA256_Transform_sse2) == 0) {
+				/* ... if it works, use it and bail. */
+				hwgood = HW_X86_SSE2;
+				goto done;
+			} else {
+				/* ... else, print a warning and fallthrough. */
+				warn0("Disabling SSE2 due to failed"
 				    " self-test");
 			}
 		}
@@ -202,6 +237,11 @@ SHA256_Transform(uint32_t state[static restrict 8],
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	case HW_X86_SHANI:
 		SHA256_Transform_shani(state, block);
+		return;
+#endif
+#if defined(CPUSUPPORT_X86_SSE2)
+	case HW_X86_SSE2:
+		SHA256_Transform_sse2(state, block, W, S);
 		return;
 #endif
 	case HW_SOFTWARE:
