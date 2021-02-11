@@ -51,7 +51,12 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 	/* How many blocks should we process? */
 	num_blocks = (*buflen) / 16;
 
-	for (i = 0; i < num_blocks; i++) {
+	/*
+	 * This is 'for (i = num_blocks; i > 0; i--)', but ensuring that the
+	 * compiler knows that we will execute the loop at least once.
+	 */
+	i = num_blocks;
+	do {
 		/* Prepare counter. */
 		block_counter_be_arr[7]++;
 		if (block_counter_be_arr[7] == 0) {
@@ -78,7 +83,10 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 		block_counter++;
 		*inbuf += 16;
 		*outbuf += 16;
-	}
+
+		/* Update the counter. */
+		i--;
+	} while (i > 0);
 
 	/* Update the overall buffer length. */
 	*buflen -= 16 * num_blocks;
