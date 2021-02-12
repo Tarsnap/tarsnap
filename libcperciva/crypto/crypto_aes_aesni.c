@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #ifdef CPUSUPPORT_X86_AESNI
+/**
+ * CPUSUPPORT CFLAGS: X86_AESNI
+ */
 
 #include <stdint.h>
 #include <stdlib.h>

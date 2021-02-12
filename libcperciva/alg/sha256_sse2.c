@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #ifdef CPUSUPPORT_X86_SSE2
+/**
+ * CPUSUPPORT CFLAGS: X86_SSE2
+ */
 
 #include <assert.h>
 #include <stdint.h>

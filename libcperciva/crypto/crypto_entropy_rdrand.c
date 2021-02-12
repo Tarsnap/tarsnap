@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #ifdef CPUSUPPORT_X86_RDRAND
+/**
+ * CPUSUPPORT CFLAGS: X86_RDRAND
+ */
 
 #include <immintrin.h>
 #include <stddef.h>
