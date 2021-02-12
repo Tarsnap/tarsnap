@@ -320,3 +320,6 @@ void	add_substitution(struct bsdtar *, const char *);
 int	apply_substitution(struct bsdtar *, const char *, char **, int);
 void	cleanup_substitution(struct bsdtar *);
 #endif
+
+void	list_item_verbose(struct bsdtar *, FILE *,
+		    struct archive_entry *);

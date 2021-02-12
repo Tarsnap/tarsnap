@@ -80,8 +80,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/read.c,v 1.40 2008/08/21 06:41:14 kientzle E
 
 #include "archive_multitape.h"
 
-static void	list_item_verbose(struct bsdtar *, FILE *,
-		    struct archive_entry *);
 static void	read_archive(struct bsdtar *bsdtar, char mode);
 
 void
@@ -330,11 +328,14 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			    !yes("extract '%s'", archive_entry_pathname(entry)))
 				continue;
 
-			/*
-			 * Format here is from SUSv2, including the
-			 * deferred '\n'.
-			 */
-			if (bsdtar->verbose) {
+			if (bsdtar->verbose > 1) {
+				/* GNU tar uses -tv format with -xvv */
+				safe_fprintf(stderr, "x ");
+				list_item_verbose(bsdtar, stderr, entry);
+				fflush(stderr);
+			} else if (bsdtar->verbose > 0) {
+				/* Format follows SUSv2, including the
+				 * deferred '\n'. */
 				safe_fprintf(stderr, "x %s",
 				    archive_entry_pathname(entry));
 				fflush(stderr);
@@ -415,118 +416,4 @@ err0:
 	/* Failure! */
 	bsdtar->return_value = 1;
 	return;
-}
-
-
-/*
- * Display information about the current file.
- *
- * The format here roughly duplicates the output of 'ls -l'.
- * This is based on SUSv2, where 'tar tv' is documented as
- * listing additional information in an "unspecified format,"
- * and 'pax -l' is documented as using the same format as 'ls -l'.
- */
-static void
-list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
-{
-	const struct stat	*st;
-	char			 tmp[100];
-	size_t			 w;
-	const char		*p;
-	const char		*fmt;
-	time_t			 tim;
-	static time_t		 now;
-
-	st = archive_entry_stat(entry);
-
-	/*
-	 * We avoid collecting the entire list in memory at once by
-	 * listing things as we see them.  However, that also means we can't
-	 * just pre-compute the field widths.  Instead, we start with guesses
-	 * and just widen them as necessary.  These numbers are completely
-	 * arbitrary.
-	 */
-	if (!bsdtar->u_width) {
-		bsdtar->u_width = 6;
-		bsdtar->gs_width = 13;
-	}
-	if (!now)
-		time(&now);
-	fprintf(out, "%s %d ",
-	    archive_entry_strmode(entry),
-	    (int)(st->st_nlink));
-
-	/* Use uname if it's present, else uid. */
-	p = archive_entry_uname(entry);
-	if ((p == NULL) || (*p == '\0')) {
-		sprintf(tmp, "%lu ", (unsigned long)st->st_uid);
-		p = tmp;
-	}
-	w = strlen(p);
-	if (w > bsdtar->u_width)
-		bsdtar->u_width = w;
-	fprintf(out, "%-*s ", (int)bsdtar->u_width, p);
-
-	/* Use gname if it's present, else gid. */
-	p = archive_entry_gname(entry);
-	if (p != NULL && p[0] != '\0') {
-		fprintf(out, "%s", p);
-		w = strlen(p);
-	} else {
-		sprintf(tmp, "%lu", (unsigned long)st->st_gid);
-		w = strlen(tmp);
-		fprintf(out, "%s", tmp);
-	}
-
-	/*
-	 * Print device number or file size, right-aligned so as to make
-	 * total width of group and devnum/filesize fields be gs_width.
-	 * If gs_width is too small, grow it.
-	 */
-	if (S_ISCHR(st->st_mode) || S_ISBLK(st->st_mode)) {
-		sprintf(tmp, "%lu,%lu",
-		    (unsigned long)major(st->st_rdev),
-		    (unsigned long)minor(st->st_rdev)); /* ls(1) also casts here. */
-	} else {
-		/*
-		 * Note the use of platform-dependent macros to format
-		 * the filesize here.  We need the format string and the
-		 * corresponding type for the cast.
-		 */
-		sprintf(tmp, BSDTAR_FILESIZE_PRINTF,
-		    (BSDTAR_FILESIZE_TYPE)st->st_size);
-	}
-	if (w + strlen(tmp) >= bsdtar->gs_width)
-		bsdtar->gs_width = w+strlen(tmp)+1;
-	fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
-
-	/* Format the time. */
-	tim = (time_t)st->st_mtime;
-	if (bsdtar->option_iso_dates) {
-		fmt = "%F %T";
-	} else {
-		/* Use the 'ls -l' convention. */
-#if defined(_WIN32) && !defined(__CYGWIN__)
-		/* Windows' strftime function does not support %e format. */
-		if (imaxabs(tim - now) > (365/2)*86400)
-			fmt = bsdtar->day_first ? "%d %b  %Y" : "%b %d  %Y";
-		else
-			fmt = bsdtar->day_first ? "%d %b %H:%M" : "%b %d %H:%M";
-#else
-		if (imaxabs(tim - now) > (365/2)*86400)
-			fmt = bsdtar->day_first ? "%e %b  %Y" : "%b %e  %Y";
-		else
-			fmt = bsdtar->day_first ? "%e %b %H:%M" : "%b %e %H:%M";
-#endif
-	}
-	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
-	fprintf(out, " %s ", tmp);
-	safe_fprintf(out, "%s", archive_entry_pathname(entry));
-
-	/* Extra information for links. */
-	if (archive_entry_hardlink(entry)) /* Hard link */
-		safe_fprintf(out, " link to %s",
-		    archive_entry_hardlink(entry));
-	else if (S_ISLNK(st->st_mode)) /* Symbolic link */
-		safe_fprintf(out, " -> %s", archive_entry_symlink(entry));
 }
