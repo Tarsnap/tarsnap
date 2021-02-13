@@ -131,28 +131,25 @@ s1_128_low(__m128i a)
 	_mm_move_ss(_mm_castsi128_ps(a), _mm_castsi128_ps(b))),		\
 	_MM_SHUFFLE(0, 3, 2, 1)))
 
-static inline void
-MSG4(uint32_t W[64], int ii, int i)
+/**
+ * MSG4(X0, X1, X2, X3):
+ * Calculate the next four values of the message schedule.  If we define
+ * ${W[j]} as the first unknown value in the message schedule, then the input
+ * arguments are:
+ *     X0 = W[j - 16] : W[j - 13]
+ *     X1 = W[j - 12] : W[j - 9]
+ *     X2 = W[j - 8] : W[j - 5]
+ *     X3 = W[j - 4] : W[j - 1]
+ * This function therefore calculates:
+ *     X4 = W[j + 0] : W[j + 3]
+ */
+static inline __m128i
+MSG4(__m128i X0, __m128i X1, __m128i X2, __m128i X3)
 {
-	__m128i X0, X1, X2, X3;
 	__m128i X4;
 	__m128i Xj_minus_seven, Xj_minus_fifteen;
-	int j;
 
-	/*
-	 * Most algorithms express "the next unknown value of the message
-	 * schedule" as ${W[i]}, and write other indices relative to ${i}.
-	 * Unfortunately, our main loop uses ${i} to indicate 0, 16, 32, or
-	 * 48.  To avoid confusion, this implementation of the message
-	 * scheduling will use ${W[j]} to indicate "the next unknown value".
-	 */
-	j = i + ii + 16;
-
-	/* Set up variables with various portions of W. */
-	X0 = _mm_loadu_si128((const __m128i *)&W[j - 16]);
-	X1 = _mm_loadu_si128((const __m128i *)&W[j - 12]);
-	X2 = _mm_loadu_si128((const __m128i *)&W[j - 8]);
-	X3 = _mm_loadu_si128((const __m128i *)&W[j - 4]);
+	/* Set up variables which span X values. */
 	Xj_minus_seven = SPAN_ONE_THREE(X2, X3);
 	Xj_minus_fifteen = SPAN_ONE_THREE(X0, X1);
 
@@ -166,8 +163,7 @@ MSG4(uint32_t W[64], int ii, int i)
 	/* Second half of s1; this depends on the above value of X4. */
 	X4 = _mm_add_epi32(X4, s1_128_high(X4));
 
-	/* Update W. */
-	_mm_storeu_si128((__m128i *)&W[j], X4);
+	return (X4);
 }
 
 /**
@@ -189,17 +185,18 @@ SHA256_Transform_sse2(uint32_t state[static restrict 8],
     uint32_t S[static restrict 8])
 #endif
 {
+	__m128i Y[4];
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
-	_mm_storeu_si128((__m128i *)&W[0],
-	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[0])));
-	_mm_storeu_si128((__m128i *)&W[4],
-	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[16])));
-	_mm_storeu_si128((__m128i *)&W[8],
-	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[32])));
-	_mm_storeu_si128((__m128i *)&W[12],
-	    _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[48])));
+	Y[0] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[0]));
+	_mm_storeu_si128((__m128i *)&W[0], Y[0]);
+	Y[1] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[16]));
+	_mm_storeu_si128((__m128i *)&W[4], Y[1]);
+	Y[2] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[32]));
+	_mm_storeu_si128((__m128i *)&W[8], Y[2]);
+	Y[3] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[48]));
+	_mm_storeu_si128((__m128i *)&W[12], Y[3]);
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, 32);
@@ -225,10 +222,14 @@ SHA256_Transform_sse2(uint32_t state[static restrict 8],
 
 		if (i == 48)
 			break;
-		MSG4(W, 0, i);
-		MSG4(W, 4, i);
-		MSG4(W, 8, i);
-		MSG4(W, 12, i);
+		Y[0] = MSG4(Y[0], Y[1], Y[2], Y[3]);
+		_mm_storeu_si128((__m128i *)&W[16 + i + 0], Y[0]);
+		Y[1] = MSG4(Y[1], Y[2], Y[3], Y[0]);
+		_mm_storeu_si128((__m128i *)&W[16 + i + 4], Y[1]);
+		Y[2] = MSG4(Y[2], Y[3], Y[0], Y[1]);
+		_mm_storeu_si128((__m128i *)&W[16 + i + 8], Y[2]);
+		Y[3] = MSG4(Y[3], Y[0], Y[1], Y[2]);
+		_mm_storeu_si128((__m128i *)&W[16 + i + 12], Y[3]);
 	}
 
 	/* 4. Mix local working variables into global state. */
