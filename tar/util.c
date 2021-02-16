@@ -37,6 +37,12 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/util.c,v 1.23 2008/12/15 06:00:25 kientzle E
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>  /* Linux doesn't define mode_t, etc. in sys/stat.h. */
 #endif
+#ifdef MAJOR_IN_MKDEV
+#include <sys/mkdev.h>
+#else
+#ifdef MAJOR_IN_SYSMACROS
+#include <sys/sysmacros.h>
+#endif
 #include <ctype.h>
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
