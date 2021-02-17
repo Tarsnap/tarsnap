@@ -80,3 +80,6 @@ feature ARM CRC32_64 "-march=armv8.1-a"					\
     "-march=armv8.1-a+crc"						\
     "-march=armv8.1-a+crc -Wno-cast-align"				\
     "-march=armv8.1-a -D__ARM_ACLE=200"
+feature ARM SHA256 "-march=armv8.1-a+crypto"				\
+    "-march=armv8.1-a+crypto -Wno-cast-align"				\
+    "-march=armv8.1-a+crypto -D__ARM_ACLE=200"
