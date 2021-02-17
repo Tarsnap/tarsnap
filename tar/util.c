@@ -39,10 +39,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/util.c,v 1.23 2008/12/15 06:00:25 kientzle E
 #endif
 #ifdef MAJOR_IN_MKDEV
 #include <sys/mkdev.h>
-#else
-#ifdef MAJOR_IN_SYSMACROS
+#elif defined(MAJOR_IN_SYSMACROS)
 #include <sys/sysmacros.h>
-#endif
 #endif
 #include <ctype.h>
 #ifdef HAVE_ERRNO_H
