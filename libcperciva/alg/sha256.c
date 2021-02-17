@@ -15,10 +15,12 @@
     defined(CPUSUPPORT_X86_SSE2)
 #define HWACCEL
 
-#define HW_UNSET -1
-#define HW_SOFTWARE 0
-#define HW_X86_SHANI 1
-#define HW_X86_SSE2 2
+enum {
+	HW_UNSET,
+	HW_X86_SHANI,
+	HW_X86_SSE2,
+	HW_SOFTWARE
+};
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
