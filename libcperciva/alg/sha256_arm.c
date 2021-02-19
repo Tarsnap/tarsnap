@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#endif
+
 #include "sysendian.h"
 
 #include "sha256_arm.h"
@@ -52,12 +56,9 @@ static const uint32_t Krnd[64] = {
 /* Elementary functions used by SHA256 */
 #define Ch(x, y, z)	((x & (y ^ z)) ^ z)
 #define Maj(x, y, z)	((x & (y | z)) | (y & z))
-#define SHR(x, n)	(x >> n)
 #define ROTR(x, n)	((x >> n) | (x << (32 - n)))
 #define S0(x)		(ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
 #define S1(x)		(ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define s0(x)		(ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define s1(x)		(ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
 
 /* SHA256 round function */
 #define RND(a, b, c, d, e, f, g, h, k)			\
@@ -74,8 +75,8 @@ static const uint32_t Krnd[64] = {
 	    W[i + ii] + Krnd[i + ii])
 
 /* Message schedule computation */
-#define MSCH(W, ii, i)				\
-	W[i + ii + 16] = s1(W[i + ii + 14]) + W[i + ii + 9] + s0(W[i + ii + 1]) + W[i + ii]
+#define MSG4(X0, X1, X2, X3)					\
+	X0 = vsha256su1q_u32(vsha256su0q_u32(X0, X1), X2, X3)
 
 /**
  * SHA256_Transform_arm(state, block, W, S):
@@ -96,10 +97,15 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
     uint32_t S[static restrict 8])
 #endif
 {
+	uint32x4_t Y[4];
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
 	be32dec_vect(W, block, 64);
+	Y[0] = vld1q_u32(&W[0]);
+	Y[1] = vld1q_u32(&W[4]);
+	Y[2] = vld1q_u32(&W[8]);
+	Y[3] = vld1q_u32(&W[12]);
 
 	/* 2. Initialize working variables. */
 	memcpy(S, state, 32);
@@ -125,22 +131,14 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 
 		if (i == 48)
 			break;
-		MSCH(W, 0, i);
-		MSCH(W, 1, i);
-		MSCH(W, 2, i);
-		MSCH(W, 3, i);
-		MSCH(W, 4, i);
-		MSCH(W, 5, i);
-		MSCH(W, 6, i);
-		MSCH(W, 7, i);
-		MSCH(W, 8, i);
-		MSCH(W, 9, i);
-		MSCH(W, 10, i);
-		MSCH(W, 11, i);
-		MSCH(W, 12, i);
-		MSCH(W, 13, i);
-		MSCH(W, 14, i);
-		MSCH(W, 15, i);
+		MSG4(Y[0], Y[1], Y[2], Y[3]);
+		vst1q_u32(&W[16 + i + 0], Y[0]);
+		MSG4(Y[1], Y[2], Y[3], Y[0]);
+		vst1q_u32(&W[16 + i + 4], Y[1]);
+		MSG4(Y[2], Y[3], Y[0], Y[1]);
+		vst1q_u32(&W[16 + i + 8], Y[2]);
+		MSG4(Y[3], Y[0], Y[1], Y[2]);
+		vst1q_u32(&W[16 + i + 12], Y[3]);
 	}
 
 	/* 4. Mix local working variables into global state. */
