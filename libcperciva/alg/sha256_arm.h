@@ -12,12 +12,10 @@
  * should be cleared by the callee.
  */
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
-void SHA256_Transform_arm(uint32_t state[8],
-    const uint8_t block[64], uint32_t W[64], uint32_t S[8]);
+void SHA256_Transform_arm(uint32_t state[8], const uint8_t block[64]);
 #else
 void SHA256_Transform_arm(uint32_t[static restrict 8],
-    const uint8_t[static restrict 64], uint32_t W[static restrict 64],
-    uint32_t S[static restrict 8]);
+    const uint8_t[static restrict 64]);
 #endif
 
 #endif /* !_SHA256_ARM_H_ */

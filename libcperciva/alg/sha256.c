@@ -111,6 +111,20 @@ SHA256_Transform_shani_with_W_S(uint32_t state[static restrict 8],
 	SHA256_Transform_shani(state, block);
 }
 #endif
+#if defined(CPUSUPPORT_ARM_SHA256)
+/* Shim so that we can test SHA256_Transform_arm() in the standard manner. */
+static void
+SHA256_Transform_arm_with_W_S(uint32_t state[static restrict 8],
+    const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
+    uint32_t S[static restrict 8])
+{
+
+	(void)W; /* UNUSED */
+	(void)S; /* UNUSED */
+
+	SHA256_Transform_arm(state, block);
+}
+#endif
 
 /*
  * Test whether software and hardware extensions transform code produce the
@@ -195,7 +209,7 @@ usehw(void)
 		if (cpusupport_arm_sha256()) {
 			/* ... test if it works... */
 			if (hwtest(initial_state, block, W, S,
-			    SHA256_Transform_arm)) {
+			    SHA256_Transform_arm_with_W_S)) {
 				warn0("Disabling ARM-SHA256 due to failed"
 				    " self-test");
 			} else
@@ -266,7 +280,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 #endif
 #if defined(CPUSUPPORT_ARM_SHA256)
 	case HW_ARM_SHA256:
-		SHA256_Transform_arm(state, block, W, S);
+		SHA256_Transform_arm(state, block);
 		return;
 #endif
 	case HW_SOFTWARE:

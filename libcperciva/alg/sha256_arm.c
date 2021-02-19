@@ -58,22 +58,17 @@ static const uint32_t Krnd[64] = {
  */
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
 void
-SHA256_Transform_arm(uint32_t state[8], const uint8_t block[64],
-    uint32_t W[64], uint32_t S[8])
+SHA256_Transform_arm(uint32_t state[8], const uint8_t block[64])
 #else
 void
 SHA256_Transform_arm(uint32_t state[static restrict 8],
-    const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
-    uint32_t S[static restrict 8])
+    const uint8_t block[static restrict 64])
 #endif
 {
 	uint32x4_t Y[4];
 	uint32x4_t S0, S1;
 	uint32x4_t _state[2];
 	int i;
-
-	(void)W; /* UNUSED */
-	(void)S; /* UNUSED */
 
 	/* 1. Prepare the first part of the message schedule W. */
 	Y[0] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[0])));
