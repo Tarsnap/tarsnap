@@ -35,13 +35,13 @@ static const uint32_t Krnd[64] = {
 };
 
 /* Round computation. */
-#define RND4(S0, S1, M, Kp) do {				\
+#define RND4(S, M, Kp) do {					\
 		uint32x4_t S0_step;				\
 		uint32x4_t Wk;					\
-		S0_step = S0;					\
+		S0_step = S[0];					\
 		Wk = vaddq_u32(M, vld1q_u32(Kp));		\
-		S0 = vsha256hq_u32(S0, S1, Wk);			\
-		S1 = vsha256h2q_u32(S1, S0_step, Wk);		\
+		S[0] = vsha256hq_u32(S[0], S[1], Wk);		\
+		S[1] = vsha256h2q_u32(S[1], S0_step, Wk);	\
 	} while (0)
 
 /* Message schedule computation */
@@ -66,7 +66,7 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 #endif
 {
 	uint32x4_t Y[4];
-	uint32x4_t S0, S1;
+	uint32x4_t S[2];
 	uint32x4_t _state[2];
 	int i;
 
@@ -77,15 +77,15 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 	Y[3] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[48])));
 
 	/* 2. Initialize working variables. */
-	S0 = _state[0] = vld1q_u32(&state[0]);
-	S1 = _state[1] = vld1q_u32(&state[4]);
+	S[0] = _state[0] = vld1q_u32(&state[0]);
+	S[1] = _state[1] = vld1q_u32(&state[4]);
 
 	/* 3. Mix. */
 	for (i = 0; i < 64; i += 16) {
-		RND4(S0, S1, Y[0], &Krnd[i + 0]);
-		RND4(S0, S1, Y[1], &Krnd[i + 4]);
-		RND4(S0, S1, Y[2], &Krnd[i + 8]);
-		RND4(S0, S1, Y[3], &Krnd[i + 12]);
+		RND4(S, Y[0], &Krnd[i + 0]);
+		RND4(S, Y[1], &Krnd[i + 4]);
+		RND4(S, Y[2], &Krnd[i + 8]);
+		RND4(S, Y[3], &Krnd[i + 12]);
 
 		if (i == 48)
 			break;
@@ -96,7 +96,7 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 	}
 
 	/* 4. Mix local working variables into global state. */
-	vst1q_u32(&state[0], vaddq_u32(_state[0], S0));
-	vst1q_u32(&state[4], vaddq_u32(_state[1], S1));
+	vst1q_u32(&state[0], vaddq_u32(_state[0], S[0]));
+	vst1q_u32(&state[4], vaddq_u32(_state[1], S[1]));
 }
 #endif /* CPUSUPPORT_ARM_SHA256 */
