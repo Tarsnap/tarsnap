@@ -45,23 +45,19 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 
 	/* Load local variables from stream. */
 	nonce_be = _mm_loadu_si64(stream->pblk);
-	memcpy(block_counter_be_arr, stream->pblk + 8, 8);
 	block_counter = stream->bytectr / 16;
 
 	/* How many blocks should we process? */
 	num_blocks = (*buflen) / 16;
 
-	for (i = 0; i < num_blocks; i++) {
+	/*
+	 * This is 'for (i = num_blocks; i > 0; i--)', but ensuring that the
+	 * compiler knows that we will execute the loop at least once.
+	 */
+	i = num_blocks;
+	do {
 		/* Prepare counter. */
-		block_counter_be_arr[7]++;
-		if (block_counter_be_arr[7] == 0) {
-			/*
-			 * If incrementing the least significant byte resulted
-			 * in it wrapping, re-encode the complete 64-bit
-			 * value.
-			 */
-			be64enc(block_counter_be_arr, block_counter);
-		}
+		be64enc(block_counter_be_arr, block_counter);
 
 		/* Encrypt the cipherblock. */
 		bufsse = _mm_loadu_si64(block_counter_be_arr);
@@ -78,7 +74,10 @@ crypto_aesctr_aesni_stream_wholeblocks(struct crypto_aesctr * stream,
 		block_counter++;
 		*inbuf += 16;
 		*outbuf += 16;
-	}
+
+		/* Update the counter. */
+		i--;
+	} while (i > 0);
 
 	/* Update the overall buffer length. */
 	*buflen -= 16 * num_blocks;
