@@ -5,8 +5,8 @@
  */
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #ifdef __ARM_NEON
 #include <arm_neon.h>
@@ -53,26 +53,15 @@ static const uint32_t Krnd[64] = {
 	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-/* Elementary functions used by SHA256 */
-#define Ch(x, y, z)	((x & (y ^ z)) ^ z)
-#define Maj(x, y, z)	((x & (y | z)) | (y & z))
-#define ROTR(x, n)	((x >> n) | (x << (32 - n)))
-#define S0(x)		(ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define S1(x)		(ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-
-/* SHA256 round function */
-#define RND(a, b, c, d, e, f, g, h, k)			\
-	h += S1(e) + Ch(e, f, g) + k;			\
-	d += h;						\
-	h += S0(a) + Maj(a, b, c)
-
-/* Adjusted round function for rotating state */
-#define RNDr(S, W, i, ii)			\
-	RND(S[(64 - i) % 8], S[(65 - i) % 8],	\
-	    S[(66 - i) % 8], S[(67 - i) % 8],	\
-	    S[(68 - i) % 8], S[(69 - i) % 8],	\
-	    S[(70 - i) % 8], S[(71 - i) % 8],	\
-	    W[i + ii] + Krnd[i + ii])
+/* Round computation. */
+#define RND4(S0, S1, M, Kp) do {				\
+		uint32x4_t S0_step;				\
+		uint32x4_t Wk;					\
+		S0_step = S0;					\
+		Wk = vaddq_u32(M, vld1q_u32(Kp));		\
+		S0 = vsha256hq_u32(S0, S1, Wk);			\
+		S1 = vsha256h2q_u32(S1, S0_step, Wk);		\
+	} while (0)
 
 /* Message schedule computation */
 #define MSG4(X0, X1, X2, X3)					\
@@ -98,7 +87,11 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 #endif
 {
 	uint32x4_t Y[4];
+	uint32x4_t S0, S1;
+	uint32x4_t _state[2];
 	int i;
+
+	(void)S; /* UNUSED */
 
 	/* 1. Prepare the first part of the message schedule W. */
 	be32dec_vect(W, block, 64);
@@ -108,41 +101,26 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 	Y[3] = vld1q_u32(&W[12]);
 
 	/* 2. Initialize working variables. */
-	memcpy(S, state, 32);
+	S0 = _state[0] = vld1q_u32(&state[0]);
+	S1 = _state[1] = vld1q_u32(&state[4]);
 
 	/* 3. Mix. */
 	for (i = 0; i < 64; i += 16) {
-		RNDr(S, W, 0, i);
-		RNDr(S, W, 1, i);
-		RNDr(S, W, 2, i);
-		RNDr(S, W, 3, i);
-		RNDr(S, W, 4, i);
-		RNDr(S, W, 5, i);
-		RNDr(S, W, 6, i);
-		RNDr(S, W, 7, i);
-		RNDr(S, W, 8, i);
-		RNDr(S, W, 9, i);
-		RNDr(S, W, 10, i);
-		RNDr(S, W, 11, i);
-		RNDr(S, W, 12, i);
-		RNDr(S, W, 13, i);
-		RNDr(S, W, 14, i);
-		RNDr(S, W, 15, i);
+		RND4(S0, S1, Y[0], &Krnd[i + 0]);
+		RND4(S0, S1, Y[1], &Krnd[i + 4]);
+		RND4(S0, S1, Y[2], &Krnd[i + 8]);
+		RND4(S0, S1, Y[3], &Krnd[i + 12]);
 
 		if (i == 48)
 			break;
 		MSG4(Y[0], Y[1], Y[2], Y[3]);
-		vst1q_u32(&W[16 + i + 0], Y[0]);
 		MSG4(Y[1], Y[2], Y[3], Y[0]);
-		vst1q_u32(&W[16 + i + 4], Y[1]);
 		MSG4(Y[2], Y[3], Y[0], Y[1]);
-		vst1q_u32(&W[16 + i + 8], Y[2]);
 		MSG4(Y[3], Y[0], Y[1], Y[2]);
-		vst1q_u32(&W[16 + i + 12], Y[3]);
 	}
 
 	/* 4. Mix local working variables into global state. */
-	for (i = 0; i < 8; i++)
-		state[i] += S[i];
+	vst1q_u32(&state[0], vaddq_u32(_state[0], S0));
+	vst1q_u32(&state[4], vaddq_u32(_state[1], S1));
 }
 #endif /* CPUSUPPORT_ARM_SHA256 */
