@@ -12,26 +12,7 @@
 #include <arm_neon.h>
 #endif
 
-#include "sysendian.h"
-
 #include "sha256_arm.h"
-
-/*
- * Decode a big-endian length len vector of (uint8_t) into a length
- * len/4 vector of (uint32_t).  Assumes len is a multiple of 4.
- */
-static void
-be32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
-{
-	size_t i;
-
-	/* Sanity-check. */
-	assert(len % 4 == 0);
-
-	/* Decode vector, one word at a time. */
-	for (i = 0; i < len / 4; i++)
-		dst[i] = be32dec(src + i * 4);
-}
 
 /* SHA256 round constants. */
 static const uint32_t Krnd[64] = {
@@ -91,14 +72,14 @@ SHA256_Transform_arm(uint32_t state[static restrict 8],
 	uint32x4_t _state[2];
 	int i;
 
+	(void)W; /* UNUSED */
 	(void)S; /* UNUSED */
 
 	/* 1. Prepare the first part of the message schedule W. */
-	be32dec_vect(W, block, 64);
-	Y[0] = vld1q_u32(&W[0]);
-	Y[1] = vld1q_u32(&W[4]);
-	Y[2] = vld1q_u32(&W[8]);
-	Y[3] = vld1q_u32(&W[12]);
+	Y[0] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[0])));
+	Y[1] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[16])));
+	Y[2] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[32])));
+	Y[3] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&block[48])));
 
 	/* 2. Initialize working variables. */
 	S0 = _state[0] = vld1q_u32(&state[0]);
