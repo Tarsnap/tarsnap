@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_shani.a lib/libtarsnap_sse2.a
+noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_shani.a lib/libtarsnap_sse2.a lib/libtarsnap_arm_sha256.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 noinst_PROGRAMS=	tests/valgrind/potential-memleaks
 man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
@@ -162,9 +162,11 @@ lib_libtarsnap_a_SOURCES=					\
 		lib-platform/util/memlimit.h			\
 		libcperciva/alg/sha256.c			\
 		libcperciva/alg/sha256.h			\
+		libcperciva/alg/sha256_arm.h			\
 		libcperciva/alg/sha256_shani.h			\
 		libcperciva/alg/sha256_sse2.h			\
 		libcperciva/cpusupport/cpusupport.h		\
+		libcperciva/cpusupport/cpusupport_arm_sha256.c	\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
 		libcperciva/cpusupport/cpusupport_x86_rdrand.c	\
 		libcperciva/cpusupport/cpusupport_x86_shani.c	\
@@ -280,6 +282,8 @@ cpusupport-config.h:
 # unit.
 EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
+		libcperciva/cpusupport/Build/cpusupport-ARM-SHA256.c	\
+		libcperciva/cpusupport/Build/cpusupport-HWCAP-GETAUXVAL.c \
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID_COUNT.c \
@@ -328,6 +332,15 @@ lib_libtarsnap_shani_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_shani_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_shani.a
+
+lib_libtarsnap_arm_sha256_a_SOURCES=				\
+		libcperciva/alg/sha256_arm.c
+nodist_lib_libtarsnap_arm_sha256_a_SOURCES=			\
+		cpusupport-config.h
+lib_libtarsnap_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_arm_sha256.a
 
 
 #
