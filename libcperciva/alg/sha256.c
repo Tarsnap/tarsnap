@@ -4,6 +4,7 @@
 
 #include "cpusupport.h"
 #include "insecure_memzero.h"
+#include "sha256_arm.h"
 #include "sha256_shani.h"
 #include "sha256_sse2.h"
 #include "sysendian.h"
@@ -12,13 +13,17 @@
 #include "sha256.h"
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3) ||	\
-    defined(CPUSUPPORT_X86_SSE2)
+    defined(CPUSUPPORT_X86_SSE2) ||					\
+    defined(CPUSUPPORT_ARM_SHA256)
 #define HWACCEL
 
-#define HW_UNSET -1
-#define HW_SOFTWARE 0
-#define HW_X86_SHANI 1
-#define HW_X86_SSE2 2
+enum {
+	HW_UNSET,
+	HW_X86_SHANI,
+	HW_X86_SSE2,
+	HW_ARM_SHA256,
+	HW_SOFTWARE
+};
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
@@ -106,6 +111,20 @@ SHA256_Transform_shani_with_W_S(uint32_t state[static restrict 8],
 	SHA256_Transform_shani(state, block);
 }
 #endif
+#if defined(CPUSUPPORT_ARM_SHA256)
+/* Shim so that we can test SHA256_Transform_arm() in the standard manner. */
+static void
+SHA256_Transform_arm_with_W_S(uint32_t state[static restrict 8],
+    const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
+    uint32_t S[static restrict 8])
+{
+
+	(void)W; /* UNUSED */
+	(void)S; /* UNUSED */
+
+	SHA256_Transform_arm(state, block);
+}
+#endif
 
 /*
  * Test whether software and hardware extensions transform code produce the
@@ -185,6 +204,21 @@ usehw(void)
 			}
 		}
 #endif
+#if defined(CPUSUPPORT_ARM_SHA256)
+		/* If the CPU claims to be able to do it... */
+		if (cpusupport_arm_sha256()) {
+			/* ... test if it works... */
+			if (hwtest(initial_state, block, W, S,
+			    SHA256_Transform_arm_with_W_S)) {
+				warn0("Disabling ARM-SHA256 due to failed"
+				    " self-test");
+			} else
+				hwgood = HW_ARM_SHA256;
+
+			/* ... and bail whether or not we can use it. */
+			goto done;
+		}
+#endif
 	}
 
 done:
@@ -242,6 +276,11 @@ SHA256_Transform(uint32_t state[static restrict 8],
 #if defined(CPUSUPPORT_X86_SSE2)
 	case HW_X86_SSE2:
 		SHA256_Transform_sse2(state, block, W, S);
+		return;
+#endif
+#if defined(CPUSUPPORT_ARM_SHA256)
+	case HW_ARM_SHA256:
+		SHA256_Transform_arm(state, block);
 		return;
 #endif
 	case HW_SOFTWARE:

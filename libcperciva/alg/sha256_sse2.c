@@ -119,13 +119,13 @@ s1_128_low(__m128i a)
 
 /**
  * SPAN_ONE_THREE(a, b):
- * Combine the lowest word of ${a} with the upper three words of ${b}.  This
+ * Combine the upper three words of ${a} with the lowest word of ${b}.  This
  * could also be thought of returning bits [159:32] of the 256-bit value
- * consisting of (a[127:0] b[127:0]).  In other words, set:
- *     dst[31:0] := b[63:32]
- *     dst[63:32] := b[95:64]
- *     dst[95:64] := b[127:96]
- *     dst[127:96] := a[31:0]
+ * consisting of (b[127:0] a[127:0]).  In other words, set:
+ *     dst[31:0] := a[63:32]
+ *     dst[63:32] := a[95:64]
+ *     dst[95:64] := a[127:96]
+ *     dst[127:96] := b[31:0]
  */
 #define SPAN_ONE_THREE(a, b) (_mm_shuffle_epi32(_mm_castps_si128(	\
 	_mm_move_ss(_mm_castsi128_ps(a), _mm_castsi128_ps(b))),		\
