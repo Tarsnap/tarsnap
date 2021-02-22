@@ -30,6 +30,11 @@
  */
 #include "crypto_aesctr_shared.c"
 
+#ifdef BROKEN_MM_LOADU_SI64
+#warning Working around compiler bug: _mm_loadu_si64 is missing
+#warning Updating to a newer compiler may improve performance
+#endif
+
 /**
  * load_si64(mem):
  * Load an unaligned 64-bit integer from memory into the lowest 64 bits of the
@@ -39,7 +44,11 @@ static inline __m128i
 load_si64(const void * mem)
 {
 
+#ifdef BROKEN_MM_LOADU_SI64
+	return (_mm_castpd_si128(_mm_load_sd(mem)));
+#else
 	return (_mm_loadu_si64(mem));
+#endif
 }
 
 /* Process multiple whole blocks by generating & using a cipherblock. */
