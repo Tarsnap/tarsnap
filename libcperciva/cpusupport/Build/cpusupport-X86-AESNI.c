@@ -23,7 +23,12 @@ main(void)
 	uint8_t a[16];
 
 	x = load_128(a);
-	y = _mm_aesenc_si128(x, x);
+#ifdef BROKEN_MM_LOADU_SI64
+	y = _mm_loadu_si128(a);
+#else
+	y = _mm_loadu_si64(a);
+#endif
+	y = _mm_aesenc_si128(x, y);
 	_mm_storeu_si128((__m128i *)&a[0], y);
 	return (a[0]);
 }

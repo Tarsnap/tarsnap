@@ -60,7 +60,9 @@ feature X86 CPUID_COUNT ""
 feature X86 AESNI "" "-maes"						\
     "-maes -Wno-cast-align"						\
     "-maes -Wno-missing-prototypes -Wno-cast-qual"			\
-    "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align"
+    "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align"	\
+    "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align	\
+    -DBROKEN_MM_LOADU_SI64"
 feature X86 CRC32_64 "" "-msse4.2"					\
     "-msse4.2 -Wno-cast-align"						\
     "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
