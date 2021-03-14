@@ -203,3 +203,6 @@ take the form
 
 		/* Normal implementation of the function. */
 	}
+
+If there are multiple CPU-feature-exploiting variants, the `if` could instead
+be a `switch` which invokes the appropriate variant function.
