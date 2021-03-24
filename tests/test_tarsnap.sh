@@ -11,4 +11,4 @@ out_valgrind="${bindir}/tests-valgrind"
 
 
 ### Run tests using project-specific constants
-run_scenarios ${scriptdir}/??-*.sh
+run_scenarios
