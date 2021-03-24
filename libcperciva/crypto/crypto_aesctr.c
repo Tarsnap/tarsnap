@@ -25,26 +25,35 @@
 #include "crypto_aesctr_shared.c"
 
 #if defined(CPUSUPPORT_X86_AESNI)
-/**
- * crypto_aes_use_x86_aesni(void):
- * Return non-zero if AESNI operations are available.
- */
-static int
-crypto_aesctr_use_x86_aesni(void)
+#define HWACCEL
+
+static enum {
+	HW_SOFTWARE = 0,
+#if defined(CPUSUPPORT_X86_AESNI)
+	HW_X86_AESNI,
+#endif
+	HW_UNSET
+} hwaccel = HW_UNSET;
+#endif
+
+#ifdef HWACCEL
+/* Which type of hardware acceleration should we use, if any? */
+static void
+hwaccel_init(void)
 {
-	static int aesnigood = -1;
+
+	/* If we've already set hwaccel, we're finished. */
+	if (hwaccel != HW_UNSET)
+		return;
+
+	/* Default to software. */
+	hwaccel = HW_SOFTWARE;
 
 	/* Can we use AESNI? */
-	if (aesnigood == -1) {
-		if (crypto_aes_use_x86_aesni())
-			aesnigood = 1;
-		else
-			aesnigood = 0;
-	}
-
-	return (aesnigood);
+	if (crypto_aes_use_x86_aesni())
+		hwaccel = HW_X86_AESNI;
 }
-#endif
+#endif /* HWACCEL */
 
 /**
  * crypto_aesctr_alloc(void):
@@ -92,6 +101,10 @@ crypto_aesctr_init2(struct crypto_aesctr * stream,
 	 */
 	stream->pblk[15] = 0xff;
 
+#ifdef HWACCEL
+	hwaccel_init();
+#endif
+
 	/* Sanity check. */
 	assert(stream->key != NULL);
 }
@@ -137,12 +150,14 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
     uint8_t * outbuf, size_t buflen)
 {
 
+#if defined(HWACCEL)
 #if defined(CPUSUPPORT_X86_AESNI)
-	if ((buflen >= 16) && crypto_aesctr_use_x86_aesni()) {
+	if ((buflen >= 16) && (hwaccel == HW_X86_AESNI)) {
 		crypto_aesctr_aesni_stream(stream, inbuf, outbuf, buflen);
 		return;
 	}
 #endif
+#endif /* HWACCEL */
 
 	/* Process any bytes before we can process a whole block. */
 	if (crypto_aesctr_stream_pre_wholeblock(stream, &inbuf, &outbuf,
