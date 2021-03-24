@@ -237,6 +237,17 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	int i;
 
 #ifdef HWACCEL
+
+#if defined(__GNUC__) && defined(__aarch64__)
+	/*
+	 * We require that SHA256_Init() is called before SHA256_Transform(),
+	 * but the compiler has no way of knowing that.  This assert adds a
+	 * significant speed boost for gcc on 64-bit ARM, and a minor penalty
+	 * on other systems & compilers.
+	 */
+	assert(hwaccel != HW_UNSET);
+#endif
+
 	switch(hwaccel) {
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	case HW_X86_SHANI:
