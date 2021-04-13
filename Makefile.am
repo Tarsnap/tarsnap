@@ -555,7 +555,7 @@ tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 #
 #
 
-tarsnap_keymgmt_SOURCES= 	keymgmt/keymgmt.c
+tarsnap_keymgmt_SOURCES=	keymgmt/keymgmt.c
 
 tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=				\
@@ -649,4 +649,3 @@ dist_bashcomp_DATA = misc/bash_completion.d/tarsnap	\
 	misc/bash_completion.d/tarsnap-keyregen		\
 	misc/bash_completion.d/tarsnap-recrypt
 endif
-

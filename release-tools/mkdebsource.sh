@@ -63,4 +63,3 @@ printf "\n" >> ${BUILDDIR}/tarsnap_$VERSION-$REVISION.dsc
 # Inform the user of the package location
 echo "\nDebian source package created in:"
 echo "    ${BUILDDIR}"
-

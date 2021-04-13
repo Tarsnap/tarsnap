@@ -92,4 +92,3 @@ Bash completion scripts: there is an optional `configure` argument
   `bash-completion >= 2.0` to determine where to put the bash
   completion scripts.  If your system does not match those
   requirements, please specify `DIR` explicitly.
-

@@ -432,7 +432,7 @@ chunks_initialize(const char * cachepath)
 	struct chunkstats stats_extra;
 
 	/* Bail if ${chunkpath}/directory already exists. */
- 	switch (chunks_directory_exists(cachepath)) {
+	switch (chunks_directory_exists(cachepath)) {
 	case 0:
 		break;
 	case 1:

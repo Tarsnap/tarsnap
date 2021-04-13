@@ -249,7 +249,7 @@ main(int argc, char **argv)
 	struct passwd		*pws;
 	const char		*missingkey;
 	time_t			 now;
-	size_t 			 i;
+	size_t			 i;
 	int			 j;
 	char			*tapename_cmdline;
 
@@ -1396,7 +1396,7 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	/* Ignore comments and blank lines. */
 	if ((line[0] == '#') || (line[0] == '\0'))
 		return (0);
-	
+
 	/* Print line if given --dump-config. */
 	if (bsdtar->option_dump_config)
 		fprintf(stderr, "  %s\n", line);

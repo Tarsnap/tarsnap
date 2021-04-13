@@ -107,4 +107,3 @@ _tarsnap ()
 }
 
 complete -F _tarsnap -o filenames tarsnap
-

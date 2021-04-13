@@ -492,4 +492,3 @@ Tarsnap Releases
 ### Tarsnap 1.0.0 (April 25, 2008)
 
 - First public version
-

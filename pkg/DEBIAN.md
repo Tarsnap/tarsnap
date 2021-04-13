@@ -138,5 +138,3 @@ number (i.e. `-1`).
        `tarsnap_X.Y.Z-R.dsc` files in this repository.
 
      - `Release`: this contains the checksums of the `Sources` file.
-
-

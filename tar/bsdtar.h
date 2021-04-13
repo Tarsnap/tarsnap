@@ -126,7 +126,7 @@ struct bsdtar {
 	int		  option_force_resources;
 	int		  option_force_resources_set;
 	const char	**configfiles;		/* --configfile */
-	size_t 		  nconfigfiles;
+	size_t		  nconfigfiles;
 	int		  option_no_default_config; /* --no-default-config */
 	char		 *keyfile;
 	int		  keyfile_from_config;
