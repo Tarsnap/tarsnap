@@ -23,16 +23,17 @@ typedef int chunkify_callback(void *, uint8_t *, size_t);
 /**
  * chunkify_init(meanlen, maxlen, callback, cookie):
  * Initialize and return a CHUNKIFIER structure suitable for dividing a
- * stream of bytes into chunks of mean and maximum lengths meanlen and maxlen.
- * In most cases, maxlen should be at least 2 * meanlen; values greater than
- * 4 * meanlen will have very little effect beyond wasting memory.
+ * stream of bytes into chunks of mean and maximum lengths ${meanlen} and
+ * ${maxlen}.  In most cases, ${maxlen} should be at least ${2 * meanlen};
+ * values greater than ${4 * meanlen} will have very little effect beyond
+ * wasting memory.
  *
  * If an error occurs, NULL is returned.
  *
- * The parameter meanlen must be at most 1262226.
+ * The parameter ${meanlen} must be at most 1262226.
  * The probability of a chunk being x bytes or longer is approximately
  * 0.267 ^ ((x / meanlen)^(3/2)).
- * The most common chunk length is approximately 0.65 * meanlen.
+ * The most common chunk length is approximately ${0.65 * meanlen}.
  */
 CHUNKIFIER * chunkify_init(uint32_t, uint32_t, chunkify_callback *, void *);
 
