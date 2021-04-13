@@ -72,7 +72,7 @@ callback_free_rwhashtab_aes_key(void * rec, void * cookie)
 	free(key);
 
 	/* Success! */
-	return 0;
+	return (0);
 }
 
 /**

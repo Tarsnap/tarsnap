@@ -197,7 +197,7 @@ archive_write_multitape_truncate(void * cookie)
 }
 
 /**
- * archive_multitape_copy(ina, read_cookie, a, write_cookie)
+ * archive_multitape_copy(ina, read_cookie, a, write_cookie):
  * Copy the data for an entry from one archive to another.
  */
 int
