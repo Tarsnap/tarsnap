@@ -2,6 +2,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 
+#include <ctype.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -18,6 +19,25 @@
 #include "sysendian.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
+
+static int
+check_printable(const char * str)
+{
+	size_t i;
+
+	/*
+	 * Bail if there's any unprintable character in the "C" locale.  This
+	 * assumes that we haven't run setlocale(), so this process is using
+	 * the "C" locale by default (as specified in C99).
+	 */
+	for (i = 0; i < strlen(str); i++) {
+		if (!isprint(str[i]))
+			return (1);
+	}
+
+	/* Success! */
+	return (0);
+}
 
 int
 keygen_actual(struct register_internal * C, const char * keyfilename,
@@ -47,6 +67,13 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	}
 	if (strlen(C->name) == 0) {
 		fprintf(stderr, "Machine name must be non-empty\n");
+		goto err0;
+	}
+
+	/* The machine name must be printable. */
+	if (check_printable(C->name)) {
+		warn0("Machine name must be printable 7-bit ASCII: %s",
+		    C->name);
 		goto err0;
 	}
 
