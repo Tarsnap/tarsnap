@@ -94,6 +94,7 @@ at the start of a function.
 
 Headers should be included in the following groups, with a blank line after
 each (non-empty) group:
+0. "platform.h", if autoconf defines are needed in this file.
 1. <sys/*.h>, with <sys/types.h> first followed by others alphabetically.
 2. <net/*.h>, in alphabetical order.
 3. <*.h>, in alphabetical order.
