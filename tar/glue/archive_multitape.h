@@ -48,7 +48,7 @@ int archive_write_multitape_checkpoint(void *);
 void archive_write_multitape_truncate(void *);
 
 /**
- * archive_multitape_copy(ina, read_cookie, a, write_cookie)
+ * archive_multitape_copy(ina, read_cookie, a, write_cookie):
  * Copy the data for an entry from one archive to another.
  */
 int archive_multitape_copy(struct archive *, void *, struct archive *,

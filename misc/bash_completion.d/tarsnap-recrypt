@@ -61,4 +61,3 @@ _tarsnap_recrypt ()
 }
 
 complete -F _tarsnap_recrypt -o filenames tarsnap-recrypt
-

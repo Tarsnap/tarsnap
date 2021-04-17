@@ -61,7 +61,7 @@ dirutil_fsyncdir(const char * path)
 
 /**
  * build_dir(dir, diropt):
- * Makes sure that ${dir} exists, creating it (and any parents) as necessary.
+ * Make sure that ${dir} exists, creating it (and any parents) as necessary.
  */
 int
 build_dir(const char * dir, const char * diropt)

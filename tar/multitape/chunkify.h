@@ -21,34 +21,35 @@ typedef struct chunkifier_internal CHUNKIFIER;
 typedef int chunkify_callback(void *, uint8_t *, size_t);
 
 /**
- * chunkify_init(meanlen, maxlen, callback, cookie)
- * initializes and returns a CHUNKIFIER structure suitable for dividing a
- * stream of bytes into chunks of mean and maximum lengths meanlen and maxlen.
- * In most cases, maxlen should be at least 2 * meanlen; values greater than
- * 4 * meanlen will have very little effect beyond wasting memory.
+ * chunkify_init(meanlen, maxlen, callback, cookie):
+ * Initialize and return a CHUNKIFIER structure suitable for dividing a
+ * stream of bytes into chunks of mean and maximum lengths ${meanlen} and
+ * ${maxlen}.  In most cases, ${maxlen} should be at least ${2 * meanlen};
+ * values greater than ${4 * meanlen} will have very little effect beyond
+ * wasting memory.
  *
  * If an error occurs, NULL is returned.
  *
- * The parameter meanlen must be at most 1262226.
+ * The parameter ${meanlen} must be at most 1262226.
  * The probability of a chunk being x bytes or longer is approximately
  * 0.267 ^ ((x / meanlen)^(3/2)).
- * The most common chunk length is approximately 0.65 * meanlen.
+ * The most common chunk length is approximately ${0.65 * meanlen}.
  */
 CHUNKIFIER * chunkify_init(uint32_t, uint32_t, chunkify_callback *, void *);
 
 /**
- * chunkify_write(c, buf, buflen)
- * feeds the provided buffer into the CHUNKIFIER; callback(s) are made if
+ * chunkify_write(c, buf, buflen):
+ * Feed the provided buffer into the CHUNKIFIER; callback(s) are made if
  * chunk(s) end during this process.
  *
- * The value returned is zero, of the first nonzero value returned by the
+ * The value returned is zero, or the first nonzero value returned by the
  * callback function.
  */
 int chunkify_write(CHUNKIFIER *, const uint8_t *, size_t);
 
 /**
- * chunkify_end(c)
- * terminates a chunk by calling chunkdone and initializing the CHUNKIFIER
+ * chunkify_end(c):
+ * Terminate a chunk by calling chunkdone and initialize the CHUNKIFIER
  * for the start of the next chunk.
  *
  * The value returned is zero or the nonzero value returned by the callback
@@ -57,8 +58,8 @@ int chunkify_write(CHUNKIFIER *, const uint8_t *, size_t);
 int chunkify_end(CHUNKIFIER *);
 
 /**
- * chunkify_free(c)
- * frees the memory allocated by chunkify_init(...), but does not
+ * chunkify_free(c):
+ * Free the memory allocated by chunkify_init(...), but do not
  * call chunkify_end; the caller is responsible for doing this.
  */
 void chunkify_free(CHUNKIFIER *);

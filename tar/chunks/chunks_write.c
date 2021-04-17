@@ -206,9 +206,9 @@ chunks_write_ispresent(CHUNKS_W * C, const uint8_t * hash)
 {
 
 	if (rwhashtab_read(C->HT, hash) != NULL)
-		return 0;
+		return (0);
 	else
-		return 1;
+		return (1);
 }
 
 /**

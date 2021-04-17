@@ -146,7 +146,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 			goto err3;
 
 		/* Actually print statistics. */
-	    	if (chunks_delete_printstats(output, C,
+		if (chunks_delete_printstats(output, C,
 		    withname ? tapename : NULL, csv))
 			goto err4;
 

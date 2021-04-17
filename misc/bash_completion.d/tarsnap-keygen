@@ -64,4 +64,3 @@ _tarsnap_keygen ()
 }
 
 complete -F _tarsnap_keygen -o filenames tarsnap-keygen
-

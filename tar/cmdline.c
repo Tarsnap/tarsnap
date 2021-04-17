@@ -122,7 +122,7 @@ static struct option {
 	{ "newer-mtime-than",	  1, OPTION_NEWER_MTIME_THAN },
 	{ "newer-than",		  1, OPTION_NEWER_CTIME_THAN },
 	{ "nodump",               0, OPTION_NODUMP },
-	{ "noisy-warnings", 	  0, OPTION_NOISY_WARNINGS },
+	{ "noisy-warnings",	  0, OPTION_NOISY_WARNINGS },
 	{ "norecurse",            0, 'n' },
 	{ "normalmem",		  0, OPTION_NORMALMEM },
 	{ "no-aggressive-networking", 0, OPTION_NO_AGGRESSIVE_NETWORKING },
