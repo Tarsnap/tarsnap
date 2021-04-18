@@ -77,7 +77,7 @@
 #define CPUSUPPORT_FEATURE(arch, feature, enabler)				\
 	CPUSUPPORT_FEATURE_(arch ## _ ## feature, enabler, CPUSUPPORT_ ## enabler)
 
-/*
+/**
  * CPUSUPPORT_FEATURE_DECL(arch, feature):
  * Macro which defines variables and provides a function declaration for
  * detecting the presence of "feature" on the "arch" architecture.  The
@@ -93,6 +93,26 @@
 	int cpusupport_ ## arch ## _ ## feature ## _detect_1(void); \
 	int								\
 	cpusupport_ ## arch ## _ ## feature ## _detect_1(void)
+
+/**
+ * CPUSUPPORT_VALIDATE(hwvar, success_value, cpusupport_checks, check):
+ * Check if we can enable ${success_value}, given the ${cpusupport_checks} and
+ * ${check}; if so, write to ${hwvar}.  If the ${cpusupport_checks} pass but
+ * the ${check} is non-zero, produce a warning which includes a stringified
+ * ${success_value}, then fallthrough.
+ */
+#define CPUSUPPORT_VALIDATE(hwvar, success_value, cpusupport_checks,	\
+    check) do {								\
+	if ((cpusupport_checks)) {					\
+		if ((check) == 0) {					\
+			(hwvar) = (success_value);			\
+			return;						\
+		} else {						\
+			warn0("Disabling " #success_value		\
+			    " due to failed self-test");		\
+		}							\
+	}								\
+} while (0)
 
 /*
  * List of features.  If a feature here is not enabled by the appropriate

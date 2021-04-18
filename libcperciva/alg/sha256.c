@@ -17,13 +17,19 @@
     defined(CPUSUPPORT_ARM_SHA256)
 #define HWACCEL
 
-enum {
-	HW_UNSET,
+static enum {
+	HW_SOFTWARE = 0,
+#if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	HW_X86_SHANI,
+#endif
+#if defined(CPUSUPPORT_X86_SSE2)
 	HW_X86_SSE2,
+#endif
+#if defined(CPUSUPPORT_ARM_SHA256)
 	HW_ARM_SHA256,
-	HW_SOFTWARE
-};
+#endif
+	HW_UNSET
+} hwaccel = HW_UNSET;
 #endif
 
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
@@ -128,7 +134,7 @@ SHA256_Transform_arm_with_W_S(uint32_t state[static restrict 8],
 
 /*
  * Test whether software and hardware extensions transform code produce the
- * same results.  Must be called with usehw() returning HW_SOFTWARE.
+ * same results.  Must be called with (hwaccel == HW_SOFTWARE).
  */
 static int
 hwtest(const uint32_t state[static restrict 8],
@@ -154,75 +160,39 @@ hwtest(const uint32_t state[static restrict 8],
 }
 
 /* Which type of hardware acceleration should we use, if any? */
-static int
-usehw(void)
+static void
+hwaccel_init(void)
 {
-	static int hwgood = HW_UNSET;
 	uint32_t W[64];
 	uint32_t S[8];
 	uint8_t block[64];
 	uint8_t i;
 
-	/* If we haven't decided which code to use yet, decide now. */
-	while (hwgood == HW_UNSET) {
-		/* Default to software. */
-		hwgood = HW_SOFTWARE;
+	/* If we've already set hwaccel, we're finished. */
+	if (hwaccel != HW_UNSET)
+		return;
 
-		/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
-		for (i = 0; i < 64; i++)
-			block[i] = i;
+	/* Default to software. */
+	hwaccel = HW_SOFTWARE;
+
+	/* Test case: Hash 0x00 0x01 0x02 ... 0x3f. */
+	for (i = 0; i < 64; i++)
+		block[i] = i;
 
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
-		/* If the CPU claims to be able to do it... */
-		if (cpusupport_x86_shani() && cpusupport_x86_ssse3()) {
-			/* ... test if it works... */
-			if (hwtest(initial_state, block, W, S,
-			    SHA256_Transform_shani_with_W_S) == 0) {
-				/* ... if it works, use it and bail. */
-				hwgood = HW_X86_SHANI;
-				goto done;
-			} else {
-				/* ... else, print a warning and fallthrough. */
-				warn0("Disabling SHANI due to failed"
-				    " self-test");
-			}
-		}
+	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_SHANI,
+	    cpusupport_x86_shani() && cpusupport_x86_ssse3(),
+	    hwtest(initial_state, block, W, S,
+		SHA256_Transform_shani_with_W_S));
 #endif
 #if defined(CPUSUPPORT_X86_SSE2)
-		/* If the CPU claims to be able to do it... */
-		if (cpusupport_x86_sse2()) {
-			/* ... test if it works. */
-			if (hwtest(initial_state, block, W, S,
-			    SHA256_Transform_sse2) == 0) {
-				/* ... if it works, use it and bail. */
-				hwgood = HW_X86_SSE2;
-				goto done;
-			} else {
-				/* ... else, print a warning and fallthrough. */
-				warn0("Disabling SSE2 due to failed"
-				    " self-test");
-			}
-		}
+	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_SSE2, cpusupport_x86_sse2(),
+	    hwtest(initial_state, block, W, S, SHA256_Transform_sse2));
 #endif
 #if defined(CPUSUPPORT_ARM_SHA256)
-		/* If the CPU claims to be able to do it... */
-		if (cpusupport_arm_sha256()) {
-			/* ... test if it works... */
-			if (hwtest(initial_state, block, W, S,
-			    SHA256_Transform_arm_with_W_S)) {
-				warn0("Disabling ARM-SHA256 due to failed"
-				    " self-test");
-			} else
-				hwgood = HW_ARM_SHA256;
-
-			/* ... and bail whether or not we can use it. */
-			goto done;
-		}
+	CPUSUPPORT_VALIDATE(hwaccel, HW_ARM_SHA256, cpusupport_arm_sha256(),
+	    hwtest(initial_state, block, W, S, SHA256_Transform_arm_with_W_S));
 #endif
-	}
-
-done:
-	return (hwgood);
 }
 #endif /* HWACCEL */
 
@@ -267,7 +237,18 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	int i;
 
 #ifdef HWACCEL
-	switch(usehw()) {
+
+#if defined(__GNUC__) && defined(__aarch64__)
+	/*
+	 * We require that SHA256_Init() is called before SHA256_Transform(),
+	 * but the compiler has no way of knowing that.  This assert adds a
+	 * significant speed boost for gcc on 64-bit ARM, and a minor penalty
+	 * on other systems & compilers.
+	 */
+	assert(hwaccel != HW_UNSET);
+#endif
+
+	switch(hwaccel) {
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	case HW_X86_SHANI:
 		SHA256_Transform_shani(state, block);
@@ -284,11 +265,8 @@ SHA256_Transform(uint32_t state[static restrict 8],
 		return;
 #endif
 	case HW_SOFTWARE:
+	case HW_UNSET:
 		break;
-	default:
-		/* UNREACHABLE */
-		warn0("Programmer error: unreachable usehw value.");
-		assert(0);
 	}
 #endif /* HWACCEL */
 
@@ -391,6 +369,11 @@ SHA256_Init(SHA256_CTX * ctx)
 
 	/* Initialize state. */
 	memcpy(ctx->state, initial_state, sizeof(initial_state));
+
+#ifdef HWACCEL
+	/* Ensure that we've chosen the type of hardware acceleration. */
+	hwaccel_init();
+#endif
 }
 
 /**

@@ -275,6 +275,13 @@ scenario_runner() {
 ## run_scenarios (scenario_filenames):
 # Run all scenarios matching ${scenario_filenames}.
 run_scenarios() {
+	# Get the test number(s) to run.
+	if [ "${N:-0}" -gt "0" ]; then
+		test_scenarios="$(printf "${scriptdir}/%02d-*.sh" "${N}")"
+	else
+		test_scenarios="${scriptdir}/??-*.sh"
+	fi
+
 	# Clean up any previous directory, and create a new one.
 	prepare_directory
 
@@ -284,7 +291,7 @@ run_scenarios() {
 
 	printf -- "Running tests\n" 1>&2
 	printf -- "-------------\n" 1>&2
-	for scenario in "$@"; do
+	for scenario in ${test_scenarios}; do
 		# We can't call this function with $( ... ) because we
 		# want to allow it to echo values to stdout.
 		scenario_runner ${scenario}

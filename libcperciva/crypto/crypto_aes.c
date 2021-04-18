@@ -14,6 +14,14 @@
 
 #if defined(CPUSUPPORT_X86_AESNI)
 #define HWACCEL
+
+static enum {
+	HW_SOFTWARE = 0,
+#if defined(CPUSUPPORT_X86_AESNI)
+	HW_X86_AESNI,
+#endif
+	HW_UNSET
+} hwaccel = HW_UNSET;
 #endif
 
 /**
@@ -59,6 +67,33 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/* Which type of hardware acceleration should we use, if any? */
+static void
+hwaccel_init(void)
+{
+	uint8_t key[32];
+	uint8_t ptext[16];
+	size_t i;
+
+	/* If we've already set hwaccel, we're finished. */
+	if (hwaccel != HW_UNSET)
+		return;
+
+	/* Default to software. */
+	hwaccel = HW_SOFTWARE;
+
+	/* Test cases: key is 0x00010203..., ptext is 0x00112233... */
+	for (i = 0; i < 16; i++)
+		ptext[i] = (0x11 * i) & 0xff;
+	for (i = 0; i < 32; i++)
+		key[i] = i & 0xff;
+
+#if defined(CPUSUPPORT_X86_AESNI)
+	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_AESNI, cpusupport_x86_aesni(),
+	    hwtest(ptext, key, 16) || hwtest(ptext, key, 32));
+#endif
+}
 #endif /* HWACCEL */
 
 /**
@@ -68,46 +103,19 @@ err0:
 int
 crypto_aes_use_x86_aesni(void)
 {
-	static int aesnigood = -1;
-#ifdef HWACCEL
-	uint8_t key[32];
-	uint8_t ptext[16];
-	size_t i;
 
-	/* If we haven't decided which code to use yet, decide now. */
-	while (aesnigood == -1) {
-		/* Default to OpenSSL. */
-		aesnigood = 0;
+#ifdef HWACCEL
+	/* Ensure that we've chosen the type of hardware acceleration. */
+	hwaccel_init();
 
 #if defined(CPUSUPPORT_X86_AESNI)
-		/* If the CPU doesn't claim to support AESNI, stop here. */
-		if (!cpusupport_x86_aesni())
-			break;
+	if (hwaccel == HW_X86_AESNI)
+		return (1);
 #endif
-
-		/* Test cases: key is 0x00010203..., ptext is 0x00112233... */
-		for (i = 0; i < 16; i++)
-			ptext[i] = (0x11 * i) & 0xff;
-		for (i = 0; i < 32; i++)
-			key[i] = i & 0xff;
-
-		/*
-		 * Test that hardware intrinsics and OpenSSL produce the same
-		 * results.
-		 */
-		if (hwtest(ptext, key, 16) || hwtest(ptext, key, 32)) {
-			warn0("Disabling AESNI due to failed self-test");
-			break;
-		}
-
-		/* AESNI works; use it. */
-		aesnigood = 1;
-	}
-#else /* !HWACCEL */
-	aesnigood = 0;
 #endif /* HWACCEL */
 
-	return (aesnigood);
+	/* Software only. */
+	return (0);
 }
 
 /**
@@ -123,11 +131,15 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 	/* Sanity-check. */
 	assert((len == 16) || (len == 32));
 
+#ifdef HWACCEL
+	/* Ensure that we've chosen the type of hardware acceleration. */
+	hwaccel_init();
+
 #ifdef CPUSUPPORT_X86_AESNI
-	/* Use AESNI if we can. */
-	if (crypto_aes_use_x86_aesni())
+	if (hwaccel == HW_X86_AESNI)
 		return (crypto_aes_key_expand_aesni(key, len));
 #endif
+#endif /* HWACCEL */
 
 	/* Allocate structure. */
 	if ((kexp = malloc(sizeof(AES_KEY))) == NULL)
@@ -154,12 +166,14 @@ crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
     const struct crypto_aes_key * key)
 {
 
+#ifdef HWACCEL
 #ifdef CPUSUPPORT_X86_AESNI
-	if (crypto_aes_use_x86_aesni()) {
+	if (hwaccel == HW_X86_AESNI) {
 		crypto_aes_encrypt_block_aesni(in, out, (const void *)key);
 		return;
 	}
 #endif
+#endif /* HWACCEL */
 
 	/* Get AES to do the work. */
 	AES_encrypt(in, out, (const void *)key);
@@ -173,12 +187,14 @@ void
 crypto_aes_key_free(struct crypto_aes_key * key)
 {
 
+#ifdef HWACCEL
 #ifdef CPUSUPPORT_X86_AESNI
-	if (crypto_aes_use_x86_aesni()) {
+	if (hwaccel == HW_X86_AESNI) {
 		crypto_aes_key_free_aesni((void *)key);
 		return;
 	}
 #endif
+#endif /* HWACCEL */
 
 	/* Behave consistently with free(NULL). */
 	if (key == NULL)
