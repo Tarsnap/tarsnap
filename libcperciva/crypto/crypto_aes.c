@@ -52,7 +52,7 @@ hwtest(uint8_t ptext[16], uint8_t * key, size_t len)
 	AES_set_encrypt_key(key, (int)(len * 8), &kexp_openssl);
 	AES_encrypt(ptext, ctext_openssl, &kexp_openssl);
 
-	/* Expand the key and encrypt with hardware intrinstics. */
+	/* Expand the key and encrypt with hardware intrinsics. */
 #if defined(CPUSUPPORT_X86_AESNI)
 	if ((kexp_hw = crypto_aes_key_expand_aesni(key, len)) == NULL)
 		goto err0;
