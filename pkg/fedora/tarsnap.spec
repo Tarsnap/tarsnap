@@ -1,6 +1,6 @@
 Name:           tarsnap
 Version:        1.0.39
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Secure, efficient online backup service
 
 License:        Proprietary
@@ -12,7 +12,6 @@ BuildRequires:  bzip2-devel
 BuildRequires:  e2fsprogs-devel
 BuildRequires:  libacl-devel
 BuildRequires:  libattr-devel
-BuildRequires:  lzma-devel
 BuildRequires:  openssl-devel
 BuildRequires:  xz-devel
 BuildRequires:  zlib-devel
@@ -53,6 +52,9 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
+* Thu May  6 2021 Adam Thiede <me@adamthiede.com> 1.0.39-2
+- lzma-devel dependency removed as it was replaced by xz-devel
+
 * Sun Sep  3 2017 David Sastre Medina <d.sastre.medina@gmail.com> 1.0.39-1
 - Upstream version 1.0.39
 - Switch to HTTPS URLs.
