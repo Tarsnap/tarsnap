@@ -147,6 +147,8 @@ lib_libtarsnap_a_SOURCES=					\
 		lib/util/dirutil.h				\
 		lib/util/hexlink.c				\
 		lib/util/hexlink.h				\
+		lib/util/passphrase_entry.c			\
+		lib/util/passphrase_entry.h			\
 		lib/util/sigquit.c				\
 		lib/util/sigquit.h				\
 		lib/util/tvmath.c				\
@@ -229,6 +231,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/parsenum.h			\
 		libcperciva/util/readpass.c			\
 		libcperciva/util/readpass.h			\
+		libcperciva/util/readpass_file.c		\
 		libcperciva/util/sock.c				\
 		libcperciva/util/sock.h				\
 		libcperciva/util/sock_internal.h		\
