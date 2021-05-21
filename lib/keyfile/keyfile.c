@@ -13,6 +13,7 @@
 #include "b64encode.h"
 #include "crypto.h"
 #include "insecure_memzero.h"
+#include "passphrase_entry.h"
 #include "readpass.h"
 #include "scryptenc.h"
 #include "sysendian.h"
@@ -58,11 +59,11 @@ static int read_raw(const uint8_t *, size_t,
 static int read_plaintext(const uint8_t *, size_t,
     uint64_t *, const char *, int);
 static int read_encrypted(const uint8_t *, size_t,
-    uint64_t *, const char *, int, int, int);
+    uint64_t *, const char *, int, int, enum passphrase_entry, const char *);
 static int read_base256(const uint8_t *, size_t,
-    uint64_t *, const char *, int, int, int);
+    uint64_t *, const char *, int, int, enum passphrase_entry, const char *);
 static int read_base64(const char *, size_t,
-    uint64_t *, const char *, int, int, int);
+    uint64_t *, const char *, int, int, enum passphrase_entry, const char *);
 
 static int
 read_raw(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
@@ -117,7 +118,8 @@ err0:
 
 static int
 read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force, int devtty)
+    const char * filename, int keys, int force,
+    enum passphrase_entry passphrase_entry, const char * passphrase_arg)
 {
 	char * pwprompt;
 	char * passwd;
@@ -139,7 +141,8 @@ read_encrypted(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	if (asprintf(&pwprompt, "Please enter passphrase for keyfile %s",
 	    filename) == -1)
 		goto err0;
-	if (readpass(&passwd, pwprompt, NULL, devtty)) {
+	if (passphrase_entry_readpass(&passwd, passphrase_entry,
+	    passphrase_arg, pwprompt, NULL, 1)) {
 		warnp("Error reading passphrase");
 		goto err1;
 	}
@@ -237,7 +240,8 @@ err0:
 
 static int
 read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force, int devtty)
+    const char * filename, int keys, int force,
+    enum passphrase_entry passphrase_entry, const char * passphrase_arg)
 {
 
 	/* Sanity-check size. */
@@ -249,7 +253,8 @@ read_base256(const uint8_t * keybuf, size_t keylen, uint64_t * machinenum,
 	/* Is this encrypted? */
 	if (memcmp(keybuf, "scrypt", 6) == 0)
 		return (read_encrypted(keybuf, keylen,
-		    machinenum, filename, keys, force, devtty));
+		    machinenum, filename, keys, force, passphrase_entry,
+		    passphrase_arg));
 
 	/* Parse this as a plaintext keyfile. */
 	return (read_plaintext(keybuf, keylen,
@@ -262,7 +267,8 @@ err0:
 
 static int
 read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
-    const char * filename, int keys, int force, int devtty)
+    const char * filename, int keys, int force,
+    enum passphrase_entry passphrase_entry, const char * passphrase_arg)
 {
 	uint8_t * decbuf;
 	size_t decbuflen;
@@ -338,7 +344,7 @@ read_base64(const char * keybuf, size_t keylen, uint64_t * machinenum,
 
 	/* Process the decoded key file. */
 	if (read_base256(decbuf, decpos, machinenum, filename, keys, force,
-	    devtty))
+	    passphrase_entry, passphrase_arg))
 		goto err1;
 
 	/* Zero and free memory. */
@@ -374,6 +380,12 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	uint8_t * keybuf;
 	FILE * f;
 	size_t keyfilelen;
+	enum passphrase_entry passphrase_entry = PASSPHRASE_TTY_STDIN;
+	const char * passphrase_arg = NULL;
+
+	/* If so desired, read passphrase from stdin. */
+	if (devtty == 0)
+		passphrase_entry = PASSPHRASE_STDIN_ONCE;
 
 	/* Open the file. */
 	if ((f = fopen(filename, "r")) == NULL) {
@@ -421,7 +433,8 @@ keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
 	} else {
 		/* Otherwise, try to base64 decode it. */
 		if (read_base64((const char *)keybuf, keyfilelen,
-		    machinenum, filename, keys, force, devtty)) {
+		    machinenum, filename, keys, force, passphrase_entry,
+		    passphrase_arg)) {
 			if (errno)
 				warnp("Error parsing key file: %s", filename);
 			goto err2;
