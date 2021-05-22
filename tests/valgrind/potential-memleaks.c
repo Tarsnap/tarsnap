@@ -20,6 +20,17 @@ pl_freebsd_strerror(void)
 	(void)str; /* UNUSED */
 }
 
+/* Problem with FreeBSD 10.3 fgets() with stdin. */
+#define FGETS_BUFSIZE 64
+static void
+pl_freebsd_fgets(void)
+{
+	char buf[FGETS_BUFSIZE];
+
+	if (fgets(buf, FGETS_BUFSIZE, stdin) == NULL)
+		exit(1);
+}
+
 /* Problem with FreeBSD 12.0 and getpwuid(). */
 static void
 pl_freebsd_getpwuid(void)
@@ -52,6 +63,7 @@ static const struct memleaktest {
 } tests[] = {
 	MEMLEAKTEST(pl_nothing),
 	MEMLEAKTEST(pl_freebsd_strerror),
+	MEMLEAKTEST(pl_freebsd_fgets),
 	MEMLEAKTEST(pl_freebsd_getpwuid),
 	MEMLEAKTEST(pl_freebsd_setlocale)
 };
