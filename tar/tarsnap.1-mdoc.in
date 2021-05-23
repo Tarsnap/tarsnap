@@ -647,12 +647,38 @@ If
 is being run by root, the default is to restore the owner unless the
 .Fl o
 option is also specified.
-.It Fl -passphrase-stdin
-Always read passphrase from stdin instead of /dev/tty.
-Note that while this can be useful in automated scenarios, it must be used
-with care; in particular, if the key file and the passphrase are both present
-on disk, there is very little security gained compared to a
-non-passphrase-protected key file.
+.It Fl -passphrase Ar method:arg
+Read the passphrase using the specified method.
+.Bl -tag -width aa
+.It Ar dev:tty-stdin
+Attempt to read the passphrase from /dev/tty; if that fails, read it from stdin.
+This is the default behaviour.
+.It Ar dev:stdin-once
+Attempt to read the passphrase from stdin, and do so only once even when
+encrypting.
+This cannot be used if
+.Ar infile
+is also stdin (aka '-').
+.It Ar dev:tty-once
+Attempt to read the passphrase from /dev/tty, and do so only once
+even when encrypting.
+.It Ar env:VAR
+Read the passphrase from the environment variable specified by
+.Ar VAR .
+.Pp
+.Bf Em
+Storing a passphrase in an environment variable may be a security risk.
+.Ef
+Only use this option if you are certain that you know what you are doing.
+.It Ar file:FILENAME
+Read the passphrase from the file specified by
+.Ar FILENAME .
+.Pp
+.Bf Em
+Storing a passphrase in a file may be a security risk.
+.Ef
+Only use this option if you are certain that you know what you are doing.
+.El
 .It Fl -print-stats
 (c and d modes only)
 Print statistics for the archive being created (c mode) or delete (d mode).

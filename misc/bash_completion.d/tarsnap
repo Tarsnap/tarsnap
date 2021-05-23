@@ -45,7 +45,8 @@ _tarsnap ()
 	wotherarg="--checkpoint-bytes|--creationtime|--disk-pause|
 		   |--exclude|-f|--include|--maxbw|--maxbw-rate|
 		   |--maxbw-rate-down|--maxbw-rate-up|--newer|
-		   |--newer-mtime|--progress-bytes|-s|--strip-components"
+		   |--newer-mtime|--passphrase|--progress-bytes|-s|
+		   |--strip-components"
 
 	# Available long options
 	longopts="--aggressive-networking --archive-names --cachedir \
@@ -67,7 +68,7 @@ _tarsnap ()
 		  --no-progress-bytes --no-quiet --no-retry-forever \
 		  --no-snaptime --no-store-atime --no-totals --nodump \
 		  --noisy-warnings --normalmem --nuke --null \
-		  --numeric-owner --one-file-system --passphrase-stdin \
+		  --numeric-owner --one-file-system --passphrase \
 		  --print-stats --progress-bytes --quiet --recover \
 		  --resume-extract --retry-forever --snaptime \
 		  --store-atime --strip-components --totals \

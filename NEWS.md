@@ -8,8 +8,12 @@
 - Use SHANI instructions on CPUs which support them.
 - When sent SIGINFO or SIGUSR1, tarsnap now prints the number of files and the
   number of uncompressed bytes processed, in addition to the previous output.
-- tarsnap now accepts a --passphrase-stdin option which reads the passphrase
-  from stdin instead of /dev/tty.
+- tarsnap now accepts a --passphrase method:arg option which accepts:
+  * --passphrase dev:tty-stdin
+  * --passphrase dev:stdin-once
+  * --passphrase dev:tty-once
+  * --passphrase env:VARNAME
+  * --passphrase file:FILENAME
 - tarsnap now accepts a --resume-extract option to skip extracting files whose
   filesize and mtime match existing files on disk.
 - tarsnap now accepts --progress-bytes SIZE, which prints a progress message

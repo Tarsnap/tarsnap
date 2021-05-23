@@ -722,12 +722,43 @@ is being run by root, the default is to restore the owner unless the
 \fB\-o\fP
 option is also specified.
 .TP
-\fB\--passphrase-stdin\fP
-Always read passphrase from stdin instead of /dev/tty.
-Note that while this can be useful in automated scenarios, it must be used
-with care; in particular, if the key file and the passphrase are both present
-on disk, there is very little security gained compared to a
-non-passphrase-protected key file.
+\fB\--passphrase\fP \fImethod:arg\fP
+Read the passphrase using the specified method.
+.RS 5
+.TP
+\fIdev:tty-stdin\fP
+Attempt to read the passphrase from /dev/tty; if that fails, read it from stdin.
+This is the default behaviour.
+.TP
+\fIdev:stdin-once\fP
+Attempt to read the passphrase from stdin, and do so only once even when
+encrypting.
+This cannot be used if
+\fIinfile\fP
+is also stdin (aka '-').
+.TP
+\fIdev:tty-once\fP
+Attempt to read the passphrase from /dev/tty, and do so only once
+even when encrypting.
+.TP
+\fIenv:VAR\fP
+Read the passphrase from the environment variable specified by
+\fIVAR\fP.
+.PP
+Bf .IR
+Storing a passphrase in an environment variable may be a security risk.
+Ef
+Only use this option if you are certain that you know what you are doing.
+.TP
+\fIfile:FILENAME\fP
+Read the passphrase from the file specified by
+\fIFILENAME\fP.
+.PP
+Bf .IR
+Storing a passphrase in a file may be a security risk.
+Ef
+Only use this option if you are certain that you know what you are doing.
+.RE
 .TP
 \fB\--print-stats\fP
 (c and d modes only)
