@@ -4,15 +4,19 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "passphrase_entry.h"
+
 /**
- * keyfile_read(filename, machinenum, keys, force, devtty):
+ * keyfile_read(filename, machinenum, keys, force, passphrase_entry,
+ *     passphrase_arg):
  * Read keys from a tarsnap key file; and return the machine # via the
  * provided pointer.  Ignore any keys not specified in the ${keys} mask.
  * If ${force} is 1, do not check whether decryption will exceed
- * the estimated available memory or time.  If ${devtty} is non-zero, read a
- * password from /dev/tty if possible; if not, read from stdin.
+ * the estimated available memory or time.  Use the ${passphrase_entry}
+ * method to read the passphrase, using ${passphrase_arg} if applicable.
  */
-int keyfile_read(const char *, uint64_t *, int, int, int);
+int keyfile_read(const char *, uint64_t *, int, int, enum passphrase_entry,
+    const char * passphrase_arg);
 
 /**
  * keyfile_write(filename, machinenum, keys, passphrase, maxmem, cputime):

@@ -82,6 +82,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "dirutil.h"
 #include "humansize.h"
 #include "keyfile.h"
+#include "passphrase_entry.h"
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
 #include "warnp.h"
@@ -175,6 +176,7 @@ bsdtar_init(void)
 	bsdtar->conf_arg = NULL;
 	bsdtar->conffile_actual = NULL;
 	bsdtar->conffile_buffer = NULL;
+	bsdtar->option_passphrase_arg = NULL;
 
 	/* Initialize temporary tapenames array. */
 	bsdtar->tapenames_setup = strlist_init(0);
@@ -282,6 +284,9 @@ main(int argc, char **argv)
 
 	/* We don't have a machine # yet. */
 	bsdtar->machinenum = (uint64_t)(-1);
+
+	/* We don't have any passphrase entry method yet. */
+	bsdtar->option_passphrase_entry = PASSPHRASE_UNSET;
 
 	/* Allocate space for config file names; at most argc of them. */
 	if ((bsdtar->configfiles = malloc(argc * sizeof(const char *))) == NULL)
@@ -702,7 +707,7 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
 			break;
 		case OPTION_PASSPHRASE_STDIN: /* tarsnap */
-			bsdtar->option_passphrase_stdin = 1;
+			bsdtar->option_passphrase_entry = PASSPHRASE_STDIN_ONCE;
 			break;
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
@@ -1907,9 +1912,13 @@ load_keys(struct bsdtar *bsdtar, const char *path)
 {
 	uint64_t machinenum;
 
+	/* Set passphrase entry method (if unset). */
+	if (bsdtar->option_passphrase_entry == PASSPHRASE_UNSET)
+		bsdtar->option_passphrase_entry = PASSPHRASE_TTY_STDIN;
+
 	/* Load the key file. */
 	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources,
-	    !bsdtar->option_passphrase_stdin))
+	    bsdtar->option_passphrase_entry, bsdtar->option_passphrase_arg))
 		goto err0;
 
 	/* Check the machine number. */

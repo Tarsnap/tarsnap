@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include "elasticarray.h"
+#include "passphrase_entry.h"
 
 ELASTICARRAY_DECL(STRLIST, strlist, char *);
 
@@ -114,7 +115,6 @@ struct bsdtar {
 	int		  option_no_config_include;
 	int		  option_no_config_exclude_set;
 	int		  option_no_config_include_set;
-	int		  option_passphrase_stdin;
 	int		  option_quiet;
 	int		  option_quiet_set;
 	int		  option_retry_forever_set;
@@ -130,6 +130,8 @@ struct bsdtar {
 	int		  option_no_default_config; /* --no-default-config */
 	char		 *keyfile;
 	int		  keyfile_from_config;
+	const char	 *option_passphrase_arg;
+	enum passphrase_entry option_passphrase_entry;
 
 	/* Miscellaneous state information */
 	struct archive	 *archive;

@@ -365,27 +365,22 @@ err0:
 }
 
 /**
- * keyfile_read(filename, machinenum, keys, force, devtty):
+ * keyfile_read(filename, machinenum, keys, force, passphrase_entry,
+ *     passphrase_arg):
  * Read keys from a tarsnap key file; and return the machine # via the
  * provided pointer.  Ignore any keys not specified in the ${keys} mask.
  * If ${force} is 1, do not check whether decryption will exceed
- * the estimated available memory or time.  If ${devtty} is non-zero, read a
- * password from /dev/tty if possible; if not, read from stdin.
+ * the estimated available memory or time.  Use the ${passphrase_entry}
+ * method to read the passphrase, using ${passphrase_arg} if applicable.
  */
 int
 keyfile_read(const char * filename, uint64_t * machinenum, int keys, int force,
-    int devtty)
+    enum passphrase_entry passphrase_entry, const char * passphrase_arg)
 {
 	struct stat sb;
 	uint8_t * keybuf;
 	FILE * f;
 	size_t keyfilelen;
-	enum passphrase_entry passphrase_entry = PASSPHRASE_TTY_STDIN;
-	const char * passphrase_arg = NULL;
-
-	/* If so desired, read passphrase from stdin. */
-	if (devtty == 0)
-		passphrase_entry = PASSPHRASE_STDIN_ONCE;
 
 	/* Open the file. */
 	if ((f = fopen(filename, "r")) == NULL) {

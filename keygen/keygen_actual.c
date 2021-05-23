@@ -15,6 +15,7 @@
 #include "insecure_memzero.h"
 #include "keyfile.h"
 #include "keygen.h"
+#include "passphrase_entry.h"
 #include "readpass.h"
 #include "sysendian.h"
 #include "tarsnap_opt.h"
@@ -118,7 +119,8 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		if (keyfile_read(oldkeyfilename, &dummy,
 		    CRYPTO_KEYMASK_HMAC_CHUNK |
 		    CRYPTO_KEYMASK_HMAC_NAME |
-		    CRYPTO_KEYMASK_HMAC_CPARAMS, 0, 1)) {
+		    CRYPTO_KEYMASK_HMAC_CPARAMS, 0,
+		    PASSPHRASE_TTY_STDIN, NULL)) {
 			warnp("Error reading old key file");
 			goto err3;
 		}
