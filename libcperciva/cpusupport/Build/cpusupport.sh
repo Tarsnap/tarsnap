@@ -63,10 +63,6 @@ feature X86 AESNI "" "-maes"						\
     "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align"	\
     "-maes -Wno-missing-prototypes -Wno-cast-qual -Wno-cast-align	\
     -DBROKEN_MM_LOADU_SI64"
-feature X86 CRC32_64 "" "-msse4.2"					\
-    "-msse4.2 -Wno-cast-align"						\
-    "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
-    "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
 feature X86 RDRAND "" "-mrdrnd"
 feature X86 SHANI "" "-msse2 -msha"					\
     "-msse2 -msha -Wno-cast-align"
@@ -74,6 +70,14 @@ feature X86 SSE2 ""							\
     "-Wno-cast-align"							\
     "-msse2"								\
     "-msse2 -Wno-cast-align"
+feature X86 SSE42 "" "-msse4.2"						\
+    "-msse4.2 -Wno-cast-align"						\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
+feature X86 SSE42_64 "" "-msse4.2"					\
+    "-msse4.2 -Wno-cast-align"						\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
 feature X86 SSSE3 "" "-mssse3"						\
     "-mssse3 -Wno-cast-align"
 
