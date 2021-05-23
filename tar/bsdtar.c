@@ -82,6 +82,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "dirutil.h"
 #include "humansize.h"
 #include "keyfile.h"
+#include "passphrase_entry.h"
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
 #include "warnp.h"
@@ -1906,10 +1907,17 @@ static int
 load_keys(struct bsdtar *bsdtar, const char *path)
 {
 	uint64_t machinenum;
+	enum passphrase_entry passphrase_entry;
+
+	/* Set passphrase entry method. */
+	if (bsdtar->option_passphrase_stdin)
+		passphrase_entry = PASSPHRASE_STDIN_ONCE;
+	else
+		passphrase_entry = PASSPHRASE_TTY_STDIN;
 
 	/* Load the key file. */
 	if (keyfile_read(path, &machinenum, ~0, bsdtar->option_force_resources,
-	    !bsdtar->option_passphrase_stdin))
+	    passphrase_entry, NULL))
 		goto err0;
 
 	/* Check the machine number. */

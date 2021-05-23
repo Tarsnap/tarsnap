@@ -18,6 +18,7 @@
 #include "imalloc.h"
 #include "keyfile.h"
 #include "multitape_internal.h"
+#include "passphrase_entry.h"
 #include "storage.h"
 #include "tarsnap_opt.h"
 #include "tsnetwork.h"
@@ -462,7 +463,8 @@ main(int argc, char **argv)
 	lockdirs(ocachedir, ncachedir, &odirlock, &ndirlock);
 
 	/* Read keys from the new key file. */
-	if (keyfile_read(nkeyfile, &nmachinenum, KEYMASK_NEW_KEYFILE, 0, 1)) {
+	if (keyfile_read(nkeyfile, &nmachinenum, KEYMASK_NEW_KEYFILE, 0,
+	    PASSPHRASE_TTY_STDIN, NULL)) {
 		warnp("Cannot read key file: %s", nkeyfile);
 		exit(1);
 	}
@@ -497,7 +499,8 @@ main(int argc, char **argv)
 	 * we've read the list of blocks) the only thing we'll be doing to
 	 * the new machine is writing blocks.
 	 */
-	if (keyfile_read(okeyfile, &omachinenum, KEYMASK_OLD_KEYFILE, 0, 1)) {
+	if (keyfile_read(okeyfile, &omachinenum, KEYMASK_OLD_KEYFILE, 0,
+	    PASSPHRASE_TTY_STDIN, NULL)) {
 		warnp("Cannot read key file: %s", okeyfile);
 		exit(1);
 	}
