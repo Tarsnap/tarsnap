@@ -223,6 +223,7 @@ bsdtar_atexit(void)
 	free(bsdtar->conffile);
 	free(bsdtar->conf_opt);
 	free(bsdtar->conf_arg);
+	free(bsdtar->option_passphrase_arg);
 
 	/* Free file-parsing variables from util.c. */
 	free(bsdtar->conffile_buffer);
@@ -706,8 +707,8 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_XATTR;
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
 			break;
-		case OPTION_PASSPHRASE_STDIN: /* tarsnap */
-			bsdtar->option_passphrase_entry = PASSPHRASE_STDIN_ONCE;
+		case OPTION_PASSPHRASE: /* tarsnap */
+			optq_push(bsdtar, "passphrase", bsdtar->optarg);
 			break;
 		case OPTION_PRINT_STATS: /* multitar */
 			bsdtar->option_print_stats = 1;
@@ -1549,6 +1550,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
     const char * conf_arg, int fromconffile)
 {
 	struct stat st;
+	const char * str;
 	char *eptr;
 
 	if (strcmp(conf_opt, "aggressive-networking") == 0) {
@@ -1810,6 +1812,17 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 
 		bsdtar->option_print_stats = 1;
 		bsdtar->option_print_stats_set = 1;
+	} else if (strcmp(conf_opt, "passphrase") == 0) {
+		if (bsdtar->option_passphrase_entry != PASSPHRASE_UNSET)
+			goto optset;
+
+		if (passphrase_entry_parse(conf_arg,
+		    &bsdtar->option_passphrase_entry, &str))
+			bsdtar_errc(bsdtar, 1, 0, "Cannot parse passphrase"
+			    "entry method: %s", conf_arg);
+		if ((bsdtar->option_passphrase_arg = strdup(str)) == NULL)
+			bsdtar_errc(bsdtar, 1, ENOMEM,
+			    "Cannot allocate memory");
 	} else if (strcmp(conf_opt, "progress-bytes") == 0) {
 		if (!((bsdtar->mode != 'c') || (bsdtar->mode != 'x')))
 			goto badmode;

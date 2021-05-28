@@ -130,7 +130,7 @@ struct bsdtar {
 	int		  option_no_default_config; /* --no-default-config */
 	char		 *keyfile;
 	int		  keyfile_from_config;
-	const char	 *option_passphrase_arg;
+	char		 *option_passphrase_arg;
 	enum passphrase_entry option_passphrase_entry;
 
 	/* Miscellaneous state information */
@@ -258,7 +258,7 @@ enum {
 	OPTION_NULL,
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
-	OPTION_PASSPHRASE_STDIN,
+	OPTION_PASSPHRASE,
 	OPTION_PRINT_STATS,
 	OPTION_PROGRESS_BYTES,
 	OPTION_RECOVER,
