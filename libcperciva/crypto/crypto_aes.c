@@ -63,25 +63,35 @@ static struct aes_test {
 
 /* Test hardware intrinsics against test vectors. */
 static int
-hwtest(struct aes_test * knowngood)
+hwtest(void)
 {
+	struct aes_test * knowngood;
 	void * kexp;
 	uint8_t ctext[16];
+	size_t i;
 
-	/* Sanity-check. */
-	assert((knowngood->len == 16) || (knowngood->len == 32));
+	for (i = 0; i < sizeof(testcases) / sizeof(testcases[0]); i++) {
+		knowngood = &testcases[i];
 
-	/* Expand the key and encrypt with hardware intrinsics. */
+		/* Sanity-check. */
+		assert((knowngood->len == 16) || (knowngood->len == 32));
+
+		/* Expand the key and encrypt with hardware intrinsics. */
 #if defined(CPUSUPPORT_X86_AESNI)
-	if ((kexp = crypto_aes_key_expand_aesni(knowngood->key,
-	    knowngood->len)) == NULL)
-		goto err0;
-	crypto_aes_encrypt_block_aesni(knowngood->ptext, ctext, kexp);
-	crypto_aes_key_free_aesni(kexp);
+		if ((kexp = crypto_aes_key_expand_aesni(knowngood->key,
+		    knowngood->len)) == NULL)
+			goto err0;
+		crypto_aes_encrypt_block_aesni(knowngood->ptext, ctext, kexp);
+		crypto_aes_key_free_aesni(kexp);
 #endif
 
-	/* Does the output match the known good value? */
-	return (memcmp(knowngood->ctext, ctext, 16));
+		/* Does the output match the known good value? */
+		if (memcmp(knowngood->ctext, ctext, 16))
+			goto err0;
+	}
+
+	/* Success! */
+	return (0);
 
 err0:
 	/* Failure! */
@@ -102,7 +112,7 @@ hwaccel_init(void)
 
 #if defined(CPUSUPPORT_X86_AESNI)
 	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_AESNI, cpusupport_x86_aesni(),
-	    hwtest(&testcases[0]) || hwtest(&testcases[1]));
+	    hwtest());
 #endif
 }
 #endif /* HWACCEL */
