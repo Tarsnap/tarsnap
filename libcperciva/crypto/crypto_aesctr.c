@@ -50,7 +50,7 @@ hwaccel_init(void)
 	hwaccel = HW_SOFTWARE;
 
 	/* Can we use AESNI? */
-	if (crypto_aes_use_x86_aesni())
+	if (crypto_aes_can_use_intrinsics() == 1)
 		hwaccel = HW_X86_AESNI;
 }
 #endif /* HWACCEL */
