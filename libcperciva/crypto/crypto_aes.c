@@ -63,10 +63,9 @@ static struct aes_test {
 
 /* Test hardware intrinsics against test vectors. */
 static int
-hwtest(void)
+hwtest(int(* func)(const uint8_t *, size_t, const uint8_t[16], uint8_t[16]))
 {
 	struct aes_test * knowngood;
-	void * kexp;
 	uint8_t ctext[16];
 	size_t i;
 
@@ -76,14 +75,10 @@ hwtest(void)
 		/* Sanity-check. */
 		assert((knowngood->len == 16) || (knowngood->len == 32));
 
-		/* Expand the key and encrypt with hardware intrinsics. */
-#if defined(CPUSUPPORT_X86_AESNI)
-		if ((kexp = crypto_aes_key_expand_aesni(knowngood->key,
-		    knowngood->len)) == NULL)
+		/* Expand the key and encrypt with the provided function. */
+		if (func(knowngood->key, knowngood->len, knowngood->ptext,
+		    ctext))
 			goto err0;
-		crypto_aes_encrypt_block_aesni(knowngood->ptext, ctext, kexp);
-		crypto_aes_key_free_aesni(kexp);
-#endif
 
 		/* Does the output match the known good value? */
 		if (memcmp(knowngood->ctext, ctext, 16))
@@ -97,6 +92,28 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+#if defined(CPUSUPPORT_X86_AESNI)
+static int
+x86_aesni_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
+    uint8_t ctext[16])
+{
+	void * kexp_hw;
+
+	/* Expand the key and encrypt with hardware intrinsics. */
+	if ((kexp_hw = crypto_aes_key_expand_aesni(key, len)) == NULL)
+		goto err0;
+	crypto_aes_encrypt_block_aesni(ptext, ctext, kexp_hw);
+	crypto_aes_key_free_aesni(kexp_hw);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+#endif
 
 /* Which type of hardware acceleration should we use, if any? */
 static void
@@ -112,7 +129,7 @@ hwaccel_init(void)
 
 #if defined(CPUSUPPORT_X86_AESNI)
 	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_AESNI, cpusupport_x86_aesni(),
-	    hwtest());
+	    hwtest(x86_aesni_oneshot));
 #endif
 }
 #endif /* HWACCEL */
