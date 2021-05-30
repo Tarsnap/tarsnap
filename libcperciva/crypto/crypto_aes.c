@@ -37,8 +37,8 @@ static struct aes_test {
 	const uint8_t key[32];
 	const size_t len;
 	const uint8_t ptext[16];
-	const uint8_t ctext[32];
-} testcase[] = { {
+	const uint8_t ctext[16];
+} testcases[] = { {
 	/* NIST FIPS 179, Appendix C - Example Vectors, AES-128, p. 35. */
 	.key = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 		 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f},
@@ -65,23 +65,23 @@ static struct aes_test {
 static int
 hwtest(struct aes_test * knowngood)
 {
-	void * kexp_hw;
-	uint8_t ctext_hw[16];
+	void * kexp;
+	uint8_t ctext[16];
 
 	/* Sanity-check. */
 	assert((knowngood->len == 16) || (knowngood->len == 32));
 
 	/* Expand the key and encrypt with hardware intrinsics. */
 #if defined(CPUSUPPORT_X86_AESNI)
-	if ((kexp_hw = crypto_aes_key_expand_aesni(knowngood->key,
+	if ((kexp = crypto_aes_key_expand_aesni(knowngood->key,
 	    knowngood->len)) == NULL)
 		goto err0;
-	crypto_aes_encrypt_block_aesni(knowngood->ptext, ctext_hw, kexp_hw);
-	crypto_aes_key_free_aesni(kexp_hw);
+	crypto_aes_encrypt_block_aesni(knowngood->ptext, ctext, kexp);
+	crypto_aes_key_free_aesni(kexp);
 #endif
 
-	/* Do the outputs match? */
-	return (memcmp(knowngood->ctext, ctext_hw, 16));
+	/* Does the output match the known good value? */
+	return (memcmp(knowngood->ctext, ctext, 16));
 
 err0:
 	/* Failure! */
@@ -102,7 +102,7 @@ hwaccel_init(void)
 
 #if defined(CPUSUPPORT_X86_AESNI)
 	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_AESNI, cpusupport_x86_aesni(),
-	    hwtest(&testcase[0]) || hwtest(&testcase[1]));
+	    hwtest(&testcases[0]) || hwtest(&testcases[1]));
 #endif
 }
 #endif /* HWACCEL */
