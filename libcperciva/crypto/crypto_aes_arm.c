@@ -62,6 +62,44 @@ struct crypto_aes_key_arm {
 		: (shuf == 0xaa) ? (vdupq_laneq_u32_u8(a, 2))	\
 		: vdupq_n_u8(0))
 
+/**
+ * Emulate x86 AESNI instructions, inspired by:
+ * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
+ */
+static inline __m128i
+_mm_aesenc_si128(__m128i a, __m128i RoundKey)
+{
+
+	return (vaesmcq_u8(vaeseq_u8(a, vdupq_n_u8(0))) ^ RoundKey);
+}
+
+static inline __m128i
+_mm_aesenclast_si128(__m128i a, __m128i RoundKey)
+{
+
+	return (vaeseq_u8(a, vdupq_n_u8(0)) ^ RoundKey);
+}
+
+static inline __m128i
+_mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
+{
+	__m128i rcon_1_3 = (__m128i)((uint32x4_t){0, rcon, 0, rcon});
+
+	/* AESE does ShiftRows and SubBytes on ${a}. */
+	a = vaeseq_u8(a, vdupq_n_u8(0));
+
+	/* Undo ShiftRows step from AESE and extract X1 and X3. */
+	__m128i dest = {
+		a[0x4], a[0x1], a[0xE], a[0xB], /* SubBytes(X1) */
+		a[0x1], a[0xE], a[0xB], a[0x4], /* ROT(SubBytes(X1)) */
+		a[0xC], a[0x9], a[0x6], a[0x3], /* SubBytes(X3) */
+		a[0x9], a[0x6], a[0x3], a[0xC], /* ROT(SubBytes(X3)) */
+	};
+
+	/* XOR the rcon with words 1 and 3. */
+	return (veorq_u8(dest, rcon_1_3));
+}
+
 /* Compute an AES-128 round key. */
 #define MKRKEY128(rkeys, i, rcon) do {				\
 	__m128i _s = rkeys[i - 1];				\
