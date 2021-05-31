@@ -24,6 +24,29 @@ struct crypto_aes_key_arm {
 	size_t nr;
 };
 
+/**
+ * vdupq_laneq_u32_u8(a, lane):
+ * Set all 32-bit vector lanes to the same value.  Exactly the same as
+ * vdupq_laneq_u32(), except that accepts (and returns) uint8x16_t.
+ */
+#define vdupq_laneq_u32_u8(a, lane)			\
+	vreinterpretq_u8_u32(vdupq_laneq_u32(vreinterpretq_u32_u8(a), lane))
+
+/**
+ * vshlq_n_u128(a, n):
+ * Shift left (immediate), applied to the whole vector at once.
+ *
+ * Implementation note: this concatenates ${a} with a vector containing zeros,
+ * then extracts a new vector from the pair (similar to a sliding window).
+ * For example, vshlq_n_u128(a, 3) would do:
+ *             0xaaaaaaaaaaaaaaaa0000000000000000
+ *     return:      ~~~~~~~~~~~~~~~~
+ * This is the recommended method of shifting an entire vector with Neon
+ * intrinsics; all of the built-in shift instructions operate on multiple
+ * values (such as a pair of 64-bit values).
+ */
+#define vshlq_n_u128(a, n) vextq_u8(vdupq_n_u8(0), a, 16 - n)
+
 /* Compute an AES-128 round key. */
 #define MKRKEY128(rkeys, i, rcon) do {				\
 	__m128i _s = rkeys[i - 1];				\
