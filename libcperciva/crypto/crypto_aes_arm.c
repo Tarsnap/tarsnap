@@ -6,14 +6,17 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <wmmintrin.h>
+
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#endif
 
 #include "align_ptr.h"
 #include "insecure_memzero.h"
 #include "warnp.h"
 
 #include "crypto_aes_arm.h"
-#include "crypto_aes_arm_m128i.h"
+#include "crypto_aes_arm_u8.h"
 
 /* Expanded-key structure. */
 struct crypto_aes_key_arm {
@@ -178,14 +181,14 @@ err0:
 }
 
 /**
- * crypto_aes_encrypt_block_arm_m128i(in, key):
+ * crypto_aes_encrypt_block_arm_u8(in, key):
  * Using the expanded AES key ${key}, encrypt the block ${in} and return the
  * resulting ciphertext.  This implementation uses ARM AES instructions,
  * and should only be used if CPUSUPPORT_ARM_AES is defined and
  * cpusupport_arm_aes() returns nonzero.
  */
 __m128i
-crypto_aes_encrypt_block_arm_m128i(__m128i in, const void * key)
+crypto_aes_encrypt_block_arm_u8(__m128i in, const void * key)
 {
 	const struct crypto_aes_key_arm * _key = key;
 	const __m128i * aes_key = _key->rkeys;
@@ -227,7 +230,7 @@ crypto_aes_encrypt_block_arm(const uint8_t in[16], uint8_t out[16],
 	__m128i aes_state;
 
 	aes_state = _mm_loadu_si128((const __m128i *)in);
-	aes_state = crypto_aes_encrypt_block_arm_m128i(aes_state, key);
+	aes_state = crypto_aes_encrypt_block_arm_u8(aes_state, key);
 	_mm_storeu_si128((__m128i *)out, aes_state);
 }
 
