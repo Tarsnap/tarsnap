@@ -7,18 +7,22 @@
 
 #include "cpusupport.h"
 #include "crypto_aes_aesni.h"
+#include "crypto_aes_arm.h"
 #include "insecure_memzero.h"
 #include "warnp.h"
 
 #include "crypto_aes.h"
 
-#if defined(CPUSUPPORT_X86_AESNI)
+#if defined(CPUSUPPORT_X86_AESNI) || defined(CPUSUPPORT_ARM_AES)
 #define HWACCEL
 
 static enum {
 	HW_SOFTWARE = 0,
 #if defined(CPUSUPPORT_X86_AESNI)
 	HW_X86_AESNI,
+#endif
+#if defined(CPUSUPPORT_ARM_AES)
+	HW_ARM_AES,
 #endif
 	HW_UNSET
 } hwaccel = HW_UNSET;
@@ -115,6 +119,27 @@ err0:
 }
 #endif
 
+#if defined(CPUSUPPORT_ARM_AES)
+static int
+arm_aes_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
+    uint8_t * ctext)
+{
+	void * kexp_hw;
+
+	if ((kexp_hw = crypto_aes_key_expand_arm(key, len)) == NULL)
+		goto err0;
+	crypto_aes_encrypt_block_arm(ptext, ctext, kexp_hw);
+	crypto_aes_key_free_arm(kexp_hw);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+#endif
+
 static int
 openssl_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
     uint8_t * ctext)
@@ -145,6 +170,10 @@ hwaccel_init(void)
 	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_AESNI, cpusupport_x86_aesni(),
 	    functest(x86_aesni_oneshot));
 #endif
+#if defined(CPUSUPPORT_ARM_AES)
+	CPUSUPPORT_VALIDATE(hwaccel, HW_ARM_AES, cpusupport_arm_aes(),
+	    functest(arm_aes_oneshot));
+#endif
 
 	/*
 	 * If we're here, we're not using any intrinsics.  Test OpenSSL; if
@@ -159,8 +188,9 @@ hwaccel_init(void)
 
 /**
  * crypto_aes_can_use_intrinsics(void):
- * Test whether hardware intrinsics are safe to use.  Return 1 if x86 ASENI
- * operations are available, or 0 if none are available.
+ * Test whether hardware intrinsics are safe to use.  Return 1 if x86 AESNI
+ * operations are available, 2 if ARM-AES operations are available, or 0 if
+ * none are available.
  */
 int
 crypto_aes_can_use_intrinsics(void)
@@ -173,6 +203,10 @@ crypto_aes_can_use_intrinsics(void)
 #if defined(CPUSUPPORT_X86_AESNI)
 	if (hwaccel == HW_X86_AESNI)
 		return (1);
+#endif
+#if defined(CPUSUPPORT_ARM_AES)
+	if (hwaccel == HW_ARM_AES)
+		return (2);
 #endif
 #endif /* HWACCEL */
 
@@ -200,6 +234,10 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 #ifdef CPUSUPPORT_X86_AESNI
 	if (hwaccel == HW_X86_AESNI)
 		return (crypto_aes_key_expand_aesni(key, len));
+#endif
+#ifdef CPUSUPPORT_ARM_AES
+	if (hwaccel == HW_ARM_AES)
+		return (crypto_aes_key_expand_arm(key, len));
 #endif
 #endif /* HWACCEL */
 
@@ -235,6 +273,12 @@ crypto_aes_encrypt_block(const uint8_t in[16], uint8_t out[16],
 		return;
 	}
 #endif
+#ifdef CPUSUPPORT_ARM_AES
+	if (hwaccel == HW_ARM_AES) {
+		crypto_aes_encrypt_block_arm(in, out, (const void *)key);
+		return;
+	}
+#endif
 #endif /* HWACCEL */
 
 	/* Get AES to do the work. */
@@ -253,6 +297,12 @@ crypto_aes_key_free(struct crypto_aes_key * key)
 #ifdef CPUSUPPORT_X86_AESNI
 	if (hwaccel == HW_X86_AESNI) {
 		crypto_aes_key_free_aesni((void *)key);
+		return;
+	}
+#endif
+#ifdef CPUSUPPORT_ARM_AES
+	if (hwaccel == HW_ARM_AES) {
+		crypto_aes_key_free_arm((void *)key);
 		return;
 	}
 #endif
