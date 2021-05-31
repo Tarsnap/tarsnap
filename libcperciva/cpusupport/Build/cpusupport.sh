@@ -82,6 +82,8 @@ feature X86 SSSE3 "" "-mssse3"						\
     "-mssse3 -Wno-cast-align"
 
 # Detect specific ARM features
+feature ARM AES "-march=armv8.1-a+crypto"				\
+    "-march=armv8.1-a+crypto -D__ARM_ACLE=200"
 feature ARM CRC32_64 "-march=armv8.1-a"					\
     "-march=armv8.1-a+crc"						\
     "-march=armv8.1-a+crc -Wno-cast-align"				\
