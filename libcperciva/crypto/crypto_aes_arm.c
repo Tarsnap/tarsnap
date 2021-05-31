@@ -122,17 +122,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], __m128i rkeys[11])
 {
 
 	/* The first round key is just the key. */
-	/*-
-	 * XXX Compiler breakage:
-	 * The intrinsic defined by Intel for _mm_loadu_si128 defines it as
-	 * taking a (const __m128i *) parameter.  This forces us to write a
-	 * bug: The cast to (const __m128i *) is invalid since it increases
-	 * the alignment requirement of the pointer.  Alas, until compilers
-	 * get fixed intrinsics, all we can do is code the bug and require
-	 * that alignment-requirement-increasing compiler warnings get
-	 * disabled.
-	 */
-	rkeys[0] = _mm_loadu_si128((const __m128i *)&key[0]);
+	rkeys[0] = _mm_loadu_si128(&key[0]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -176,18 +166,8 @@ crypto_aes_key_expand_256_arm(const uint8_t key[32], __m128i rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
-	/*-
-	 * XXX Compiler breakage:
-	 * The intrinsic defined by Intel for _mm_loadu_si128 defines it as
-	 * taking a (const __m128i *) parameter.  This forces us to write a
-	 * bug: The cast to (const __m128i *) is invalid since it increases
-	 * the alignment requirement of the pointer.  Alas, until compilers
-	 * get fixed intrinsics, all we can do is code the bug and require
-	 * that alignment-requirement-increasing compiler warnings get
-	 * disabled.
-	 */
-	rkeys[0] = _mm_loadu_si128((const __m128i *)&key[0]);
-	rkeys[1] = _mm_loadu_si128((const __m128i *)&key[16]);
+	rkeys[0] = _mm_loadu_si128(&key[0]);
+	rkeys[1] = _mm_loadu_si128(&key[16]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -305,9 +285,9 @@ crypto_aes_encrypt_block_arm(const uint8_t in[16], uint8_t out[16],
 {
 	__m128i aes_state;
 
-	aes_state = _mm_loadu_si128((const __m128i *)in);
+	aes_state = _mm_loadu_si128(in);
 	aes_state = crypto_aes_encrypt_block_arm_u8(aes_state, key);
-	_mm_storeu_si128((__m128i *)out, aes_state);
+	_mm_storeu_si128(out, aes_state);
 }
 
 /**
