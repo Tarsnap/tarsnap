@@ -53,12 +53,6 @@ struct crypto_aes_key_arm {
 #define _mm_xor_si128(a, b) veorq_u8(a, b)
 #define _mm_slli_si128(x, n) vshlq_n_u128(x, n)
 
-/* This only implements the values we need for AES key generation. */
-#define _mm_shuffle_epi32(a, shuf) (				\
-	(shuf == 0xff) ? (vdupq_laneq_u32_u8(a, 3))		\
-		: (shuf == 0xaa) ? (vdupq_laneq_u32_u8(a, 2))	\
-		: vdupq_n_u8(0))
-
 /**
  * Emulate x86 AESNI instructions, inspired by:
  * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
@@ -104,7 +98,7 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
-	_t = _mm_shuffle_epi32(_t, 0xff);			\
+	_t = vdupq_laneq_u32_u8(_t, 3);				\
 	rkeys[i] = _mm_xor_si128(_s, _t);			\
 } while (0)
 
@@ -142,13 +136,13 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 }
 
 /* Compute an AES-256 round key. */
-#define MKRKEY256(rkeys, i, shuffle, rcon)	do {		\
+#define MKRKEY256(rkeys, i, lane, rcon)	do {			\
 	uint8x16_t _s = rkeys[i - 2];				\
 	uint8x16_t _t = rkeys[i - 1];				\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
-	_t = _mm_shuffle_epi32(_t, shuffle);			\
+	_t = vdupq_laneq_u32_u8(_t, lane);			\
 	rkeys[i] = _mm_xor_si128(_s, _t);			\
 } while (0)
 
@@ -170,26 +164,26 @@ crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
 	 * Each of the remaining round keys are computed from the preceding
 	 * pair of keys.  Even rounds use rotword+subword+rcon, while odd
 	 * rounds just use subword; the aeskeygenassist instruction computes
-	 * both, and we use 0xff or 0xaa to select the one we need.  The rcon
+	 * both, and we use 3 or 2 to select the one we need.  The rcon
 	 * value used is irrelevant for odd rounds since we ignore the value
 	 * which it feeds into.  Unfortunately, the 'shuffle' and 'rcon'
 	 * values are encoded into the instructions as immediates, so we need
 	 * to write the loop out ourselves rather than allowing the compiler
 	 * to expand it.
 	 */
-	MKRKEY256(rkeys, 2, 0xff, 0x01);
-	MKRKEY256(rkeys, 3, 0xaa, 0x00);
-	MKRKEY256(rkeys, 4, 0xff, 0x02);
-	MKRKEY256(rkeys, 5, 0xaa, 0x00);
-	MKRKEY256(rkeys, 6, 0xff, 0x04);
-	MKRKEY256(rkeys, 7, 0xaa, 0x00);
-	MKRKEY256(rkeys, 8, 0xff, 0x08);
-	MKRKEY256(rkeys, 9, 0xaa, 0x00);
-	MKRKEY256(rkeys, 10, 0xff, 0x10);
-	MKRKEY256(rkeys, 11, 0xaa, 0x00);
-	MKRKEY256(rkeys, 12, 0xff, 0x20);
-	MKRKEY256(rkeys, 13, 0xaa, 0x00);
-	MKRKEY256(rkeys, 14, 0xff, 0x40);
+	MKRKEY256(rkeys, 2, 3, 0x01);
+	MKRKEY256(rkeys, 3, 2, 0x00);
+	MKRKEY256(rkeys, 4, 3, 0x02);
+	MKRKEY256(rkeys, 5, 2, 0x00);
+	MKRKEY256(rkeys, 6, 3, 0x04);
+	MKRKEY256(rkeys, 7, 2, 0x00);
+	MKRKEY256(rkeys, 8, 3, 0x08);
+	MKRKEY256(rkeys, 9, 2, 0x00);
+	MKRKEY256(rkeys, 10, 3, 0x10);
+	MKRKEY256(rkeys, 11, 2, 0x00);
+	MKRKEY256(rkeys, 12, 3, 0x20);
+	MKRKEY256(rkeys, 13, 2, 0x00);
+	MKRKEY256(rkeys, 14, 3, 0x40);
 }
 
 /**
