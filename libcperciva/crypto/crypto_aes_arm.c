@@ -49,10 +49,6 @@ struct crypto_aes_key_arm {
  */
 #define vshlq_n_u128(a, n) vextq_u8(vdupq_n_u8(0), a, 16 - n)
 
-/* Emulate x86 SSE2 instructions. */
-#define _mm_xor_si128(a, b) veorq_u8(a, b)
-#define _mm_slli_si128(x, n) vshlq_n_u128(x, n)
-
 /**
  * Emulate x86 AESNI instructions, inspired by:
  * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
@@ -95,11 +91,11 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 #define MKRKEY128(rkeys, i, rcon) do {				\
 	uint8x16_t _s = rkeys[i - 1];				\
 	uint8x16_t _t = rkeys[i - 1];				\
-	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
-	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
+	_s = veorq_u8(_s, vshlq_n_u128(_s, 4));			\
+	_s = veorq_u8(_s, vshlq_n_u128(_s, 8));			\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
 	_t = vdupq_laneq_u32_u8(_t, 3);				\
-	rkeys[i] = _mm_xor_si128(_s, _t);			\
+	rkeys[i] = veorq_u8(_s, _t);				\
 } while (0)
 
 /**
@@ -139,11 +135,11 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 #define MKRKEY256(rkeys, i, lane, rcon)	do {			\
 	uint8x16_t _s = rkeys[i - 2];				\
 	uint8x16_t _t = rkeys[i - 1];				\
-	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
-	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
+	_s = veorq_u8(_s, vshlq_n_u128(_s, 4));			\
+	_s = veorq_u8(_s, vshlq_n_u128(_s, 8));			\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
 	_t = vdupq_laneq_u32_u8(_t, lane);			\
-	rkeys[i] = _mm_xor_si128(_s, _t);			\
+	rkeys[i] = veorq_u8(_s, _t);				\
 } while (0)
 
 /**
@@ -242,7 +238,7 @@ crypto_aes_encrypt_block_arm_u8(uint8x16_t in, const void * key)
 	uint8x16_t aes_state = in;
 	size_t nr = _key->nr;
 
-	aes_state = _mm_xor_si128(aes_state, aes_key[0]);
+	aes_state = veorq_u8(aes_state, aes_key[0]);
 	aes_state = _mm_aesenc_si128(aes_state, aes_key[1]);
 	aes_state = _mm_aesenc_si128(aes_state, aes_key[2]);
 	aes_state = _mm_aesenc_si128(aes_state, aes_key[3]);
