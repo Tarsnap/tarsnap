@@ -50,9 +50,6 @@ struct crypto_aes_key_arm {
 #define vshlq_n_u128(a, n) vextq_u8(vdupq_n_u8(0), a, 16 - n)
 
 /* Emulate x86 SSE2 instructions. */
-#define _mm_loadu_si128(mem) vld1q_u8((const uint8_t *)mem)
-#define _mm_storeu_si128(mem, var) vst1q_u8((uint8_t *)mem, var)
-
 #define _mm_xor_si128(a, b) veorq_u8(a, b)
 #define _mm_slli_si128(x, n) vshlq_n_u128(x, n)
 
@@ -122,7 +119,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 {
 
 	/* The first round key is just the key. */
-	rkeys[0] = _mm_loadu_si128(&key[0]);
+	rkeys[0] = vld1q_u8(&key[0]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -166,8 +163,8 @@ crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
-	rkeys[0] = _mm_loadu_si128(&key[0]);
-	rkeys[1] = _mm_loadu_si128(&key[16]);
+	rkeys[0] = vld1q_u8(&key[0]);
+	rkeys[1] = vld1q_u8(&key[16]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -285,9 +282,9 @@ crypto_aes_encrypt_block_arm(const uint8_t in[16], uint8_t out[16],
 {
 	uint8x16_t aes_state;
 
-	aes_state = _mm_loadu_si128(in);
+	aes_state = vld1q_u8(in);
 	aes_state = crypto_aes_encrypt_block_arm_u8(aes_state, key);
-	_mm_storeu_si128(out, aes_state);
+	vst1q_u8(out, aes_state);
 }
 
 /**
