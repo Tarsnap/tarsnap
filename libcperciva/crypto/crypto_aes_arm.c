@@ -22,7 +22,7 @@ typedef uint8x16_t __m128i;
 
 /* Expanded-key structure. */
 struct crypto_aes_key_arm {
-	ALIGN_PTR_DECL(__m128i, rkeys, 15, sizeof(__m128i));
+	ALIGN_PTR_DECL(uint8x16_t, rkeys, 15, sizeof(uint8x16_t));
 	size_t nr;
 };
 
@@ -102,8 +102,8 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 
 /* Compute an AES-128 round key. */
 #define MKRKEY128(rkeys, i, rcon) do {				\
-	__m128i _s = rkeys[i - 1];				\
-	__m128i _t = rkeys[i - 1];				\
+	uint8x16_t _s = rkeys[i - 1];				\
+	uint8x16_t _t = rkeys[i - 1];				\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
@@ -118,7 +118,7 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
  * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
  */
 static void
-crypto_aes_key_expand_128_arm(const uint8_t key[16], __m128i rkeys[11])
+crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 {
 
 	/* The first round key is just the key. */
@@ -146,8 +146,8 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], __m128i rkeys[11])
 
 /* Compute an AES-256 round key. */
 #define MKRKEY256(rkeys, i, shuffle, rcon)	do {		\
-	__m128i _s = rkeys[i - 2];				\
-	__m128i _t = rkeys[i - 1];				\
+	uint8x16_t _s = rkeys[i - 2];				\
+	uint8x16_t _t = rkeys[i - 1];				\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 4));		\
 	_s = _mm_xor_si128(_s, _mm_slli_si128(_s, 8));		\
 	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
@@ -162,7 +162,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], __m128i rkeys[11])
  * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
  */
 static void
-crypto_aes_key_expand_256_arm(const uint8_t key[32], __m128i rkeys[15])
+crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
@@ -212,7 +212,7 @@ crypto_aes_key_expand_arm(const uint8_t * key, size_t len)
 		goto err0;
 
 	/* Figure out where to put the round keys. */
-	ALIGN_PTR_INIT(kexp->rkeys, sizeof(__m128i));
+	ALIGN_PTR_INIT(kexp->rkeys, sizeof(uint8x16_t));
 
 	/* Compute round keys. */
 	if (len == 16) {
@@ -243,12 +243,12 @@ err0:
  * and should only be used if CPUSUPPORT_ARM_AES is defined and
  * cpusupport_arm_aes() returns nonzero.
  */
-__m128i
-crypto_aes_encrypt_block_arm_u8(__m128i in, const void * key)
+uint8x16_t
+crypto_aes_encrypt_block_arm_u8(uint8x16_t in, const void * key)
 {
 	const struct crypto_aes_key_arm * _key = key;
-	const __m128i * aes_key = _key->rkeys;
-	__m128i aes_state = in;
+	const uint8x16_t * aes_key = _key->rkeys;
+	uint8x16_t aes_state = in;
 	size_t nr = _key->nr;
 
 	aes_state = _mm_xor_si128(aes_state, aes_key[0]);
@@ -283,7 +283,7 @@ void
 crypto_aes_encrypt_block_arm(const uint8_t in[16], uint8_t out[16],
     const void * key)
 {
-	__m128i aes_state;
+	uint8x16_t aes_state;
 
 	aes_state = _mm_loadu_si128(in);
 	aes_state = crypto_aes_encrypt_block_arm_u8(aes_state, key);
