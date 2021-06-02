@@ -54,20 +54,6 @@ struct crypto_aes_key_arm {
  * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
  */
 static inline __m128i
-_mm_aesenc_si128(__m128i a, __m128i RoundKey)
-{
-
-	return (vaesmcq_u8(vaeseq_u8(a, vdupq_n_u8(0))) ^ RoundKey);
-}
-
-static inline __m128i
-_mm_aesenclast_si128(__m128i a, __m128i RoundKey)
-{
-
-	return (vaeseq_u8(a, vdupq_n_u8(0)) ^ RoundKey);
-}
-
-static inline __m128i
 _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 {
 	__m128i rcon_1_3 = (__m128i)((uint32x4_t){0, rcon, 0, rcon});
@@ -238,24 +224,26 @@ crypto_aes_encrypt_block_arm_u8(uint8x16_t in, const void * key)
 	uint8x16_t aes_state = in;
 	size_t nr = _key->nr;
 
-	aes_state = veorq_u8(aes_state, aes_key[0]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[1]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[2]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[3]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[4]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[5]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[6]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[7]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[8]);
-	aes_state = _mm_aesenc_si128(aes_state, aes_key[9]);
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[0]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[1]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[2]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[3]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[4]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[5]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[6]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[7]));
+	aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[8]));
 	if (nr > 10) {
-		aes_state = _mm_aesenc_si128(aes_state, aes_key[10]);
-		aes_state = _mm_aesenc_si128(aes_state, aes_key[11]);
-		aes_state = _mm_aesenc_si128(aes_state, aes_key[12]);
-		aes_state = _mm_aesenc_si128(aes_state, aes_key[13]);
+		aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[9]));
+		aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[10]));
+		aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[11]));
+		aes_state = vaesmcq_u8(vaeseq_u8(aes_state, aes_key[12]));
 	}
 
-	aes_state = _mm_aesenclast_si128(aes_state, aes_key[nr]);
+	/* Last round. */
+	aes_state = vaeseq_u8(aes_state, aes_key[nr - 1]);
+	aes_state = veorq_u8(aes_state, aes_key[nr]);
+
 	return (aes_state);
 }
 
