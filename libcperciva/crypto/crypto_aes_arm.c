@@ -126,9 +126,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 	 * Each of the remaining round keys are computed from the preceding
 	 * round key: rotword+subword+rcon (provided as aeskeygenassist) to
 	 * compute the 'temp' value, then xor with 1, 2, 3, or all 4 of the
-	 * 32-bit words from the preceding round key.  Unfortunately, 'rcon'
-	 * is encoded as an immediate value, so we need to write the loop out
-	 * ourselves rather than allowing the compiler to expand it.
+	 * 32-bit words from the preceding round key.
 	 */
 	MKRKEY128(rkeys, 1, 0x01);
 	MKRKEY128(rkeys, 2, 0x02);
@@ -143,7 +141,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 }
 
 /* Compute an AES-256 round key. */
-#define MKRKEY256(rkeys, i, lane, rcon)	do {			\
+#define MKRKEY256(rkeys, i, rcon)	do {			\
 	uint8x16_t _s = rkeys[i - 2];				\
 	uint8x16_t _t = rkeys[i - 1];				\
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 4));			\
@@ -171,27 +169,22 @@ crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
 	/*
 	 * Each of the remaining round keys are computed from the preceding
 	 * pair of keys.  Even rounds use rotword+subword+rcon, while odd
-	 * rounds just use subword; the aeskeygenassist instruction computes
-	 * both, and we use 3 or 2 to select the one we need.  The rcon
-	 * value used is irrelevant for odd rounds since we ignore the value
-	 * which it feeds into.  Unfortunately, the 'shuffle' and 'rcon'
-	 * values are encoded into the instructions as immediates, so we need
-	 * to write the loop out ourselves rather than allowing the compiler
-	 * to expand it.
+	 * rounds just use subword.  The rcon value used is irrelevant for odd
+	 * rounds since we ignore the value which it feeds into.
 	 */
-	MKRKEY256(rkeys, 2, 3, 0x01);
-	MKRKEY256(rkeys, 3, 2, 0x00);
-	MKRKEY256(rkeys, 4, 3, 0x02);
-	MKRKEY256(rkeys, 5, 2, 0x00);
-	MKRKEY256(rkeys, 6, 3, 0x04);
-	MKRKEY256(rkeys, 7, 2, 0x00);
-	MKRKEY256(rkeys, 8, 3, 0x08);
-	MKRKEY256(rkeys, 9, 2, 0x00);
-	MKRKEY256(rkeys, 10, 3, 0x10);
-	MKRKEY256(rkeys, 11, 2, 0x00);
-	MKRKEY256(rkeys, 12, 3, 0x20);
-	MKRKEY256(rkeys, 13, 2, 0x00);
-	MKRKEY256(rkeys, 14, 3, 0x40);
+	MKRKEY256(rkeys, 2, 0x01);
+	MKRKEY256(rkeys, 3, 0x00);
+	MKRKEY256(rkeys, 4, 0x02);
+	MKRKEY256(rkeys, 5, 0x00);
+	MKRKEY256(rkeys, 6, 0x04);
+	MKRKEY256(rkeys, 7, 0x00);
+	MKRKEY256(rkeys, 8, 0x08);
+	MKRKEY256(rkeys, 9, 0x00);
+	MKRKEY256(rkeys, 10, 0x10);
+	MKRKEY256(rkeys, 11, 0x00);
+	MKRKEY256(rkeys, 12, 0x20);
+	MKRKEY256(rkeys, 13, 0x00);
+	MKRKEY256(rkeys, 14, 0x40);
 }
 
 /**
