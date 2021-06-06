@@ -72,11 +72,15 @@ SubWord_duplicate(uint8x16_t a)
 }
 
 /**
- * Emulate x86 AESNI instructions, inspired by:
+ * SubWord_RotWord_XOR_duplicate(a, rcon):
+ * Perform the AES key schedule operations of SubWord, RotWord, and XOR with
+ * ${rcon}, acting on the final 32-bit word (bits 96..127) of ${a}, and return
+ * a vector consisting of that value copied to all lanes.
+ * Inspired by:
  * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
  */
-static inline __m128i
-_mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
+static inline uint8x16_t
+SubWord_RotWord_XOR_duplicate(uint8x16_t a, const uint32_t rcon)
 {
 	__m128i rcon_1_3 = (__m128i)((uint32x4_t){0, rcon, 0, rcon});
 
@@ -92,7 +96,12 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 	};
 
 	/* XOR the rcon with words 1 and 3. */
-	return (veorq_u8(dest, rcon_1_3));
+	dest = veorq_u8(dest, rcon_1_3);
+
+	/* Duplicate final 32-bit word to all lanes. */
+	dest = vdupq_laneq_u32_u8(dest, 3);
+
+	return (dest);
 }
 
 /* Compute an AES-128 round key. */
@@ -101,8 +110,7 @@ _mm_aeskeygenassist_si128(__m128i a, const uint32_t rcon)
 	uint8x16_t _t = rkeys[i - 1];				\
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 4));			\
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 8));			\
-	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
-	_t = vdupq_laneq_u32_u8(_t, 3);				\
+	_t = SubWord_RotWord_XOR_duplicate(_t, rcon);		\
 	rkeys[i] = veorq_u8(_s, _t);				\
 } while (0)
 
@@ -147,8 +155,7 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 8));			\
 	_t = (i % 2 == 1) ?					\
 	    SubWord_duplicate(_t) :				\
-	    _mm_aeskeygenassist_si128(_t, rcon);		\
-	_t = vdupq_laneq_u32_u8(_t, lane);			\
+	    SubWord_RotWord_XOR_duplicate(_t, rcon);		\
 	rkeys[i] = veorq_u8(_s, _t);				\
 } while (0)
 
