@@ -18,8 +18,6 @@
 #include "crypto_aes_arm.h"
 #include "crypto_aes_arm_u8.h"
 
-typedef uint8x16_t __m128i;
-
 /* Expanded-key structure. */
 struct crypto_aes_key_arm {
 	ALIGN_PTR_DECL(uint8x16_t, rkeys, 15, sizeof(uint8x16_t));
@@ -76,32 +74,29 @@ SubWord_duplicate(uint8x16_t a)
  * Perform the AES key schedule operations of SubWord, RotWord, and XOR with
  * ${rcon}, acting on the final 32-bit word (bits 96..127) of ${a}, and return
  * a vector consisting of that value copied to all lanes.
- * Inspired by:
- * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
  */
 static inline uint8x16_t
 SubWord_RotWord_XOR_duplicate(uint8x16_t a, const uint32_t rcon)
 {
-	__m128i rcon_1_3 = (__m128i)((uint32x4_t){0, rcon, 0, rcon});
+	uint32_t x3;
 
-	/* AESE does ShiftRows and SubBytes on ${a}. */
-	a = vaeseq_u8(a, vdupq_n_u8(0));
+	/* Perform SubWord on the final 32-bit word and copy it to all lanes. */
+	a = SubWord_duplicate(a);
 
-	/* Undo ShiftRows step from AESE and extract X1 and X3. */
-	__m128i dest = {
-		a[0x4], a[0x1], a[0xE], a[0xB], /* SubBytes(X1) */
-		a[0x1], a[0xE], a[0xB], a[0x4], /* ROT(SubBytes(X1)) */
-		a[0xC], a[0x9], a[0x6], a[0x3], /* SubBytes(X3) */
-		a[0x9], a[0x6], a[0x3], a[0xC], /* ROT(SubBytes(X3)) */
-	};
+	/* We'll use non-neon for the rest. */
+	x3 = vgetq_lane_u32(vreinterpretq_u32_u8(a), 0);
 
-	/* XOR the rcon with words 1 and 3. */
-	dest = veorq_u8(dest, rcon_1_3);
+	/*-
+	 * x3 gets RotWord.  Note that
+	 *     RotWord(SubWord(a)) == SubWord(RotWord(a))
+	 */
+	x3 = (x3 >> 8) | (x3 << (32 - 8));
 
-	/* Duplicate final 32-bit word to all lanes. */
-	dest = vdupq_laneq_u32_u8(dest, 3);
+	/* x3 gets XOR'd with rcon. */
+	x3 = x3 ^ rcon;
 
-	return (dest);
+	/* Copy x3 to all 128 bits, and convert it to a uint8x16_t. */
+	return (vreinterpretq_u8_u32(vdupq_n_u32(x3)));
 }
 
 /* Compute an AES-128 round key. */
