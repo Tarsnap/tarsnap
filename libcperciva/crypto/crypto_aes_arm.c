@@ -50,6 +50,28 @@ struct crypto_aes_key_arm {
 #define vshlq_n_u128(a, n) vextq_u8(vdupq_n_u8(0), a, 16 - n)
 
 /**
+ * SubWord_duplicate(a):
+ * Perform the AES SubWord operation on the final 32-bit word (bits 96..127)
+ * of ${a}, and return a vector consisting of that value copied to all lanes.
+ */
+static inline uint8x16_t
+SubWord_duplicate(uint8x16_t a)
+{
+
+	/*
+	 * Duplicate the final 32-bit word in all other lanes.  By having four
+	 * copies of the same uint32_t, we cause the ShiftRows in the upcoming
+	 * AESE to have no effect.
+	 */
+	a = vdupq_laneq_u32_u8(a, 3);
+
+	/* AESE does AddRoundKey (nop), ShiftRows (nop), and SubBytes. */
+	a = vaeseq_u8(a, vdupq_n_u8(0));
+
+	return (a);
+}
+
+/**
  * Emulate x86 AESNI instructions, inspired by:
  * https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a/
  */
@@ -123,7 +145,9 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 	uint8x16_t _t = rkeys[i - 1];				\
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 4));			\
 	_s = veorq_u8(_s, vshlq_n_u128(_s, 8));			\
-	_t = _mm_aeskeygenassist_si128(_t, rcon);		\
+	_t = (i % 2 == 1) ?					\
+	    SubWord_duplicate(_t) :				\
+	    _mm_aeskeygenassist_si128(_t, rcon);		\
 	_t = vdupq_laneq_u32_u8(_t, lane);			\
 	rkeys[i] = veorq_u8(_s, _t);				\
 } while (0)
