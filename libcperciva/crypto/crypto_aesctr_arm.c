@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#endif
+
 #include "crypto_aes.h"
 #include "crypto_aes_arm_u8.h"
 #include "sysendian.h"
@@ -33,16 +37,17 @@ static void
 crypto_aesctr_arm_stream_wholeblocks(struct crypto_aesctr * stream,
     const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen)
 {
-	__m128i bufsse;
-	__m128i inbufsse;
-	__m128i nonce_be;
+	uint8x16_t bufarm;
+	uint8x16_t inbufarm;
+	uint8x8_t nonce_be;
+	uint8x8_t block_counter_be;
 	uint8_t block_counter_be_arr[8];
 	uint64_t block_counter;
 	size_t num_blocks;
 	size_t i;
 
 	/* Load local variables from stream. */
-	nonce_be = _mm_loadu_si64(stream->pblk);
+	nonce_be = vld1_u8(stream->pblk);
 	block_counter = stream->bytectr / 16;
 
 	/* How many blocks should we process? */
@@ -58,15 +63,14 @@ crypto_aesctr_arm_stream_wholeblocks(struct crypto_aesctr * stream,
 		be64enc(block_counter_be_arr, block_counter);
 
 		/* Encrypt the cipherblock. */
-		bufsse = _mm_loadu_si64(block_counter_be_arr);
-		bufsse = _mm_unpacklo_epi64(nonce_be, bufsse);
-		bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse,
-		    stream->key);
+		block_counter_be = vld1_u8(block_counter_be_arr);
+		bufarm = vcombine_u8(nonce_be, block_counter_be);
+		bufarm = crypto_aes_encrypt_block_arm_u8(bufarm, stream->key);
 
 		/* Encrypt the byte(s). */
-		inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
-		bufsse = _mm_xor_si128(inbufsse, bufsse);
-		_mm_storeu_si128((__m128i *)(*outbuf), bufsse);
+		inbufarm = vld1q_u8(*inbuf);
+		bufarm = veorq_u8(inbufarm, bufarm);
+		vst1q_u8(*outbuf, bufarm);
 
 		/* Update the positions. */
 		block_counter++;
