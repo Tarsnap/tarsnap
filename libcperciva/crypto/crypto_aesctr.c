@@ -5,6 +5,7 @@
 #include "cpusupport.h"
 #include "crypto_aes.h"
 #include "crypto_aesctr_aesni.h"
+#include "crypto_aesctr_arm.h"
 #include "insecure_memzero.h"
 #include "sysendian.h"
 
@@ -24,13 +25,16 @@
  */
 #include "crypto_aesctr_shared.c"
 
-#if defined(CPUSUPPORT_X86_AESNI)
+#if defined(CPUSUPPORT_X86_AESNI) || defined(CPUSUPPORT_ARM_AES)
 #define HWACCEL
 
 static enum {
 	HW_SOFTWARE = 0,
 #if defined(CPUSUPPORT_X86_AESNI)
 	HW_X86_AESNI,
+#endif
+#if defined(CPUSUPPORT_ARM_AES)
+	HW_ARM_AES,
 #endif
 	HW_UNSET
 } hwaccel = HW_UNSET;
@@ -50,8 +54,23 @@ hwaccel_init(void)
 	hwaccel = HW_SOFTWARE;
 
 	/* Can we use AESNI? */
-	if (crypto_aes_can_use_intrinsics() == 1)
+	switch (crypto_aes_can_use_intrinsics()) {
+#ifdef CPUSUPPORT_X86_AESNI
+	case 1:
 		hwaccel = HW_X86_AESNI;
+		break;
+#endif
+#ifdef CPUSUPPORT_ARM_AES
+	case 2:
+		hwaccel = HW_ARM_AES;
+		break;
+#endif
+	case 0:
+		break;
+	default:
+		/* Should never happen. */
+		assert(0);
+	}
 }
 #endif /* HWACCEL */
 
@@ -154,6 +173,12 @@ crypto_aesctr_stream(struct crypto_aesctr * stream, const uint8_t * inbuf,
 #if defined(CPUSUPPORT_X86_AESNI)
 	if ((buflen >= 16) && (hwaccel == HW_X86_AESNI)) {
 		crypto_aesctr_aesni_stream(stream, inbuf, outbuf, buflen);
+		return;
+	}
+#endif
+#if defined(CPUSUPPORT_ARM_AES)
+	if ((buflen >= 16) && (hwaccel == HW_ARM_AES)) {
+		crypto_aesctr_arm_stream(stream, inbuf, outbuf, buflen);
 		return;
 	}
 #endif
