@@ -33,12 +33,56 @@ static void
 crypto_aesctr_arm_stream_wholeblocks(struct crypto_aesctr * stream,
     const uint8_t ** inbuf, uint8_t ** outbuf, size_t * buflen)
 {
+	__m128i bufsse;
+	__m128i inbufsse;
+	__m128i nonce_be;
+	uint8_t block_counter_be_arr[8];
+	uint64_t block_counter;
+	size_t num_blocks;
+	size_t i;
 
-	while (*buflen >= 16) {
-		crypto_aesctr_stream_cipherblock_generate(stream);
-		crypto_aesctr_stream_cipherblock_use(stream, inbuf, outbuf,
-		    buflen, 16, 0);
-	}
+	/* Load local variables from stream. */
+	nonce_be = _mm_loadu_si64(stream->pblk);
+	block_counter = stream->bytectr / 16;
+
+	/* How many blocks should we process? */
+	num_blocks = (*buflen) / 16;
+
+	/*
+	 * This is 'for (i = num_blocks; i > 0; i--)', but ensuring that the
+	 * compiler knows that we will execute the loop at least once.
+	 */
+	i = num_blocks;
+	do {
+		/* Prepare counter. */
+		be64enc(block_counter_be_arr, block_counter);
+
+		/* Encrypt the cipherblock. */
+		bufsse = _mm_loadu_si64(block_counter_be_arr);
+		bufsse = _mm_unpacklo_epi64(nonce_be, bufsse);
+		bufsse = crypto_aes_encrypt_block_aesni_m128i(bufsse,
+		    stream->key);
+
+		/* Encrypt the byte(s). */
+		inbufsse = _mm_loadu_si128((const __m128i *)(*inbuf));
+		bufsse = _mm_xor_si128(inbufsse, bufsse);
+		_mm_storeu_si128((__m128i *)(*outbuf), bufsse);
+
+		/* Update the positions. */
+		block_counter++;
+		*inbuf += 16;
+		*outbuf += 16;
+
+		/* Update the counter. */
+		i--;
+	} while (i > 0);
+
+	/* Update the overall buffer length. */
+	*buflen -= 16 * num_blocks;
+
+	/* Update variables in stream. */
+	memcpy(stream->pblk + 8, block_counter_be_arr, 8);
+	stream->bytectr += 16 * num_blocks;
 }
 
 /**
