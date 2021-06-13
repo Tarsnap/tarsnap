@@ -8,10 +8,11 @@
 struct crypto_aes_key;
 
 /**
- * crypto_aes_use_x86_aesni(void):
- * Return non-zero if AESNI operations are available.
+ * crypto_aes_can_use_intrinsics(void):
+ * Test whether hardware intrinsics are safe to use.  Return 1 if x86 ASENI
+ * operations are available, or 0 if none are available.
  */
-int crypto_aes_use_x86_aesni(void);
+int crypto_aes_can_use_intrinsics(void);
 
 /**
  * crypto_aes_key_expand(key, len):
