@@ -5,7 +5,10 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a lib/libtarsnap_shani.a lib/libtarsnap_sse2.a lib/libtarsnap_arm_sha256.a
+noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a	\
+			lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a	\
+			lib/libtarsnap_shani.a lib/libtarsnap_sse2.a	\
+			lib/libtarsnap_arm_aes.a lib/libtarsnap_arm_sha256.a
 bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
 noinst_PROGRAMS=	tests/valgrind/potential-memleaks
 man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
@@ -168,6 +171,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/alg/sha256_shani.h			\
 		libcperciva/alg/sha256_sse2.h			\
 		libcperciva/cpusupport/cpusupport.h		\
+		libcperciva/cpusupport/cpusupport_arm_aes.c	\
 		libcperciva/cpusupport/cpusupport_arm_sha256.c	\
 		libcperciva/cpusupport/cpusupport_x86_aesni.c	\
 		libcperciva/cpusupport/cpusupport_x86_rdrand.c	\
@@ -178,9 +182,12 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/crypto/crypto_aes.h			\
 		libcperciva/crypto/crypto_aes_aesni.h		\
 		libcperciva/crypto/crypto_aes_aesni_m128i.h	\
+		libcperciva/crypto/crypto_aes_arm.h		\
+		libcperciva/crypto/crypto_aes_arm_u8.h		\
 		libcperciva/crypto/crypto_aesctr.c		\
 		libcperciva/crypto/crypto_aesctr.h		\
 		libcperciva/crypto/crypto_aesctr_aesni.h	\
+		libcperciva/crypto/crypto_aesctr_arm.h		\
 		libcperciva/crypto/crypto_dh.c			\
 		libcperciva/crypto/crypto_dh.h			\
 		libcperciva/crypto/crypto_dh_group14.c		\
@@ -307,6 +314,16 @@ lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
 
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
+
+lib_libtarsnap_arm_aes_a_SOURCES=				\
+		libcperciva/crypto/crypto_aes_arm.c		\
+		libcperciva/crypto/crypto_aesctr_arm.c
+nodist_lib_libtarsnap_arm_aes_a_SOURCES=			\
+		cpusupport-config.h
+lib_libtarsnap_arm_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_arm_aes_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_AES}`
+
+LIBTARSNAP_A+=	lib/libtarsnap_arm_aes.a
 
 lib_libtarsnap_rdrand_a_SOURCES=				\
 		libcperciva/crypto/crypto_entropy_rdrand.c
