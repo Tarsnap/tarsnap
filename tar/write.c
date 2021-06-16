@@ -306,8 +306,11 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if ((bsdtar->cachecrunch < 2) && (bsdtar->cachedir != NULL)) {
 		bsdtar->chunk_cache = ccache_read(bsdtar->cachedir);
 		if (bsdtar->chunk_cache == NULL) {
-			bsdtar_warnc(bsdtar, errno, "Error reading cache");
-			goto err1;
+			bsdtar_warnc(bsdtar, errno, "Error reading cache;"
+			    " continuing without it");
+
+			/* Pretend that we were given --verylowmem. */
+			bsdtar->cachecrunch = 2;
 		}
 	}
 
