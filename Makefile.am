@@ -604,6 +604,11 @@ test: all
 # Detect potential memory leaks from libraries.
 tests_valgrind_potential_memleaks_SOURCES = tests/valgrind/potential-memleaks.c
 
+tests_valgrind_potential_memleaks_CPPFLAGS =		\
+		-D_POSIX_C_SOURCE=200809L		\
+		-D_XOPEN_SOURCE=700			\
+		${CFLAGS_POSIX}
+
 #  Tarsnap configuration file
 if INSTALL_CONF_NO_SAMPLE
 tar/tarsnap.conf: tar/tarsnap.conf.sample
