@@ -1,4 +1,9 @@
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+
 #include <locale.h>
+#include <netdb.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,6 +61,45 @@ pl_freebsd_setlocale(void)
 	}
 }
 
+/* Problem with FreeBSD and getaddrinfo. */
+static void
+pl_freebsd_getaddrinfo(const char * addr)
+{
+	struct addrinfo hints;
+	struct addrinfo * res;
+	const char * ports = "9279";
+	int error;
+
+	/* Create hints structure. */
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	/* Perform DNS lookup. */
+	if ((error = getaddrinfo(addr, ports, &hints, &res)) != 0)
+		fprintf(stderr, "Error looking up %s: %s", addr,
+		    gai_strerror(error));
+
+	/* Clean up. */
+	freeaddrinfo(res);
+}
+
+/* Don't prepend pl_ here, so that we cut off pl_internal_getaddrinfo. */
+static void
+freebsd_getaddrinfo_localhost(void)
+{
+
+	pl_freebsd_getaddrinfo("localhost");
+}
+
+static void
+freebsd_getaddrinfo_online(void)
+{
+
+	pl_freebsd_getaddrinfo("google.com");
+}
+
 #define MEMLEAKTEST(x) { #x, x }
 static const struct memleaktest {
 	const char * const name;
@@ -65,7 +109,9 @@ static const struct memleaktest {
 	MEMLEAKTEST(pl_freebsd_strerror),
 	MEMLEAKTEST(pl_freebsd_fgets),
 	MEMLEAKTEST(pl_freebsd_getpwuid),
-	MEMLEAKTEST(pl_freebsd_setlocale)
+	MEMLEAKTEST(pl_freebsd_setlocale),
+	MEMLEAKTEST(freebsd_getaddrinfo_localhost),
+	MEMLEAKTEST(freebsd_getaddrinfo_online)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
