@@ -293,6 +293,7 @@ cpusupport-config.h:
 EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
 		libcperciva/cpusupport/Build/cpusupport-ARM-SHA256.c	\
+		libcperciva/cpusupport/Build/cpusupport-HWCAP-ELF_AUX_INFO.c \
 		libcperciva/cpusupport/Build/cpusupport-HWCAP-GETAUXVAL.c \
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
