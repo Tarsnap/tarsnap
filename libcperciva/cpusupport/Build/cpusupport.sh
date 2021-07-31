@@ -52,6 +52,7 @@ if [ "$2" = "--all" ]; then
 fi
 
 # Detect CPU-detection features
+feature HWCAP ELF_AUX_INFO ""
 feature HWCAP GETAUXVAL ""
 feature X86 CPUID ""
 feature X86 CPUID_COUNT ""
