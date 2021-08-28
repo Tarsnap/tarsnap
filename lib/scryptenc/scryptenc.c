@@ -201,6 +201,9 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 			return (rc);
 		opslimit = opps * maxtime;
 
+		if (verbose)
+			display_params(logN, r, p, memlimit, opps, maxtime);
+
 		/* Check limits. */
 		N = (uint64_t)(1) << logN;
 		if ((memlimit / N) / r < 128)
@@ -211,10 +214,10 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 		/* We have no limit. */
 		memlimit = 0;
 		opps = 0;
-	}
 
-	if (verbose)
-		display_params(logN, r, p, memlimit, opps, maxtime);
+		if (verbose)
+			display_params(logN, r, p, memlimit, opps, maxtime);
+	}
 
 	/* Success! */
 	return (SCRYPT_OK);
