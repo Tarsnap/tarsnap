@@ -73,7 +73,7 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 {
 	uint64_t N = (uint64_t)(1) << logN;
 	uint64_t mem_minimum = 128 * r * N;
-	double expected_seconds = opps > 0 ? (double)(4 * N * p) / opps : 0;
+	double expected_seconds = opps > 0 ? (double)(4 * N * r * p) / opps : 0;
 	char * human_memlimit = humansize(memlimit);
 	char * human_mem_minimum = humansize(mem_minimum);
 
