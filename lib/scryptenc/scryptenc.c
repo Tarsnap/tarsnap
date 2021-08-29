@@ -83,7 +83,7 @@ display_params(int logN, uint32_t r, uint32_t p, size_t memlimit,
 
 	/* Memory */
 	fprintf(stderr, "    Decrypting this file requires at least"
-	    " %s bytes of memory", human_mem_minimum);
+	    " %s of memory", human_mem_minimum);
 	if (memlimit > 0)
 		fprintf(stderr, " (%s available)", human_memlimit);
 
