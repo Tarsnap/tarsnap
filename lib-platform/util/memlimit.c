@@ -328,10 +328,19 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	if (memlimit_min > sysconf_memlimit)
 		memlimit_min = sysconf_memlimit;
 
+#ifdef DEBUG
+	/* This line is continued after the maxmemfrac calculation. */
+	fprintf(stderr, "Minimum is %zu;", memlimit_min);
+#endif
+
 	/* Only use the specified fraction of the available memory. */
 	if ((maxmemfrac > 0.5) || (maxmemfrac == 0.0))
 		maxmemfrac = 0.5;
 	memavail = (size_t)(maxmemfrac * (double)memlimit_min);
+
+#ifdef DEBUG
+	fprintf(stderr, " will apply maxmemfrac of %g\n", maxmemfrac);
+#endif
 
 	/* Don't use more than the specified maximum. */
 	if ((maxmem > 0) && (memavail > maxmem))
@@ -342,7 +351,7 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 		memavail = 1048576;
 
 #ifdef DEBUG
-	fprintf(stderr, "Allowing up to %zu memory to be used\n", memavail);
+	fprintf(stderr, "Memory allowed:\t\t%zu\n", memavail);
 #endif
 
 	/* Return limit via the provided pointer. */
