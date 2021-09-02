@@ -46,6 +46,7 @@
 #include <sys/sysinfo.h>
 #endif
 
+#include <assert.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -258,7 +259,8 @@ memlimit_sysconf(size_t * memlimit)
  * Examine the system and return the amount of RAM which should be
  * used in ${memlimit}.  This value should be the specified
  * ${maxmemfrac} fraction of available RAM, but no more than
- * ${maxmem} and no less than 1 MiB.
+ * ${maxmem} and no less than 1 MiB.  ${maxmemfrac} must be larger than 0
+ * and <= 1.0.
  */
 int
 memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
@@ -268,6 +270,9 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 	size_t sysconf_memlimit;
 	size_t memlimit_min;
 	size_t memavail;
+
+	/* Check limit. */
+	assert((maxmemfrac > 0) && (maxmemfrac <= 1.0));
 
 	/* Get memory limits. */
 #ifdef HW_USERMEM
@@ -334,8 +339,6 @@ memtouse(size_t maxmem, double maxmemfrac, size_t * memlimit)
 #endif
 
 	/* Only use the specified fraction of the available memory. */
-	if ((maxmemfrac > 0.5) || (maxmemfrac == 0.0))
-		maxmemfrac = 0.5;
 	memavail = (size_t)(maxmemfrac * (double)memlimit_min);
 
 #ifdef DEBUG
