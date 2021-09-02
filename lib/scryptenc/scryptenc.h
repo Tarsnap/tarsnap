@@ -50,8 +50,7 @@
  * maxmemfrac - maximum fraction of available storage to use for the V array,
  *     where "available storage" is defined as the minimum out of the
  *     RLIMIT_AS, RLIMIT_DATA. and RLIMIT_RSS resource limits (if any are
- *     set).  If this value is set to 0 or more than 0.5 it will be treated
- *     as 0.5; and this value will never cause a limit of less than 1 MiB to
+ *     set).  This value will never cause a limit of less than 1 MiB to
  *     be enforced.
  * maxtime - maximum amount of CPU time to spend computing the derived keys,
  *     in seconds.  This limit is only approximately enforced; the CPU
