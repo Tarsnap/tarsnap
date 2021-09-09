@@ -314,7 +314,7 @@ main(int argc, char **argv)
 	 * downside to this is a slight performance cost; but we don't write
 	 * enough data to stdout for that to matter.
 	 */
-	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stdout, NULL, _IOLBF, 0);
 
 	/*
 	 * Unless specified otherwise, we consider ourselves to be
