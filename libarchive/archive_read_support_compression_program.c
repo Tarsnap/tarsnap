@@ -358,7 +358,7 @@ child_read(struct archive_read_filter *self, char *buf, size_t buf_len)
 			errno = saved_errno;
 
 			/* If it was a bad error, we're done; otherwise
-			 * it was EPIPE or EOF, and we can still read
+			 * it was EPIPE, and we can still read
 			 * from the child. */
 			if (ret == -1 && errno != EPIPE)
 				return (-1);
