@@ -298,6 +298,7 @@ child_read(struct archive_read_filter *self, char *buf, size_t buf_len)
 	struct program_filter *state = self->data;
 	ssize_t ret, requested, avail;
 	const char *p;
+	int saved_errno;
 
 	requested = buf_len > SSIZE_MAX ? SSIZE_MAX : buf_len;
 
@@ -345,10 +346,17 @@ child_read(struct archive_read_filter *self, char *buf, size_t buf_len)
 			__archive_check_child(state->child_stdin,
 			    state->child_stdout);
 		} else {
+			/* Save errno from the write. */
+			saved_errno = errno;
+
 			/* Write failed. */
 			close(state->child_stdin);
 			state->child_stdin = -1;
 			fcntl(state->child_stdout, F_SETFL, 0);
+
+			/* Restore errno. */
+			errno = saved_errno;
+
 			/* If it was a bad error, we're done; otherwise
 			 * it was EPIPE or EOF, and we can still read
 			 * from the child. */
