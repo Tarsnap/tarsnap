@@ -60,6 +60,7 @@ callback_buf(void * cookie, int status)
 	ssize_t len;
 	int rc = -1;	/* If not callback or reset, we have an error. */
 #ifndef HAVE_MSG_NOSIGNAL
+	int saved_errno;
 #ifdef SO_NOSIGPIPE
 	int val;
 #else
@@ -107,6 +108,8 @@ callback_buf(void * cookie, int status)
 		oplen = bwlimit;
 	len = (C->sendrecv)(C->fd, C->buf + C->bufpos, oplen, C->flags);
 #ifndef HAVE_MSG_NOSIGNAL
+	/* Save errno in case it gets clobbered by setsockopt() or signal(). */
+	saved_errno = errno;
 #ifdef SO_NOSIGPIPE
 	val = 0;
 
@@ -121,6 +124,8 @@ callback_buf(void * cookie, int status)
 		goto docallback;
 	}
 #endif
+	/* Restore saved errno. */
+	errno = saved_errno;
 #endif
 
 	/* Failure, closed, or success? */
