@@ -268,10 +268,12 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 		    &P->logN, &P->r, &P->p, verbose)) != 0)
 			return (rc);
 	}
-	N = (uint64_t)(1) << P->logN;
 
 	/* Sanity check. */
-	assert((P->logN > 0) && (P->logN < 256));
+	assert((P->logN > 0) && (P->logN < 64));
+
+	/* Set N. */
+	N = (uint64_t)(1) << P->logN;
 
 	/* Get some salt. */
 	if (crypto_entropy_read(salt, 32))
