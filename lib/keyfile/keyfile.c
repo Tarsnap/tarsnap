@@ -523,6 +523,7 @@ keyfile_write_open(const char * filename)
 	return (f);
 
 err1:
+	unlink(filename);
 	close(fd);
 err0:
 	/* Failure! */

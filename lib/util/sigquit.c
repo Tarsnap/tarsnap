@@ -120,8 +120,8 @@ sigquit_init(void)
 		/*
 		 * Theoretically we should have a terminal now, but we can't
 		 * rule out the possibility of some weird "sort of a terminal
-		 * but not really" behaviour making tcgetattr even though we
-		 * were previously told that this was a terminal.  Check for
+		 * but not really" behaviour making tcgetattr fail even though
+		 * we were previously told that this was a terminal.  Check for
 		 * the common error codes operating systems return from
 		 * tcgetattr for non-terminals and ignore them.
 		 */

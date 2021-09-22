@@ -259,7 +259,7 @@ netproto_close(NETPROTO_CONNECTION * C)
 		if (errno == ECONNRESET) {
 			/*
 			 * You can't dump me!  I'm dumping you!  We don't
-			 * care about the connection dying since we we're
+			 * care about the connection dying since we're
 			 * done with it anyway.
 			 */
 			break;
