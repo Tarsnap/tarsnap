@@ -426,7 +426,7 @@ crypto_keys_subr_export_HMAC(struct crypto_hmac_key * key, uint8_t * buf,
 	}
 
 	/* Sanity check.  (uint32_t)(-1) is reserved for errors. */
-	assert(key->len < UINT32_MAX - 1);
+	assert(key->len <= UINT32_MAX - 1);
 
 	if (buf != NULL) {
 		if (buflen < key->len) {
