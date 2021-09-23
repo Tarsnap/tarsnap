@@ -12,9 +12,12 @@ if ! [ ${PATH} = "$1" ]; then
 	PATH=$1
 fi
 
+# Find directory of this script and the source files
+D=$(dirname $0)
+
 FIRST=YES
 for LIB in rt xnet; do
-	if ${CC} ${CFLAGS} -l${LIB} posix-l.c 2>/dev/null; then
+	if ${CC} ${CFLAGS} -l${LIB} $D/posix-l.c 2>/dev/null; then
 		if [ ${FIRST} = "NO" ]; then
 			printf " ";
 		fi
