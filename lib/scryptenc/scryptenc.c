@@ -249,23 +249,15 @@ scryptenc_setup(uint8_t header[96], uint8_t dk[64],
 		if ((rc = checkparams(P->maxmem, P->maxmemfrac, P->maxtime,
 		    P->logN, P->r, P->p, verbose, force)) != 0) {
 			/* Warn about resource limit, but suppress the error. */
-			if (rc == SCRYPT_EBIGSLOW) {
+			if ((rc == SCRYPT_ETOOBIG) || (rc == SCRYPT_EBIGSLOW))
 				warn0("Warning: Explicit parameters"
 				    " might exceed memory limit");
+			if ((rc == SCRYPT_ETOOSLOW) || (rc == SCRYPT_EBIGSLOW))
 				warn0("Warning: Explicit parameters"
 				    " might exceed time limit");
+			if ((rc == SCRYPT_ETOOBIG) || (rc == SCRYPT_ETOOSLOW) ||
+			    (rc == SCRYPT_EBIGSLOW))
 				rc = 0;
-			}
-			if (rc == SCRYPT_ETOOBIG) {
-				warn0("Warning: Explicit parameters"
-				    " might exceed memory limit");
-				rc = 0;
-			}
-			if (rc == SCRYPT_ETOOSLOW) {
-				warn0("Warning: Explicit parameters"
-				    " might exceed time limit");
-				rc = 0;
-			}
 
 			/* Provide a more meaningful error message. */
 			if (rc == SCRYPT_EINVAL)
