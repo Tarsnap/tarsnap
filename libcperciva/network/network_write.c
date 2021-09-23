@@ -68,6 +68,7 @@ callback_buf(void * cookie)
 	ssize_t len;
 #ifdef POSIXFAIL_MSG_NOSIGNAL
 	void (*oldsig)(int);
+	int saved_errno;
 #endif
 
 	/* If we don't have MSG_NOSIGNAL, ignore SIGPIPE. */
@@ -87,10 +88,16 @@ callback_buf(void * cookie)
 
 	/* If we ignored SIGPIPE, restore the old handler. */
 #ifdef POSIXFAIL_MSG_NOSIGNAL
+	/* Save errno in case it gets clobbered by signal(). */
+	saved_errno = errno;
+
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		warnp("signal(SIGPIPE)");
 		goto failed;
 	}
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 #endif
 
 	/* Failure? */
