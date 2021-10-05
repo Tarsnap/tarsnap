@@ -36,7 +36,8 @@
  * Examine the system and return the amount of RAM which should be
  * used in ${memlimit}.  This value should be the specified
  * ${maxmemfrac} fraction of available RAM, but no more than
- * ${maxmem} and no less than 1 MiB.
+ * ${maxmem} and no less than 1 MiB.  ${maxmemfrac} must be larger than 0
+ * and <= 1.0.
  */
 int memtouse(size_t, double, size_t *);
 
