@@ -15,6 +15,21 @@ fi
 # Find directory of this script and the source files
 D=$(dirname $0)
 
+# Check if we can compile & run a binary.
+if ! ${CC} ${CFLAGS} $D/posix-trivial.c 2>/dev/null; then
+	echo "WARNING: failed to compile posix-trivial.c" 1>&2
+else
+	# If the user hasn't disabled runtime checks...
+	if [ "${DISABLE_POSIX_RUNTIME_CHECKS:-0}" -eq "0" ]; then
+		# ... test if we can run the trivial binary.
+		if ! ./a.out ; then
+			echo "WARNING: failed to run a trivial binary; " 1>&2
+			echo "disabling runtime POSIX compatibility checks" 1>&2
+			DISABLE_POSIX_RUNTIME_CHECKS=1
+		fi
+	fi
+fi
+
 FIRST=YES
 if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L $D/posix-msg_nosignal.c 2>/dev/null; then
 	[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
@@ -40,6 +55,9 @@ if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L $D/posix-clock_gettime.c 2>/dev/n
 	[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 	printf %s "-DPOSIXFAIL_CLOCK_GETTIME"
 	echo "WARNING: POSIX violation: <time.h> not declaring clock_gettime()" 1>&2
+elif [ "${DISABLE_POSIX_RUNTIME_CHECKS:-0}" -ne "0" ]; then
+	# Do nothing
+	true
 else
 	# Even if the compilation succeeds, we still need to run the binary
 	# because OS X 10.11 with XCode 8 _will_ contain clock_gettime() in the

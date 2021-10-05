@@ -646,8 +646,10 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 	int k;
 	size_t clen;
 
+#if SIZE_MAX >= (32 * UINT32_MAX)
 	/* Sanity-check. */
 	assert(dkLen <= 32 * (size_t)(UINT32_MAX));
+#endif
 
 	/* Compute HMAC state after processing P. */
 	_HMAC_SHA256_Init(&Phctx, passwd, passwdlen,
