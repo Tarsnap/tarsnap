@@ -17,7 +17,7 @@ D=$(dirname $0)
 
 FIRST=YES
 for LIB in rt xnet; do
-	if ${CC} ${CFLAGS} -l${LIB} $D/posix-l.c 2>/dev/null; then
+	if ${CC} ${CFLAGS} -l${LIB} $D/posix-trivial.c 2>/dev/null; then
 		if [ ${FIRST} = "NO" ]; then
 			printf " ";
 		fi
