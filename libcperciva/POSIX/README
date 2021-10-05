@@ -7,6 +7,10 @@ Makefile should be processed according to POSIX rules, including with CC=c99;
 thus we should see behaviour consistent with a standard-compliant C99
 compiler.
 
+One POSIX compatibility check requires a runtime test.  This will be
+automatically disabled if the build system detects that you are
+cross-compiling for another platform, or it can be manually disabled by
+setting DISABLE_POSIX_RUNTIME_CHECKS to a non-zero value.
 
 - posix-cflags.sh: Detects if ${CC} supports certain POSIX features, and
   outputs a POSIXFAIL_ define if it is not supported so that we can work around
@@ -16,7 +20,7 @@ compiler.
   - DPOSIXFAIL_MSG_NOSIGNAL: <sys/socket.h> not defining MSG_NOSIGNAL.
   - DPOSIXFAIL_CLOCK_REALTIME: <time.h> not defining CLOCK_REALTIME.
   - DPOSIXFAIL_CLOCK_GETTIME: <time.h> not declaring clock_gettime(), or
-    clock_gettime() is not linkable.
+    clock_gettime() is not linkable.  The latter test requires a runtime check.
   - DPOSIXFAIL_INET_ADDRSTRLEN: <netinet/in.h> not defining
     INET_ADDRSTRLEN.
   - DPOSIXFAIL_INET6_ADDRSTRLEN: <netinet/in.h> not defining
