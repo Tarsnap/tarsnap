@@ -208,7 +208,7 @@ crypto_keys_subr_import_RSA_priv(RSA ** key, const uint8_t * buf, size_t buflen)
 		goto err2;
 
 	/* Load values into the RSA key. */
-	if (crypto_compat_RSA_import(key, n, e, d, p, q, dmp1, dmq1, iqmp))
+	if (crypto_compat_RSA_import(*key, n, e, d, p, q, dmp1, dmq1, iqmp))
 		goto err1;
 
 	/* Success! */
@@ -265,7 +265,7 @@ crypto_keys_subr_import_RSA_pub(RSA ** key, const uint8_t * buf, size_t buflen)
 		goto err2;
 
 	/* Load values into the RSA key. */
-	if (crypto_compat_RSA_import(key, n, e, NULL, NULL, NULL, NULL, NULL,
+	if (crypto_compat_RSA_import(*key, n, e, NULL, NULL, NULL, NULL, NULL,
 	    NULL))
 		goto err1;
 
