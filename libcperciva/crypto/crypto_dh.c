@@ -15,7 +15,7 @@ static int blinded_modexp(uint8_t r[CRYPTO_DH_PUBLEN], BIGNUM * a,
     const uint8_t priv[CRYPTO_DH_PRIVLEN]);
 
 /* Big-endian representation of 2^256. */
-static uint8_t two_exp_256[] = {
+static const uint8_t two_exp_256[] = {
 	0x01,
 	0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,
