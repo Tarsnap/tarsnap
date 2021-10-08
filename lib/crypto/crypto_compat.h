@@ -11,7 +11,9 @@ int crypto_compat_RSA_valid_size(const RSA * const key);
 
 /**
  * crypto_compat_RSA_import(key, n, e, d, p, q, dmp1, dmq1, iqmp):
- * Import the given BIGNUMs into the RSA ${key}.
+ * Import the given BIGNUMs into the RSA ${key}.  If this function fails,
+ * free any any BIGNUMs which have not been imported into the ${key}, but do
+ * not free the ${key} itself.
  */
 int crypto_compat_RSA_import(RSA * key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
     BIGNUM * p, BIGNUM * q, BIGNUM * dmp1, BIGNUM * dmq1, BIGNUM * iqmp);
