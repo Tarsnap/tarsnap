@@ -44,10 +44,12 @@ crypto_compat_RSA_valid_size(const RSA * const rsa)
 
 /**
  * crypto_compat_RSA_import(key, n, e, d, p, q, dmp1, dmq1, iqmp):
- * Import the given BIGNUMs into the RSA ${key}.
+ * Import the given BIGNUMs into the RSA ${key}.  If this function fails,
+ * free any any BIGNUMs which have not been imported into the ${key}, but do
+ * not free the ${key} itself.
  */
 int
-crypto_compat_RSA_import(RSA ** key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
+crypto_compat_RSA_import(RSA * key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
     BIGNUM * p, BIGNUM * q, BIGNUM * dmp1, BIGNUM * dmq1, BIGNUM * iqmp)
 {
 
@@ -66,31 +68,31 @@ crypto_compat_RSA_import(RSA ** key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
 
 	/* Put values into RSA key. */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-	(*key)->n = n;
-	(*key)->e = e;
+	key->n = n;
+	key->e = e;
 	if (d != NULL) {
 		/* Private key. */
-		(*key)->d = d;
-		(*key)->p = p;
-		(*key)->q = q;
-		(*key)->dmp1 = dmp1;
-		(*key)->dmq1 = dmq1;
-		(*key)->iqmp = iqmp;
+		key->d = d;
+		key->p = p;
+		key->q = q;
+		key->dmp1 = dmp1;
+		key->dmq1 = dmq1;
+		key->iqmp = iqmp;
 	}
 #else
 	/* Do we have a public key, or private key? */
 	if (d == NULL) {
 		/* We could use d here, but using NULL makes it more clear. */
-		if (RSA_set0_key(*key, n, e, NULL) != 1)
-			goto err0;
+		if (RSA_set0_key(key, n, e, NULL) != 1)
+			goto err3;
 	} else {
 		/* Private key. */
-		if (RSA_set0_key(*key, n, e, d) != 1)
-			goto err0;
-		if (RSA_set0_factors(*key, p, q) != 1)
-			goto err0;
-		if (RSA_set0_crt_params(*key, dmp1, dmq1, iqmp) != 1)
-			goto err0;
+		if (RSA_set0_key(key, n, e, d) != 1)
+			goto err3;
+		if (RSA_set0_factors(key, p, q) != 1)
+			goto err2;
+		if (RSA_set0_crt_params(key, dmp1, dmq1, iqmp) != 1)
+			goto err1;
 	}
 #endif
 
@@ -99,7 +101,18 @@ crypto_compat_RSA_import(RSA ** key, BIGNUM * n, BIGNUM * e, BIGNUM * d,
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #else
-err0:
+err3:
+	BN_free(n);
+	BN_free(e);
+	BN_clear_free(d);
+err2:
+	BN_clear_free(p);
+	BN_clear_free(q);
+err1:
+	BN_clear_free(dmp1);
+	BN_clear_free(dmq1);
+	BN_clear_free(iqmp);
+
 	/* Failure! */
 	return (-1);
 #endif

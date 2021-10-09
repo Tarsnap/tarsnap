@@ -4,6 +4,6 @@
 #include <stdint.h>
 
 /* Diffie-Hellman group #14, from RFC 3526. */
-extern uint8_t crypto_dh_group14[];
+extern const uint8_t crypto_dh_group14[];
 
 #endif /* !_CRYPTO_DH_GROUP14_H_ */
