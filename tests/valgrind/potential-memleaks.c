@@ -100,6 +100,13 @@ freebsd_getaddrinfo_online(void)
 	pl_freebsd_getaddrinfo("google.com");
 }
 
+static void
+pl_freebsd_setvbuf(void)
+{
+
+	setvbuf(stdout, NULL, _IOLBF, 0);
+}
+
 #define MEMLEAKTEST(x) { #x, x }
 static const struct memleaktest {
 	const char * const name;
@@ -111,7 +118,8 @@ static const struct memleaktest {
 	MEMLEAKTEST(pl_freebsd_getpwuid),
 	MEMLEAKTEST(pl_freebsd_setlocale),
 	MEMLEAKTEST(freebsd_getaddrinfo_localhost),
-	MEMLEAKTEST(freebsd_getaddrinfo_online)
+	MEMLEAKTEST(freebsd_getaddrinfo_online),
+	MEMLEAKTEST(pl_freebsd_setvbuf)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
