@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -69,6 +70,9 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 
 	/* Is the link the correct length? */
 	if ((size_t)rc != (buflen * 2)) {
+		/* Clear errno because it is not relevant to this error. */
+		errno = 0;
+
 		warn0("Link is incorrect length: %s", path);
 		goto err1;
 	}
@@ -78,6 +82,9 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 
 	/* Parse the link value into the provided buffer. */
 	if (unhexify(hexbuf, buf, buflen)) {
+		/* Clear errno because it is not relevant to this error. */
+		errno = 0;
+
 		warn0("Cannot parse link as hexadecimal: %s -> %s",
 		    path, hexbuf);
 		goto err1;
