@@ -94,24 +94,24 @@ AC_SUBST(PROG_LDADD_EXTRA)
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([acl/libacl.h attr/xattr.h ctype.h err.h errno.h])
-AC_CHECK_HEADERS([fcntl.h grp.h])
-AC_CHECK_HEADERS([inttypes.h langinfo.h limits.h linux/fs.h])
-AC_CHECK_HEADERS([locale.h paths.h poll.h pwd.h regex.h signal.h stdarg.h])
-AC_CHECK_HEADERS([stdint.h stdlib.h string.h])
-AC_CHECK_HEADERS([sys/acl.h sys/cdefs.h sys/extattr.h sys/ioctl.h sys/mkdev.h])
-AC_CHECK_HEADERS([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
-AC_CHECK_HEADERS([time.h unistd.h utime.h wchar.h wctype.h windows.h])
+AC_CHECK_HEADERS_ONCE([acl/libacl.h attr/xattr.h ctype.h err.h errno.h])
+AC_CHECK_HEADERS_ONCE([fcntl.h grp.h])
+AC_CHECK_HEADERS_ONCE([inttypes.h langinfo.h limits.h linux/fs.h])
+AC_CHECK_HEADERS_ONCE([locale.h paths.h poll.h pwd.h regex.h signal.h stdarg.h])
+AC_CHECK_HEADERS_ONCE([stdint.h stdlib.h string.h])
+AC_CHECK_HEADERS_ONCE([sys/acl.h sys/cdefs.h sys/extattr.h sys/ioctl.h sys/mkdev.h])
+AC_CHECK_HEADERS_ONCE([sys/param.h sys/poll.h sys/select.h sys/time.h sys/utime.h])
+AC_CHECK_HEADERS_ONCE([time.h unistd.h utime.h wchar.h wctype.h windows.h])
 
 # Check for clock_gettime.  On some systems, this is provided via librt.
 AC_CHECK_LIB(rt, clock_gettime)
-AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_FUNCS_ONCE([clock_gettime])
 
 # Check for a linuxy sysinfo syscall; and while we're doing that, check if
 # struct sysinfo is the old version (total RAM == totalmem) or the new
 # version (total RAM == totalmem * mem_unit).
-AC_CHECK_HEADERS([sys/sysinfo.h])
-AC_CHECK_FUNCS([sysinfo])
+AC_CHECK_HEADERS_ONCE([sys/sysinfo.h])
+AC_CHECK_FUNCS_ONCE([sysinfo])
 AC_CHECK_TYPES([struct sysinfo], [], [], [[#include <sys/sysinfo.h>]])
 AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit], [], [],
     [[#include <sys/sysinfo.h>]])
@@ -125,7 +125,7 @@ AC_CHECK_HEADERS([sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h], [], [],
 
 # Check for <sys/sysctl.h>.  If it exists and it defines HW_USERMEM
 # and/or HW_MEMSIZE, we'll try using those as memory limits.
-AC_CHECK_HEADERS([sys/sysctl.h])
+AC_CHECK_HEADERS_ONCE([sys/sysctl.h])
 
 # Check for members of struct statfs and struct statvfs.
 AC_CHECK_MEMBERS([struct statfs.f_fstypename, struct statfs.f_type,
@@ -148,7 +148,7 @@ AC_CHECK_MEMBERS([struct statfs.f_fstypename, struct statfs.f_type,
 
 # Check for <linux/magic.h>, which contains magic numbers for statfs on
 # Linux 2.6.  (We hard-code values for Linux 2.4.)
-AC_CHECK_HEADERS([linux/magic.h])
+AC_CHECK_HEADERS_ONCE([linux/magic.h])
 
 # If we're on Solaris, we need to add some extra paths to the Makefile.
 # This needs to be done *before* we look for OpenSSL; otherwise we won't
@@ -189,7 +189,7 @@ AC_ARG_WITH([bz2lib],
   AS_HELP_STRING([--without-bz2lib], [Don't build support for bzip2 through bz2lib]))
 
 if test "x$with_bz2lib" != "xno"; then
-  AC_CHECK_HEADERS([bzlib.h])
+  AC_CHECK_HEADERS_ONCE([bzlib.h])
   AC_CHECK_LIB(bz2,BZ2_bzDecompressInit)
 fi
 
@@ -197,7 +197,7 @@ AC_ARG_WITH([lzmadec],
   AS_HELP_STRING([--without-lzmadec], [Don't build support for lzma through lzmadec]))
 
 if test "x$with_lzmadec" != "xno"; then
-  AC_CHECK_HEADERS([lzmadec.h])
+  AC_CHECK_HEADERS_ONCE([lzmadec.h])
   AC_CHECK_LIB(lzmadec,lzmadec_decode)
 fi
 
@@ -205,14 +205,14 @@ AC_ARG_WITH([lzma],
   AS_HELP_STRING([--without-lzma], [Don't build support for xz through lzma]))
 
 if test "x$with_lzma" != "xno"; then
-  AC_CHECK_HEADERS([lzma.h])
+  AC_CHECK_HEADERS_ONCE([lzma.h])
   AC_CHECK_LIB(lzma,lzma_stream_decoder)
 fi
 
-AC_CHECK_HEADERS([openssl/md5.h openssl/ripemd.h openssl/sha.h])
-AC_CHECK_HEADERS([md5.h])
-AC_CHECK_HEADERS([ripemd.h rmd160.h])
-AC_CHECK_HEADERS([sha.h sha1.h sha2.h sha256.h])
+AC_CHECK_HEADERS_ONCE([openssl/md5.h openssl/ripemd.h openssl/sha.h])
+AC_CHECK_HEADERS_ONCE([md5.h])
+AC_CHECK_HEADERS_ONCE([ripemd.h rmd160.h])
+AC_CHECK_HEADERS_ONCE([sha.h sha1.h sha2.h sha256.h])
 AC_SEARCH_LIBS(SHA1_Init, crypto ssl md)
 AC_CHECK_FUNC(MD5_Init)
 if test "x$ac_cv_func_MD5_Init" != "xyes"; then
@@ -308,7 +308,7 @@ AC_TYPE_UINTMAX_T
 AC_TYPE_UINT64_T
 
 # TODO: If any of these are missing, define them right here.
-AC_CHECK_DECLS([SIZE_MAX, SSIZE_MAX, INT64_MAX, INT64_MIN, UINT64_MAX, UINT32_MAX])
+AC_CHECK_DECLS_ONCE([SIZE_MAX, SSIZE_MAX, INT64_MAX, INT64_MIN, UINT64_MAX, UINT32_MAX])
 
 AC_CHECK_DECL([EFTYPE],
 		[AC_DEFINE(HAVE_EFTYPE, 1, [A possible errno value for invalid file format errors])],
@@ -335,19 +335,19 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([chflags chown chroot])
-AC_CHECK_FUNCS([fchdir fchflags fchmod fchown fcntl fork])
-AC_CHECK_FUNCS([fstat ftruncate futimes geteuid getpid])
-AC_CHECK_FUNCS([lchflags lchmod lchown])
-AC_CHECK_FUNCS([lutimes memmove memset mkdir mkfifo mknod])
-AC_CHECK_FUNCS([nl_langinfo pipe poll readlink select setenv setlocale])
-AC_CHECK_FUNCS([strchr strdup strerror strrchr timegm])
-AC_CHECK_FUNCS([tzset unsetenv utime utimes vfork])
-AC_CHECK_FUNCS([wcrtomb wcscpy wcslen wctomb wmemcmp wmemcpy])
-AC_CHECK_FUNCS([lockf posix_memalign qsort_r])
+AC_CHECK_FUNCS_ONCE([chflags chown chroot])
+AC_CHECK_FUNCS_ONCE([fchdir fchflags fchmod fchown fcntl fork])
+AC_CHECK_FUNCS_ONCE([fstat ftruncate futimes geteuid getpid])
+AC_CHECK_FUNCS_ONCE([lchflags lchmod lchown])
+AC_CHECK_FUNCS_ONCE([lutimes memmove memset mkdir mkfifo mknod])
+AC_CHECK_FUNCS_ONCE([nl_langinfo pipe poll readlink select setenv setlocale])
+AC_CHECK_FUNCS_ONCE([strchr strdup strerror strrchr timegm])
+AC_CHECK_FUNCS_ONCE([tzset unsetenv utime utimes vfork])
+AC_CHECK_FUNCS_ONCE([wcrtomb wcscpy wcslen wctomb wmemcmp wmemcpy])
+AC_CHECK_FUNCS_ONCE([lockf posix_memalign qsort_r])
 
 # Check for mmap so we can work around its absence on Minix
-AC_CHECK_FUNCS([mmap])
+AC_CHECK_FUNCS_ONCE([mmap])
 
 # FreeBSD's nl_langinfo supports an option to specify whether the
 # current locale uses month/day or day/month ordering.  It makes the
@@ -388,13 +388,13 @@ AC_ARG_ENABLE([xattr],
 		[Disable Extended Attributes support (default: check)]))
 
 if test "x$enable_xattr" != "xno"; then
-	AC_CHECK_HEADERS([attr/xattr.h])
-	AC_CHECK_HEADERS([sys/xattr.h])
+	AC_CHECK_HEADERS_ONCE([attr/xattr.h])
+	AC_CHECK_HEADERS_ONCE([sys/xattr.h])
 	AC_CHECK_LIB(attr,setxattr)
-	AC_CHECK_FUNCS([extattr_get_file extattr_list_file])
-	AC_CHECK_FUNCS([extattr_set_fd extattr_set_file])
-	AC_CHECK_FUNCS([fsetxattr getxattr])
-	AC_CHECK_FUNCS([lgetxattr listxattr llistxattr lsetxattr])
+	AC_CHECK_FUNCS_ONCE([extattr_get_file extattr_list_file])
+	AC_CHECK_FUNCS_ONCE([extattr_set_fd extattr_set_file])
+	AC_CHECK_FUNCS_ONCE([fsetxattr getxattr])
+	AC_CHECK_FUNCS_ONCE([lgetxattr listxattr llistxattr lsetxattr])
 fi
 
 # Check for ACL support
@@ -409,9 +409,9 @@ AC_ARG_ENABLE([acl],
 		[Disable ACL support (default: check)]))
 
 if test "x$enable_acl" != "xno"; then
-   AC_CHECK_HEADERS([sys/acl.h])
+   AC_CHECK_HEADERS_ONCE([sys/acl.h])
    AC_CHECK_LIB([acl],[acl_get_file])
-   AC_CHECK_FUNCS([acl_create_entry acl_init acl_set_fd acl_set_fd_np acl_set_file])
+   AC_CHECK_FUNCS_ONCE([acl_create_entry acl_init acl_set_fd acl_set_fd_np acl_set_file])
 
    AC_CHECK_TYPES(acl_permset_t,,,
 	[#if HAVE_SYS_TYPES_H
@@ -448,8 +448,8 @@ fi
 AC_SYS_LARGEFILE
 
 # Interix doesn't provide optarg and optind
-AC_CHECK_DECLS([optarg])
-AC_CHECK_DECLS([optind])
+AC_CHECK_DECLS_ONCE([optarg])
+AC_CHECK_DECLS_ONCE([optind])
 
 # Strip the .sample from tarsnap.conf.sample (if requested by the user).
 AC_ARG_WITH([conf-no-sample],
