@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -56,6 +57,7 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 {
 	char * hexbuf;
 	ssize_t rc;
+	int saved_errno = 0;
 
 	/* Allocate memory for buffer. */
 	if ((hexbuf = malloc(buflen * 2 + 1)) == NULL)
@@ -64,6 +66,7 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 	/* Attempt to read the link. */
 	if ((rc = readlink(path, hexbuf, buflen * 2)) == -1) {
 		/* Couldn't read the link. */
+		saved_errno = errno;
 		goto err1;
 	}
 
@@ -91,6 +94,9 @@ hexlink_read(const char * path, uint8_t * buf, size_t buflen)
 
 err1:
 	free(hexbuf);
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 err0:
 	/* Failure! */
 	return (-1);
