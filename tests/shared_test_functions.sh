@@ -41,8 +41,10 @@ set -o noclobber -o nounset
 VERBOSE=${VERBOSE:-0}
 
 # Keep the user-specified ${USE_VALGRIND}, or initialize to 0 (don't do memory
-# tests).
+# tests).  If ${USE_VALGRIND_NO_REGEN} is non-zero, re-use the previous
+# suppressions files instead of generating new ones.
 USE_VALGRIND=${USE_VALGRIND:-0}
+USE_VALGRIND_NO_REGEN=${USE_VALGRIND_NO_REGEN:-0}
 
 # Load valgrind-related functions.  These functions will bail on a per-check
 # basis if the ${USE_VALGRIND} value does not indicate that we should run a

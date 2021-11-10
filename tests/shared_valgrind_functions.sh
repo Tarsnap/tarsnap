@@ -26,6 +26,23 @@ valgrind_exit_code=108
 # Clean up a previous valgrind directory, and prepare for new valgrind tests
 # (if applicable).
 valgrind_prepare_directory() {
+	# If we don't want to generate new suppressions files, move them.
+	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
+		valgrind_suppressions="${out_valgrind}/suppressions"
+		fds="${out_valgrind}/fds.log"
+		# Bail if the file doesn't exist.
+		if [ ! -e "${valgrind_suppressions}" ]; then
+			echo "No valgrind suppressions file" 1>&2
+			exit 1
+		fi
+
+		# Move the files away.
+		supp_tmp="$(mktemp /tmp/valgrind-suppressions.XXXXXX)"
+		fds_tmp="$(mktemp /tmp/valgrind-fds.XXXXXX)"
+		mv "${valgrind_suppressions}" "${supp_tmp}"
+		mv "${fds}" "${fds_tmp}"
+	fi
+
 	# Always delete any previous valgrind directory.
 	if [ -d "${out_valgrind}" ]; then
 		rm -rf ${out_valgrind}
@@ -37,6 +54,13 @@ valgrind_prepare_directory() {
 	fi
 
 	mkdir ${out_valgrind}
+
+	# If we don't want to generate a new suppressions file, restore it.
+	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
+		# Move the files back.
+		mv "${supp_tmp}" "${valgrind_suppressions}"
+		mv "${fds_tmp}" "${fds}"
+	fi
 }
 
 ## valgrind_check_optional ():
@@ -140,6 +164,15 @@ valgrind_ensure_suppression() {
 		return
 	fi;
 
+	fds_log="${out_valgrind}/fds.log"
+
+	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
+		printf "Using old valgrind suppressions\n" 1>&2
+		valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" |	\
+		   awk '{print $4}')
+		return
+	fi
+
 	printf "Generating valgrind suppressions... " 1>&2
 	valgrind_suppressions="${out_valgrind}/suppressions"
 	valgrind_suppressions_log="${out_valgrind}/suppressions.pre"
@@ -149,10 +182,9 @@ valgrind_ensure_suppression() {
 
 	# Get list of tests and the number of open descriptors at a normal exit
 	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
-	thislog="${out_valgrind}/fds.log"
-	valgrind --track-fds=yes --log-file=${thislog}			\
+	valgrind --track-fds=yes --log-file=${fds_log}			\
 	    ${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
-	valgrind_fds=$(grep "FILE DESCRIPTORS" "${thislog}" | awk '{print $4}')
+	valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" | awk '{print $4}')
 
 	# Generate suppressions for each test
 	while read testname; do

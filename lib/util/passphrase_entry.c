@@ -63,8 +63,9 @@ success:
  * Use ${entry_method} to read a passphrase and return it as a malloced
  * NUL-terminated string via ${passwd}.  If ${entry_method} is
  * PASSPHRASE_TTY_STDIN and ${once} is zero, ask for the passphrase twice;
- * otherwise ask for it once.  Use ${prompt} for the first prompt, and
- * ${confirmprompt} for the second prompt (if applicable).
+ * otherwise ask for it once.  If reading from a terminal, use ${prompt} for
+ * the first prompt, and ${confirmprompt} for the second prompt (if
+ * applicable); otherwise do not print any prompts.
  */
 int
 passphrase_entry_readpass(char ** passwd,

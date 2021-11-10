@@ -114,7 +114,7 @@ pickparams(size_t maxmem, double maxmemfrac, double maxtime,
 		return (SCRYPT_ELIMIT);
 
 	/* Figure out how fast the CPU is. */
-	if ((rc = scryptenc_cpuperf(&opps)) != 0)
+	if ((rc = scryptenc_cpuperf(&opps)) != SCRYPT_OK)
 		return (rc);
 	opslimit = opps * maxtime;
 
@@ -197,7 +197,7 @@ checkparams(size_t maxmem, double maxmemfrac, double maxtime,
 			return (SCRYPT_ELIMIT);
 
 		/* Figure out how fast the CPU is. */
-		if ((rc = scryptenc_cpuperf(&opps)) != 0)
+		if ((rc = scryptenc_cpuperf(&opps)) != SCRYPT_OK)
 			return (rc);
 		opslimit = opps * maxtime;
 
