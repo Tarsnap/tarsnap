@@ -8,6 +8,8 @@ list_archives_stdout=${s_basename}-list-archives.stdout
 create_stderr=${s_basename}-create.stderr
 init_cache_stderr=${s_basename}-initialize-cachedir.stderr
 fsck_stdout=${s_basename}-fsck.stdout
+list_contents_stdout=${s_basename}-create.stdout
+extract_dir=${s_basename}-extract
 delete_stderr=${s_basename}-delete.stderr
 archivename="c-d-real"
 
@@ -89,6 +91,35 @@ scenario_cmd() {
 	setup_check_variables "real key -c output > 0"
 	total=$( grep "All archives" ${create_stderr} | awk '{ print $3 }' )
 	test "${total}" -gt 0
+	echo $? > ${c_exitfile}
+
+	# Test the contents of the archive.
+	setup_check_variables "real key -t"
+	${c_valgrind_cmd} ./tarsnap --no-default-config		\
+		--keyfile ${keyfile} --cachedir ${cachedir}	\
+		-t -f ${archivename}				\
+		> ${list_contents_stdout}
+	echo $? > ${c_exitfile}
+
+	# Check -t output.  The filename in the archive does not have a
+	# leading / (it was stripped by tarsnap), so we add it to the string
+	# we're checking so that it matches the ${samplefile}.
+	setup_check_variables "real key -t output"
+	list_contents="$(cat "${list_contents_stdout}")"
+	[ "/${list_contents}" == "${samplefile}" ]
+	echo $? > ${c_exitfile}
+
+	# Extract the contents of the archive in the test output directory.
+	setup_check_variables "real key -x"
+	mkdir "${extract_dir}"
+	${c_valgrind_cmd} ./tarsnap --no-default-config		\
+		--keyfile ${keyfile} --cachedir ${cachedir}	\
+		-x -f ${archivename} -C "${extract_dir}"
+	echo $? > ${c_exitfile}
+
+	# Check -x output.
+	setup_check_variables "real key -x output"
+	cmp "${samplefile}" "${extract_dir}${samplefile}"
 	echo $? > ${c_exitfile}
 
 	# Delete the archive.
