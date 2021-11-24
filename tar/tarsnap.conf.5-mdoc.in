@@ -34,8 +34,7 @@ character are ignored.
 .Pp
 If a parameter begins with a
 .Ql ~
-character, it will be replaced by the value of the HOME variable (the
-current user's home directory).
+character, it will be replaced by the home directory of the effective user ID.
 .Pp
 The following options may be specified:
 .Bl -tag -width "no-aggressive-networking"
