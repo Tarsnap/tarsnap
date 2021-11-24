@@ -110,7 +110,7 @@ statstape_printglobal(TAPE_S * d, const char * csv_filename)
 		csv = 1;
 
 	/* Open CSV output file, if requested. */
-	if (csv && (output = fopen(csv_filename, "wt")) == NULL)
+	if (csv && (output = fopen(csv_filename, "w")) == NULL)
 		goto err0;
 
 	/* Ask the chunk storage layer to do this. */
