@@ -947,7 +947,7 @@ writetape_close(TAPE_W * d)
 
 	/* Print statistics, if we've been asked to do so. */
 	if (d->stats_enabled) {
-		if (csv && (output = fopen(d->csv_filename, "wt")) == NULL)
+		if (csv && (output = fopen(d->csv_filename, "w")) == NULL)
 			goto err2;
 		if (chunks_write_printstats(output, d->C, csv))
 			goto err3;

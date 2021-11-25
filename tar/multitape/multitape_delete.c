@@ -142,7 +142,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 
 	/* Print statistics if they were requested. */
 	if (printstats != 0) {
-		if (csv && (output = fopen(csv_filename, "wt")) == NULL)
+		if (csv && (output = fopen(csv_filename, "w")) == NULL)
 			goto err3;
 
 		/* Actually print statistics. */

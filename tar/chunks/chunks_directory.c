@@ -176,6 +176,13 @@ chunks_directory_read(const char * cachepath, void ** dir,
 		goto err2;
 	}
 
+	/* Make sure the directory file isn't too small (different message). */
+	if ((size_t)sb.st_size < sizeof(struct chunkstats_external)) {
+		warn0("on-disk directory is too small (%jd bytes): %s",
+		    (intmax_t)(sb.st_size), s);
+		goto err2;
+	}
+
 	/* Make sure the number of chunks is an integer. */
 	if (((size_t)sb.st_size - sizeof(struct chunkstats_external)) %
 	    (sizeof(struct chunkdata_external))) {

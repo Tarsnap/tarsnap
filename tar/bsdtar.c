@@ -1449,8 +1449,9 @@ configfile_helper(struct bsdtar *bsdtar, const char *line)
 	}
 
 	/*
-	 * If we have an argument which starts with ~, and ${HOME} is
-	 * defined, expand ~ to $HOME.
+	 * If we have an argument which starts with ~, and the password
+	 * database lists a home directory for the user, expand ~ to that
+	 * value.
 	 */
 	if ((conf_arg != NULL) && (conf_arg[0] == '~') &&
 	    (bsdtar->homedir != NULL)) {
