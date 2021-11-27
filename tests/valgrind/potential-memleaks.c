@@ -9,6 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__FreeBSD__)
+/*
+ * We only want to enable this check on FreeBSD, because that OS can use
+ * pthread_atfork() without explicitly linking to pthread.
+ */
+#include <pthread.h>
+#define CHECK_PTHREAD_ATFORK
+#endif
+
 /* Checking merely linking. */
 static void
 pl_nothing(void)
@@ -100,6 +109,16 @@ freebsd_getaddrinfo_online(void)
 	pl_freebsd_getaddrinfo("google.com");
 }
 
+#if defined(CHECK_PTHREAD_ATFORK)
+/* This leak was exposed by LibreSSL's arc4random4.c & arc4random_freebsd.h. */
+static void
+pl_freebsd_pthread_atfork(void)
+{
+
+	pthread_atfork(NULL, NULL, NULL);
+}
+#endif
+
 static void
 pl_freebsd_setvbuf(void)
 {
@@ -119,6 +138,9 @@ static const struct memleaktest {
 	MEMLEAKTEST(pl_freebsd_setlocale),
 	MEMLEAKTEST(freebsd_getaddrinfo_localhost),
 	MEMLEAKTEST(freebsd_getaddrinfo_online),
+#if defined(CHECK_PTHREAD_ATFORK)
+	MEMLEAKTEST(pl_freebsd_pthread_atfork),
+#endif
 	MEMLEAKTEST(pl_freebsd_setvbuf)
 };
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
