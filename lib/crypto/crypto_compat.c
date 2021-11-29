@@ -15,15 +15,15 @@
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif
 
-/*
- * LibreSSL claims to be OpenSSL 2.0, but (currently) has APIs compatible with
- * OpenSSL 1.0.1g.
- */
+/* LibreSSL compatibility. */
 #ifdef LIBRESSL_VERSION_NUMBER
+/* LibreSSL claims to be OpenSSL 2.0; ignore that. */
 #undef OPENSSL_VERSION_NUMBER
-#define OPENSSL_VERSION_NUMBER 0x1000107fL
 
 #if LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+/* Compatibility for LibreSSL 2.7.0+: pretend to be OpenSSL 1.1.0. */
+#define OPENSSL_VERSION_NUMBER 0x1010000fL
+
 /*
  * To free the shared memory in 2.7.0+, we need to run EVP_cleanup() in
  * crypto_compat_free().  This function is documented as being deprecated on
@@ -33,9 +33,14 @@
  * (Checked in LibreSSL 2.7.0 and 3.4.2.)
  */
 #define NEED_EVP_CLEANUP
-#endif
+
+#else
+/* Compatibility for LibreSSL before 2.7.0: pretend to be OpenSSL 1.0.1g. */
+#define OPENSSL_VERSION_NUMBER 0x1000107fL
 
 #endif
+
+#endif /* LIBRESSL_VERSION_NUMBER */
 
 /**
  * crypto_compat_RSA_valid_size(rsa):
