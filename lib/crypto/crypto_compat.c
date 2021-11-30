@@ -3,6 +3,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/opensslv.h>
 #include <openssl/rsa.h>
 
@@ -14,14 +15,32 @@
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif
 
-/*
- * LibreSSL claims to be OpenSSL 2.0, but (currently) has APIs compatible with
- * OpenSSL 1.0.1g.
- */
+/* LibreSSL compatibility. */
 #ifdef LIBRESSL_VERSION_NUMBER
+/* LibreSSL claims to be OpenSSL 2.0; ignore that. */
 #undef OPENSSL_VERSION_NUMBER
+
+#if LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+/* Compatibility for LibreSSL 2.7.0+: pretend to be OpenSSL 1.1.0. */
+#define OPENSSL_VERSION_NUMBER 0x1010000fL
+
+/*
+ * To free the shared memory in 2.7.0+, we need to run EVP_cleanup() in
+ * crypto_compat_free().  This function is documented as being deprecated on
+ * LibreSSL 2.7.0+ (and a no-op on OpenSSL 1.1.0+), but LibreSSL's
+ * crypto/evp/names.c clearly shows that EVP_cleanup() does stuff, and
+ * valgrind memory checks show that we need to call it manually.
+ * (Checked in LibreSSL 2.7.0 and 3.4.2.)
+ */
+#define NEED_EVP_CLEANUP
+
+#else
+/* Compatibility for LibreSSL before 2.7.0: pretend to be OpenSSL 1.0.1g. */
 #define OPENSSL_VERSION_NUMBER 0x1000107fL
+
 #endif
+
+#endif /* LIBRESSL_VERSION_NUMBER */
 
 /**
  * crypto_compat_RSA_valid_size(rsa):
@@ -246,6 +265,11 @@ crypto_compat_free(void)
 
 	/* Free OpenSSL error strings. */
 	ERR_free_strings();
+
+#ifdef NEED_EVP_CLEANUP
+	/* Additional cleaning needed for some versions of LibreSSL. */
+	EVP_cleanup();
+#endif
 
 	/* A more general OpenSSL cleanup function. */
 	CRYPTO_cleanup_all_ex_data();
