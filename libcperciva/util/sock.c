@@ -295,8 +295,8 @@ err0:
 
 /**
  * sock_listener(sa):
- * Create a socket, set SO_REUSEADDR, bind it to the socket address ${sa},
- * mark it for listening, and mark it as non-blocking.
+ * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
+ * ${sa}, mark it for listening, and mark it as non-blocking.
  */
 int
 sock_listener(const struct sock_addr * sa)
@@ -310,10 +310,13 @@ sock_listener(const struct sock_addr * sa)
 		goto err0;
 	}
 
-	/* Set SO_REUSEADDR. */
+	/* Attempt to set SO_REUSEADDR. */
 	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val))) {
-		warnp("setsockopt(SO_REUSEADDR)");
-		goto err1;
+		/* ENOPROTOOPT is ok. */
+		if (errno != ENOPROTOOPT) {
+			warnp("setsockopt(SO_REUSEADDR)");
+			goto err1;
+		}
 	}
 
 	/* Bind the socket. */
