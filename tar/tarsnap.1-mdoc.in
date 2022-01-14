@@ -454,7 +454,7 @@ bytes per second.
 (c mode only)
 Do not recursively archive the contents of directories.
 .It Fl -newer Ar date
-(c mode only)
+(c, x, t modes only)
 Only include files and directories newer than the specified date.
 This compares ctime entries.
 .It Fl -newer-mtime Ar date

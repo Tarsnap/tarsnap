@@ -30,8 +30,7 @@ character are ignored.
 .PP
 If a parameter begins with a
 Ql ~
-character, it will be replaced by the value of the HOME variable (the
-current user's home directory).
+character, it will be replaced by the home directory of the effective user ID.
 .PP
 The following options may be specified:
 .RS 5

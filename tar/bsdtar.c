@@ -573,7 +573,10 @@ main(int argc, char **argv)
 		 * TODO: Add corresponding "older" options to reverse these.
 		 */
 		case OPTION_NEWER_CTIME: /* GNU tar */
-			bsdtar->newer_ctime_sec = get_date(now, bsdtar->optarg);
+			if ((bsdtar->newer_ctime_sec =
+			    get_date(now, bsdtar->optarg)) == -1)
+				bsdtar_errc(bsdtar, 1, EINVAL,
+				    "Could not parse date");
 			break;
 		case OPTION_NEWER_CTIME_THAN:
 			{
@@ -587,7 +590,10 @@ main(int argc, char **argv)
 			}
 			break;
 		case OPTION_NEWER_MTIME: /* GNU tar */
-			bsdtar->newer_mtime_sec = get_date(now, bsdtar->optarg);
+			if ((bsdtar->newer_mtime_sec =
+			    get_date(now, bsdtar->optarg)) == -1)
+				bsdtar_errc(bsdtar, 1, EINVAL,
+				    "Could not parse date");
 			break;
 		case OPTION_NEWER_MTIME_THAN:
 			{

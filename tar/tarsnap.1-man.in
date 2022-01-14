@@ -495,7 +495,7 @@ bytes per second.
 Do not recursively archive the contents of directories.
 .TP
 \fB\--newer\fP \fIdate\fP
-(c mode only)
+(c, x, t modes only)
 Only include files and directories newer than the specified date.
 This compares ctime entries.
 .TP
