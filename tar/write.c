@@ -201,6 +201,7 @@ disk_pause(int pause_ms)
 
 	/* Sleep. */
 	ts.tv_sec = pause_ms / 1000;
+	pause_ms -= ts.tv_sec * 1000;
 	ts.tv_nsec = pause_ms * 1000000;
 	nanosleep(&ts, NULL);
 }
