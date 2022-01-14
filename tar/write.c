@@ -191,17 +191,17 @@ truncate_archive(struct bsdtar *bsdtar)
 
 /* If the --disk-pause option was used, sleep for a while. */
 static void
-disk_pause(struct bsdtar *bsdtar)
+disk_pause(int pause_ms)
 {
 	struct timespec ts;
 
 	/* Do we want to sleep? */
-	if (bsdtar->disk_pause == 0)
+	if (pause_ms == 0)
 		return;
 
 	/* Sleep. */
-	ts.tv_sec = bsdtar->disk_pause / 1000;
-	ts.tv_nsec = bsdtar->disk_pause * 1000000;
+	ts.tv_sec = pause_ms / 1000;
+	ts.tv_nsec = pause_ms * 1000000;
 	nanosleep(&ts, NULL);
 }
 
@@ -620,7 +620,7 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 		if (checkpoint_archive(bsdtar, 0))
 			exit(1);
 		if (cookie == NULL)
-			disk_pause(bsdtar);
+			disk_pause(bsdtar->disk_pause);
 		if (network_select(0))
 			exit(1);
 
@@ -718,7 +718,7 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 
 	bytes_read = archive_read_data(ina, bsdtar->buff, FILEDATABUFLEN);
 	while (bytes_read > 0) {
-		disk_pause(bsdtar);
+		disk_pause(bsdtar->disk_pause);
 		if (network_select(0))
 			return (-1);
 
@@ -778,7 +778,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			break;
 		if (checkpoint_archive(bsdtar, 0))
 			exit(1);
-		disk_pause(bsdtar);
+		disk_pause(bsdtar->disk_pause);
 		if (network_select(0))
 			exit(1);
 
@@ -1213,7 +1213,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 
 	bytes_read = read(fd, bsdtar->buff, FILEDATABUFLEN);
 	while (bytes_read > 0) {
-		disk_pause(bsdtar);
+		disk_pause(bsdtar->disk_pause);
 		if (network_select(0))
 			return (-1);
 
