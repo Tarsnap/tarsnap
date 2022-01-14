@@ -1600,6 +1600,12 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto needarg;
 
 		bsdtar->disk_pause = strtol(conf_arg, NULL, 0);
+		if (bsdtar->disk_pause > 1000)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "disk-pause value must be <= 1000");
+		if (bsdtar->disk_pause < 0)
+			bsdtar_errc(bsdtar, 1, 0,
+			    "disk-pause value must be >= 0");
 		bsdtar->option_disk_pause_set = 1;
 	} else if (strcmp(conf_opt, "exclude") == 0) {
 		if (bsdtar->option_no_config_exclude_set)
