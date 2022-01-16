@@ -65,9 +65,9 @@ else
 	# XCode version), but it will link to the 10.11 library (which doesn't
 	# include it).  Annoyingly, there's two levels of error output on OS X:
 	# one from the binary itself, and one from the signal it sends to the
-	# calling process.  The "$( ./x 2>y ) 2>y" captures both types of error
+	# calling process.  The "( ./x 2>y ) 2>y" captures both types of error
 	# message.
-	if ! $( ./a.out 2>/dev/null ) 2>/dev/null ; then
+	if ! ( ./a.out 2>/dev/null ) 2>/dev/null ; then
 		[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 		printf %s "-DPOSIXFAIL_CLOCK_GETTIME"
 		echo "WARNING: POSIX violation: clock_gettime() is not linkable" 1>&2
