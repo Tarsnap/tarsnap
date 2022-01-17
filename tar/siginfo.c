@@ -51,7 +51,7 @@ struct siginfo_data {
 	/* How large is the archive entry? */
 	int64_t size;
 
-	/* How many files have we handled in total? */
+	/* How many filesystem entries have we handled in total? */
 	int file_count;
 
 	/* How many bytes have we handled in total? */
@@ -183,14 +183,14 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 			if ((s_total_uncompressed = humansize(
 			    siginfo->total_uncompressed)) == NULL)
 				goto err0;
-			safe_fprintf(stderr, "Processed %i files, %s",
+			safe_fprintf(stderr, "Processed %i entries, %s",
 			    siginfo->file_count, s_total_uncompressed);
 
 			/* Clean up. */
 			free(s_total_uncompressed);
 		} else {
 			safe_fprintf(stderr,
-			    "Processed %i files, %" PRId64 " bytes",
+			    "Processed %i entries, %" PRId64 " bytes",
 			    siginfo->file_count, siginfo->total_uncompressed);
 		}
 
