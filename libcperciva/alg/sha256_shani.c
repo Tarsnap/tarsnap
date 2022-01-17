@@ -56,7 +56,7 @@ be32dec_128(const uint8_t * src)
 	/* Shift the two words of M down and perform the next two rounds. */	\
 	M = _mm_srli_si128(M, 8);						\
 	S[0] = _mm_sha256rnds2_epu32(S[0], S[1], M);				\
-} while (0);
+} while (0)
 
 /* Compute the ith set of four words of message schedule. */
 #define MSG4(W, i) do {								\

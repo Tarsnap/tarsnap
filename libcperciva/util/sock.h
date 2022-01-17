@@ -20,8 +20,8 @@ struct sock_addr ** sock_resolve(const char *);
 
 /**
  * sock_listener(sa):
- * Create a socket, set SO_REUSEADDR, bind it to the socket address ${sa},
- * mark it for listening, and mark it as non-blocking.
+ * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
+ * ${sa}, mark it for listening, and mark it as non-blocking.
  */
 int sock_listener(const struct sock_addr *);
 
