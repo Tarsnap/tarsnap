@@ -102,7 +102,7 @@ progress_func(void * cookie)
 {
 	struct bsdtar * bsdtar = cookie;
 
-	siginfo_printinfo(bsdtar, 0);
+	siginfo_printinfo(bsdtar, 0, 0);
 }
 
 /*
@@ -349,7 +349,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			    archive_entry_pathname(entry), 0,
 			    archive_file_count(a) - 1,
 			    archive_position_uncompressed(a));
-			siginfo_printinfo(bsdtar, 0);
+			siginfo_printinfo(bsdtar, 0, 0);
 
 			if (bsdtar->option_stdout)
 				r = archive_read_data_into_fd(a, 1);
@@ -397,7 +397,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	/* Print a final update (if desired). */
 	if (mode == 'x') {
 		/* siginfo was not initialized in 't' mode. */
-		siginfo_printinfo(bsdtar, 0);
+		siginfo_printinfo(bsdtar, 0, 1);
 	}
 
 	archive_read_finish(a);
