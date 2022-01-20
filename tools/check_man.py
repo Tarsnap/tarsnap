@@ -5,20 +5,31 @@
 """
 
 import argparse
+import dataclasses
 import functools
 
 import man_to_completion
+
+
+@dataclasses.dataclass
+class OptArg:
+    """ An option, its argument (if applicable), and the modes for which it is
+        valid.
+    """
+    opt: str
+    arg: str
+    modes: str = ""
 
 
 class OptList(list):
     """ List of options, plus a few convenience classes. """
     def append_optarg(self, opt, arg):
         """ Append object to the end of the list. """
-        super().append([opt, arg, ""])
+        super().append(OptArg(opt, arg))
 
     def insert_optarg(self, index, opt, arg):
         """ Insert object before index. """
-        super().insert(index, [opt, arg, ""])
+        super().insert(index, OptArg(opt, arg))
 
     def append(self, value):
         raise Exception("Not supported; use append_optarg")
@@ -28,26 +39,26 @@ class OptList(list):
 
     def get_opts(self):
         """ Return a list of every --opt. """
-        return [optarg[0] for optarg in self]
+        return [optarg.opt for optarg in self]
 
     def get_opts_with_func_opt(self, func):
         """ Return a list of every --opt which satisfies func(opt). """
-        return [optarg[0] for optarg in self if func(optarg[0])]
+        return [optarg.opt for optarg in self if func(optarg.opt)]
 
     def get_opts_with_func_arg(self, func):
         """ Return a list of every --opt which satisfies func(arg). """
-        return [optarg[0] for optarg in self if func(optarg[1])]
+        return [optarg.opt for optarg in self if func(optarg.arg)]
 
     def index_of_opt(self, opt):
         """ Return the index of opt, or None. """
         for i, optarg in enumerate(self):
-            if optarg[0] == opt:
+            if optarg.opt == opt:
                 return i
         return None
 
     def set_only_modes(self, modes):
         """ Set the previous option to only refer to the given modes. """
-        self[-1][2] = modes
+        self[-1].modes = modes
 
     def get_opts_no_leading(self):
         """ Return a list of every --opt, without any leading hyphens. """
@@ -207,8 +218,7 @@ def get_options(filename_manpage):
     # Check that there's no unknown modes.
     modes = sections["description"].get_opts_no_leading()
     for optarg in sections["options"]:
-        only_modes = optarg[2]
-        for mode in only_modes:
+        for mode in optarg.modes:
             if mode not in modes:
                 print("Unrecognized mode: %s" % (optarg))
                 exit(1)
