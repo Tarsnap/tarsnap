@@ -1,0 +1,4 @@
+# Short (less than one line) descriptions of tarsnap options.
+#
+# Format:
+#     --option \t+ description [\t+ (MODE|DUP-.*)]

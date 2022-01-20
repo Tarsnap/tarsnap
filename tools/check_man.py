@@ -7,6 +7,7 @@
 import argparse
 import dataclasses
 import functools
+import re
 
 import man_to_completion
 
@@ -18,18 +19,19 @@ class OptArg:
     """
     opt: str
     arg: str
+    desc: str
     modes: str = ""
 
 
 class OptList(list):
     """ List of options, plus a few convenience classes. """
-    def append_optarg(self, opt, arg):
+    def append_optarg(self, opt, arg, desc):
         """ Append object to the end of the list. """
-        super().append(OptArg(opt, arg))
+        super().append(OptArg(opt, arg, desc))
 
-    def insert_optarg(self, index, opt, arg):
+    def insert_optarg(self, index, opt, arg, desc):
         """ Insert object before index. """
-        super().insert(index, OptArg(opt, arg))
+        super().insert(index, OptArg(opt, arg, desc))
 
     def append(self, value):
         raise Exception("Not supported; use append_optarg")
@@ -70,6 +72,92 @@ class OptList(list):
                 opt = opt[1:]
             opts.append(opt)
         return opts
+
+
+class Descriptions:
+    """ Short descriptions of command-line options.
+
+        If a mode of operation should have a different description than a
+        normal option of the same name, then prepend "mode" before the "--".
+        (For tarsnap.1, this applies to '--print-stats' as a standalone mode,
+        vs. used as an option such as '-c --print-stats'.)
+    """
+    def __init__(self, filename):
+        self.desc = {}
+        self.queried = []
+
+        # Read values from file.
+        with open(filename, encoding="utf-8") as filep:
+            for line in filep:
+                self._handle_line(line)
+
+    def _handle_line(self, line):
+        """ Parse a line of the 'descriptions' file and add it to self. """
+        # Skip blank lines and # comments.
+        if len(line) < 2:
+            return
+        if line.startswith("#"):
+            return
+
+        # Get the argument and description.
+        try:
+            # Allow for multiple tabs in the line.
+            sl = re.split("\t+", line.rstrip())
+            desc = sl[1]
+
+            # Are we dealing with a normal option, a duplicate, or a mode?
+            if len(sl) == 2:
+                option = sl[0]
+            elif sl[2].startswith("DUP"):
+                option = "dup%s" % sl[2][3:]
+            else:
+                assert sl[2] == "MODE"
+                option = "mode%s" % sl[0]
+
+        except Exception as err:
+            print("Problem on line:\n%s\n" % line)
+            raise err
+
+        # Sanity check for an option being given twice.
+        if option in self.desc:
+            raise Exception("Already have: %s" % option)
+
+        # Save the argument and description.
+        self.desc[option] = desc.rstrip()
+
+    def get(self, option):
+        """ Get the description for this option, or return '(missing)'. """
+        if option in self.desc:
+            desc = self.desc[option]
+        else:
+            # Check if it's a mode as well
+            modestr = "mode%s" % option
+            if modestr in self.desc:
+                desc = self.desc[modestr]
+            else:
+                print("missing description for %s" % option)
+                return "(missing)"
+
+        # Record that we've checked this option, and return the description.
+        self.queried.append(option)
+        return desc
+
+    def sanity_check_queried(self):
+        """ Check that the list of descriptions makes sense. """
+        for option in self.desc:
+            if option not in self.queried:
+                # Don't warn about "mode" or "duplicate" descriptions.
+                if option.startswith("mode") or option.startswith("dup"):
+                    continue
+                print("extra argument: %s" % option)
+
+        # Check "duplicate" descriptions
+        for option, desc in self.desc.items():
+            if option.startswith("dup"):
+                dup_opt = option[3:]
+                if desc != self.desc[dup_opt]:
+                    print("\"Duplicate\" options do not match: %s %s" % (
+                        option, dup_opt))
 
 
 def sort_tarsnap_opts(two, one):
@@ -164,7 +252,7 @@ def parse_modes_only(line):
     return actual.split(" ")
 
 
-def get_sections_options(filename_manpage):
+def get_sections_options(filename_manpage, descs):
     """ Parse the man-page to get options from each section. """
     sections = {}
     getmodes = False
@@ -182,19 +270,23 @@ def get_sections_options(filename_manpage):
         if line.startswith(".It Fl"):
             opt, arg = parse_opt_arg(line)
 
+            # Get the description for the option.
+            desc = descs.get(opt)
+
             # Special case for: -q (--fast-read)
             if opt == "-q":
                 # Insert --fast-read before --force-resources
                 index = sections[section].index_of_opt("--force-resources")
                 # If we failed to find it, something went wrong
                 assert index is not None
-                sections[section].insert_optarg(index, "--fast-read", None)
+                sections[section].insert_optarg(index, "--fast-read", None,
+                                                desc)
 
                 # There's no arg for -q
                 arg = None
 
             # Record the value
-            sections[section].append_optarg(opt, arg)
+            sections[section].append_optarg(opt, arg, desc)
             getmodes = True
             continue
 
@@ -207,9 +299,9 @@ def get_sections_options(filename_manpage):
     return sections
 
 
-def get_options(filename_manpage):
+def get_options(filename_manpage, descs):
     """ Get the options from the man page. """
-    sections = get_sections_options(filename_manpage)
+    sections = get_sections_options(filename_manpage, descs)
 
     # The OPTIONS section should already be sorted, but the DESCRIPTION
     # section should not.
@@ -281,6 +373,8 @@ def parse_cmdline():
     parser = argparse.ArgumentParser(description="Check a man page.")
     parser.add_argument("filename_manpage",
                         help="man-page in mdoc format")
+    parser.add_argument("descriptions",
+                        help="descriptions of all options")
     parser.add_argument("-c", "--check-file", metavar="filename",
                         help="check that all options are in the file")
     parser.add_argument("--update-bash", metavar="filename",
@@ -298,12 +392,15 @@ def parse_cmdline():
 
 def main(args):
     """ Parse the man page and edit the bash completion file. """
-    options = get_options(args.filename_manpage)
+    descs = Descriptions(args.descriptions)
+    options = get_options(args.filename_manpage, descs)
 
     if args.check_file:
         check_options_in_file(options, args.check_file)
     if args.update_bash:
         man_to_completion.bash_completion_update(args.update_bash, options)
+
+    descs.sanity_check_queried()
 
 
 if __name__ == "__main__":
