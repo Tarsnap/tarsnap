@@ -158,7 +158,7 @@ def get_sections_options(filename_manpage):
     sections = {}
     getmodes = False
 
-    with open(filename_manpage) as filep:
+    with open(filename_manpage, encoding="utf-8") as filep:
         lines = filep.readlines()
 
     for line in lines:
@@ -251,7 +251,7 @@ def get_options(filename_manpage):
 
 def check_options_in_file(options, filename):
     """ Check that all the options are in the file. """
-    with open(filename) as filep:
+    with open(filename, encoding="utf-8") as filep:
         data = filep.read()
 
     # Check that every option is in the file.

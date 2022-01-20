@@ -49,7 +49,7 @@ def handle_file(filename):
         Args:
             filename (string): the .h or .c filename to examine."""
     include_block = []
-    with open(filename) as filep:
+    with open(filename, encoding="utf-8") as filep:
         for i, line in enumerate(filep):
             # find a set of #include lines (with no separation)
             included_filename = get_included_filename(line)
@@ -76,6 +76,7 @@ def main(filenames):
         if style_utils.is_libarchive(filename):
             continue
         handle_file(filename)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

@@ -77,7 +77,7 @@ def bash_completion_update(filename_bash, options):
     """ Write the options into the bash completion file.  """
 
     # Read file.
-    with open(filename_bash) as bash:
+    with open(filename_bash, encoding="utf-8") as bash:
         lines = bash.readlines()
 
     newlines = []
@@ -125,6 +125,6 @@ def bash_completion_update(filename_bash, options):
             newlines.append(line)
 
     # Write file.
-    with open(filename_bash, "wt") as bash:
+    with open(filename_bash, "wt", encoding="utf-8") as bash:
         newbash = "".join(newlines)
         bash.write(newbash)

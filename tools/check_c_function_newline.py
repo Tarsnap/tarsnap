@@ -12,7 +12,7 @@ def handle_file(filename):
         Args:
             filename (string): the filename to examine."""
     func_text = ""
-    with open(filename) as filep:
+    with open(filename, encoding="utf-8") as filep:
         for i, line in enumerate(filep):
             if line[0] == "{":
                 func_text += line
