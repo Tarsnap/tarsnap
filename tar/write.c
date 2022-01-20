@@ -469,7 +469,7 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		raise(SIGUSR1);
 
 	/* Print a final update (if desired). */
-	siginfo_printinfo(bsdtar, 0);
+	siginfo_printinfo(bsdtar, 0, 1);
 
 	if (archive_write_close(a)) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
@@ -644,7 +644,7 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 		    archive_entry_size(in_entry),
 		    archive_file_count(a),
 		    archive_position_uncompressed(a));
-		siginfo_printinfo(bsdtar, 0);
+		siginfo_printinfo(bsdtar, 0, 0);
 
 		if (MODE_HEADER(bsdtar, a))
 			goto err_fatal;
@@ -723,7 +723,7 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 		if (network_select(0))
 			return (-1);
 
-		siginfo_printinfo(bsdtar, progress);
+		siginfo_printinfo(bsdtar, progress, 0);
 
 		bytes_written = archive_write_data(a, bsdtar->buff,
 		    bytes_read);
@@ -1023,7 +1023,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		archive_entry_linkify(bsdtar->resolver, &entry, &spare_entry);
 
 		/* Handle SIGINFO / SIGUSR1 request if one was made. */
-		siginfo_printinfo(bsdtar, 0);
+		siginfo_printinfo(bsdtar, 0, 0);
 
 		while (entry != NULL) {
 			write_entry_backend(bsdtar, a, entry, st,
@@ -1218,7 +1218,7 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 		if (network_select(0))
 			return (-1);
 
-		siginfo_printinfo(bsdtar, progress);
+		siginfo_printinfo(bsdtar, progress, 0);
 
 		bytes_written = archive_write_data(a, bsdtar->buff,
 		    bytes_read);

@@ -158,7 +158,7 @@ siginfo_setinfo(struct bsdtar *bsdtar, const char * oper, const char * path,
 }
 
 void
-siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
+siginfo_printinfo(struct bsdtar *bsdtar, off_t progress, int finalmsg)
 {
 	struct siginfo_data * siginfo = bsdtar->siginfo;
 	char * s_progress;
@@ -175,7 +175,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 	/* Print overall progress (if applicable). */
 	if (siginfo->total_uncompressed > 0) {
 		/* --verbose mode doesn't print newlines at the end of lines. */
-		if (bsdtar->verbose)
+		if (bsdtar->verbose && !finalmsg)
 			fprintf(stderr, "\n");
 
 		/* Print overall progress with or without --humanize-numbers. */
@@ -195,7 +195,7 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress)
 		}
 
 		/* --verbose mode doesn't want newlines at the end of lines. */
-		if (!bsdtar->verbose)
+		if (!bsdtar->verbose || finalmsg)
 			fprintf(stderr, "\n");
 
 		/* We've handled the signal. */
