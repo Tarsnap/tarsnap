@@ -4,6 +4,7 @@
 #     --option \t+ description [\t+ (MODE|DUP-.*)]
 
 --aggressive-networking	use multiple TCP connections
+--archive-names		read a list of archive names from a file
 --cachedir		specify cache directory
 --check-links		warn unless all links to each file are archived
 --checkpoint-bytes	add a checkpoint after every ARG bytes of uploaded data
@@ -13,14 +14,17 @@
 --csv-file		write statistics in CSV format to a file
 --disk-pause		often pause for ARG ms while creating an archive
 --dry-run		do not really create an archive; just simulate doing so
+--dump-config		print all config lines
 --exclude		do not process certain files or directories
 --fast-read		stop after the first entry which matches the ARG	DUP-q
+--force-resources	force the decryption of a passphrase-encrypted keyfile
 --fsck			perform some integrity checks and reconstruct cache	MODE
 --fsck-prune		run as --fsck, but prune any corrupt archives	MODE
 --humanize-numbers	use SI prefixes for --print-stats
 --include		process only certain files or directories
 --initialize-cachedir	create and initialize the cachedir		MODE
 --insane-filesystems	allow descent into synthetic filesystems such as procfs
+--iso-dates		print dates as yyyy-mm-dd hh:mm:ss
 --keep-going		keep going after finding an archive which does not exist
 --keep-newer-files	keep files which are newer than the extracted files
 --keyfile		specify key file
@@ -39,13 +43,16 @@
 --no-config-include	ignore any include option
 --no-default-config	do not read the default configuration files
 --no-disk-pause		ignore any disk-pause option
+--no-force-resources	ignore any force-resources option
 --no-humanize-numbers	ignore any humanize-numbers option
 --no-insane-filesystems	ignore any insane-filesystems option
+--no-iso-dates		ignore any iso-dates option
 --no-maxbw		ignore any maximum bandwidth option
 --no-maxbw-rate-down	ignore any download maximum bandwidth option
 --no-maxbw-rate-up	ignore any upload maximum bandwidth option
 --no-nodump		ignore any nodump option
 --no-print-stats	ignore any print-stats option
+--no-progress-bytes	ignore any progress-bytes option
 --no-quiet		ignore any quiet option
 --no-retry-forever	ignore any retry-forever option
 --no-snaptime		ignore any snaptime option
@@ -58,10 +65,13 @@
 --null			filenames or patterns are separated by null characters
 --numeric-owner		ignore symbolic user and group names when restoring
 --one-file-system	do not cross mount points
+--passphrase		read passphrase from ARG instead of /dev/tty
 --print-stats		print global statistics concerning stored archives	MODE
 --print-stats		print statistics for the archive
+--progress-bytes	print a progress messsage after each X bytes
 --quiet			avoid printing some warnings
 --recover		recover a partial archive from a checkpoint	MODE
+--resume-extract	don't extract files that are already on disk
 --retry-forever		continue trying to connect to Tarsnap server forever
 --snaptime		file with mtime prior to snapshot creation time
 --store-atime		store file access times
