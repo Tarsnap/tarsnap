@@ -9,7 +9,9 @@ import dataclasses
 import functools
 import re
 
+import man_to_argparse
 import man_to_completion
+import man_to_zsh
 
 
 @dataclasses.dataclass
@@ -39,6 +41,13 @@ class OptList(list):
     def insert(self, index, value):
         raise Exception("Not supported; use insert_optarg")
 
+    def get_optarg(self, opt):
+        """ Return the OptArg corresponding to opt. """
+        for optarg in self:
+            if optarg.opt == opt:
+                return optarg
+        return None
+
     def get_opts(self):
         """ Return a list of every --opt. """
         return [optarg.opt for optarg in self]
@@ -50,6 +59,10 @@ class OptList(list):
     def get_opts_with_func_arg(self, func):
         """ Return a list of every --opt which satisfies func(arg). """
         return [optarg.opt for optarg in self if func(optarg.arg)]
+
+    def get_optargs_with_func_modes(self, func):
+        """ Return a list of every optarg which satisfies func(modes). """
+        return [optarg for optarg in self if func(optarg.modes)]
 
     def index_of_opt(self, opt):
         """ Return the index of opt, or None. """
@@ -316,6 +329,7 @@ def get_options(filename_manpage, descs):
                 exit(1)
 
     options = {}
+    options["modes"] = modes
 
     # Options which require an argument.
     options["filenameargs"] = sections["options"].get_opts_with_func_arg(
@@ -348,7 +362,7 @@ def get_options(filename_manpage, descs):
     options["longargs"] = sorted(options["longargs"],
                                  key=functools.cmp_to_key(sort_tarsnap_opts))
 
-    return options
+    return options, sections["options"]
 
 
 def check_options_in_file(options, filename):
@@ -379,6 +393,10 @@ def parse_cmdline():
                         help="check that all options are in the file")
     parser.add_argument("--update-bash", metavar="filename",
                         help="update the bash completion file")
+    parser.add_argument("--write-argparse", metavar="filename",
+                        help="write an argparse python file")
+    parser.add_argument("--write-zsh", metavar="filename",
+                        help="update the zsh completion file")
     args = parser.parse_args()
 
     # Sanity check.
@@ -393,12 +411,17 @@ def parse_cmdline():
 def main(args):
     """ Parse the man page and edit the bash completion file. """
     descs = Descriptions(args.descriptions)
-    options = get_options(args.filename_manpage, descs)
+    options, optlist = get_options(args.filename_manpage, descs)
 
     if args.check_file:
         check_options_in_file(options, args.check_file)
     if args.update_bash:
         man_to_completion.bash_completion_update(args.update_bash, options)
+    if args.write_argparse:
+        man_to_argparse.write_argparse(args.write_argparse,
+                                       options, optlist, descs)
+    if args.write_zsh:
+        man_to_zsh.write_zsh(args.write_zsh, options, optlist, descs)
 
     descs.sanity_check_queried()
 
