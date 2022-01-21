@@ -2,3 +2,94 @@
 #
 # Format:
 #     --option \t+ description [\t+ (MODE|DUP-.*)]
+
+--aggressive-networking	use multiple TCP connections to send data to the tarsnap server
+--cachedir		specify cache directory
+--check-links		issue a warning message unless all links to each file are archived
+--checkpoint-bytes	create a checkpoint after every ARG bytes of uploaded data
+--chroot		chroot to the current directory after processing any -C options and before extracting any files
+--configfile		add file to the list of configuration files to be read
+--creationtime		manually specify a creation time (a unix timestamp) for the archive
+--csv-file		write statistics in CSV format to a file
+--disk-pause		pause for ARG ms between storing archive entries and after every 64kB of file data
+--dry-run		dont really create an archive just simulate doing so
+--exclude		do not process files or directories that match the specified pattern
+--fsck			perform some integrity checks on the stored archives, and reconstruct cache directory
+--fsck-prune		run as --fsck, but if corrupt archives are detected, prune the broken data
+--humanize-numbers	use SI prefixes to make numbers printed by --print-stats more readable
+--include		process only files or directories that match the specified pattern
+--initialize-cachedir	create and initialize the cachedir
+--insane-filesystems	allow descent into the synthetic filesystems such as procfs
+--keep-going		continue deleting/printing statistics after finding one of the archives doesnt exit
+--keep-newer-files	dont overwrite existing files newer than versions in the archive being extracted
+--keyfile		specify key file
+--list-archives		print the names of archives stored
+--lowmem		reduce memory usage by not caching small files
+--maxbw			interrupt archival if more than ARG bytes of upstream bandwidth is used
+--maxbw-rate		limit download and upload bandwidth used to ARG bytes per second
+--maxbw-rate-down	limit download bandwidth used to ARG bytes per second
+--maxbw-rate-up		limit upload bandwidth used to ARG bytes per second
+--newer			only include files and directories newer than the specified date
+--newer-mtime		like --newer, except it compares mtime entries instead of ctime entries
+--newer-mtime-than	like --newer-than, except it compares mtime entries instead of ctime entries
+--newer-than		only include files and directories newer than the specified file (by ctime entries)
+--no-aggressive-networking	ignore any aggressive-networking option specified in a configuration file
+--no-config-default	do not read the default configuration files
+--no-config-exclude	ignore any exclude option specified in a configuration file
+--no-config-include	ignore any include option specified in a configuration file
+--no-disk-pause		ignore any disk-pause option specified in a configuration file
+--no-humanize-numbers	ignore any humanize-numbers option specified in a configuration file
+--no-insane-filesystems	ignore any insane-filesystems option specified in a configuration file
+--no-maxbw		ignore any maximum bandwidth option specified in a configuration file
+--no-maxbw-rate-down	ignore any download maximum bandwidth option specified in a configuration file
+--no-maxbw-rate-up	ignore any upload maximum bandwidth option specified in a configuration file
+--no-nodump		ignore any nodump option specified in a configuration file
+--no-print-stats	ignore any print-stats option specified in a configuration file
+--no-quiet		ignore any quiet option specified in a configuration file
+--no-retry-forever	ignore any retry-forever option specified in a configuration file
+--no-snaptime		ignore any snaptime option specified in a configuration file
+--no-store-atime	ignore any store-atime option specified in a configuration file
+--no-totals		ignore any totals option specified in a configuration file
+--nodump		honor the nodump file flag by skipping this file
+--noisy-warnings	be verbose when warning about network glitches
+--normalmem		ignore any lowmem or verylowmem option specified in a configuration file
+--nuke			delete all of the archives stored
+--null			filenames or patterns are separated by null characters, not by newlines
+--numeric-owner		ignore symbolic user and group names when restoring archives to disk (obey numeric values)
+--one-file-system	do not cross mount points
+--print-stats		print global statistics concerning stored archives	MODE
+--print-stats		print statistics for the archive being created (c mode) or deleted (d mode)
+--quiet			avoid printing some warnings
+--recover		recover a partial archive from a checkpoint if such an archive exists
+--retry-forever		continue trying to connect to the tarsnap server forever instead of giving up after 5-10 minutes
+--snaptime		MUST be used when creating filesystem snapshot backups, ARG is file with modification time prior to snapshot creation time
+--store-atime		enable the storing of file access times
+--strip-components	remove the specified ARG number of leading path elements
+--totals		print the size of the archive after creating it
+--verify-config		check the configuration file(s) for syntactic errors
+--version		print version number of tarsnap and exit
+--verylowmem		reduce memory usage, by not caching anything
+-C			change directory before adding files
+-H			symbolic links named on the command line will be followed - the target link will be archived, not the link itself
+-L			all symbolic links will be followed
+-O			in extract (-x) mode, files will be written to stdout, in list mode (-t) output will be written to stderr
+-P			preserve pathnames
+-S			extract files as sparse files
+-T			in x or t mode read the list of names to be extracted from the specified filename ARG
+-U			unlink files before creating them
+-X			read a list of exclusion patterns from the specified file ARG
+-c			create an archive containing the specified items and name
+-d			delete the specified archive
+-f			specify name of archive to operate on
+-k			do not overwrite existing files
+-m			do not extract modification time
+-n			do not recursively archive the contents of directories
+-o			use the user and group of the user running the program rather than those specified in the archive
+-p			preserve file permissions
+-q			extract or list only the first archive entry that matches each pattern or filename operand
+-r			read the specified archive, convert it to a tar stream, and write it to stdout
+-s			modify file or archive member names according to pattern
+-t			list archive contents to stdout
+-v			produce verbose output
+-w			ask for confirmation for every action
+-x			extract to disk from the archive
