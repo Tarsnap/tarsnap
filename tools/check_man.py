@@ -11,6 +11,7 @@ import re
 
 import man_to_argparse
 import man_to_completion
+import man_to_zsh
 
 
 @dataclasses.dataclass
@@ -39,6 +40,13 @@ class OptList(list):
 
     def insert(self, index, value):
         raise Exception("Not supported; use insert_optarg")
+
+    def get_optarg(self, opt):
+        """ Return the OptArg corresponding to opt. """
+        for optarg in self:
+            if optarg.opt == opt:
+                return optarg
+        return None
 
     def get_opts(self):
         """ Return a list of every --opt. """
@@ -387,6 +395,8 @@ def parse_cmdline():
                         help="update the bash completion file")
     parser.add_argument("--write-argparse", metavar="filename",
                         help="write an argparse python file")
+    parser.add_argument("--write-zsh", metavar="filename",
+                        help="update the zsh completion file")
     args = parser.parse_args()
 
     # Sanity check.
@@ -410,6 +420,8 @@ def main(args):
     if args.write_argparse:
         man_to_argparse.write_argparse(args.write_argparse,
                                        options, optlist, descs)
+    if args.write_zsh:
+        man_to_zsh.write_zsh(args.write_zsh, options, optlist, descs)
 
     descs.sanity_check_queried()
 
