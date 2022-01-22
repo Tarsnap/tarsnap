@@ -1,14 +1,21 @@
-# ignore autotools-generated files
+# development tools
+/devel-tools/
+
+# autotools-generated files
 /Makefile.in
 /aclocal.m4
 /config.aux/
 /config.h.in
+/config.h.in~
 /config.log
 /configure
 /confinc
 /confmf
 
-# ignore build-generated files
+# Standard out-of-tree build directory
+/build/
+
+# build-generated files
 *.a
 *.o
 .deps
@@ -23,7 +30,7 @@
 /tests-valgrind/
 /tests/valgrind/potential-memleaks
 
-# ignore installed files
+# installed files
 /keygen/tarsnap-keygen.1
 /keymgmt/tarsnap-keymgmt.1
 /keyregen/tarsnap-keyregen.1
@@ -38,5 +45,5 @@
 /tarsnap-keyregen
 /tarsnap-recrypt
 
-# ignore python cache
+# python cache
 /tools/__pycache__
