@@ -675,3 +675,7 @@ dist_bashcomp_DATA = misc/bash_completion.d/tarsnap	\
 	misc/bash_completion.d/tarsnap-keyregen		\
 	misc/bash_completion.d/tarsnap-recrypt
 endif
+if INSTALL_ZSH_COMPLETION
+zshcompdir = $(ZSH_COMPLETION_DIR)
+dist_zshcomp_DATA = misc/zsh_completion/_tarsnap
+endif

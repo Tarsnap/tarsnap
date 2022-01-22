@@ -83,12 +83,12 @@ Platform-specific notes
 Packaging notes
 ---------------
 
-Bash completion scripts: there is an optional `configure` argument
-`--with-bash-completion-dir[=DIR]`.
+Optional shell completion scripts:
 
-- If `DIR` is specified, it installs to that directory.
+- `--with-bash-completion-dir[=DIR]`, with the DIR specified explicitly or
+  left blank.  If `DIR` is left blank, it attempts to use `pkg-config` and
+  `bash-completion >= 2.0` to determine where to put the bash completion
+  scripts.  If your system does not match those requirements, please specify
+  `DIR` explicitly.
 
-- If `DIR` is left blank, it attempts to use `pkg-config` and
-  `bash-completion >= 2.0` to determine where to put the bash
-  completion scripts.  If your system does not match those
-  requirements, please specify `DIR` explicitly.
+- `--with-zsh-completion-dir=DIR`, with the DIR specified explicitly.
