@@ -986,8 +986,8 @@ with how much data has been sent to or received from the
 \fB\%tarsnap\fP
 server.
 .TP
-SIGSTOP & SIGSTP
-On receipt of a SIGSTOP or SIGSTP signal, the kernel will suspend the
+SIGSTOP & SIGTSTP
+On receipt of a SIGSTOP or SIGTSTP signal, the kernel will suspend the
 \fB\%tarsnap\fP
 process.
 Upon receiving a SIGCONT signal,
