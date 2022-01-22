@@ -1,12 +1,12 @@
 # ignore autotools-generated files
-Makefile.in
-aclocal.m4
-config.aux/
-config.h.in
-config.log
-configure
-confinc
-confmf
+/Makefile.in
+/aclocal.m4
+/config.aux/
+/config.h.in
+/config.log
+/configure
+/confinc
+/confmf
 
 # ignore build-generated files
 *.a
@@ -19,9 +19,9 @@ confmf
 /config.status
 /cpusupport-config.h
 /stamp-h1
-tests-output/
-tests-valgrind/
-tests/valgrind/potential-memleaks
+/tests-output/
+/tests-valgrind/
+/tests/valgrind/potential-memleaks
 
 # ignore installed files
 /keygen/tarsnap-keygen.1
@@ -39,4 +39,4 @@ tests/valgrind/potential-memleaks
 /tarsnap-recrypt
 
 # ignore python cache
-tools/__pycache__
+/tools/__pycache__
