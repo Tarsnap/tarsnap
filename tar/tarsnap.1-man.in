@@ -327,6 +327,9 @@ does not contact the
 server when performing a dry run, it will not detect an
 attempt to create an archive with the same name as one
 which already exists.
+Furthermore,
+\fB\--dry-run\fP
+will not check whether the cache directory is out of sync.
 .TP
 \fB\--dump-config\fP
 Print out the command-line and all non-blank lines read from config files.
@@ -967,7 +970,7 @@ for more information about the handling of exclusions.
 .SH SIGNALS
 .ad l
 \fB\%tarsnap\fP
-provides special treatment of the following signals:
+handles the following signals:
 .RS 5
 .TP
 SIGUSR1 & SIGINFO
@@ -982,6 +985,14 @@ Note that due to network buffering the file position will not align precisely
 with how much data has been sent to or received from the
 \fB\%tarsnap\fP
 server.
+.TP
+SIGSTOP & SIGSTP
+On receipt of a SIGSTOP or SIGSTP signal, the kernel will suspend the
+\fB\%tarsnap\fP
+process.
+Upon receiving a SIGCONT signal,
+\fB\%tarsnap\fP
+will reconnect to the server (if necessary) and continue the specified task.
 .TP
 SIGUSR2
 On receipt of the SIGUSR2 signal, if
