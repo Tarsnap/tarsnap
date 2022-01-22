@@ -1845,7 +1845,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto needarg;
 
 		if (humansize_parse(conf_arg, &bsdtar->option_progress_bytes))
-			bsdtar_errc(bsdtar, 1, 0, "Cannot parse #bytes per "
+			bsdtar_errc(bsdtar, 1, 0, "Cannot parse #bytes per"
 			    " progress message: %s", conf_arg);
 		if (bsdtar->option_progress_bytes < 1000)
 			bsdtar_errc(bsdtar, 1, 0, "progress-bytes value"

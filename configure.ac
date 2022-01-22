@@ -467,6 +467,16 @@ AC_ARG_WITH([bash-completion-dir],
 # by default, use what the user told us
 BASH_COMPLETION_DIR="$with_bash_completion_dir"
 
+# install zsh completion.  Unlike --with-bash-completion-dir, DIRNAME is not
+# optional; this script has no mechanism for automatically determining the zsh
+# completion directory.
+AC_ARG_WITH([zsh-completion-dir],
+    AS_HELP_STRING([--with-zsh-completion-dir=DIRNAME],
+        [Install zsh completion script. @<:@default=no@:>@]),
+    [], [with_zsh_completion_dir=no])
+# use what the user told us
+ZSH_COMPLETION_DIR="$with_zsh_completion_dir"
+
 # print results
 AC_MSG_CHECKING([whether to install bash completion])
 AS_IF([test "x$with_bash_completion_dir" != "xno"],
@@ -504,6 +514,8 @@ fi
 # pass values to Makefile.am
 AC_SUBST([BASH_COMPLETION_DIR])
 AM_CONDITIONAL([INSTALL_BASH_COMPLETION],[test "x$with_bash_completion_dir" != "xno"])
+AC_SUBST([ZSH_COMPLETION_DIR])
+AM_CONDITIONAL([INSTALL_ZSH_COMPLETION],[test "x$with_zsh_completion_dir" != "xno"])
 
 # Run the libcperciva POSIX compatibility tests and pass values to the Makefile.
 CHECK_LIBCPERCIVA_POSIX([${srcdir}/libcperciva])

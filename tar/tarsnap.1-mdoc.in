@@ -869,7 +869,7 @@ for more information about the handling of exclusions.
 .El
 .Sh SIGNALS
 .Nm
-provides special treatment of the following signals:
+handles the following signals:
 .Bl -tag -width "SIGUSR2"
 .It SIGUSR1 & SIGINFO
 On receipt of the SIGUSR1 signal or (on platforms where it exists) the
@@ -883,6 +883,13 @@ Note that due to network buffering the file position will not align precisely
 with how much data has been sent to or received from the
 .Nm
 server.
+.It SIGSTOP & SIGSTP
+On receipt of a SIGSTOP or SIGSTP signal, the kernel will suspend the
+.Nm
+process.
+Upon receiving a SIGCONT signal,
+.Nm
+will reconnect to the server (if necessary) and continue the specified task.
 .It SIGUSR2
 On receipt of the SIGUSR2 signal, if
 .Nm
