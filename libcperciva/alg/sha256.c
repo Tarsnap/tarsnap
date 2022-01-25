@@ -140,8 +140,8 @@ static int
 hwtest(const uint32_t state[static restrict 8],
     const uint8_t block[static restrict 64],
     uint32_t W[static restrict 64], uint32_t S[static restrict 8],
-    void(* func)(uint32_t [static restrict 8],
-    const uint8_t [static restrict 64], uint32_t W[static restrict 64],
+    void(* func)(uint32_t state[static restrict 8],
+    const uint8_t block[static restrict 64], uint32_t W[static restrict 64],
     uint32_t S[static restrict 8]))
 {
 	uint32_t state_sw[8];
