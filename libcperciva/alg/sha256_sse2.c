@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <immintrin.h>
+#include <emmintrin.h>
 
 #include "sha256_sse2.h"
 
