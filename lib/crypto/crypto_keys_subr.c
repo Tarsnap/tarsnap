@@ -167,7 +167,8 @@ err0:
  * Import the specified RSA private key from the provided buffer.
  */
 int
-crypto_keys_subr_import_RSA_priv(RSA ** key, const uint8_t * buf, size_t buflen)
+crypto_keys_subr_import_RSA_priv(void ** key, const uint8_t * buf,
+    size_t buflen)
 {
 	BIGNUM * n, * e, * d, * p, * q, * dmp1, * dmq1, * iqmp;
 
@@ -236,7 +237,7 @@ err0:
  * Import the specified RSA public key from the provided buffer.
  */
 int
-crypto_keys_subr_import_RSA_pub(RSA ** key, const uint8_t * buf, size_t buflen)
+crypto_keys_subr_import_RSA_pub(void ** key, const uint8_t * buf, size_t buflen)
 {
 	BIGNUM * n, * e;
 
@@ -334,7 +335,7 @@ err0:
  * length in bytes.
  */
 uint32_t
-crypto_keys_subr_export_RSA_priv(RSA * key, uint8_t * buf, size_t buflen)
+crypto_keys_subr_export_RSA_priv(void * key, uint8_t * buf, size_t buflen)
 {
 	const BIGNUM * n, * e, * d, * p, * q, * dmp1, * dmq1, * iqmp;
 	uint32_t len = 0;
@@ -381,7 +382,7 @@ err0:
  * length in bytes.
  */
 uint32_t
-crypto_keys_subr_export_RSA_pub(RSA * key, uint8_t * buf, size_t buflen)
+crypto_keys_subr_export_RSA_pub(void * key, uint8_t * buf, size_t buflen)
 {
 	const BIGNUM * n, * e;
 	uint32_t len = 0;
@@ -450,7 +451,7 @@ err0:
  * Generate an RSA key and store the private and public parts.
  */
 int
-crypto_keys_subr_generate_RSA(RSA ** priv, RSA ** pub)
+crypto_keys_subr_generate_RSA(void ** priv, void ** pub)
 {
 
 	/* Free any existing keys. */

@@ -1,9 +1,8 @@
 #ifndef _CRYPTO_H_
 #define _CRYPTO_H_
 
+#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <unistd.h>
 
 /* Cryptographic keys held by user. */
 #define CRYPTO_KEY_SIGN_PRIV	0

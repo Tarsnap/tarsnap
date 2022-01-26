@@ -247,25 +247,25 @@ crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 		case CRYPTO_KEY_SIGN_PRIV:
 			if ((keys & CRYPTO_KEYMASK_SIGN_PRIV) &&
 			    crypto_keys_subr_import_RSA_priv(
-			    &keycache.sign_priv, buf, len))
+			    (void**)&keycache.sign_priv, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_SIGN_PUB:
 			if ((keys & CRYPTO_KEYMASK_SIGN_PUB) &&
 			    crypto_keys_subr_import_RSA_pub(
-			    &keycache.sign_pub, buf, len))
+			    (void**)&keycache.sign_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_ENCR_PRIV:
 			if ((keys & CRYPTO_KEYMASK_ENCR_PRIV) &&
 			    crypto_keys_subr_import_RSA_priv(
-			    &keycache.encr_priv, buf, len))
+			    (void**)&keycache.encr_priv, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_ENCR_PUB:
 			if ((keys & CRYPTO_KEYMASK_ENCR_PUB) &&
 			    crypto_keys_subr_import_RSA_pub(
-			    &keycache.encr_pub, buf, len))
+			    (void**)&keycache.encr_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_HMAC_FILE:
@@ -311,7 +311,7 @@ crypto_keys_import(const uint8_t * buf, size_t buflen, int keys)
 		case CRYPTO_KEY_ROOT_PUB:
 			if ((keys & CRYPTO_KEYMASK_ROOT_PUB) &&
 			    crypto_keys_subr_import_RSA_pub(
-			    &keycache.root_pub, buf, len))
+			    (void**)&keycache.root_pub, buf, len))
 				goto err0;
 			break;
 		case CRYPTO_KEY_AUTH_PUT:
@@ -522,8 +522,8 @@ crypto_keys_generate(int keys)
 			    "private key", "public key");
 			goto err0;
 		}
-		if (crypto_keys_subr_generate_RSA(&keycache.sign_priv,
-		    &keycache.sign_pub))
+		if (crypto_keys_subr_generate_RSA((void *)&keycache.sign_priv,
+		    (void *)&keycache.sign_pub))
 			goto err0;
 
 		keys &= ~CRYPTO_KEYMASK_SIGN_PRIV;
@@ -542,8 +542,8 @@ crypto_keys_generate(int keys)
 			    "private key", "public key");
 			goto err0;
 		}
-		if (crypto_keys_subr_generate_RSA(&keycache.encr_priv,
-		    &keycache.encr_pub))
+		if (crypto_keys_subr_generate_RSA((void *)&keycache.encr_priv,
+		    (void *)&keycache.encr_pub))
 			goto err0;
 
 		keys &= ~CRYPTO_KEYMASK_ENCR_PRIV;
@@ -675,7 +675,7 @@ err0:
  * crypto_keys_lookup_RSA(key):
  * Return the requested RSA key.
  */
-RSA *
+void *
 crypto_keys_lookup_RSA(int key)
 {
 	RSA * rsa;
