@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include <openssl/aes.h>
 #include <openssl/rsa.h>
 
 struct crypto_hmac_key {
