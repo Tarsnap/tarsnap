@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,7 +42,7 @@ network_sleep(struct timeval * timeo,
     network_callback * callback, void * cookie)
 {
 	struct sleeper s;
-	struct sleeper * sp = NULL;	/* Silence bogus gcc warning. */
+	struct sleeper * sp = NULL;	/* Silence bogus compiler warnings. */
 	size_t h;
 
 	/* Initialize array if required. */
@@ -83,6 +84,12 @@ network_sleep(struct timeval * timeo,
 		/* Append the record. */
 		if (sleepers_append(sleepers, &sp, 1))
 			goto err1;
+	} else {
+		/*-
+		 * If (h != sleepers_getsize()), then sp was set in the
+		 * earlier 'for' loop, but compilers don't realize it.
+		 */
+		assert(sp != NULL);
 	}
 
 	/* Register the timer event. */
