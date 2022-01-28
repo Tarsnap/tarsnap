@@ -6,6 +6,7 @@ out_v="${s_basename}-v.stderr"
 out_pb="${s_basename}-pb.stderr"
 out_vpb_1k="${s_basename}-vpb-1k.stderr"
 out_vpb_20k="${s_basename}-vpb-20k.stderr"
+tmp="${s_basename}-tmp"
 
 scenario_cmd() {
 	# Check tarsnap --dry-run -c -v
@@ -33,6 +34,10 @@ scenario_cmd() {
 		2> ${out_pb}
 	echo $? > ${c_exitfile}
 
+	# Trim bytes from ${out_pb}
+	cut -f 1-3 -d " " ${out_pb} > ${tmp}
+	mv ${tmp} ${out_pb}
+
 	# Check output of tarsnap --dry-run -c --progress-bytes 1k
 	setup_check_variables "check --progress-bytes 1k output"
 	cmp ${out_pb} ${scriptdir}/06-progress-output-pb.good
@@ -48,6 +53,10 @@ scenario_cmd() {
 		2> ${out_vpb_1k}
 	echo $? > ${c_exitfile}
 
+	# Trim bytes from ${out_vpb_1k}
+	cut -f 1-3 -d " " ${out_vpb_1k} > ${tmp}
+	mv ${tmp} ${out_vpb_1k}
+
 	# Check output of tarsnap --dry-run -c -v --progress-bytes 1k
 	setup_check_variables "check -v --progress-bytes 1k output"
 	cmp ${out_vpb_1k} ${scriptdir}/06-progress-output-vpb-1k.good
@@ -62,6 +71,10 @@ scenario_cmd() {
 		shared_valgrind_functions.sh			\
 		2> ${out_vpb_20k}
 	echo $? > ${c_exitfile}
+
+	# Trim bytes from ${out_vpb_20k}
+	cut -f 1-3 -d " " ${out_vpb_20k} > ${tmp}
+	mv ${tmp} ${out_vpb_20k}
 
 	# Check output of tarsnap --dry-run -c -v --progress-bytes 20k
 	setup_check_variables "check -v --progress-bytes 20k output"
