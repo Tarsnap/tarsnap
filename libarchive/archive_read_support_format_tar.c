@@ -538,6 +538,7 @@ archive_read_format_tar_read_advance(struct archive_read *a, off_t offset)
 	if (tar->entry_padding >= offset) {
 		tar->entry_padding -= offset;
 		offset = 0;
+		(void)offset; /* not used beyond this point. */
 	} else {
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_PROGRAMMER,
 		    "read_advance beyond end of entry");

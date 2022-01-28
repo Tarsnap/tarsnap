@@ -106,6 +106,8 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 		memcpy(p, mind->tindex, mind->tindexlen);
 	p += mind->tindexlen;
 
+	(void)p; /* not used beyond this point. */
+
 	/* Compute hash of tape name. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_NAME,
 	    (uint8_t *)mdat->name, strlen(mdat->name), hbuf))
@@ -272,6 +274,8 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 
 	if (buflen != 0)
 		goto corrupt3;
+
+	(void)buf; /* not used beyond this point. */
 
 	/* Free metaindex buffer. */
 	free(mbuf);

@@ -56,6 +56,8 @@ pl_freebsd_getpwuid(void)
 		exit(1);
 	}
 
+	(void)pwd; /* not used beyond this point. */
+
 	/* POSIX says that we *shall not* free `pwd`. */
 }
 
