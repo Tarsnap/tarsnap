@@ -269,6 +269,8 @@ multitape_metadata_dec(struct tapemetadata * mdat, uint8_t * buf,
 	buflen -= 256;
 	p += 256;
 
+	(void)p; /* not used beyond this point. */
+
 	/* We should be at the end of the metadata now. */
 	if (buflen != 0)
 		goto bad2;
