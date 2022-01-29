@@ -77,6 +77,11 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/tree.c,v 1.9 2008/11/27 05:49:52 kientzle Ex
 
 #include "tree.h"
 
+/* Compatibility for GNU/Hurd. */
+#ifndef PATH_MAX
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
+
 /*
  * TODO:
  *    1) Loop checking.

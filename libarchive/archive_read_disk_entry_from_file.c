@@ -96,6 +96,11 @@ __FBSDID("$FreeBSD$");
 #define	ACL_GET_PERM acl_get_perm_np
 #endif
 
+/* Compatibility for GNU/Hurd. */
+#ifndef PATH_MAX
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
+
 static int setup_acls_posix1e(struct archive_read_disk *,
     struct archive_entry *, int fd);
 static int setup_xattrs(struct archive_read_disk *,

@@ -87,6 +87,11 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include "tsnetwork.h"
 #include "warnp.h"
 
+/* Compatibility for GNU/Hurd. */
+#ifndef PATH_MAX
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
+
 /* Global tarsnap options declared in tarsnap_opt.h. */
 int tarsnap_opt_aggressive_networking = 0;
 int tarsnap_opt_humanize_numbers = 0;
