@@ -75,6 +75,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/tree.c,v 1.9 2008/11/27 05:49:52 kientzle Ex
 #include <unistd.h>
 #endif
 
+#include <assert.h>
+
 #include "tree.h"
 
 /*
@@ -344,6 +346,9 @@ static void
 tree_pop(struct tree *t)
 {
 	struct tree_entry *te;
+
+	/* Sanity check. */
+	assert(t->stack != NULL);
 
 	t->buff[t->dirname_length] = '\0';
 	if (t->stack == t->current && t->current != NULL)
