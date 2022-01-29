@@ -105,6 +105,11 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_write_disk.c,v 1.42 2008/12/06 05
 #define O_BINARY 0
 #endif
 
+/* Compatibility for GNU/Hurd. */
+#ifndef PATH_MAX
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
+
 struct fixup_entry {
 	struct fixup_entry	*next;
 	mode_t			 mode;
