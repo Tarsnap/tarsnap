@@ -20,9 +20,9 @@ https://www.tarsnap.com/pkg-deb.html
 Debian - Packaging
 ==================
 
-In these instructions, I use `X.Y.Z` to refer to a regular Tarsnap VERSION
-string (i.e. `1.0.37`), and `R` to refer to the Debian package revision
-number (i.e. `-1`).
+In these instructions, I use `X.Y.Z[.A]` to refer to a regular Tarsnap VERSION
+string (i.e. `1.0.37` or `1.0.39.99`), and `R` to refer to the Debian package
+revision number (i.e. `-1`).
 
 1. obtain the normal release tarball, `tarsnap-autoconf-X.Y.Z.tgz`
 
@@ -31,13 +31,21 @@ number (i.e. `-1`).
 
 2. build the source package:
 
-        sh release-tools/mkdebsource.sh RELEASE_TARBALL R
+        sh release-tools/mkdebsource.sh RELEASE_TARBALL DEBIAN_DIR R
+
+   For example,
+
+        sh release-tools/mkdebsource.sh tarsnap-autoconf-1.0.39.99 pkg/debian 1
 
    :warning: the revision number `R` is required by the Debian packaging
    tools.
 
-   This will give you the Debian source files in
-   `/tmp/tarsnap-debian-source/`.
+   This will perform some sanity tests, and will give you the Debian source
+   files in `/tmp/tarsnap-debian-source/`.  We want 3 files from there:
+
+       tarsnap_X.Y.Z[.A].orig.tar.gz
+       tarsnap_X.Y.Z[.A]-R.debian.tar.gz
+       tarsnap_Z.Y.Z[.A]-R.dsc
 
 3. Copy the 3 relevant files, and check them:
 
