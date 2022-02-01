@@ -47,15 +47,24 @@ number (i.e. `-1`).
        the tarballs are identical with `sha256sum`.
 
      - `tarsnap_X.Y.Z-R.debian.tar.gz`: this should have exactly the same
-       contents as the `pkg/debian/` directory in the normal release tarball.
-       Unfortunately, `tar` does not sort files (by default), so we cannot use
-       `sha256sum` or even the filesize to compare them (since the file order
-       can change the compression).  At the moment, the best method I have
-       found for verifying the tarball are tools like `tardiff`, GNU tar's
-       `--diff` or `--compare` options, or manually extracting the tarball and
-       using `diff -r`.
+       contents as the `pkg/debian/` directory in the normal release tarball,
+       albeit with uid and gid set to 0.  Unfortunately, `tar` does not sort
+       files (by default), so we cannot use `sha256sum` or even the filesize
+       to compare them (since the file order can change the compression).  The
+       most convenient methods are tools like `tardiff` or GNU tar's `--diff`
+       or `--compare` options.  However, we can use POSIX-compatible tar and
+       cmp:
 
-     - `tarsnap_X.Y.Z-R.dsc`: this contains package metadata and sha1 & sha256
-       sums of the above tarballs.
+           T=tarsnap_X.Y.Z-R.debian.tar.gz
+           for F in `tar -tzf $T`; do tar -xzOf $T $F | cmp - pkg/$F; done
+
+       You should see:
+
+           cmp: pkg/debian/: Is a directory
+           cmp: pkg/debian/source/: Is a directory
+
+     - `tarsnap_X.Y.Z-R.dsc`: this is a text file which contains package
+       metadata and sha1 & sha256 sums of the above tarballs, and can be
+       inspected manually.
 
 4. To distribute these packages, use the air-gapped package builder.
