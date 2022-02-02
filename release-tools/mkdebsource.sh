@@ -18,29 +18,20 @@ if ! command -v debuild >/dev/null 2>&1; then
 fi
 
 # Extract version from tarball name
-IFS='-.' read -r STR1 STR2 X Y Z STR3 <<EOF
+IFS='-.' read -r STR1 STR2 X Y Z A STR3 <<EOF
 $(basename $RELEASE_TARBALL)
 EOF
 VERSION="$X.$Y.$Z"
 
-# Handle pre-release tarballs so that they are "earlier" in Debian version
-# numbering.  '~' is commonly used for upstream pre-releases; in fact, it is
-# the only thing that is sorted earlier than an empty string:
-# https://www.debian.org/doc/debian-policy/footnotes.html#f37
-# In addition, Debian requires that the tarball contain the name of the Debian
-# version number.
-PRERELEASE=`echo $Z | tr -d [:digit:]`
-W=`echo $Z | tr -d [:alpha:]`
-if [ -z "$PRERELEASE" ]; then
-	# Not a prerelease
-	TAR_ORIG_VERSION="$X.$Y.$W"
-else
-	TAR_ORIG_VERSION="$X.$Y.$W~a"
+# Handle a "X.Y.Z.A" pre-release version number.
+if [ "$A" != "tgz" ]
+then
+	VERSION="$X.$Y.$Z.$A"
 fi
 
 # Define variables to be used later (requires $VERSION)
 RELEASE_DIRNAME=tarsnap-autoconf-$VERSION
-RENAMED_TARBALL=tarsnap_$TAR_ORIG_VERSION.orig.tar.gz
+RENAMED_TARBALL=tarsnap_$VERSION.orig.tar.gz
 
 # Copy (with renaming) release tarball to match debian's *required* format.
 mkdir -p $BUILDDIR
