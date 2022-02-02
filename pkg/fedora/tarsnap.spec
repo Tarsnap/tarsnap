@@ -1,6 +1,6 @@
 Name:           tarsnap
-Version:        1.0.39
-Release:        2%{?dist}
+Version:        1.0.39.99
+Release:        1%{?dist}
 Summary:        Secure, efficient online backup service
 
 License:        Proprietary
@@ -52,6 +52,9 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
+* Sun Jan 30 2022 Graham Percival <gperciva@tarsnap.com> 1.0.39.99-1
+- Upstream version 1.0.39.99
+
 * Thu May  6 2021 Adam Thiede <me@adamthiede.com> 1.0.39-2
 - lzma-devel dependency removed as it was replaced by xz-devel
 
