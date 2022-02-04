@@ -16,7 +16,7 @@ tarsnap (1.0.39.99-1) unstable; urgency=medium
   * tarsnap now gives an error if there are unused command-line arguments.
     (i.e. "tarsnap -d -f a1 a2", where "a2" is unused.)
   * Improve performance on some x86, amd64, and arm64 systems by using
-    crypographic instruction set extensions.
+    cryptographic instruction set extensions.
   * When sent SIGINFO or SIGUSR1, tarsnap now prints the number of files and the
     number of uncompressed bytes processed, in addition to the previous output.
   * A zsh completion file can be installed with configure
