@@ -106,7 +106,7 @@ scenario_cmd() {
 	# we're checking so that it matches the ${samplefile}.
 	setup_check_variables "real key -t output"
 	list_contents="$(cat "${list_contents_stdout}")"
-	[ "/${list_contents}" == "${samplefile}" ]
+	[ "/${list_contents}" = "${samplefile}" ]
 	echo $? > ${c_exitfile}
 
 	# Extract the contents of the archive in the test output directory.
