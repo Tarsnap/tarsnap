@@ -74,7 +74,7 @@ warn(const char * fmt, ...)
 			fprintf(stderr, ": ");
 			vfprintf(stderr, fmt, ap);
 		}
-		fprintf(stderr, ": %s\n", strerror(errno));
+		fprintf(stderr, ": %s\n", strerror(saved_errno));
 
 		/* Allow other threads to write to stderr. */
 		funlockfile(stderr);
@@ -84,9 +84,9 @@ warn(const char * fmt, ...)
 			/* No need to print "${name}: "; syslog does it. */
 			vsnprintf(msgbuf, WARNP_SYSLOG_MAX_LINE + 1, fmt, ap);
 			syslog(syslog_priority, "%s: %s\n", msgbuf,
-			    strerror(errno));
+			    strerror(saved_errno));
 		} else
-			syslog(syslog_priority, "%s\n", strerror(errno));
+			syslog(syslog_priority, "%s\n", strerror(saved_errno));
 	}
 	va_end(ap);
 
