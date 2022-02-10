@@ -52,11 +52,16 @@ warnp_setprogname(const char * progname)
 	}
 }
 
+/* This function will preserve errno. */
 void
 warn(const char * fmt, ...)
 {
 	va_list ap;
 	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
+	int saved_errno;
+
+	/* Save errno in case it gets clobbered. */
+	saved_errno = errno;
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
@@ -84,13 +89,21 @@ warn(const char * fmt, ...)
 			syslog(syslog_priority, "%s\n", strerror(errno));
 	}
 	va_end(ap);
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 }
 
+/* This function will preserve errno. */
 void
 warnx(const char * fmt, ...)
 {
 	va_list ap;
 	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
+	int saved_errno;
+
+	/* Save errno in case it gets clobbered. */
+	saved_errno = errno;
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
@@ -117,6 +130,9 @@ warnx(const char * fmt, ...)
 			syslog(syslog_priority, "\n");
 	}
 	va_end(ap);
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 }
 
 /**
