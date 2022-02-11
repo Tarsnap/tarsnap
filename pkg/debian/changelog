@@ -1,4 +1,4 @@
-tarsnap (1.0.39.99-1) unstable; urgency=medium
+tarsnap (1.0.40-1) unstable; urgency=medium
 
   * tarsnap now accepts a --resume-extract option to skip extracting files whose
     filesize and mtime match existing files on disk.
@@ -24,7 +24,7 @@ tarsnap (1.0.39.99-1) unstable; urgency=medium
   * Assorted compatibility fixes for MacOS X, FreeBSD, OpenBSD, Solaris, ZFS,
     and gcc 4.2.1.
 
- -- Graham Percival <pkg-deb@tarsnap.com>  Sun, 30 Jan 2022 14:17:50 -0700
+ -- Graham Percival <pkg-deb@tarsnap.com>  Thu, 10 Feb 2022 22:30:40 -0800
 tarsnap (1.0.39-2) unstable; urgency=medium
 
   * Package may now use libssl 1.1.x if available.
