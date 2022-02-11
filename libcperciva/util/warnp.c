@@ -52,11 +52,16 @@ warnp_setprogname(const char * progname)
 	}
 }
 
+/* This function will preserve errno. */
 void
 warn(const char * fmt, ...)
 {
 	va_list ap;
 	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
+	int saved_errno;
+
+	/* Save errno in case it gets clobbered. */
+	saved_errno = errno;
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
@@ -69,7 +74,7 @@ warn(const char * fmt, ...)
 			fprintf(stderr, ": ");
 			vfprintf(stderr, fmt, ap);
 		}
-		fprintf(stderr, ": %s\n", strerror(errno));
+		fprintf(stderr, ": %s\n", strerror(saved_errno));
 
 		/* Allow other threads to write to stderr. */
 		funlockfile(stderr);
@@ -79,18 +84,26 @@ warn(const char * fmt, ...)
 			/* No need to print "${name}: "; syslog does it. */
 			vsnprintf(msgbuf, WARNP_SYSLOG_MAX_LINE + 1, fmt, ap);
 			syslog(syslog_priority, "%s: %s\n", msgbuf,
-			    strerror(errno));
+			    strerror(saved_errno));
 		} else
-			syslog(syslog_priority, "%s\n", strerror(errno));
+			syslog(syslog_priority, "%s\n", strerror(saved_errno));
 	}
 	va_end(ap);
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 }
 
+/* This function will preserve errno. */
 void
 warnx(const char * fmt, ...)
 {
 	va_list ap;
 	char msgbuf[WARNP_SYSLOG_MAX_LINE + 1];
+	int saved_errno;
+
+	/* Save errno in case it gets clobbered. */
+	saved_errno = errno;
 
 	va_start(ap, fmt);
 	if (use_syslog == 0) {
@@ -117,6 +130,9 @@ warnx(const char * fmt, ...)
 			syslog(syslog_priority, "\n");
 	}
 	va_end(ap);
+
+	/* Restore saved errno. */
+	errno = saved_errno;
 }
 
 /**

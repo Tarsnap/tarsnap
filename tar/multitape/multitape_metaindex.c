@@ -210,7 +210,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 	/* Make sure the index matches the hash provided. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_SHA256,
 	    mbuf, (size_t)mdat->indexlen, indexhbuf)) {
-		warnp("Programmer error: "
+		warn0("Programmer error: "
 		    "SHA256 should never fail");
 		goto err1;
 	}
