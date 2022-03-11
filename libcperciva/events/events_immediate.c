@@ -2,29 +2,54 @@
 #include <stdlib.h>
 
 #include "mpool.h"
+#include "queue.h"
 
 #include "events.h"
 #include "events_internal.h"
 
 struct eventq {
 	struct eventrec * r;
-	struct eventq * next;
-	struct eventq * prev;
+	TAILQ_ENTRY(eventq) entries;
 	int prio;
 };
 
 MPOOL(eventq, struct eventq, 4096);
 
 /* First nodes in the linked lists. */
-static struct eventq * heads[32] = {
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+static TAILQ_HEAD(tailhead, eventq) heads[32] = {
+	TAILQ_HEAD_INITIALIZER(heads[0]),
+	TAILQ_HEAD_INITIALIZER(heads[1]),
+	TAILQ_HEAD_INITIALIZER(heads[2]),
+	TAILQ_HEAD_INITIALIZER(heads[3]),
+	TAILQ_HEAD_INITIALIZER(heads[4]),
+	TAILQ_HEAD_INITIALIZER(heads[5]),
+	TAILQ_HEAD_INITIALIZER(heads[6]),
+	TAILQ_HEAD_INITIALIZER(heads[7]),
+	TAILQ_HEAD_INITIALIZER(heads[8]),
+	TAILQ_HEAD_INITIALIZER(heads[9]),
+	TAILQ_HEAD_INITIALIZER(heads[10]),
+	TAILQ_HEAD_INITIALIZER(heads[11]),
+	TAILQ_HEAD_INITIALIZER(heads[12]),
+	TAILQ_HEAD_INITIALIZER(heads[13]),
+	TAILQ_HEAD_INITIALIZER(heads[14]),
+	TAILQ_HEAD_INITIALIZER(heads[15]),
+	TAILQ_HEAD_INITIALIZER(heads[16]),
+	TAILQ_HEAD_INITIALIZER(heads[17]),
+	TAILQ_HEAD_INITIALIZER(heads[18]),
+	TAILQ_HEAD_INITIALIZER(heads[19]),
+	TAILQ_HEAD_INITIALIZER(heads[20]),
+	TAILQ_HEAD_INITIALIZER(heads[21]),
+	TAILQ_HEAD_INITIALIZER(heads[22]),
+	TAILQ_HEAD_INITIALIZER(heads[23]),
+	TAILQ_HEAD_INITIALIZER(heads[24]),
+	TAILQ_HEAD_INITIALIZER(heads[25]),
+	TAILQ_HEAD_INITIALIZER(heads[26]),
+	TAILQ_HEAD_INITIALIZER(heads[27]),
+	TAILQ_HEAD_INITIALIZER(heads[28]),
+	TAILQ_HEAD_INITIALIZER(heads[29]),
+	TAILQ_HEAD_INITIALIZER(heads[30]),
+	TAILQ_HEAD_INITIALIZER(heads[31])
 };
-
-/* For non-NULL heads[i], tails[i] is the last node in the list. */
-static struct eventq * tails[32];
 
 /* For i < minq, heads[i] == NULL. */
 static int minq = 32;
@@ -53,18 +78,10 @@ events_immediate_register(int (*func)(void *), void * cookie, int prio)
 	if ((q = mpool_eventq_malloc()) == NULL)
 		goto err1;
 	q->r = r;
-	q->next = NULL;
-	q->prev = NULL;
 	q->prio = prio;
 
 	/* Add to the queue. */
-	if (heads[prio] == NULL) {
-		heads[prio] = q;
-	} else {
-		tails[prio]->next = q;
-		q->prev = tails[prio];
-	}
-	tails[prio] = q;
+	TAILQ_INSERT_TAIL(&heads[prio], q, entries);
 
 	/* Update minq if necessary. */
 	if (prio < minq)
@@ -91,17 +108,8 @@ events_immediate_cancel(void * cookie)
 	struct eventq * q = cookie;
 	int prio = q->prio;
 
-	/* If we have a predecessor, point it at our successor. */
-	if (q->prev != NULL)
-		q->prev->next = q->next;
-	else
-		heads[prio] = q->next;
-
-	/* If we have a successor, point it at our predecessor. */
-	if (q->next != NULL)
-		q->next->prev = q->prev;
-	else
-		tails[prio] = q->prev;
+	/* Remove it from the list. */
+	TAILQ_REMOVE(&heads[prio], q, entries);
 
 	/* Free the eventrec. */
 	events_freerec(q->r);
@@ -123,7 +131,7 @@ events_immediate_get(void)
 	struct eventrec * r;
 
 	/* Advance past priorities which have no events. */
-	while ((minq < 32) && (heads[minq] == NULL))
+	while ((minq < 32) && (TAILQ_EMPTY(&heads[minq])))
 		minq++;
 
 	/* Are there any events? */
@@ -134,10 +142,8 @@ events_immediate_get(void)
 	 * Remove the first node from the highest priority non-empty linked
 	 * list.
 	 */
-	q = heads[minq];
-	heads[minq] = q->next;
-	if (heads[minq] != NULL)
-		heads[minq]->prev = NULL;
+	q = TAILQ_FIRST(&heads[minq]);
+	TAILQ_REMOVE(&heads[minq], q, entries);
 
 	/* Extract the eventrec. */
 	r = q->r;
