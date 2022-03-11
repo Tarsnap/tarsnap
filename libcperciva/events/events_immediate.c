@@ -60,13 +60,15 @@ events_immediate_register(int (*func)(void *), void * cookie, int prio)
 	/* Add to the queue. */
 	if (heads[prio] == NULL) {
 		heads[prio] = q;
-		if (prio < minq)
-			minq = prio;
 	} else {
 		tails[prio]->next = q;
 		q->prev = tails[prio];
 	}
 	tails[prio] = q;
+
+	/* Update minq if necessary. */
+	if (prio < minq)
+		minq = prio;
 
 	/* Success! */
 	return (q);
