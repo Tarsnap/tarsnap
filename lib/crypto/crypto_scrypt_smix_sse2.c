@@ -36,34 +36,30 @@
 
 #include "crypto_scrypt_smix_sse2.h"
 
-static void blkcpy(void *, const void *, size_t);
-static void blkxor(void *, const void *, size_t);
+static void blkcpy(__m128i *, const __m128i *, size_t);
+static void blkxor(__m128i *, const __m128i *, size_t);
 static void salsa20_8(__m128i[4]);
 static void blockmix_salsa8(const __m128i *, __m128i *, __m128i *, size_t);
-static uint64_t integerify(const void *, size_t);
+static uint64_t integerify(const __m128i *, size_t);
 
 static void
-blkcpy(void * dest, const void * src, size_t len)
+blkcpy(__m128i * dest, const __m128i * src, size_t len)
 {
-	__m128i * D = dest;
-	const __m128i * S = src;
 	size_t L = len / 16;
 	size_t i;
 
 	for (i = 0; i < L; i++)
-		D[i] = S[i];
+		dest[i] = src[i];
 }
 
 static void
-blkxor(void * dest, const void * src, size_t len)
+blkxor(__m128i * dest, const __m128i * src, size_t len)
 {
-	__m128i * D = dest;
-	const __m128i * S = src;
 	size_t L = len / 16;
 	size_t i;
 
 	for (i = 0; i < L; i++)
-		D[i] = _mm_xor_si128(D[i], S[i]);
+		dest[i] = _mm_xor_si128(dest[i], src[i]);
 }
 
 /**
@@ -168,11 +164,18 @@ blockmix_salsa8(const __m128i * Bin, __m128i * Bout, __m128i * X, size_t r)
  * Note that B's layout is permuted compared to the generic implementation.
  */
 static uint64_t
-integerify(const void * B, size_t r)
+integerify(const __m128i * B, size_t r)
 {
-	const uint32_t * X = (const void *)((uintptr_t)(B) + (2 * r - 1) * 64);
+	const __m128i * X = B + (2*r - 1) * 4;
+	uint32_t X0, X13;
 
-	return (((uint64_t)(X[13]) << 32) + X[0]);
+	/* Get the first 32-bit element in X[0]. */
+	X0 = (uint32_t)_mm_cvtsi128_si32(X[0]);
+
+	/* Get the second 32-bit element in X[3]. */
+	X13 = (uint32_t)_mm_cvtsi128_si32(_mm_srli_si128(X[3], 4));
+
+	return (((uint64_t)(X13) << 32) + X0);
 }
 
 /**
