@@ -274,6 +274,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/crypto	\
 		-I$(top_srcdir)/libcperciva/datastruct	\
 		-I$(top_srcdir)/libcperciva/events	\
+		-I$(top_srcdir)/libcperciva/external/queue \
 		-I$(top_srcdir)/libcperciva/network	\
 		-I$(top_srcdir)/libcperciva/util	\
 		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
