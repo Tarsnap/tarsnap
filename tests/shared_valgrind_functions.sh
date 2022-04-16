@@ -121,8 +121,10 @@ valgrind_process_suppression_file() {
 		# Find last relevant line.
 		lastline="$(grep -n "}" "${segfilename}" | cut -f1 -d:)"
 
-		# Cut off anything below "fun:pl_" (including that line).
-		funcline="$(grep -n "fun:pl_" "${segfilename}" | cut -f1 -d:)"
+		# Cut off anything below the 1st "fun:pl_" (inclusive).
+		funcline="$(grep -n "fun:pl_" "${segfilename}" |	\
+			cut -f1 -d: |					\
+			head -n1)"
 		if [ -n "${funcline}" ]; then
 			if [ "${lastline}" -gt "${funcline}" ]; then
 				lastline="${funcline}"
