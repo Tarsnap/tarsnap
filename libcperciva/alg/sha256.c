@@ -248,7 +248,7 @@ SHA256_Transform(uint32_t state[static restrict 8],
 	assert(hwaccel != HW_UNSET);
 #endif
 
-	switch(hwaccel) {
+	switch (hwaccel) {
 #if defined(CPUSUPPORT_X86_SHANI) && defined(CPUSUPPORT_X86_SSSE3)
 	case HW_X86_SHANI:
 		SHA256_Transform_shani(state, block);
