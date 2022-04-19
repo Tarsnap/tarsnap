@@ -90,6 +90,9 @@ sock_resolve_host(const char * addr, const char * ports)
 	for (n = 0, r = res; r != NULL; r = r->ai_next)
 		n++;
 
+	/* Sanity check. */
+	assert(n < SIZE_MAX);
+
 	/* Allocate our response array. */
 	if (IMALLOC(sas, n + 1, struct sock_addr *))
 		goto err1;
