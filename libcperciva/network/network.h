@@ -40,6 +40,19 @@ void * network_connect(struct sock_addr * const *,
     int (*)(void *, int), void *);
 
 /**
+ * network_connect_bind(sas, sa_b, callback, cookie):
+ * Iterate through the addresses in ${sas}, attempting to create and connect
+ * a non-blocking socket.  If ${sa_b} is not NULL, bind the socket to ${sa_b}
+ * immediately after creating it.  Once connected, invoke
+ * ${callback}(${cookie}, s) where s is the connected socket; upon fatal error
+ * or if there are no addresses remaining to attempt, invoke
+ * ${callback}(${cookie}, -1).  Return a cookie which can be passed to
+ * network_connect_cancel() in order to cancel the connection attempt.
+ */
+void * network_connect_bind(struct sock_addr * const *,
+    const struct sock_addr *, int (*)(void *, int), void *);
+
+/**
  * network_connect_timeo(sas, timeo, callback, cookie):
  * Behave as network_connect(), but wait a duration of at most ${timeo} for
  * each address which is being attempted.
