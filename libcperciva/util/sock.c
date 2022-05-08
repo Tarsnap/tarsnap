@@ -407,11 +407,33 @@ err0:
 int
 sock_connect_nb(const struct sock_addr * sa)
 {
+
+	/* Let sock_connect_bind_nb handle this. */
+	return (sock_connect_bind_nb(sa, NULL));
+}
+
+/**
+ * sock_connect_bind_nb(sa, sa_b):
+ * Create a socket, mark it as non-blocking, and attempt to connect to the
+ * address ${sa}.  If ${sa_b} is not NULL, bind the socket to ${sa_b}
+ * immediately after creating it.  Return the socket (connected or in the
+ * process of connecting) or -1 on error.
+ */
+int
+sock_connect_bind_nb(const struct sock_addr * sa,
+    const struct sock_addr * sa_b)
+{
 	int s;
 
 	/* Create a socket. */
 	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1)
 		goto err0;
+
+	/* Bind the socket to sa_b (if applicable). */
+	if (sa_b && ((bind(s, sa_b->name, sa_b->namelen)) == -1)) {
+		warnp("Error binding socket");
+		goto err1;
+	}
 
 	/* Mark the socket as non-blocking. */
 	if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
