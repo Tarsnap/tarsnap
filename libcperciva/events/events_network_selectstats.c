@@ -88,12 +88,12 @@ done:
  * function was called.
  */
 void
-events_network_selectstats(double * _N, double * _mu, double * _va,
+events_network_selectstats(double * _n, double * _mu, double * _va,
     double * _max)
 {
 
 	/* Copy statistics out. */
-	*_N = N;
+	*_n = N;
 	*_mu = mu;
 	if (N > 1.0)
 		*_va = M2 / (N - 1.0);

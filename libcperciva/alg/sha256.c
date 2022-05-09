@@ -491,11 +491,11 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
  * ${K}.
  */
 static void
-_HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen,
+_HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _k, size_t Klen,
     uint32_t tmp32[static restrict 72], uint8_t pad[static restrict 64],
     uint8_t khash[static restrict 32])
 {
-	const uint8_t * K = _K;
+	const uint8_t * K = _k;
 	size_t i;
 
 	/* If Klen > 64, the key is really SHA256(K). */
@@ -524,14 +524,14 @@ _HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen,
 
 /* Wrapper function for intermediate-values sanitization. */
 void
-HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
+HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * K, size_t Klen)
 {
 	uint32_t tmp32[72];
 	uint8_t pad[64];
 	uint8_t khash[32];
 
 	/* Call the real function. */
-	_HMAC_SHA256_Init(ctx, _K, Klen, tmp32, pad, khash);
+	_HMAC_SHA256_Init(ctx, K, Klen, tmp32, pad, khash);
 
 	/* Clean the stack. */
 	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
