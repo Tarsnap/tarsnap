@@ -89,7 +89,7 @@ doevent(struct eventrec * r)
  * more runnable events.
  */
 static int
-_events_run(void)
+events_run_internal(void)
 {
 	struct eventrec * r;
 	struct timeval * tv;
@@ -190,7 +190,7 @@ events_run(void)
 	int rc;
 
 	/* Call the real function. */
-	rc = _events_run();
+	rc = events_run_internal();
 
 	/* Reset interrupt_requested after quitting the loop. */
 	interrupt_requested = 0;
@@ -214,7 +214,7 @@ events_spin(int * done)
 	/* Loop until we're done or have a non-zero status. */
 	while ((done[0] == 0) && (rc == 0) && (interrupt_requested == 0)) {
 		/* Run events. */
-		rc = _events_run();
+		rc = events_run_internal();
 	}
 
 	/* Reset interrupt_requested after quitting the loop. */

@@ -13,11 +13,11 @@
 #include "sha256_sse2.h"
 
 /**
- * _mm_bswap_epi32(a):
+ * mm_bswap_epi32(a):
  * Byte-swap each 32-bit word.
  */
 static inline __m128i
-_mm_bswap_epi32(__m128i a)
+mm_bswap_epi32(__m128i a)
 {
 
 	/* Swap bytes in each 16-bit word. */
@@ -189,13 +189,13 @@ SHA256_Transform_sse2(uint32_t state[static restrict 8],
 	int i;
 
 	/* 1. Prepare the first part of the message schedule W. */
-	Y[0] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[0]));
+	Y[0] = mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[0]));
 	_mm_storeu_si128((__m128i *)&W[0], Y[0]);
-	Y[1] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[16]));
+	Y[1] = mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[16]));
 	_mm_storeu_si128((__m128i *)&W[4], Y[1]);
-	Y[2] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[32]));
+	Y[2] = mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[32]));
 	_mm_storeu_si128((__m128i *)&W[8], Y[2]);
-	Y[3] = _mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[48]));
+	Y[3] = mm_bswap_epi32(_mm_loadu_si128((const __m128i *)&block[48]));
 	_mm_storeu_si128((__m128i *)&W[12], Y[3]);
 
 	/* 2. Initialize working variables. */
