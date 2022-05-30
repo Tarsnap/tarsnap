@@ -297,6 +297,53 @@ err0:
 }
 
 /**
+ * sock_resolve_one(addr):
+ * Return a single sock_addr structure, or NULL if there are no addresses.
+ * Warn if there is more than one address, and return the first one.
+ */
+struct sock_addr *
+sock_resolve_one(const char * addr)
+{
+	struct sock_addr ** sas;
+	struct sock_addr * sa;
+	struct sock_addr ** sa_tmp;
+
+	/* Resolve target address. */
+	if ((sas = sock_resolve(addr)) == NULL) {
+		warnp("Error resolving socket address: %s", addr);
+		goto err0;
+	}
+
+	/* Check that the array is not empty. */
+	if (sas[0] == NULL) {
+		warn0("No addresses found for %s", addr);
+		goto err1;
+	}
+
+	/* If there's more than one address, give a warning. */
+	if (sas[1] != NULL)
+		warn0("Using the first of multiple addresses found for %s",
+		    addr);
+
+	/* Keep the address we want. */
+	sa = sas[0];
+
+	/* Free the other addresses and list. */
+	for (sa_tmp = &sas[1]; *sa_tmp != NULL; sa_tmp++)
+		sock_addr_free(*sa_tmp);
+	free(sas);
+
+	/* Success! */
+	return (sa);
+
+err1:
+	sock_addr_freelist(sas);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
  * sock_listener(sa):
  * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
  * ${sa}, mark it for listening, and mark it as non-blocking.

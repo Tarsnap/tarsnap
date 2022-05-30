@@ -19,6 +19,13 @@ struct sock_addr;
 struct sock_addr ** sock_resolve(const char *);
 
 /**
+ * sock_resolve_one(addr):
+ * Return a single sock_addr structure, or NULL if there are no addresses.
+ * Warn if there is more than one address, and return the first one.
+ */
+struct sock_addr * sock_resolve_one(const char *);
+
+/**
  * sock_listener(sa):
  * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
  * ${sa}, mark it for listening, and mark it as non-blocking.
