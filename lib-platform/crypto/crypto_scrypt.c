@@ -48,11 +48,12 @@
 static void (*smix_func)(uint8_t *, size_t, uint64_t, void *, void *) = NULL;
 
 /**
- * _crypto_scrypt(passwd, passwdlen, salt, saltlen, N, r, p, buf, buflen, smix):
+ * crypto_scrypt_internal(passwd, passwdlen, salt, saltlen, N, r, p, buf,
+ *     buflen, smix):
  * Perform the requested scrypt computation, using ${smix} as the smix routine.
  */
 static int
-_crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
+crypto_scrypt_internal(const uint8_t * passwd, size_t passwdlen,
     const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t _r, uint32_t _p,
     uint8_t * buf, size_t buflen,
     void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
@@ -196,7 +197,7 @@ testsmix(void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
 	uint8_t hbuf[TESTLEN];
 
 	/* Perform the computation. */
-	if (_crypto_scrypt(
+	if (crypto_scrypt_internal(
 	    (const uint8_t *)testcase.passwd, strlen(testcase.passwd),
 	    (const uint8_t *)testcase.salt, strlen(testcase.salt),
 	    testcase.N, testcase.r, testcase.p, hbuf, TESTLEN, smix))
@@ -251,6 +252,6 @@ crypto_scrypt(const uint8_t * passwd, size_t passwdlen,
 	if (smix_func == NULL)
 		selectsmix();
 
-	return (_crypto_scrypt(passwd, passwdlen, salt, saltlen, N, _r, _p,
-	    buf, buflen, smix_func));
+	return (crypto_scrypt_internal(passwd, passwdlen, salt, saltlen, N,
+	    _r, _p, buf, buflen, smix_func));
 }
