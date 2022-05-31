@@ -15,14 +15,14 @@ typedef struct netproto_connection_internal NETPROTO_CONNECTION;
     (NETWORK_STATUS_MAX + 1)		/* Protocol error. */
 
 /**
- * _netproto_printerr(status):
+ * netproto_printerr_internal(status):
  * Print the error message associated with the given status code.
  */
-void _netproto_printerr(int);
+void netproto_printerr_internal(int);
 
 #define netproto_printerr(x)	do {	\
 	warnline;			\
-	_netproto_printerr(x);		\
+	netproto_printerr_internal(x);	\
 } while (0)
 
 /**

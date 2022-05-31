@@ -118,7 +118,8 @@ int tsnetwork_write(int, const uint8_t *, size_t, struct timeval *,
 NETWORK_WRITEQ * network_writeq_init(int);
 
 /**
- * _network_writeq_add(Q, buf, buflen, timeo, callback, cookie, abstimeo):
+ * network_writeq_add_internal(Q, buf, buflen, timeo, callback, cookie,
+ *     abstimeo):
  * Add a buffer write to the specified write queue.  The callback function
  * will be called when the write is finished, fails, or is cancelled.
  * If ${abstimeo} is zero, the timeout is relative to when the buffer in
@@ -127,12 +128,12 @@ NETWORK_WRITEQ * network_writeq_init(int);
  * ${buflen} is zero, the callback will be performed, at the appropriate
  * point, with a status of NETWORK_STATUS_ZEROBYTE.
  */
-int _network_writeq_add(NETWORK_WRITEQ *, const uint8_t *, size_t,
+int network_writeq_add_internal(NETWORK_WRITEQ *, const uint8_t *, size_t,
     struct timeval *, network_callback *, void *, int);
 #define network_writeq_add(Q, buf, buflen, timeo, callback, cookie)	\
-	_network_writeq_add(Q, buf, buflen, timeo, callback, cookie, 0)
+	network_writeq_add_internal(Q, buf, buflen, timeo, callback, cookie, 0)
 #define network_writeq_add_abs(Q, buf, buflen, timeo, callback, cookie)	\
-	_network_writeq_add(Q, buf, buflen, timeo, callback, cookie, 1)
+	network_writeq_add_internal(Q, buf, buflen, timeo, callback, cookie, 1)
 
 /**
  * network_writeq_cancel(Q):
