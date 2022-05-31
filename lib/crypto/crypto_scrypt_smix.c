@@ -154,12 +154,12 @@ integerify(const uint32_t * B, size_t r)
  * multiple of 64 bytes.
  */
 void
-crypto_scrypt_smix(uint8_t * B, size_t r, uint64_t N, void * _V, void * XY)
+crypto_scrypt_smix(uint8_t * B, size_t r, uint64_t N, void * _v, void * XY)
 {
 	uint32_t * X = XY;
 	uint32_t * Y = (void *)((uint8_t *)(XY) + 128 * r);
 	uint32_t * Z = (void *)((uint8_t *)(XY) + 256 * r);
-	uint32_t * V = _V;
+	uint32_t * V = _v;
 	uint64_t i;
 	uint64_t j;
 	size_t k;
