@@ -381,7 +381,7 @@ SHA256_Init(SHA256_CTX * ctx)
  * Input ${len} bytes from ${in} into the SHA256 context ${ctx}.
  */
 static void
-_SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len,
+SHA256_Update_internal(SHA256_CTX * ctx, const void * in, size_t len,
     uint32_t tmp32[static restrict 72])
 {
 	uint32_t r;
@@ -427,7 +427,7 @@ SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
 	uint32_t tmp32[72];
 
 	/* Call the real function. */
-	_SHA256_Update(ctx, in, len, tmp32);
+	SHA256_Update_internal(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
 	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
@@ -439,7 +439,7 @@ SHA256_Update(SHA256_CTX * ctx, const void * in, size_t len)
  * buffer ${digest}, and clear the context state.
  */
 static void
-_SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx,
+SHA256_Final_internal(uint8_t digest[32], SHA256_CTX * ctx,
     uint32_t tmp32[static restrict 72])
 {
 
@@ -457,7 +457,7 @@ SHA256_Final(uint8_t digest[32], SHA256_CTX * ctx)
 	uint32_t tmp32[72];
 
 	/* Call the real function. */
-	_SHA256_Final(digest, ctx, tmp32);
+	SHA256_Final_internal(digest, ctx, tmp32);
 
 	/* Clear the context state. */
 	insecure_memzero(ctx, sizeof(SHA256_CTX));
@@ -477,8 +477,8 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
 	uint32_t tmp32[72];
 
 	SHA256_Init(&ctx);
-	_SHA256_Update(&ctx, in, len, tmp32);
-	_SHA256_Final(digest, &ctx, tmp32);
+	SHA256_Update_internal(&ctx, in, len, tmp32);
+	SHA256_Final_internal(digest, &ctx, tmp32);
 
 	/* Clean the stack. */
 	insecure_memzero(&ctx, sizeof(SHA256_CTX));
@@ -491,18 +491,18 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
  * ${K}.
  */
 static void
-_HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen,
+HMAC_SHA256_Init_internal(HMAC_SHA256_CTX * ctx, const void * _k, size_t Klen,
     uint32_t tmp32[static restrict 72], uint8_t pad[static restrict 64],
     uint8_t khash[static restrict 32])
 {
-	const uint8_t * K = _K;
+	const uint8_t * K = _k;
 	size_t i;
 
 	/* If Klen > 64, the key is really SHA256(K). */
 	if (Klen > 64) {
 		SHA256_Init(&ctx->ictx);
-		_SHA256_Update(&ctx->ictx, K, Klen, tmp32);
-		_SHA256_Final(khash, &ctx->ictx, tmp32);
+		SHA256_Update_internal(&ctx->ictx, K, Klen, tmp32);
+		SHA256_Final_internal(khash, &ctx->ictx, tmp32);
 		K = khash;
 		Klen = 32;
 	}
@@ -512,26 +512,26 @@ _HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen,
 	memset(pad, 0x36, 64);
 	for (i = 0; i < Klen; i++)
 		pad[i] ^= K[i];
-	_SHA256_Update(&ctx->ictx, pad, 64, tmp32);
+	SHA256_Update_internal(&ctx->ictx, pad, 64, tmp32);
 
 	/* Outer SHA256 operation is SHA256(K xor [block of 0x5c] || hash). */
 	SHA256_Init(&ctx->octx);
 	memset(pad, 0x5c, 64);
 	for (i = 0; i < Klen; i++)
 		pad[i] ^= K[i];
-	_SHA256_Update(&ctx->octx, pad, 64, tmp32);
+	SHA256_Update_internal(&ctx->octx, pad, 64, tmp32);
 }
 
 /* Wrapper function for intermediate-values sanitization. */
 void
-HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
+HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * K, size_t Klen)
 {
 	uint32_t tmp32[72];
 	uint8_t pad[64];
 	uint8_t khash[32];
 
 	/* Call the real function. */
-	_HMAC_SHA256_Init(ctx, _K, Klen, tmp32, pad, khash);
+	HMAC_SHA256_Init_internal(ctx, K, Klen, tmp32, pad, khash);
 
 	/* Clean the stack. */
 	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
@@ -544,12 +544,12 @@ HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
  * Input ${len} bytes from ${in} into the HMAC-SHA256 context ${ctx}.
  */
 static void
-_HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len,
+HMAC_SHA256_Update_internal(HMAC_SHA256_CTX * ctx, const void * in, size_t len,
     uint32_t tmp32[static restrict 72])
 {
 
 	/* Feed data to the inner SHA256 operation. */
-	_SHA256_Update(&ctx->ictx, in, len, tmp32);
+	SHA256_Update_internal(&ctx->ictx, in, len, tmp32);
 }
 
 /* Wrapper function for intermediate-values sanitization. */
@@ -559,7 +559,7 @@ HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
 	uint32_t tmp32[72];
 
 	/* Call the real function. */
-	_HMAC_SHA256_Update(ctx, in, len, tmp32);
+	HMAC_SHA256_Update_internal(ctx, in, len, tmp32);
 
 	/* Clean the stack. */
 	insecure_memzero(tmp32, sizeof(uint32_t) * 72);
@@ -571,18 +571,18 @@ HMAC_SHA256_Update(HMAC_SHA256_CTX * ctx, const void * in, size_t len)
  * buffer ${digest}, and clear the context state.
  */
 static void
-_HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx,
+HMAC_SHA256_Final_internal(uint8_t digest[32], HMAC_SHA256_CTX * ctx,
     uint32_t tmp32[static restrict 72], uint8_t ihash[static restrict 32])
 {
 
 	/* Finish the inner SHA256 operation. */
-	_SHA256_Final(ihash, &ctx->ictx, tmp32);
+	SHA256_Final_internal(ihash, &ctx->ictx, tmp32);
 
 	/* Feed the inner hash to the outer SHA256 operation. */
-	_SHA256_Update(&ctx->octx, ihash, 32, tmp32);
+	SHA256_Update_internal(&ctx->octx, ihash, 32, tmp32);
 
 	/* Finish the outer SHA256 operation. */
-	_SHA256_Final(digest, &ctx->octx, tmp32);
+	SHA256_Final_internal(digest, &ctx->octx, tmp32);
 }
 
 /* Wrapper function for intermediate-values sanitization. */
@@ -593,7 +593,7 @@ HMAC_SHA256_Final(uint8_t digest[32], HMAC_SHA256_CTX * ctx)
 	uint8_t ihash[32];
 
 	/* Call the real function. */
-	_HMAC_SHA256_Final(digest, ctx, tmp32, ihash);
+	HMAC_SHA256_Final_internal(digest, ctx, tmp32, ihash);
 
 	/* Clear the context state. */
 	insecure_memzero(ctx, sizeof(HMAC_SHA256_CTX));
@@ -616,9 +616,9 @@ HMAC_SHA256_Buf(const void * K, size_t Klen, const void * in, size_t len,
 	uint32_t tmp32[72];
 	uint8_t tmp8[96];
 
-	_HMAC_SHA256_Init(&ctx, K, Klen, tmp32, &tmp8[0], &tmp8[64]);
-	_HMAC_SHA256_Update(&ctx, in, len, tmp32);
-	_HMAC_SHA256_Final(digest, &ctx, tmp32, &tmp8[0]);
+	HMAC_SHA256_Init_internal(&ctx, K, Klen, tmp32, &tmp8[0], &tmp8[64]);
+	HMAC_SHA256_Update_internal(&ctx, in, len, tmp32);
+	HMAC_SHA256_Final_internal(digest, &ctx, tmp32, &tmp8[0]);
 
 	/* Clean the stack. */
 	insecure_memzero(&ctx, sizeof(HMAC_SHA256_CTX));
@@ -652,12 +652,12 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 #endif
 
 	/* Compute HMAC state after processing P. */
-	_HMAC_SHA256_Init(&Phctx, passwd, passwdlen,
+	HMAC_SHA256_Init_internal(&Phctx, passwd, passwdlen,
 	    tmp32, &tmp8[0], &tmp8[64]);
 
 	/* Compute HMAC state after processing P and S. */
 	memcpy(&PShctx, &Phctx, sizeof(HMAC_SHA256_CTX));
-	_HMAC_SHA256_Update(&PShctx, salt, saltlen, tmp32);
+	HMAC_SHA256_Update_internal(&PShctx, salt, saltlen, tmp32);
 
 	/* Iterate through the blocks. */
 	for (i = 0; i * 32 < dkLen; i++) {
@@ -666,8 +666,8 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 
 		/* Compute U_1 = PRF(P, S || INT(i)). */
 		memcpy(&hctx, &PShctx, sizeof(HMAC_SHA256_CTX));
-		_HMAC_SHA256_Update(&hctx, ivec, 4, tmp32);
-		_HMAC_SHA256_Final(U, &hctx, tmp32, tmp8);
+		HMAC_SHA256_Update_internal(&hctx, ivec, 4, tmp32);
+		HMAC_SHA256_Final_internal(U, &hctx, tmp32, tmp8);
 
 		/* T_i = U_1 ... */
 		memcpy(T, U, 32);
@@ -675,8 +675,8 @@ PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * salt,
 		for (j = 2; j <= c; j++) {
 			/* Compute U_j. */
 			memcpy(&hctx, &Phctx, sizeof(HMAC_SHA256_CTX));
-			_HMAC_SHA256_Update(&hctx, U, 32, tmp32);
-			_HMAC_SHA256_Final(U, &hctx, tmp32, tmp8);
+			HMAC_SHA256_Update_internal(&hctx, U, 32, tmp32);
+			HMAC_SHA256_Final_internal(U, &hctx, tmp32, tmp8);
 
 			/* ... xor U_j ... */
 			for (k = 0; k < 32; k++)
