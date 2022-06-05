@@ -8,21 +8,21 @@ AC_DEFUN([CHECK_SOLARIS_C99],
 case $target_os in
 *solaris* | *sunos*)
 	AC_MSG_CHECKING([Solaris c99 standard library])
-	AC_TRY_RUN([#include <stdlib.h>
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdlib.h>
 		int main(void) {
 			char * eptr;
 			strtod("0x1", &eptr);
 			return (eptr[0] != '\0');
-		}],
+		}]])],
 		[AC_MSG_RESULT([yes])],
 		[# If we failed, try adding -std=c99 to the LDFLAGS.
 		 LDFLAGS="${LDFLAGS} -std=c99"
-		 AC_TRY_RUN([#include <stdlib.h>
+		 AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdlib.h>
 			int main(void) {
 				char * eptr;
 				strtod("0x1", &eptr);
 				return (eptr[0] != '\0');
-			}],
+			}]])],
 			[AC_MSG_RESULT([yes, if linked with -std=c99])],
 			[AC_MSG_RESULT([no])
 			 AC_MSG_ERROR([c99 required])],
