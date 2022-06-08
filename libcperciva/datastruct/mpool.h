@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ctassert.h"
+
 /**
  * Memory allocator cache.  Memory allocations can be returned to the pool
  * and reused by a subsequent allocation without returning all the way to
@@ -103,6 +105,8 @@ static void * mpool_##name##_static[size];			\
 static struct mpool mpool_##name##_rec =			\
     {0, size, mpool_##name##_static, 0, 0, 0,			\
     mpool_##name##_static, mpool_##name##_atexit};		\
+								\
+CTASSERT(size > 0);						\
 								\
 static void							\
 mpool_##name##_atexit(void)					\
