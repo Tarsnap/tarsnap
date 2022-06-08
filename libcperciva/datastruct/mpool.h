@@ -1,6 +1,7 @@
 #ifndef _MPOOL_H_
 #define _MPOOL_H_
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +68,9 @@ mpool_free(struct mpool * M, void * p)
 	}
 
 	if (M->nempties	> (M->nallocs >> 8)) {
+		/* Sanity check. */
+		assert(M->allocsize > 0);
+
 		allocs_new = (void **)malloc(M->allocsize * 2 * sizeof(void *));
 		if (allocs_new) {
 			memcpy(allocs_new, M->allocs,
