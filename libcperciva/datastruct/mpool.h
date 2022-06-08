@@ -125,6 +125,16 @@ mpool_##name##_free(type * p)					\
 	mpool_free(&mpool_##name##_rec, p);			\
 }								\
 								\
+static void (* mpool_##name##_dummyptr)(void);			\
+static inline void						\
+mpool_##name##_dummyfunc(void)					\
+{								\
+								\
+	(void)mpool_##name##_malloc;				\
+	(void)mpool_##name##_free;				\
+	(void)mpool_##name##_dummyptr;				\
+}								\
+static void (* mpool_##name##_dummyptr)(void) = mpool_##name##_dummyfunc; \
 struct mpool_##name##_dummy
 
 #endif /* !_MPOOL_H_ */
