@@ -375,7 +375,7 @@ phase4(STORAGE_D * SD, STORAGE_R * SR, CHUNKS_S * C,
 	fprintf(stdout, "Phase 4: Verifying archive completeness\n");
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
-	storage_read_cache_limit(SR, 100 * chunks_stats_getdirsz(C));
+	storage_read_set_cache_limit(SR, 100 * chunks_stats_getdirsz(C));
 
 	/* Iterate through the archives. */
 	for (file = 0; file < nmdat; file++) {

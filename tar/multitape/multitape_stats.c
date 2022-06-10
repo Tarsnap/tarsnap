@@ -161,7 +161,7 @@ statstape_printall(TAPE_S * d, const char * csv_filename)
 		goto err1;
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
-	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
+	storage_read_set_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
 
 	/* Iterate through the files. */
 	for (file = 0; file < nfiles; file++) {
@@ -315,7 +315,7 @@ statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename)
 		csv = 1;
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
-	storage_read_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
+	storage_read_set_cache_limit(d->SR, 100 * chunks_stats_getdirsz(d->C));
 
 	/* Zero archive statistics. */
 	chunks_stats_zeroarchive(d->C);

@@ -29,10 +29,10 @@ STORAGE_R * storage_read_init(uint64_t);
 int storage_read_cache(STORAGE_R *, char, const uint8_t[32]);
 
 /**
- * storage_read_cache_limit(S, size):
+ * storage_read_set_cache_limit(S, size):
  * Set a limit of ${size} bytes on the cache associated with read cookie ${S}.
  */
-void storage_read_cache_limit(STORAGE_R *, size_t);
+void storage_read_set_cache_limit(STORAGE_R *, size_t);
 
 /**
  * storage_read_file(S, buf, buflen, class, name):

@@ -250,11 +250,11 @@ err0:
 }
 
 /**
- * storage_read_cache_limit(S, size):
+ * storage_read_set_cache_limit(S, size):
  * Set a limit of ${size} bytes on the cache associated with read cookie ${S}.
  */
 void
-storage_read_cache_limit(STORAGE_R * S, size_t size)
+storage_read_set_cache_limit(STORAGE_R * S, size_t size)
 {
 
 	/* Record the new size limit. */

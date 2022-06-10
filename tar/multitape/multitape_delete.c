@@ -108,7 +108,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 		goto err2;
 
 	/* Cache up to 100 bytes of blocks per chunk in the directory. */
-	storage_read_cache_limit(SR, 100 * chunks_delete_getdirsz(C));
+	storage_read_set_cache_limit(SR, 100 * chunks_delete_getdirsz(C));
 
 	/* Read archive metadata. */
 	switch (multitape_metadata_get_byname(SR, NULL, &tmd, tapename, 0)) {
