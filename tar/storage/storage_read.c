@@ -193,14 +193,14 @@ err0:
 }
 
 /**
- * storage_read_cache(S, class, name):
+ * storage_read_add_name_cache(S, class, name):
  * Add the file ${name} from class ${class} into the cache for the read cookie
  * ${S} returned from storage_read_init.  The data will not be fetched yet;
  * but any future fetch will look in the cache first and will store the block
  * in the cache if it needs to be fetched.
  */
 int
-storage_read_cache(STORAGE_R * S, char class, const uint8_t name[32])
+storage_read_add_name_cache(STORAGE_R * S, char class, const uint8_t name[32])
 {
 	uint8_t classname[33];
 	struct read_file_cached * CF;

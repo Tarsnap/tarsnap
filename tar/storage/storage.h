@@ -20,13 +20,13 @@ typedef struct storage_delete_internal	STORAGE_D;
 STORAGE_R * storage_read_init(uint64_t);
 
 /**
- * storage_read_cache(S, class, name):
+ * storage_read_add_name_cache(S, class, name):
  * Add the file ${name} from class ${class} into the cache for the read cookie
  * ${S} returned from storage_read_init.  The data will not be fetched yet;
  * but any future fetch will look in the cache first and will store the block
  * in the cache if it needs to be fetched.
  */
-int storage_read_cache(STORAGE_R *, char, const uint8_t[32]);
+int storage_read_add_name_cache(STORAGE_R *, char, const uint8_t[32]);
 
 /**
  * storage_read_set_cache_limit(S, size):
