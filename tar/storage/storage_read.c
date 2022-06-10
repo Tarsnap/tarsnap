@@ -18,7 +18,7 @@
 
 struct storage_read_internal {
 	NETPACKET_CONNECTION * NPC;
-	RWHASHTAB * cache;
+	RWHASHTAB * cache_ht;
 	struct read_file_cached * cache_mru;	/* Most recently used. */
 	struct read_file_cached * cache_lru;	/* LRU of !evicted files. */
 	size_t cachesz;
@@ -163,7 +163,7 @@ storage_read_init(uint64_t machinenum)
 		goto err0;
 
 	/* Create a hash table for cached blocks. */
-	if ((S->cache = rwhashtab_init(offsetof(struct read_file_cached,
+	if ((S->cache_ht = rwhashtab_init(offsetof(struct read_file_cached,
 	    classname), 33)) == NULL)
 		goto err1;
 
@@ -184,7 +184,7 @@ storage_read_init(uint64_t machinenum)
 	return (S);
 
 err2:
-	rwhashtab_free(S->cache);
+	rwhashtab_free(S->cache_ht);
 err1:
 	free(S);
 err0:
@@ -211,7 +211,7 @@ storage_read_add_name_cache(STORAGE_R * S, char class, const uint8_t name[32])
 	/* Is this file already marked as needing to be cached? */
 	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
-	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) {
 		/* If we're in the linked list, remove ourselves from it. */
 		if (CF->inqueue)
 			cache_lru_remove(S, CF);
@@ -232,7 +232,7 @@ storage_read_add_name_cache(STORAGE_R * S, char class, const uint8_t name[32])
 	CF->inqueue = 0;
 
 	/* Add it to the cache. */
-	if (rwhashtab_insert(S->cache, CF))
+	if (rwhashtab_insert(S->cache_ht, CF))
 		goto err1;
 
 	/* Add it to the LRU queue. */
@@ -276,7 +276,7 @@ storage_read_cache_find(STORAGE_R * S, char class, const uint8_t name[32],
 	/* Search for a cache entry. */
 	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
-	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) {
 		/* Found it! */
 		*buf = CF->buf;
 		*buflen = CF->buflen;
@@ -551,7 +551,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		/* Should we cache this data? */
 		classname[0] = C->class;
 		memcpy(&classname[1], C->name, 32);
-		if (((CF = rwhashtab_read(C->S->cache, classname)) != NULL) &&
+		if (((CF = rwhashtab_read(C->S->cache_ht, classname)) != NULL) &&
 		    (CF->inqueue != 0) && (CF->buf == NULL) && (sc == 0)) {
 			/* Make a copy of this buffer if we can. */
 			if ((CF->buf = malloc(C->buflen)) != NULL) {
@@ -642,10 +642,10 @@ storage_read_free(STORAGE_R * S)
 	netpacket_close(S->NPC);
 
 	/* Free contents of cache. */
-	rwhashtab_foreach(S->cache, callback_cache_free, NULL);
+	rwhashtab_foreach(S->cache_ht, callback_cache_free, NULL);
 
 	/* Free cache. */
-	rwhashtab_free(S->cache);
+	rwhashtab_free(S->cache_ht);
 
 	/* Free memory. */
 	free(S);
