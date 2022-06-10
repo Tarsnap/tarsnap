@@ -250,6 +250,35 @@ err0:
 }
 
 /**
+ * storage_read_cache_add_data(S, class, name, buf, buflen):
+ * If the file ${name} with class ${class} has previous been flagged for
+ * storage in the cache for ${S} via storage_read_add_name_cache(), add
+ * ${buflen} data from ${buf} to the cache.
+ */
+static void
+storage_read_cache_add_data(STORAGE_R * S, char class,
+    const uint8_t name[32], uint8_t * buf, size_t buflen)
+{
+	struct read_file_cached * CF;
+	uint8_t classname[33];
+
+	classname[0] = (uint8_t)class;
+	memcpy(&classname[1], name, 32);
+	if (((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) &&
+	    (CF->inqueue != 0) && (CF->buf == NULL)) {
+		/* Make a copy of this buffer if we can. */
+		if ((CF->buf = malloc(buflen)) != NULL) {
+			/* Copy in data and data length. */
+			CF->buflen = buflen;
+			memcpy(CF->buf, buf, buflen);
+
+			/* We've got more data cached now. */
+			S->cachesz += CF->buflen;
+		}
+	}
+}
+
+/**
  * storage_read_set_cache_limit(S, size):
  * Set a limit of ${size} bytes on the cache associated with read cookie ${S}.
  */
@@ -462,8 +491,6 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
     size_t packetlen)
 {
 	struct read_file_cookie * C = cookie;
-	struct read_file_cached * CF;
-	uint8_t classname[33];
 	uint32_t filelen;
 	int sc;
 	int rc;
@@ -536,20 +563,8 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		switch (crypto_file_dec(&packetbuf[38], C->buflen, C->buf)) {
 		case 0:
 			/* Should we cache this data? */
-			classname[0] = C->class;
-			memcpy(&classname[1], C->name, 32);
-			if (((CF = rwhashtab_read(C->S->cache_ht, classname)) != NULL) &&
-			    (CF->inqueue != 0) && (CF->buf == NULL)) {
-				/* Make a copy of this buffer if we can. */
-				if ((CF->buf = malloc(C->buflen)) != NULL) {
-					/* Copy in data and data length. */
-					CF->buflen = C->buflen;
-					memcpy(CF->buf, C->buf, C->buflen);
-
-					/* We've got more data cached now. */
-					C->S->cachesz += CF->buflen;
-				}
-			}
+			storage_read_cache_add_data(C->S, (char)C->class,
+			    C->name, C->buf, C->buflen);
 			break;
 		case 1:
 			/* File is corrupt. */
