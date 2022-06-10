@@ -264,18 +264,29 @@ storage_read_cache_add_data(STORAGE_R * S, char class,
 
 	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
-	if (((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) &&
-	    (CF->inqueue != 0) && (CF->buf == NULL)) {
-		/* Make a copy of this buffer if we can. */
-		if ((CF->buf = malloc(buflen)) != NULL) {
-			/* Copy in data and data length. */
-			CF->buflen = buflen;
-			memcpy(CF->buf, buf, buflen);
 
-			/* We've got more data cached now. */
-			S->cachesz += CF->buflen;
-		}
-	}
+	/* Get the cached file, or bail. */
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) == NULL)
+		return;
+
+	/* If the file isn't in the queue, bail. */
+	if (CF->inqueue == 0)
+		return;
+
+	/* If the file already has some data, bail. */
+	if (CF->buf != NULL)
+		return;
+
+	/* Allocate space for the data, or bail. */
+	if ((CF->buf = malloc(buflen)) == NULL)
+		return;
+
+	/* Copy in data and data length. */
+	CF->buflen = buflen;
+	memcpy(CF->buf, buf, buflen);
+
+	/* We've got more data cached now. */
+	S->cachesz += CF->buflen;
 }
 
 /**
