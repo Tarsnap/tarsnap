@@ -18,7 +18,7 @@
 
 struct storage_read_internal {
 	NETPACKET_CONNECTION * NPC;
-	RWHASHTAB * cache;
+	RWHASHTAB * cache_ht;
 	struct read_file_cached * cache_mru;	/* Most recently used. */
 	struct read_file_cached * cache_lru;	/* LRU of !evicted files. */
 	size_t cachesz;
@@ -163,7 +163,7 @@ storage_read_init(uint64_t machinenum)
 		goto err0;
 
 	/* Create a hash table for cached blocks. */
-	if ((S->cache = rwhashtab_init(offsetof(struct read_file_cached,
+	if ((S->cache_ht = rwhashtab_init(offsetof(struct read_file_cached,
 	    classname), 33)) == NULL)
 		goto err1;
 
@@ -184,7 +184,7 @@ storage_read_init(uint64_t machinenum)
 	return (S);
 
 err2:
-	rwhashtab_free(S->cache);
+	rwhashtab_free(S->cache_ht);
 err1:
 	free(S);
 err0:
@@ -193,14 +193,14 @@ err0:
 }
 
 /**
- * storage_read_cache(S, class, name):
+ * storage_read_add_name_cache(S, class, name):
  * Add the file ${name} from class ${class} into the cache for the read cookie
  * ${S} returned from storage_read_init.  The data will not be fetched yet;
  * but any future fetch will look in the cache first and will store the block
  * in the cache if it needs to be fetched.
  */
 int
-storage_read_cache(STORAGE_R * S, char class, const uint8_t name[32])
+storage_read_add_name_cache(STORAGE_R * S, char class, const uint8_t name[32])
 {
 	uint8_t classname[33];
 	struct read_file_cached * CF;
@@ -211,7 +211,7 @@ storage_read_cache(STORAGE_R * S, char class, const uint8_t name[32])
 	/* Is this file already marked as needing to be cached? */
 	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
-	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) {
 		/* If we're in the linked list, remove ourselves from it. */
 		if (CF->inqueue)
 			cache_lru_remove(S, CF);
@@ -232,7 +232,7 @@ storage_read_cache(STORAGE_R * S, char class, const uint8_t name[32])
 	CF->inqueue = 0;
 
 	/* Add it to the cache. */
-	if (rwhashtab_insert(S->cache, CF))
+	if (rwhashtab_insert(S->cache_ht, CF))
 		goto err1;
 
 	/* Add it to the LRU queue. */
@@ -250,11 +250,51 @@ err0:
 }
 
 /**
- * storage_read_cache_limit(S, size):
+ * storage_read_cache_add_data(S, class, name, buf, buflen):
+ * If the file ${name} with class ${class} has previous been flagged for
+ * storage in the cache for ${S} via storage_read_add_name_cache(), add
+ * ${buflen} data from ${buf} to the cache.
+ */
+static void
+storage_read_cache_add_data(STORAGE_R * S, char class,
+    const uint8_t name[32], uint8_t * buf, size_t buflen)
+{
+	struct read_file_cached * CF;
+	uint8_t classname[33];
+
+	classname[0] = (uint8_t)class;
+	memcpy(&classname[1], name, 32);
+
+	/* Get the cached file, or bail. */
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) == NULL)
+		return;
+
+	/* If the file isn't in the queue, bail. */
+	if (CF->inqueue == 0)
+		return;
+
+	/* If the file already has some data, bail. */
+	if (CF->buf != NULL)
+		return;
+
+	/* Allocate space for the data, or bail. */
+	if ((CF->buf = malloc(buflen)) == NULL)
+		return;
+
+	/* Copy in data and data length. */
+	CF->buflen = buflen;
+	memcpy(CF->buf, buf, buflen);
+
+	/* We've got more data cached now. */
+	S->cachesz += CF->buflen;
+}
+
+/**
+ * storage_read_set_cache_limit(S, size):
  * Set a limit of ${size} bytes on the cache associated with read cookie ${S}.
  */
 void
-storage_read_cache_limit(STORAGE_R * S, size_t size)
+storage_read_set_cache_limit(STORAGE_R * S, size_t size)
 {
 
 	/* Record the new size limit. */
@@ -276,7 +316,7 @@ storage_read_cache_find(STORAGE_R * S, char class, const uint8_t name[32],
 	/* Search for a cache entry. */
 	classname[0] = (uint8_t)class;
 	memcpy(&classname[1], name, 32);
-	if ((CF = rwhashtab_read(S->cache, classname)) != NULL) {
+	if ((CF = rwhashtab_read(S->cache_ht, classname)) != NULL) {
 		/* Found it! */
 		*buf = CF->buf;
 		*buflen = CF->buflen;
@@ -462,8 +502,6 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
     size_t packetlen)
 {
 	struct read_file_cookie * C = cookie;
-	struct read_file_cached * CF;
-	uint8_t classname[33];
 	uint32_t filelen;
 	int sc;
 	int rc;
@@ -534,6 +572,11 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 				goto err0;
 		}
 		switch (crypto_file_dec(&packetbuf[38], C->buflen, C->buf)) {
+		case 0:
+			/* Should we cache this data? */
+			storage_read_cache_add_data(C->S, (char)C->class,
+			    C->name, C->buf, C->buflen);
+			break;
 		case 1:
 			/* File is corrupt. */
 			sc = 2;
@@ -546,22 +589,6 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 			if (C->size == (uint32_t)(-1))
 				free(C->buf);
 			goto err0;
-		}
-
-		/* Should we cache this data? */
-		classname[0] = C->class;
-		memcpy(&classname[1], C->name, 32);
-		if (((CF = rwhashtab_read(C->S->cache, classname)) != NULL) &&
-		    (CF->inqueue != 0) && (CF->buf == NULL) && (sc == 0)) {
-			/* Make a copy of this buffer if we can. */
-			if ((CF->buf = malloc(C->buflen)) != NULL) {
-				/* Copy in data and data length. */
-				CF->buflen = C->buflen;
-				memcpy(CF->buf, C->buf, C->buflen);
-
-				/* We've got more data cached now. */
-				C->S->cachesz += CF->buflen;
-			}
 		}
 	}
 
@@ -642,10 +669,10 @@ storage_read_free(STORAGE_R * S)
 	netpacket_close(S->NPC);
 
 	/* Free contents of cache. */
-	rwhashtab_foreach(S->cache, callback_cache_free, NULL);
+	rwhashtab_foreach(S->cache_ht, callback_cache_free, NULL);
 
 	/* Free cache. */
-	rwhashtab_free(S->cache);
+	rwhashtab_free(S->cache_ht);
 
 	/* Free memory. */
 	free(S);

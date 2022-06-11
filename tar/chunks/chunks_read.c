@@ -78,7 +78,7 @@ chunks_read_cache(CHUNKS_R * C, const uint8_t * hash)
 {
 
 	/* Pass the message on to the storage layer. */
-	return (storage_read_cache(C->S, 'c', hash));
+	return (storage_read_add_name_cache(C->S, 'c', hash));
 }
 
 /**
