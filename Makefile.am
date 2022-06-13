@@ -417,6 +417,8 @@ tarsnap_SOURCES=					\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_internal.h		\
 		tar/storage/storage_read.c		\
+		tar/storage/storage_read_cache.c	\
+		tar/storage/storage_read_cache.h	\
 		tar/storage/storage_transaction.c	\
 		tar/storage/storage_write.c		\
 		tar/subst.c				\
@@ -547,6 +549,8 @@ tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
 		tar/storage/storage_delete.c		\
 		tar/storage/storage_directory.c		\
 		tar/storage/storage_read.c		\
+		tar/storage/storage_read_cache.c	\
+		tar/storage/storage_read_cache.h	\
 		tar/storage/storage_transaction.c	\
 		tar/storage/storage_write.c
 
