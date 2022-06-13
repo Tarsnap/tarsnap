@@ -245,6 +245,18 @@ err0:
 }
 
 /**
+ * storage_read_cache_set_limit(cache, size):
+ * Set a limit of ${size} bytes on the ${cache}.
+ */
+static void
+storage_read_cache_set_limit(struct storage_read_cache * cache, size_t size)
+{
+
+	/* Record the new size limit. */
+	cache->maxsz = size;
+}
+
+/**
  * storage_read_init(machinenum):
  * Prepare for read operations.  Note that since reads are non-transactional,
  * this could be a no-op aside from storing the machine number.
@@ -344,8 +356,8 @@ void
 storage_read_set_cache_limit(STORAGE_R * S, size_t size)
 {
 
-	/* Record the new size limit. */
-	S->cache->maxsz = size;
+	/* Pass request to the cache. */
+	storage_read_cache_set_limit(S->cache, size);
 }
 
 /* Look for a file in the cache. */
