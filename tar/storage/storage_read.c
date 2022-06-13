@@ -360,7 +360,12 @@ storage_read_set_cache_limit(STORAGE_R * S, size_t size)
 	storage_read_cache_set_limit(S->cache, size);
 }
 
-/* Look for a file in the cache. */
+/**
+ * storage_read_cache_find(cache, class, name, buf, buflen):
+ * Look for a file of class ${class} and name ${name} in the cache.
+ * If found, set ${buf} to the stored data, and ${buflen} to its length.
+ * If not found, set ${buf} to NULL.
+ */
 static void
 storage_read_cache_find(struct storage_read_cache * cache, char class,
     const uint8_t name[32], uint8_t ** buf, size_t * buflen)
