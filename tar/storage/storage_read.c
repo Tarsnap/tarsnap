@@ -189,6 +189,62 @@ cache_prune(struct storage_read_cache * cache)
 }
 
 /**
+ * storage_read_cache_add_name(cache, class, name):
+ * Add the file ${name} from class ${class} into the ${cache}.  No data is
+ * stored yet.
+ */
+static int
+storage_read_cache_add_name(struct storage_read_cache * cache, char class,
+    const uint8_t name[32])
+{
+	uint8_t classname[33];
+	struct read_file_cached * CF;
+
+	/* Prune the cache if necessary. */
+	cache_prune(cache);
+
+	/* Is this file already marked as needing to be cached? */
+	classname[0] = (uint8_t)class;
+	memcpy(&classname[1], name, 32);
+	if ((CF = rwhashtab_read(cache->ht, classname)) != NULL) {
+		/* If we're in the linked list, remove ourselves from it. */
+		if (CF->inqueue)
+			cache_lru_remove(cache, CF);
+
+		/* Insert ourselves at the head of the list. */
+		cache_lru_add(cache, CF);
+
+		/* That's all we need to do. */
+		goto done;
+	}
+
+	/* Allocate a structure. */
+	if ((CF = malloc(sizeof(struct read_file_cached))) == NULL)
+		goto err0;
+	memcpy(CF->classname, classname, 33);
+	CF->buf = NULL;
+	CF->buflen = 0;
+	CF->inqueue = 0;
+
+	/* Add it to the cache. */
+	if (rwhashtab_insert(cache->ht, CF))
+		goto err1;
+
+	/* Add it to the LRU queue. */
+	cache_lru_add(cache, CF);
+
+done:
+	/* Success! */
+	return (0);
+
+err1:
+	free(CF);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
  * storage_read_init(machinenum):
  * Prepare for read operations.  Note that since reads are non-transactional,
  * this could be a no-op aside from storing the machine number.
@@ -235,51 +291,9 @@ err0:
 int
 storage_read_add_name_cache(STORAGE_R * S, char class, const uint8_t name[32])
 {
-	uint8_t classname[33];
-	struct read_file_cached * CF;
 
-	/* Prune the cache if necessary. */
-	cache_prune(S->cache);
-
-	/* Is this file already marked as needing to be cached? */
-	classname[0] = (uint8_t)class;
-	memcpy(&classname[1], name, 32);
-	if ((CF = rwhashtab_read(S->cache->ht, classname)) != NULL) {
-		/* If we're in the linked list, remove ourselves from it. */
-		if (CF->inqueue)
-			cache_lru_remove(S->cache, CF);
-
-		/* Insert ourselves at the head of the list. */
-		cache_lru_add(S->cache, CF);
-
-		/* That's all we need to do. */
-		goto done;
-	}
-
-	/* Allocate a structure. */
-	if ((CF = malloc(sizeof(struct read_file_cached))) == NULL)
-		goto err0;
-	memcpy(CF->classname, classname, 33);
-	CF->buf = NULL;
-	CF->buflen = 0;
-	CF->inqueue = 0;
-
-	/* Add it to the cache. */
-	if (rwhashtab_insert(S->cache->ht, CF))
-		goto err1;
-
-	/* Add it to the LRU queue. */
-	cache_lru_add(S->cache, CF);
-
-done:
-	/* Success! */
-	return (0);
-
-err1:
-	free(CF);
-err0:
-	/* Failure! */
-	return (-1);
+	/* Pass request to the cache. */
+	return (storage_read_cache_add_name(S->cache, class, name));
 }
 
 /**
