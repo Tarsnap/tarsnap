@@ -4,8 +4,8 @@
 #include <sys/time.h>
 
 /* Macro to simplify benchmarks. */
-#define timeval_diff(x, y) ((double)(y.tv_sec - x.tv_sec) +		\
-    (double)(y.tv_usec - x.tv_usec) * 0.000001)
+#define timeval_diff(x, y) ((double)((y).tv_sec - (x).tv_sec) +		\
+    (double)((y).tv_usec - (x).tv_usec) * 0.000001)
 
 /**
  * monoclock_get(tv):
