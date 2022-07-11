@@ -6,12 +6,22 @@
 #include "tsnetwork.h"
 #include "tsnetwork_internal.h"
 
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+#include <stdint.h>
+#include <stdio.h>
+
+#include "tarsnap_opt.h"
+#endif
+
 /* Bandwidth limiting state. */
 struct bwlimit {
 	double Bps;
 	double bucket;
 	void * timer_cookie;
 	int suspended;
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+	size_t bytes_since_last_print;
+#endif
 };
 static struct bwlimit limit_read;
 static struct bwlimit limit_write;
@@ -42,6 +52,10 @@ init(void)
 
 	/* Traffic not suspended. */
 	limit_read.suspended = 0;
+
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+	limit_read.bytes_since_last_print = 0;
+#endif
 
 	/* Write state is the same as the read state. */
 	memcpy(&limit_write, &limit_read, sizeof(struct bwlimit));
@@ -120,6 +134,40 @@ err0:
 	return (-1);
 }
 
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+static void
+print_speed(struct timeval tnow)
+{
+	static struct timeval torig;
+	static struct timeval tlast_printed;
+	double tsince_last;
+
+	/* If this is the first time, initialize the static variables. */
+	if (!tlast_set) {
+		memcpy(&torig, &tnow, sizeof(struct timeval));
+		memcpy(&tlast_printed, &tnow, sizeof(struct timeval));
+	}
+
+	/* Duration since the last time we printed the speed. */
+	tsince_last = timeval_diff(tlast_printed, tnow);
+
+	/* Bail if not enough time has elapsed. */
+	if (tsince_last < TSNETWORK_PRINT_SPEED_SECONDS)
+		return;
+
+	/* Print speed. */
+	fprintf(stderr, "TSNETWORK_PRINT_SPEED_SECONDS\t%.3f\t%.1f\t%.1f\n",
+	    timeval_diff(torig, tnow),
+	    (double)limit_read.bytes_since_last_print / tsince_last,
+	    (double)limit_write.bytes_since_last_print / tsince_last);
+
+	/* Reset stats and record the current time. */
+	limit_read.bytes_since_last_print = 0;
+	limit_write.bytes_since_last_print = 0;
+	memcpy(&tlast_printed, &tnow, sizeof(struct timeval));
+}
+#endif
+
 /* Update the internal state. */
 static int
 poke(void)
@@ -142,6 +190,11 @@ poke(void)
 		goto err0;
 	if (pokeone(&limit_write, t, NETWORK_OP_WRITE))
 		goto err0;
+
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+	if (tarsnap_opt_debug_network_stats)
+		print_speed(tnow);
+#endif
 
 	/* We have been poked. */
 	memcpy(&tlast, &tnow, sizeof(struct timeval));
@@ -234,6 +287,14 @@ network_bwlimit_eat(int op, size_t len)
 		limit_read.bucket -= (double)len;
 	else
 		limit_write.bucket -= (double)len;
+
+#ifdef TSNETWORK_PRINT_SPEED_SECONDS
+	/* Accumulate sum. */
+	if (op == NETWORK_OP_READ)
+		limit_read.bytes_since_last_print += len;
+	else
+		limit_write.bytes_since_last_print += len;
+#endif
 
 	/* Update state. */
 	return (poke());
