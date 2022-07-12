@@ -298,26 +298,26 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	/* Handle errors. */
 	if (status != NETWORK_STATUS_OK) {
 		netproto_printerr(status);
-		goto err0;
+		goto err1;
 	}
 
 	/* Make sure we received the right type of packet. */
 	if (packettype != NETPACKET_READ_FILE_RESPONSE)
-		goto err1;
+		goto err2;
 
 	/* Verify packet hmac. */
 	switch (netpacket_hmac_verify(packettype, NULL,
 	    packetbuf, packetlen - 32, CRYPTO_KEY_AUTH_GET)) {
 	case 1:
-		goto err1;
+		goto err2;
 	case -1:
-		goto err0;
+		goto err1;
 	}
 
 	/* Make sure that the packet corresponds to the right file. */
 	if ((packetbuf[1] != C->class) ||
 	    (memcmp(&packetbuf[2], C->name, 32)))
-		goto err1;
+		goto err2;
 
 	/* Extract status code and file length returned by server. */
 	sc = packetbuf[0];
@@ -327,27 +327,27 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	switch (sc) {
 	case 0:
 		if (packetlen != filelen + 70)
-			goto err1;
+			goto err2;
 		if (C->size != (uint32_t)(-1)) {
 			if (filelen != C->size)
-				goto err1;
+				goto err2;
 		} else {
 			if ((filelen < STORAGE_FILE_OVERHEAD) ||
 			    (filelen > 262144))
-				goto err1;
+				goto err2;
 		}
 		break;
 	case 1:
 	case 3:
 		if ((packetlen != 70) || (filelen != 0))
-			goto err1;
+			goto err2;
 		break;
 	case 2:
 		if (packetlen != 70)
-			goto err1;
+			goto err2;
 		break;
 	default:
-		goto err1;
+		goto err2;
 	}
 
 	/* Decrypt file data if appropriate. */
@@ -356,7 +356,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		if (C->size == (uint32_t)(-1)) {
 			C->buflen = filelen - STORAGE_FILE_OVERHEAD;
 			if ((C->buf = malloc(C->buflen)) == NULL)
-				goto err0;
+				goto err1;
 		}
 		switch (crypto_file_dec(&packetbuf[38], C->buflen, C->buf)) {
 		case 0:
@@ -375,7 +375,7 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 		case -1:
 			if (C->size == (uint32_t)(-1))
 				free(C->buf);
-			goto err0;
+			goto err1;
 		}
 	}
 
@@ -399,9 +399,11 @@ callback_read_file_response(void * cookie, NETPACKET_CONNECTION * NPC,
 	/* Return result from callback. */
 	return (rc);
 
-err1:
+err2:
 	netproto_printerr(NETPROTO_STATUS_PROTERR);
-err0:
+err1:
+	free(C);
+
 	/* Failure! */
 	return (-1);
 }
