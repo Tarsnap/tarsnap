@@ -5,6 +5,7 @@
 
 #include <arpa/inet.h>
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -275,4 +276,62 @@ sock_addr_prettyprint(const struct sock_addr * sa)
 	default:
 		return (strdup("Unknown address"));
 	}
+}
+
+/**
+ * sock_addr_ensure_port(addr):
+ * Allocate a new string to serve as the address for sock_resolve().
+ * If ${addr} contains a port number or is the address of a Unix domain
+ * socket, duplicate that string; if not, add a port number of ":0".
+ */
+char *
+sock_addr_ensure_port(const char * addr)
+{
+	char * bind_addr;
+	char * cr;
+
+	/* Sanity check. */
+	assert(addr != NULL);
+
+	/* Where is the right-most colon in $addr? */
+	cr = strrchr(addr, ':');
+
+	/* Figure out what type of address $addr is. */
+	if (cr == addr) {
+		/*
+		 * If the right-most colon is the first char, it's not a valid
+		 * address, but we'll strdup it anyway.
+		 */
+		bind_addr = strdup(addr);
+	} else if (addr[0] == '/') {
+		/* It's a Unix domain socket and doesn't need a port number. */
+		bind_addr = strdup(addr);
+	} else if (addr[0] != '[') {
+		/* It's a hostname... */
+		if (cr == NULL) {
+			/* ... without any port number, so we add ":0". */
+			if (asprintf(&bind_addr, "%s:0", addr) == -1)
+				goto err0;
+		} else {
+			/* ... which already has a port number. */
+			bind_addr = strdup(addr);
+		}
+	} else {
+		/* addr[0] == '[', so it's an address... */
+		if ((cr == NULL) || (cr[-1] != ']')) {
+			/* ... without a port number, so we add ":0". */
+			if (asprintf(&bind_addr, "%s:0", addr) == -1)
+				goto err0;
+		} else {
+			/* ... which already has a port number. */
+			bind_addr = strdup(addr);
+		}
+	}
+
+	/* Success! */
+	return (bind_addr);
+
+err0:
+	/* Failure! */
+	return (NULL);
 }

@@ -49,4 +49,12 @@ struct sock_addr * sock_addr_deserialize(const uint8_t *, size_t);
  */
 char * sock_addr_prettyprint(const struct sock_addr *);
 
+/**
+ * sock_addr_ensure_port(addr):
+ * Allocate a new string to serve as the address for sock_resolve().
+ * If ${addr} contains a port number or is the address of a Unix domain
+ * socket, duplicate that string; if not, add a port number of ":0".
+ */
+char * sock_addr_ensure_port(const char *);
+
 #endif /* !_SOCK_UTIL_H_ */
