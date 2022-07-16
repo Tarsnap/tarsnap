@@ -18,6 +18,7 @@
 
 #include "sock.h"
 #include "sock_internal.h"
+#include "sock_util.h"
 
 /* Convert a path into a socket address. */
 static struct sock_addr **
@@ -297,27 +298,37 @@ err0:
 }
 
 /**
- * sock_resolve_one(addr):
+ * sock_resolve_one(addr, addport):
  * Return a single sock_addr structure, or NULL if there are no addresses.
  * Warn if there is more than one address, and return the first one.
+ * If ${addport} is non-zero, use sock_addr_ensure_port() to add a port number
+ * of ":0" if appropriate.
  */
 struct sock_addr *
-sock_resolve_one(const char * addr)
+sock_resolve_one(const char * addr, int addport)
 {
 	struct sock_addr ** sas;
 	struct sock_addr * sa;
 	struct sock_addr ** sa_tmp;
+	char * addr_alloc = NULL;
+
+	/* Prepare the address to resolve. */
+	if (addport &&
+	    ((addr = addr_alloc = sock_addr_ensure_port(addr)) == NULL)) {
+		warnp("sock_addr_ensure_port");
+		goto err0;
+	}
 
 	/* Resolve target address. */
 	if ((sas = sock_resolve(addr)) == NULL) {
 		warnp("Error resolving socket address: %s", addr);
-		goto err0;
+		goto err1;
 	}
 
 	/* Check that the array is not empty. */
 	if (sas[0] == NULL) {
 		warn0("No addresses found for %s", addr);
-		goto err1;
+		goto err2;
 	}
 
 	/* If there's more than one address, give a warning. */
@@ -333,11 +344,16 @@ sock_resolve_one(const char * addr)
 		sock_addr_free(*sa_tmp);
 	free(sas);
 
+	/* Clean up. */
+	free(addr_alloc);
+
 	/* Success! */
 	return (sa);
 
-err1:
+err2:
 	sock_addr_freelist(sas);
+err1:
+	free(addr_alloc);
 err0:
 	/* Failure! */
 	return (NULL);

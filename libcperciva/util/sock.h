@@ -19,11 +19,13 @@ struct sock_addr;
 struct sock_addr ** sock_resolve(const char *);
 
 /**
- * sock_resolve_one(addr):
+ * sock_resolve_one(addr, addport):
  * Return a single sock_addr structure, or NULL if there are no addresses.
  * Warn if there is more than one address, and return the first one.
+ * If ${addport} is non-zero, use sock_addr_ensure_port() to add a port number
+ * of ":0" if appropriate.
  */
-struct sock_addr * sock_resolve_one(const char *);
+struct sock_addr * sock_resolve_one(const char *, int);
 
 /**
  * sock_listener(sa):
