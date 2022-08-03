@@ -478,24 +478,40 @@ sock_connect_nb(const struct sock_addr * sa)
 /**
  * sock_connect_bind_nb(sa, sa_b):
  * Create a socket, mark it as non-blocking, and attempt to connect to the
- * address ${sa}.  If ${sa_b} is not NULL, bind the socket to ${sa_b}
- * immediately after creating it.  Return the socket (connected or in the
- * process of connecting) or -1 on error.
+ * address ${sa}.  If ${sa_b} is not NULL, attempt to set SO_REUSEADDR on the
+ * socket and bind it to ${sa_b} immediately after creating it.  Return the
+ * socket (connected or in the process of connecting) or -1 on error.
  */
 int
 sock_connect_bind_nb(const struct sock_addr * sa,
     const struct sock_addr * sa_b)
 {
 	int s;
+	int val = 1;
 
 	/* Create a socket. */
-	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1)
+	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1) {
+		warnp("socket(%d, %d)", sa->ai_family, sa->ai_socktype);
 		goto err0;
+	}
 
 	/* Bind the socket to sa_b (if applicable). */
-	if (sa_b && ((bind(s, sa_b->name, sa_b->namelen)) == -1)) {
-		warnp("Error binding socket");
-		goto err1;
+	if (sa_b) {
+		/* Attempt to set SO_REUSEADDR. */
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &val,
+		    sizeof(val))) {
+			/* ENOPROTOOPT is ok. */
+			if (errno != ENOPROTOOPT) {
+				warnp("setsockopt(SO_REUSEADDR)");
+				goto err1;
+			}
+		}
+
+		/* Bind socket. */
+		if ((bind(s, sa_b->name, sa_b->namelen)) == -1) {
+			warnp("Error binding socket");
+			goto err1;
+		}
 	}
 
 	/* Mark the socket as non-blocking. */
@@ -507,8 +523,10 @@ sock_connect_bind_nb(const struct sock_addr * sa,
 	/* Attempt to connect. */
 	if ((connect(s, sa->name, sa->namelen) == -1) &&
 	    (errno != EINPROGRESS) &&
-	    (errno != EINTR))
+	    (errno != EINTR)) {
+		warnp("connect");
 		goto err1;
+	}
 
 	/* We have a connect(ed|ing) socket. */
 	return (s);
