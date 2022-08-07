@@ -323,7 +323,7 @@ AC_CHECK_TYPE([wchar_t],
 		AC_CHECK_SIZEOF([wchar_t])],
 		[])
 
-AC_HEADER_TIME
+m4_version_prereq([2.70], [], [AC_HEADER_TIME])
 
 # Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
