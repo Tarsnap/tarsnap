@@ -65,8 +65,8 @@ AM_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_TOOL([STRIP],[strip])
 
-# We use some _GNU_SOURCE bits
-AC_GNU_SOURCE
+# We use some _GNU_SOURCE bits on Linux; this also enables other extensions.
+m4_version_prereq([2.70], [AC_USE_SYSTEM_EXTENSIONS], [AC_GNU_SOURCE])
 
 # Don't rebuild the configure script.  I'm distributing a perfectly good one.
 AM_MAINTAINER_MODE
