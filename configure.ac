@@ -91,7 +91,7 @@ PROG_LDADD_EXTRA=$prog_ldadd_extra
 AC_SUBST(PROG_LDADD_EXTRA)
 
 # Checks for header files.
-AC_HEADER_STDC
+m4_version_prereq([2.70], [], [AC_HEADER_STDC])
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS_ONCE([acl/libacl.h attr/xattr.h ctype.h err.h errno.h])
