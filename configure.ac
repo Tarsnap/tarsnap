@@ -60,13 +60,13 @@ AM_CONDITIONAL([INC_WINDOWS_FILES], [test $inc_windows_files = yes])
 AM_CONDITIONAL([INC_CYGWIN_FILES], [test $inc_cygwin_files = yes])
 
 # Checks for programs.
-AC_PROG_CC_C99
+m4_version_prereq([2.70], [AC_PROG_CC], [AC_PROG_CC_C99])
 AM_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_TOOL([STRIP],[strip])
 
-# We use some _GNU_SOURCE bits
-AC_GNU_SOURCE
+# We use some _GNU_SOURCE bits on Linux; this also enables other extensions.
+m4_version_prereq([2.70], [AC_USE_SYSTEM_EXTENSIONS], [AC_GNU_SOURCE])
 
 # Don't rebuild the configure script.  I'm distributing a perfectly good one.
 AM_MAINTAINER_MODE
@@ -91,7 +91,7 @@ PROG_LDADD_EXTRA=$prog_ldadd_extra
 AC_SUBST(PROG_LDADD_EXTRA)
 
 # Checks for header files.
-AC_HEADER_STDC
+m4_version_prereq([2.70], [], [AC_HEADER_STDC])
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS_ONCE([acl/libacl.h attr/xattr.h ctype.h err.h errno.h])
@@ -323,7 +323,7 @@ AC_CHECK_TYPE([wchar_t],
 		AC_CHECK_SIZEOF([wchar_t])],
 		[])
 
-AC_HEADER_TIME
+m4_version_prereq([2.70], [], [AC_HEADER_TIME])
 
 # Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
