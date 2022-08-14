@@ -1,4 +1,14 @@
-### Tarsnap 1.0.40 (unreleased)
+### Tarsnap 1.0.41 (unreleased)
+
+- Fixed a problem with strict aliasing if somebody compiled with gcc11 or
+  higher using -O3, does not have SSE2, and is using a passphrase-protected
+  keyfile.
+
+
+Tarsnap Releases
+================
+
+### Tarsnap 1.0.40
 
 - tarsnap now accepts a --dump-config option to print the command-line and all
   non-blank lines read from config files.
@@ -22,9 +32,6 @@
 - Assorted compatibility fixes for MacOS X, FreeBSD, OpenBSD, Solaris, ZFS,
   and gcc 4.2.1.
 
-
-Tarsnap Releases
-================
 
 ### Tarsnap 1.0.39 (July 29, 2017)
 
