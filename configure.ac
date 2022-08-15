@@ -474,15 +474,7 @@ AS_IF([test "x$with_bash_completion_dir" != "xno"],
     [AC_MSG_RESULT([no])])
 
 # Check whether the user has requested to disable compiler warnings
-AC_MSG_CHECKING([compiler_warnings])
-AC_ARG_ENABLE(compiler_warnings,
-   AS_HELP_STRING([--disable-compiler-warnings],
-       [Do not request compiler warnings. @<:@default=enabled@:>@]),
-   [ac_compiler_warnings=$enableval],
-   [ac_compiler_warnings=yes])
-AC_MSG_RESULT([${ac_compiler_warnings}])
-AS_IF([test x${ac_compiler_warnings} = xyes],
-   [AX_CFLAGS_WARN_ALL])
+CHECK_DISABLE_COMPILER_WARNINGS
 
 # should we set the value automatically?
 if test "x$with_bash_completion_dir" = "xyes"; then
