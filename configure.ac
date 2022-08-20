@@ -107,15 +107,6 @@ AC_CHECK_HEADERS_ONCE([time.h unistd.h utime.h wchar.h wctype.h windows.h])
 AC_CHECK_LIB(rt, clock_gettime)
 AC_CHECK_FUNCS_ONCE([clock_gettime])
 
-# Check for a linuxy sysinfo syscall; and while we're doing that, check if
-# struct sysinfo is the old version (total RAM == totalmem) or the new
-# version (total RAM == totalmem * mem_unit).
-AC_CHECK_HEADERS_ONCE([sys/sysinfo.h])
-AC_CHECK_FUNCS_ONCE([sysinfo])
-AC_CHECK_TYPES([struct sysinfo], [], [], [[#include <sys/sysinfo.h>]])
-AC_CHECK_MEMBERS([struct sysinfo.totalram, struct sysinfo.mem_unit], [], [],
-    [[#include <sys/sysinfo.h>]])
-
 # Check for <sys/mount.h>, <sys/statvfs.h>, <sys/vfs.h>, and <sys/statfs.h>,
 # which are used on various OSes to provide statfs(2) and statvfs(2).
 AC_CHECK_HEADERS([sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h], [], [],
@@ -123,9 +114,8 @@ AC_CHECK_HEADERS([sys/mount.h sys/statfs.h sys/statvfs.h sys/vfs.h], [], [],
 #include <sys/param.h>
 #endif])
 
-# Check for <sys/sysctl.h>.  If it exists and it defines HW_USERMEM
-# and/or HW_MEMSIZE, we'll try using those as memory limits.
-AC_CHECK_HEADERS_ONCE([sys/sysctl.h])
+# Check how we can find out the available memory.
+CHECK_MEMLIMIT_SUPPORT
 
 # Check for members of struct statfs and struct statvfs.
 AC_CHECK_MEMBERS([struct statfs.f_fstypename, struct statfs.f_type,
@@ -484,15 +474,7 @@ AS_IF([test "x$with_bash_completion_dir" != "xno"],
     [AC_MSG_RESULT([no])])
 
 # Check whether the user has requested to disable compiler warnings
-AC_MSG_CHECKING([compiler_warnings])
-AC_ARG_ENABLE(compiler_warnings,
-   AS_HELP_STRING([--disable-compiler-warnings],
-       [Do not request compiler warnings. @<:@default=enabled@:>@]),
-   [ac_compiler_warnings=$enableval],
-   [ac_compiler_warnings=yes])
-AC_MSG_RESULT([${ac_compiler_warnings}])
-AS_IF([test x${ac_compiler_warnings} = xyes],
-   [AX_CFLAGS_WARN_ALL])
+CHECK_DISABLE_COMPILER_WARNINGS
 
 # should we set the value automatically?
 if test "x$with_bash_completion_dir" = "xyes"; then
