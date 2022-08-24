@@ -19,6 +19,15 @@ struct sock_addr;
 struct sock_addr ** sock_resolve(const char *);
 
 /**
+ * sock_resolve_one(addr, addport):
+ * Return a single sock_addr structure, or NULL if there are no addresses.
+ * Warn if there is more than one address, and return the first one.
+ * If ${addport} is non-zero, use sock_addr_ensure_port() to add a port number
+ * of ":0" if appropriate.
+ */
+struct sock_addr * sock_resolve_one(const char *, int);
+
+/**
  * sock_listener(sa):
  * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
  * ${sa}, mark it for listening, and mark it as non-blocking.
@@ -40,6 +49,15 @@ int sock_connect(struct sock_addr * const *);
  * connecting) or -1 on error.
  */
 int sock_connect_nb(const struct sock_addr *);
+
+/**
+ * sock_connect_bind_nb(sa, sa_b):
+ * Create a socket, mark it as non-blocking, and attempt to connect to the
+ * address ${sa}.  If ${sa_b} is not NULL, attempt to set SO_REUSEADDR on the
+ * socket and bind it to ${sa_b} immediately after creating it.  Return the
+ * socket (connected or in the process of connecting) or -1 on error.
+ */
+int sock_connect_bind_nb(const struct sock_addr *, const struct sock_addr *);
 
 /**
  * sock_addr_free(sa):

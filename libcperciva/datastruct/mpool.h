@@ -1,9 +1,12 @@
 #ifndef _MPOOL_H_
 #define _MPOOL_H_
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "ctassert.h"
 
 /**
  * Memory allocator cache.  Memory allocations can be returned to the pool
@@ -65,6 +68,9 @@ mpool_free(struct mpool * M, void * p)
 	}
 
 	if (M->nempties	> (M->nallocs >> 8)) {
+		/* Sanity check. */
+		assert(M->allocsize > 0);
+
 		allocs_new = (void **)malloc(M->allocsize * 2 * sizeof(void *));
 		if (allocs_new) {
 			memcpy(allocs_new, M->allocs,
@@ -104,6 +110,8 @@ static struct mpool mpool_##name##_rec =			\
     {0, size, mpool_##name##_static, 0, 0, 0,			\
     mpool_##name##_static, mpool_##name##_atexit};		\
 								\
+CTASSERT(size > 0);						\
+								\
 static void							\
 mpool_##name##_atexit(void)					\
 {								\
@@ -125,6 +133,16 @@ mpool_##name##_free(type * p)					\
 	mpool_free(&mpool_##name##_rec, p);			\
 }								\
 								\
+static void (* mpool_##name##_dummyptr)(void);			\
+static inline void						\
+mpool_##name##_dummyfunc(void)					\
+{								\
+								\
+	(void)mpool_##name##_malloc;				\
+	(void)mpool_##name##_free;				\
+	(void)mpool_##name##_dummyptr;				\
+}								\
+static void (* mpool_##name##_dummyptr)(void) = mpool_##name##_dummyfunc; \
 struct mpool_##name##_dummy
 
 #endif /* !_MPOOL_H_ */

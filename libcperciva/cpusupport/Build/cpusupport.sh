@@ -1,6 +1,6 @@
 # Should be sourced by `command -p sh path/to/cpusupport.sh "$PATH"` from
 # within a Makefile.
-if ! [ ${PATH} = "$1" ]; then
+if ! [ "${PATH}" = "$1" ]; then
 	echo "WARNING: POSIX violation: $SHELL's command -p resets \$PATH" 1>&2
 	PATH=$1
 fi
@@ -9,17 +9,25 @@ fi
 # code which sets CFLAGS_ARCH_FEATURE environment variables.
 SRCDIR=$(command -p dirname "$0")
 
+CFLAGS_HARDCODED="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700"
+
 feature() {
 	ARCH=$1
 	FEATURE=$2
 	shift 2;
-	if ! [ -f ${SRCDIR}/cpusupport-$ARCH-$FEATURE.c ]; then
+
+	# Bail if we didn't include this feature in this source tree.
+	feature_filename="${SRCDIR}/cpusupport-${ARCH}-${FEATURE}.c"
+	if ! [ -f "${feature_filename}" ]; then
 		return
 	fi
-	printf "Checking if compiler supports $ARCH $FEATURE feature..." 1>&2
+
+	# Check if we can compile this feature (and any required arguments).
+	printf "Checking if compiler supports %s %s feature..."		\
+	    "$ARCH" "$FEATURE" 1>&2
 	for CPU_CFLAGS in "$@"; do
-		if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L ${CPU_CFLAGS} \
-		    ${SRCDIR}/cpusupport-$ARCH-$FEATURE.c 2>/dev/null; then
+		if ${CC} ${CFLAGS} ${CFLAGS_HARDCODED} ${CPU_CFLAGS}	\
+		    "${feature_filename}" 2>/dev/null; then
 			rm -f a.out
 			break;
 		fi

@@ -18,6 +18,7 @@
 
 #include "sock.h"
 #include "sock_internal.h"
+#include "sock_util.h"
 
 /* Convert a path into a socket address. */
 static struct sock_addr **
@@ -297,6 +298,68 @@ err0:
 }
 
 /**
+ * sock_resolve_one(addr, addport):
+ * Return a single sock_addr structure, or NULL if there are no addresses.
+ * Warn if there is more than one address, and return the first one.
+ * If ${addport} is non-zero, use sock_addr_ensure_port() to add a port number
+ * of ":0" if appropriate.
+ */
+struct sock_addr *
+sock_resolve_one(const char * addr, int addport)
+{
+	struct sock_addr ** sas;
+	struct sock_addr * sa;
+	struct sock_addr ** sa_tmp;
+	char * addr_alloc = NULL;
+
+	/* Prepare the address to resolve. */
+	if (addport &&
+	    ((addr = addr_alloc = sock_addr_ensure_port(addr)) == NULL)) {
+		warnp("sock_addr_ensure_port");
+		goto err0;
+	}
+
+	/* Resolve target address. */
+	if ((sas = sock_resolve(addr)) == NULL) {
+		warnp("Error resolving socket address: %s", addr);
+		goto err1;
+	}
+
+	/* Check that the array is not empty. */
+	if (sas[0] == NULL) {
+		warn0("No addresses found for %s", addr);
+		goto err2;
+	}
+
+	/* If there's more than one address, give a warning. */
+	if (sas[1] != NULL)
+		warn0("Using the first of multiple addresses found for %s",
+		    addr);
+
+	/* Keep the address we want. */
+	sa = sas[0];
+
+	/* Free the other addresses and list. */
+	for (sa_tmp = &sas[1]; *sa_tmp != NULL; sa_tmp++)
+		sock_addr_free(*sa_tmp);
+	free(sas);
+
+	/* Clean up. */
+	free(addr_alloc);
+
+	/* Success! */
+	return (sa);
+
+err2:
+	sock_addr_freelist(sas);
+err1:
+	free(addr_alloc);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
  * sock_listener(sa):
  * Create a socket, attempt to set SO_REUSEADDR, bind it to the socket address
  * ${sa}, mark it for listening, and mark it as non-blocking.
@@ -407,11 +470,49 @@ err0:
 int
 sock_connect_nb(const struct sock_addr * sa)
 {
+
+	/* Let sock_connect_bind_nb handle this. */
+	return (sock_connect_bind_nb(sa, NULL));
+}
+
+/**
+ * sock_connect_bind_nb(sa, sa_b):
+ * Create a socket, mark it as non-blocking, and attempt to connect to the
+ * address ${sa}.  If ${sa_b} is not NULL, attempt to set SO_REUSEADDR on the
+ * socket and bind it to ${sa_b} immediately after creating it.  Return the
+ * socket (connected or in the process of connecting) or -1 on error.
+ */
+int
+sock_connect_bind_nb(const struct sock_addr * sa,
+    const struct sock_addr * sa_b)
+{
 	int s;
+	int val = 1;
 
 	/* Create a socket. */
-	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1)
+	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1) {
+		warnp("socket(%d, %d)", sa->ai_family, sa->ai_socktype);
 		goto err0;
+	}
+
+	/* Bind the socket to sa_b (if applicable). */
+	if (sa_b) {
+		/* Attempt to set SO_REUSEADDR. */
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &val,
+		    sizeof(val))) {
+			/* ENOPROTOOPT is ok. */
+			if (errno != ENOPROTOOPT) {
+				warnp("setsockopt(SO_REUSEADDR)");
+				goto err1;
+			}
+		}
+
+		/* Bind socket. */
+		if ((bind(s, sa_b->name, sa_b->namelen)) == -1) {
+			warnp("Error binding socket");
+			goto err1;
+		}
+	}
 
 	/* Mark the socket as non-blocking. */
 	if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
@@ -422,8 +523,10 @@ sock_connect_nb(const struct sock_addr * sa)
 	/* Attempt to connect. */
 	if ((connect(s, sa->name, sa->namelen) == -1) &&
 	    (errno != EINPROGRESS) &&
-	    (errno != EINTR))
+	    (errno != EINTR)) {
+		warnp("connect");
 		goto err1;
+	}
 
 	/* We have a connect(ed|ing) socket. */
 	return (s);

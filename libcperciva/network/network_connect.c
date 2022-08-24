@@ -15,6 +15,7 @@ struct connect_cookie {
 	int (* callback)(void *, int);
 	void * cookie;
 	struct sock_addr * const * sas;
+	const struct sock_addr * sa_b;
 	struct timeval timeo;
 	void * cookie_immediate;
 	int s;
@@ -118,7 +119,7 @@ tryconnect(struct connect_cookie * C)
 	/* Try addresses until we find one which doesn't fail immediately. */
 	for (; C->sas[0] != NULL; C->sas++) {
 		/* Can we try to connect to this address? */
-		if ((C->s = sock_connect_nb(C->sas[0])) != -1)
+		if ((C->s = sock_connect_bind_nb(C->sas[0], C->sa_b)) != -1)
 			break;
 	}
 
@@ -165,31 +166,21 @@ err1:
 }
 
 /**
- * network_connect(sas, callback, cookie):
+ * network_connect_internal(sas, sa_b, timeo, callback, cookie):
  * Iterate through the addresses in ${sas}, attempting to create and connect
- * a non-blocking socket.  Once connected, invoke ${callback}(${cookie}, s)
- * where s is the connected socket; upon fatal error or if there are no
- * addresses remaining to attempt, invoke ${callback}(${cookie}, -1).  Return
- * a cookie which can be passed to network_connect_cancel() in order to cancel
- * the connection attempt.
+ * a non-blocking socket.  If ${timeo} is not NULL, wait a duration of at
+ * most ${timeo} for each address which is being attempted.  If ${sa_b} is
+ * not NULL, then bind the socket to ${sa_b}.
+ *
+ * Once connected, invoke ${callback}(${cookie}, s) where s is the connected
+ * socket; upon fatal error or if there are no addresses remaining to
+ * attempt, invoke ${callback}(${cookie}, -1).  Return a cookie which can be
+ * passed to network_connect_cancel() in order to cancel the connection
+ * attempt.
  */
-void *
-network_connect(struct sock_addr * const * sas,
-    int (* callback)(void *, int), void * cookie)
-{
-
-	/* Let network_connect_timeo handle this. */
-	return (network_connect_timeo(sas, NULL, callback, cookie));
-}
-
-/**
- * network_connect_timeo(sas, timeo, callback, cookie):
- * Behave as network_connect(), but wait a duration of at most ${timeo} for
- * each address which is being attempted.
- */
-void *
-network_connect_timeo(struct sock_addr * const * sas,
-    const struct timeval * timeo,
+static void *
+network_connect_internal(struct sock_addr * const * sas,
+    const struct sock_addr * sa_b, const struct timeval * timeo,
     int (* callback)(void *, int), void * cookie)
 {
 	struct connect_cookie * C;
@@ -200,6 +191,7 @@ network_connect_timeo(struct sock_addr * const * sas,
 	C->callback = callback;
 	C->cookie = cookie;
 	C->sas = sas;
+	C->sa_b = sa_b;
 	C->cookie_immediate = NULL;
 	C->cookie_timeo = NULL;
 	C->s = -1;
@@ -222,6 +214,59 @@ network_connect_timeo(struct sock_addr * const * sas,
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * network_connect(sas, callback, cookie):
+ * Iterate through the addresses in ${sas}, attempting to create and connect
+ * a non-blocking socket.  Once connected, invoke ${callback}(${cookie}, s)
+ * where s is the connected socket; upon fatal error or if there are no
+ * addresses remaining to attempt, invoke ${callback}(${cookie}, -1).  Return
+ * a cookie which can be passed to network_connect_cancel() in order to cancel
+ * the connection attempt.
+ */
+void *
+network_connect(struct sock_addr * const * sas,
+    int (* callback)(void *, int), void * cookie)
+{
+
+	/* Let network_connect_internal handle this. */
+	return (network_connect_internal(sas, NULL, NULL, callback, cookie));
+}
+
+/**
+ * network_connect_bind(sas, sa_b, callback, cookie):
+ * Iterate through the addresses in ${sas}, attempting to create and connect
+ * a non-blocking socket.  If ${sa_b} is not NULL, bind the socket to ${sa_b}
+ * immediately after creating it.  Once connected, invoke
+ * ${callback}(${cookie}, s) where s is the connected socket; upon fatal error
+ * or if there are no addresses remaining to attempt, invoke
+ * ${callback}(${cookie}, -1).  Return a cookie which can be passed to
+ * network_connect_cancel() in order to cancel the connection attempt.
+ */
+void *
+network_connect_bind(struct sock_addr * const * sas,
+    const struct sock_addr * sa_b, int (* callback)(void *, int),
+    void * cookie)
+{
+
+	/* Let network_connect_internal handle this. */
+	return (network_connect_internal(sas, sa_b, NULL, callback, cookie));
+}
+
+/**
+ * network_connect_timeo(sas, timeo, callback, cookie):
+ * Behave as network_connect(), but wait a duration of at most ${timeo} for
+ * each address which is being attempted.
+ */
+void *
+network_connect_timeo(struct sock_addr * const * sas,
+    const struct timeval * timeo,
+    int (* callback)(void *, int), void * cookie)
+{
+
+	/* Let network_connect_internal handle this. */
+	return (network_connect_internal(sas, NULL, timeo, callback, cookie));
 }
 
 /**
