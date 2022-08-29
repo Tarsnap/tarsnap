@@ -1,5 +1,5 @@
-#ifndef _EVENTS_H_
-#define _EVENTS_H_
+#ifndef EVENTS_H_
+#define EVENTS_H_
 
 #include <sys/select.h>
 
@@ -113,4 +113,4 @@ void events_interrupt(void);
  */
 void events_shutdown(void);
 
-#endif /* !_EVENTS_H_ */
+#endif /* !EVENTS_H_ */

@@ -1,5 +1,5 @@
-#ifndef _SHA256_SSE2_H_
-#define _SHA256_SSE2_H_
+#ifndef SHA256_SSE2_H_
+#define SHA256_SSE2_H_
 
 #include <stdint.h>
 
@@ -20,4 +20,4 @@ void SHA256_Transform_sse2(uint32_t[static restrict 8],
     uint32_t S[static restrict 8]);
 #endif
 
-#endif /* !_SHA256_SSE2_H_ */
+#endif /* !SHA256_SSE2_H_ */

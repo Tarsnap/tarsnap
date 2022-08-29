@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_VERIFY_BYTES_H_
-#define _CRYPTO_VERIFY_BYTES_H_
+#ifndef CRYPTO_VERIFY_BYTES_H_
+#define CRYPTO_VERIFY_BYTES_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -11,4 +11,4 @@
  */
 uint8_t crypto_verify_bytes(const uint8_t *, const uint8_t *, size_t);
 
-#endif /* !_CRYPTO_VERIFY_BYTES_H_ */
+#endif /* !CRYPTO_VERIFY_BYTES_H_ */

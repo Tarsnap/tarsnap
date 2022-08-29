@@ -1,5 +1,5 @@
-#ifndef _HEXIFY_H_
-#define _HEXIFY_H_
+#ifndef HEXIFY_H_
+#define HEXIFY_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -19,4 +19,4 @@ void hexify(const uint8_t *, char *, size_t);
  */
 int unhexify(const char *, uint8_t *, size_t);
 
-#endif /* !_HEXIFY_H_ */
+#endif /* !HEXIFY_H_ */

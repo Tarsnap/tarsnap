@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AES_AESNI_H_
-#define _CRYPTO_AES_AESNI_H_
+#ifndef CRYPTO_AES_AESNI_H_
+#define CRYPTO_AES_AESNI_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -29,4 +29,4 @@ void crypto_aes_encrypt_block_aesni(const uint8_t[16], uint8_t[16],
  */
 void crypto_aes_key_free_aesni(void *);
 
-#endif /* !_CRYPTO_AES_AESNI_H_ */
+#endif /* !CRYPTO_AES_AESNI_H_ */

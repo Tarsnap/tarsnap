@@ -1,5 +1,5 @@
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#ifndef NETWORK_H_
+#define NETWORK_H_
 
 #include <sys/select.h>
 
@@ -105,4 +105,4 @@ void * network_write(int, const uint8_t *, size_t, size_t,
  */
 void network_write_cancel(void *);
 
-#endif /* !_NETWORK_H_ */
+#endif /* !NETWORK_H_ */

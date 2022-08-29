@@ -1,5 +1,5 @@
-#ifndef _B64ENCODE_H_
-#define _B64ENCODE_H_
+#ifndef B64ENCODE_H_
+#define B64ENCODE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,4 +24,4 @@ void b64encode(const uint8_t *, char *, size_t);
  */
 int b64decode(const char *, size_t, uint8_t *, size_t *);
 
-#endif /* !_B64ENCODE_H_ */
+#endif /* !B64ENCODE_H_ */

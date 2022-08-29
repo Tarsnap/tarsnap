@@ -1,5 +1,5 @@
-#ifndef _TTYFD_H_
-#define _TTYFD_H_
+#ifndef TTYFD_H_
+#define TTYFD_H_
 
 /**
  * ttyfd(void):
@@ -10,4 +10,4 @@
  */
 int ttyfd(void);
 
-#endif /* !_TTYFD_H_ */
+#endif /* !TTYFD_H_ */

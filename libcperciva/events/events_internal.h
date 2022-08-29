@@ -1,5 +1,5 @@
-#ifndef _EVENTS_INTERNAL_H_
-#define _EVENTS_INTERNAL_H_
+#ifndef EVENTS_INTERNAL_H_
+#define EVENTS_INTERNAL_H_
 
 #include <sys/time.h>
 
@@ -81,4 +81,4 @@ int events_timer_min(struct timeval **);
  */
 int events_timer_get(struct eventrec **);
 
-#endif /* !_EVENTS_INTERNAL_H_ */
+#endif /* !EVENTS_INTERNAL_H_ */

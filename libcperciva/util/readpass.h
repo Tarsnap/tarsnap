@@ -1,5 +1,5 @@
-#ifndef _READPASS_H_
-#define _READPASS_H_
+#ifndef READPASS_H_
+#define READPASS_H_
 
 /* Avoid namespace collisions with other "readpass" functions. */
 #ifdef readpass
@@ -30,4 +30,4 @@ int readpass(char **, const char *, const char *, int);
  */
 int readpass_file(char **, const char *);
 
-#endif /* !_READPASS_H_ */
+#endif /* !READPASS_H_ */

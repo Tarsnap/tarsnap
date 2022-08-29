@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_ENTROPY_RDRAND_H_
-#define _CRYPTO_ENTROPY_RDRAND_H_
+#ifndef CRYPTO_ENTROPY_RDRAND_H_
+#define CRYPTO_ENTROPY_RDRAND_H_
 
 #include <stddef.h>
 
@@ -11,4 +11,4 @@
  */
 int generate_seed_rdrand(unsigned int *, size_t);
 
-#endif /* !_CRYPTO_ENTROPY_RDRAND_H_ */
+#endif /* !CRYPTO_ENTROPY_RDRAND_H_ */

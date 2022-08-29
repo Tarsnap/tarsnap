@@ -1,5 +1,5 @@
-#ifndef _PARSENUM_H_
-#define _PARSENUM_H_
+#ifndef PARSENUM_H_
+#define PARSENUM_H_
 
 #include <assert.h>
 #include <errno.h>
@@ -194,4 +194,4 @@ parsenum_unsigned(const char * s, uintmax_t min, uintmax_t max,
 	return (val);
 }
 
-#endif /* !_PARSENUM_H_ */
+#endif /* !PARSENUM_H_ */

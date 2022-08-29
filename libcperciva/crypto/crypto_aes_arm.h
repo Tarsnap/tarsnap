@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AES_ARM_H_
-#define _CRYPTO_AES_ARM_H_
+#ifndef CRYPTO_AES_ARM_H_
+#define CRYPTO_AES_ARM_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -29,4 +29,4 @@ void crypto_aes_encrypt_block_arm(const uint8_t[16], uint8_t[16],
  */
 void crypto_aes_key_free_arm(void *);
 
-#endif /* !_CRYPTO_AES_ARM_H_ */
+#endif /* !CRYPTO_AES_ARM_H_ */

@@ -1,5 +1,5 @@
-#ifndef _SYSENDIAN_H_
-#define _SYSENDIAN_H_
+#ifndef SYSENDIAN_H_
+#define SYSENDIAN_H_
 
 #include <stdint.h>
 
@@ -143,4 +143,4 @@ le64enc(void * pp, uint64_t x)
 	p[7] = (x >> 56) & 0xff;
 }
 
-#endif /* !_SYSENDIAN_H_ */
+#endif /* !SYSENDIAN_H_ */

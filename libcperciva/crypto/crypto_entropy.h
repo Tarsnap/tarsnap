@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_ENTROPY_H_
-#define _CRYPTO_ENTROPY_H_
+#ifndef CRYPTO_ENTROPY_H_
+#define CRYPTO_ENTROPY_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -10,4 +10,4 @@
  */
 int crypto_entropy_read(uint8_t *, size_t);
 
-#endif /* !_CRYPTO_ENTROPY_H_ */
+#endif /* !CRYPTO_ENTROPY_H_ */

@@ -1,5 +1,5 @@
-#ifndef _SHA256_ARM_H_
-#define _SHA256_ARM_H_
+#ifndef SHA256_ARM_H_
+#define SHA256_ARM_H_
 
 #include <stdint.h>
 
@@ -18,4 +18,4 @@ void SHA256_Transform_arm(uint32_t[static restrict 8],
     const uint8_t[static restrict 64]);
 #endif
 
-#endif /* !_SHA256_ARM_H_ */
+#endif /* !SHA256_ARM_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AES_AESNI_M128I_H_
-#define _CRYPTO_AES_AESNI_M128I_H_
+#ifndef CRYPTO_AES_AESNI_M128I_H_
+#define CRYPTO_AES_AESNI_M128I_H_
 
 #include <emmintrin.h>
 
@@ -12,4 +12,4 @@
  */
 __m128i crypto_aes_encrypt_block_aesni_m128i(__m128i, const void *);
 
-#endif /* !_CRYPTO_AES_AESNI_M128I_H_ */
+#endif /* !CRYPTO_AES_AESNI_M128I_H_ */

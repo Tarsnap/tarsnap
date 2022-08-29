@@ -1,5 +1,5 @@
-#ifndef _GETOPT_H_
-#define _GETOPT_H_
+#ifndef GETOPT_H_
+#define GETOPT_H_
 
 #include <assert.h>
 #include <setjmp.h>
@@ -197,4 +197,4 @@ void getopt_setrange(size_t);
 extern const char * getopt_dummy;
 extern int getopt_initialized;
 
-#endif /* !_GETOPT_H_ */
+#endif /* !GETOPT_H_ */

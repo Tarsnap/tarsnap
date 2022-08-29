@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AES_ARM_U8_H_
-#define _CRYPTO_AES_ARM_U8_H_
+#ifndef CRYPTO_AES_ARM_U8_H_
+#define CRYPTO_AES_ARM_U8_H_
 
 #ifdef __ARM_NEON
 #include <arm_neon.h>
@@ -14,4 +14,4 @@
  */
 uint8x16_t crypto_aes_encrypt_block_arm_u8(uint8x16_t, const void *);
 
-#endif /* !_CRYPTO_AES_ARM_U8_H_ */
+#endif /* !CRYPTO_AES_ARM_U8_H_ */

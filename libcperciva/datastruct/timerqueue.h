@@ -1,5 +1,5 @@
-#ifndef _TIMERQUEUE_H_
-#define _TIMERQUEUE_H_
+#ifndef TIMERQUEUE_H_
+#define TIMERQUEUE_H_
 
 #include <sys/time.h>
 
@@ -57,4 +57,4 @@ void * timerqueue_getptr(struct timerqueue *, const struct timeval *);
  */
 void timerqueue_free(struct timerqueue *);
 
-#endif /* !_TIMERQUEUE_H_ */
+#endif /* !TIMERQUEUE_H_ */

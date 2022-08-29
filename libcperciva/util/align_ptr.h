@@ -1,5 +1,5 @@
-#ifndef _ALIGN_PTR_H_
-#define _ALIGN_PTR_H_
+#ifndef ALIGN_PTR_H_
+#define ALIGN_PTR_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -47,4 +47,4 @@ align_ptr(uint8_t * arr, size_t alignment)
 	return ((void *)&arr[offset]);
 }
 
-#endif /* !_ALIGN_PTR_H_ */
+#endif /* !ALIGN_PTR_H_ */

@@ -1,5 +1,5 @@
-#ifndef _SHA256_H_
-#define _SHA256_H_
+#ifndef SHA256_H_
+#define SHA256_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -92,4 +92,4 @@ void HMAC_SHA256_Buf(const void *, size_t, const void *, size_t, uint8_t[32]);
 void PBKDF2_SHA256(const uint8_t *, size_t, const uint8_t *, size_t,
     uint64_t, uint8_t *, size_t);
 
-#endif /* !_SHA256_H_ */
+#endif /* !SHA256_H_ */
