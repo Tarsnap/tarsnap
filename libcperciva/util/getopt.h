@@ -45,9 +45,9 @@
 /* Select the method of performing local jumps. */
 #ifdef GETOPT_USE_COMPUTED_GOTO
 /* Workaround with computed goto. */
-#define DO_SETJMP _DO_SETJMP(__LINE__)
-#define _DO_SETJMP(x) __DO_SETJMP(x)
-#define __DO_SETJMP(x)							\
+#define DO_SETJMP DO_SETJMP_(__LINE__)
+#define DO_SETJMP_(x) DO_SETJMP__(x)
+#define DO_SETJMP__(x)					\
 	void * getopt_initloop = && getopt_initloop_ ## x;		\
 	getopt_initloop_ ## x:
 #define DO_LONGJMP							\
@@ -107,9 +107,9 @@ extern int optind, opterr, optreset;
  * GETOPT_OPT("-x") is equivalent to "case 'x'" in a standard getopt loop
  * which has an optstring containing "x".
  */
-#define GETOPT_OPT(os)	_GETOPT_OPT(os, __LINE__)
-#define _GETOPT_OPT(os, ln)	__GETOPT_OPT(os, ln)
-#define __GETOPT_OPT(os, ln)						\
+#define GETOPT_OPT(os)	GETOPT_OPT_(os, __LINE__)
+#define GETOPT_OPT_(os, ln)	GETOPT_OPT__(os, ln)
+#define GETOPT_OPT__(os, ln)						\
 	case ln:							\
 		if (getopt_initialized)					\
 			goto getopt_skip_ ## ln;			\
@@ -126,9 +126,9 @@ extern int optind, opterr, optreset;
  * GETOPT_OPTARG("-x") is equivalent to "case 'x'" in a standard getopt loop
  * which has an optstring containing "x:".
  */
-#define GETOPT_OPTARG(os)	_GETOPT_OPTARG(os, __LINE__)
-#define _GETOPT_OPTARG(os, ln)	__GETOPT_OPTARG(os, ln)
-#define __GETOPT_OPTARG(os, ln)						\
+#define GETOPT_OPTARG(os)	GETOPT_OPTARG_(os, __LINE__)
+#define GETOPT_OPTARG_(os, ln)	GETOPT_OPTARG__(os, ln)
+#define GETOPT_OPTARG__(os, ln)						\
 	case ln:							\
 		if (getopt_initialized) {				\
 			assert(optarg != NULL);				\
@@ -147,9 +147,9 @@ extern int optind, opterr, optreset;
  * which has an optstring starting with ":".  As such, it also has the effect
  * of disabling warnings about invalid options, as if opterr had been zeroed.
  */
-#define GETOPT_MISSING_ARG	_GETOPT_MISSING_ARG(__LINE__)
-#define _GETOPT_MISSING_ARG(ln)	__GETOPT_MISSING_ARG(ln)
-#define __GETOPT_MISSING_ARG(ln)					\
+#define GETOPT_MISSING_ARG	GETOPT_MISSING_ARG_(__LINE__)
+#define GETOPT_MISSING_ARG_(ln)	GETOPT_MISSING_ARG__(ln)
+#define GETOPT_MISSING_ARG__(ln)					\
 	case ln:							\
 		if (getopt_initialized)					\
 			goto getopt_skip_ ## ln;			\
@@ -168,9 +168,9 @@ extern int optind, opterr, optreset;
  * NOTE: This MUST be present in the GETOPT_SWITCH statement, and MUST occur
  * after all other GETOPT_* labels.
  */
-#define GETOPT_DEFAULT		_GETOPT_DEFAULT(__LINE__)
-#define _GETOPT_DEFAULT(ln)	__GETOPT_DEFAULT(ln)
-#define __GETOPT_DEFAULT(ln)						\
+#define GETOPT_DEFAULT		GETOPT_DEFAULT_(__LINE__)
+#define GETOPT_DEFAULT_(ln)	GETOPT_DEFAULT__(ln)
+#define GETOPT_DEFAULT__(ln)						\
 		goto getopt_skip_ ## ln;				\
 	case ln:							\
 		getopt_initialized = 1;					\
