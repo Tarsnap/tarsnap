@@ -394,22 +394,22 @@ struct {								\
 /*
  * Tail queue definitions.
  */
-#define	_TAILQ_HEAD(name, type, qual)					\
+#define	TAILQ_HEAD_(name, type, qual)					\
 struct name {								\
 	qual type *tqh_first;		/* first element */		\
 	qual type *qual *tqh_last;	/* addr of last next element */	\
 }
-#define TAILQ_HEAD(name, type)	_TAILQ_HEAD(name, struct type,)
+#define TAILQ_HEAD(name, type)	TAILQ_HEAD_(name, struct type,)
 
 #define	TAILQ_HEAD_INITIALIZER(head)					\
 	{ TAILQ_END(head), &(head).tqh_first }
 
-#define	_TAILQ_ENTRY(type, qual)					\
+#define	TAILQ_ENTRY_(type, qual)					\
 struct {								\
 	qual type *tqe_next;		/* next element */		\
 	qual type *qual *tqe_prev;	/* address of previous next element */\
 }
-#define TAILQ_ENTRY(type)	_TAILQ_ENTRY(struct type,)
+#define TAILQ_ENTRY(type)	TAILQ_ENTRY_(struct type,)
 
 /*
  * Tail queue access methods.
