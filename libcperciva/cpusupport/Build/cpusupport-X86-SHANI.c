@@ -19,7 +19,7 @@ int
 main(void)
 {
 	__m128i x;
-	uint8_t a[16];
+	uint8_t a[16] = {0};
 
 	x = load_128(a);
 	x = _mm_sha256msg1_epu32(x, x);

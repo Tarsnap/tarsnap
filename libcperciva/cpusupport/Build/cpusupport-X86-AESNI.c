@@ -20,7 +20,7 @@ int
 main(void)
 {
 	__m128i x, y;
-	uint8_t a[16];
+	uint8_t a[16] = {0};
 
 	x = load_128(a);
 #ifdef BROKEN_MM_LOADU_SI64
