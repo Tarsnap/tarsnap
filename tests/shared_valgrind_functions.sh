@@ -204,7 +204,7 @@ valgrind_ensure_suppression() {
 		    > /dev/null
 
 		# Append name to suppressions file
-		printf "# ${testname}\n" >> ${valgrind_suppressions}
+		printf "# %s\n" "${testname}" >> ${valgrind_suppressions}
 
 		# Strip out useless parts from the log file, and allow the
 		# suppressions to apply to other binaries.

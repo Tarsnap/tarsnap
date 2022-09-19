@@ -83,12 +83,12 @@ find_system() {
 	system_binary=$(command -v ${cmd}) || true
 	if [ -z "${system_binary-}" ]; then
 		system_binary=""
-		printf "System ${cmd} not found.\n" 1>&2
+		printf "System %s not found.\n" "${cmd}" 1>&2
 	# If the command exists, check it ensures the ${args}.
 	elif ${cmd_with_args} 2>&1 >/dev/null |	\
 	    grep -qE "(invalid|illegal) option"; then
 		system_binary=""
-		printf "Cannot use system ${cmd}; does not" 1>&2
+		printf "Cannot use system %s; does not" "${cmd}" 1>&2
 		printf " support necessary arguments.\n" 1>&2
 	fi
 	echo "${system_binary}"
@@ -146,7 +146,7 @@ setup_check_variables() {
 	c_exitfile="${s_basename}-${count_str}.exit"
 
 	# Write the "description" file.
-	printf "${description}\n" >				\
+	printf "%s\n" "${description}" >				\
 		"${s_basename}-${count_str}.desc"
 
 	# Set up the valgrind command (or an empty string).
@@ -207,8 +207,8 @@ notify_success_or_fail() {
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!" 1>&2
 			if [ ${VERBOSE} -ne 0 ]; then
-				printf "File ${exitfile} contains exit" 1>&2
-				printf " code ${ret}.\n" 1>&2
+				printf "File %s contains" "${exitfile}" 1>&2
+				printf " exit code %s.\n" "${ret}" 1>&2
 				descfile=$(echo ${exitfile} |		\
 				    sed 's/\.exit/\.desc/g')
 				printf "Test description: " 1>&2
@@ -245,7 +245,7 @@ notify_success_or_fail() {
 scenario_runner() {
 	scenario_filename=$1
 	basename=$(basename ${scenario_filename} .sh)
-	printf "  ${basename}... " 1>&2
+	printf "  %s... " "${basename}" 1>&2
 
 	# Initialize "scenario" and "check" variables.
 	s_basename=${out}/${basename}
@@ -260,7 +260,7 @@ scenario_runner() {
 	. ${scenario_filename}
 	if ! command -v scenario_cmd 1>/dev/null ; then
 		printf "ERROR: scenario_cmd() is not defined in\n" 1>&2
-		printf "  ${scenario_filename}\n" 1>&2
+		printf "  %s\n" "${scenario_filename}" 1>&2
 		exit 1
 	fi
 
