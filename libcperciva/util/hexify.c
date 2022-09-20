@@ -33,6 +33,7 @@ int
 unhexify(const char * in, uint8_t * out, size_t len)
 {
 	size_t i;
+	ptrdiff_t pos;
 
 	/* Make sure we have at least 2 * ${len} hex characters. */
 	for (i = 0; i < 2 * len; i++) {
@@ -40,10 +41,16 @@ unhexify(const char * in, uint8_t * out, size_t len)
 			goto err0;
 	}
 
+	/* Process all pairs of characters. */
 	for (i = 0; i < len; i++) {
-		out[i] = (strchr(hexchars, in[2 * i]) - hexchars) & 0x0f;
+		/* Convert first character. */
+		pos = strchr(hexchars, in[2 * i]) - hexchars;
+		out[i] = pos & 0x0f;
 		out[i] <<= 4;
-		out[i] += (strchr(hexchars, in[2 * i + 1]) - hexchars) & 0x0f;
+
+		/* Convert second character. */
+		pos = strchr(hexchars, in[2 * i + 1]) - hexchars;
+		out[i] += pos & 0x0f;
 	}
 
 	/* Success! */
