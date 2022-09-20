@@ -20,7 +20,7 @@ b64encode(const uint8_t * in, char * out, size_t len)
 	/* Repeat {read up to 3 bytes; write 4 bytes} until we're done. */
 	while (len) {
 		/* Read up to 3 bytes. */
-		for (t = j = 0; j < 3; j++) {
+		for (t = 0, j = 0; j < 3; j++) {
 			t <<= 8;
 			if (j < len)
 				t += *in++;
