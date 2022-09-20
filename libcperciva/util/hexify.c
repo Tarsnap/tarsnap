@@ -45,12 +45,11 @@ unhexify(const char * in, uint8_t * out, size_t len)
 	for (i = 0; i < len; i++) {
 		/* Convert first character. */
 		pos = strchr(hexchars, in[2 * i]) - hexchars;
-		out[i] = pos & 0x0f;
-		out[i] <<= 4;
+		out[i] = (uint8_t)((pos & 0x0f) << 4);
 
 		/* Convert second character. */
 		pos = strchr(hexchars, in[2 * i + 1]) - hexchars;
-		out[i] += pos & 0x0f;
+		out[i] = (uint8_t)(out[i] + (pos & 0x0f));
 	}
 
 	/* Success! */

@@ -94,7 +94,7 @@ b64decode(const char * in, size_t inlen, uint8_t * out, size_t * outlen)
 		for (t = 0, i = 0; i < 4; i++) {
 			t <<= 6;
 			pos = strchr(b64chars, in[i]) - b64chars;
-			t += pos & 0x3f;
+			t += (uint32_t)(pos & 0x3f);
 		}
 
 		/* Output 3 bytes. */
