@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,6 +266,14 @@ ccache_write(CCACHE * cache, const char * path)
 		warnp("Error writing cache to %s", W.s);
 		goto err2;
 	}
+
+	/* Try to make sure that we've written it on macOS. */
+#if defined(__APPLE__)
+	if (fcntl(fileno(W.f), F_FULLFSYNC) == -1) {
+		warnp("fcntl(%s, F_FULLFSYNC)", path);
+		goto err2;
+	}
+#endif
 
 	/* Close the file. */
 	fclose(W.f);
