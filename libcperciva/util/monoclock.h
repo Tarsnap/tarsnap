@@ -1,5 +1,5 @@
-#ifndef _MONOCLOCK_H_
-#define _MONOCLOCK_H_
+#ifndef MONOCLOCK_H_
+#define MONOCLOCK_H_
 
 #include <sys/time.h>
 
@@ -33,4 +33,4 @@ int monoclock_get_cputime(struct timeval *);
  */
 int monoclock_getres(double *);
 
-#endif /* !_MONOCLOCK_H_ */
+#endif /* !MONOCLOCK_H_ */

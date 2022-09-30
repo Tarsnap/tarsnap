@@ -1,5 +1,5 @@
-#ifndef _SOCK_INTERNAL_H_
-#define _SOCK_INTERNAL_H_
+#ifndef SOCK_INTERNAL_H_
+#define SOCK_INTERNAL_H_
 
 #include <sys/socket.h>
 
@@ -11,4 +11,4 @@ struct sock_addr {
 	socklen_t namelen;
 };
 
-#endif /* !_SOCK_INTERNAL_H_ */
+#endif /* !SOCK_INTERNAL_H_ */

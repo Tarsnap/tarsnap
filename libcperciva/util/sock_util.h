@@ -1,5 +1,5 @@
-#ifndef _SOCK_UTIL_H_
-#define _SOCK_UTIL_H_
+#ifndef SOCK_UTIL_H_
+#define SOCK_UTIL_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -57,4 +57,4 @@ char * sock_addr_prettyprint(const struct sock_addr *);
  */
 char * sock_addr_ensure_port(const char *);
 
-#endif /* !_SOCK_UTIL_H_ */
+#endif /* !SOCK_UTIL_H_ */

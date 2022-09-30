@@ -1,5 +1,5 @@
-#ifndef _CTASSERT_H_
-#define _CTASSERT_H_
+#ifndef CTASSERT_H_
+#define CTASSERT_H_
 
 /*
  * CTASSERT(foo) will produce a compile-time error if "foo" is not a constant
@@ -17,4 +17,4 @@
 #define libcperciva__CTASSERT(x, y)					\
     extern char libcperciva__assert ## y[(x) ? 1 : -1]
 
-#endif /* !_CTASSERT_H_ */
+#endif /* !CTASSERT_H_ */

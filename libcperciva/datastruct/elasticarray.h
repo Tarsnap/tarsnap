@@ -1,5 +1,5 @@
-#ifndef _ELASTICARRAY_H_
-#define _ELASTICARRAY_H_
+#ifndef ELASTICARRAY_H_
+#define ELASTICARRAY_H_
 
 #include <stddef.h>
 
@@ -218,4 +218,4 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 	static void (* prefix##_dummyptr)(void) = prefix##_dummy;	\
 	typedef struct prefix##_struct * type
 
-#endif /* !_ELASTICARRAY_H_ */
+#endif /* !ELASTICARRAY_H_ */

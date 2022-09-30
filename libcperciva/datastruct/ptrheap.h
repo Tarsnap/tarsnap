@@ -1,5 +1,5 @@
-#ifndef _PTRHEAP_H_
-#define _PTRHEAP_H_
+#ifndef PTRHEAP_H_
+#define PTRHEAP_H_
 
 #include <stddef.h>
 
@@ -94,4 +94,4 @@ void ptrheap_increasemin(struct ptrheap *);
  */
 void ptrheap_free(struct ptrheap *);
 
-#endif /* !_PTRHEAP_H_ */
+#endif /* !PTRHEAP_H_ */

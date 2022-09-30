@@ -1,5 +1,5 @@
-#ifndef _IMALLOC_H_
-#define _IMALLOC_H_
+#ifndef IMALLOC_H_
+#define IMALLOC_H_
 
 #include <assert.h>
 #include <errno.h>
@@ -38,4 +38,4 @@ imalloc(size_t nrec, size_t reclen)
 	((((p) = (type *)imalloc((nrec), sizeof(type))) == NULL) &&	\
 	    ((nrec) > 0))
 
-#endif /* !_IMALLOC_H_ */
+#endif /* !IMALLOC_H_ */

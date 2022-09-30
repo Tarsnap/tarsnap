@@ -1,5 +1,5 @@
-#ifndef _WARNP_H_
-#define _WARNP_H_
+#ifndef WARNP_H_
+#define WARNP_H_
 
 #include <errno.h>
 #include <stddef.h>
@@ -77,4 +77,4 @@ void warnx(const char *, ...);
 	errno = 0;					\
 } while (0)
 
-#endif /* !_WARNP_H_ */
+#endif /* !WARNP_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AESCTR_AESNI_H_
-#define _CRYPTO_AESCTR_AESNI_H_
+#ifndef CRYPTO_AESCTR_AESNI_H_
+#define CRYPTO_AESCTR_AESNI_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -16,4 +16,4 @@ struct crypto_aesctr;
 void crypto_aesctr_aesni_stream(struct crypto_aesctr *, const uint8_t *,
     uint8_t *, size_t);
 
-#endif /* !_CRYPTO_AESCTR_AESNI_H_ */
+#endif /* !CRYPTO_AESCTR_AESNI_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_AESCTR_H_
-#define _CRYPTO_AESCTR_H_
+#ifndef CRYPTO_AESCTR_H_
+#define CRYPTO_AESCTR_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -55,4 +55,4 @@ void crypto_aesctr_free(struct crypto_aesctr *);
 void crypto_aesctr_buf(const struct crypto_aes_key *, uint64_t,
     const uint8_t *, uint8_t *, size_t);
 
-#endif /* !_CRYPTO_AESCTR_H_ */
+#endif /* !CRYPTO_AESCTR_H_ */

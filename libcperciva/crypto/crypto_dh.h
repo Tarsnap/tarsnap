@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_DH_H_
-#define _CRYPTO_DH_H_
+#ifndef CRYPTO_DH_H_
+#define CRYPTO_DH_H_
 
 #include <stdint.h>
 
@@ -40,4 +40,4 @@ int crypto_dh_compute(const uint8_t[CRYPTO_DH_PUBLEN],
  */
 int crypto_dh_sanitycheck(const uint8_t[CRYPTO_DH_PUBLEN]);
 
-#endif /* !_CRYPTO_DH_H_ */
+#endif /* !CRYPTO_DH_H_ */

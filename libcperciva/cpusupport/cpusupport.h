@@ -1,5 +1,5 @@
-#ifndef _CPUSUPPORT_H_
-#define _CPUSUPPORT_H_
+#ifndef CPUSUPPORT_H_
+#define CPUSUPPORT_H_
 
 /*
  * To enable support for non-portable CPU features at compile time, one or
@@ -132,4 +132,4 @@ CPUSUPPORT_FEATURE(arm, aes, ARM_AES);
 CPUSUPPORT_FEATURE(arm, crc32_64, ARM_CRC32_64);
 CPUSUPPORT_FEATURE(arm, sha256, ARM_SHA256);
 
-#endif /* !_CPUSUPPORT_H_ */
+#endif /* !CPUSUPPORT_H_ */

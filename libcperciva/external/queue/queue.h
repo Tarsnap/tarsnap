@@ -31,8 +31,8 @@
  *	@(#)queue.h	8.5 (Berkeley) 8/20/94
  */
 
-#ifndef	_SYS_QUEUE_H_
-#define	_SYS_QUEUE_H_
+#ifndef	SYS_QUEUE_H_
+#define	SYS_QUEUE_H_
 
 /*
  * This file defines five types of data structures: singly-linked lists,
@@ -394,22 +394,22 @@ struct {								\
 /*
  * Tail queue definitions.
  */
-#define	_TAILQ_HEAD(name, type, qual)					\
+#define	TAILQ_HEAD_(name, type, qual)					\
 struct name {								\
 	qual type *tqh_first;		/* first element */		\
 	qual type *qual *tqh_last;	/* addr of last next element */	\
 }
-#define TAILQ_HEAD(name, type)	_TAILQ_HEAD(name, struct type,)
+#define TAILQ_HEAD(name, type)	TAILQ_HEAD_(name, struct type,)
 
 #define	TAILQ_HEAD_INITIALIZER(head)					\
 	{ TAILQ_END(head), &(head).tqh_first }
 
-#define	_TAILQ_ENTRY(type, qual)					\
+#define	TAILQ_ENTRY_(type, qual)					\
 struct {								\
 	qual type *tqe_next;		/* next element */		\
 	qual type *qual *tqe_prev;	/* address of previous next element */\
 }
-#define TAILQ_ENTRY(type)	_TAILQ_ENTRY(struct type,)
+#define TAILQ_ENTRY(type)	TAILQ_ENTRY_(struct type,)
 
 /*
  * Tail queue access methods.
@@ -652,4 +652,4 @@ struct {								\
 	        ((struct type *)(void *)				\
 		((char *)((head)->stqh_last) - offsetof(struct type, field))))
 
-#endif	/* !_SYS_QUEUE_H_ */
+#endif	/* !SYS_QUEUE_H_ */

@@ -183,8 +183,8 @@ clearbit(size_t pollpos, short bit)
 {
 
 	/* Clear the bit. */
-	fds[pollpos].events &= ~bit;
-	fds[pollpos].revents &= ~bit;
+	fds[pollpos].events &= (short)(~bit);
+	fds[pollpos].revents &= (short)(~bit);
 
 	/* Is this pollfd in the way? */
 	if (fds[pollpos].events == 0) {

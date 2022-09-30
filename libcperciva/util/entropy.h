@@ -1,5 +1,5 @@
-#ifndef _ENTROPY_H_
-#define _ENTROPY_H_
+#ifndef ENTROPY_H_
+#define ENTROPY_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -33,4 +33,4 @@ int entropy_read_done(struct entropy_read_cookie * er);
  */
 int entropy_read(uint8_t *, size_t);
 
-#endif /* !_ENTROPY_H_ */
+#endif /* !ENTROPY_H_ */

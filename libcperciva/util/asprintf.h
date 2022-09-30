@@ -1,5 +1,5 @@
-#ifndef _ASPRINTF_H_
-#define _ASPRINTF_H_
+#ifndef ASPRINTF_H_
+#define ASPRINTF_H_
 
 /* Avoid namespace collisions with BSD/GNU asprintf. */
 #ifdef asprintf
@@ -13,4 +13,4 @@
  */
 int asprintf(char **, const char *, ...);
 
-#endif /* !_ASPRINTF_H_ */
+#endif /* !ASPRINTF_H_ */

@@ -1,5 +1,5 @@
-#ifndef _SOCK_H_
-#define _SOCK_H_
+#ifndef SOCK_H_
+#define SOCK_H_
 
 /**
  * Address strings are of the following forms:
@@ -71,4 +71,4 @@ void sock_addr_free(struct sock_addr *);
  */
 void sock_addr_freelist(struct sock_addr **);
 
-#endif /* !_SOCK_H_ */
+#endif /* !SOCK_H_ */

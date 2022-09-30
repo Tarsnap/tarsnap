@@ -1,5 +1,5 @@
-#ifndef _HUMANSIZE_H_
-#define _HUMANSIZE_H_
+#ifndef HUMANSIZE_H_
+#define HUMANSIZE_H_
 
 #include <stdint.h>
 
@@ -18,4 +18,4 @@ char * humansize(uint64_t);
  */
 int humansize_parse(const char *, uint64_t *);
 
-#endif /* !_HUMANSIZE_H_ */
+#endif /* !HUMANSIZE_H_ */

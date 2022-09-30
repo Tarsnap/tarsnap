@@ -1,5 +1,5 @@
-#ifndef _MPOOL_H_
-#define _MPOOL_H_
+#ifndef MPOOL_H_
+#define MPOOL_H_
 
 #include <assert.h>
 #include <stdint.h>
@@ -145,4 +145,4 @@ mpool_##name##_dummyfunc(void)					\
 static void (* mpool_##name##_dummyptr)(void) = mpool_##name##_dummyfunc; \
 struct mpool_##name##_dummy
 
-#endif /* !_MPOOL_H_ */
+#endif /* !MPOOL_H_ */
