@@ -203,19 +203,23 @@ notify_success_or_fail() {
 		if [ "${ret}" -lt 0 ]; then
 			skip_exitfiles=$(( skip_exitfiles + 1 ))
 		fi
+
 		# Check for test failure.
+		descfile=$(echo "${exitfile}" | sed 's/\.exit/\.desc/g')
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!" 1>&2
 			if [ ${VERBOSE} -ne 0 ]; then
 				printf "File %s contains" "${exitfile}" 1>&2
 				printf " exit code %s.\n" "${ret}" 1>&2
-				descfile=$(echo ${exitfile} |		\
-				    sed 's/\.exit/\.desc/g')
 				printf "Test description: " 1>&2
 				cat ${descfile} 1>&2
 			fi
 			s_retval=${ret}
 			return
+		else
+			# If there's no failure, delete the files.
+			rm "${exitfile}"
+			rm "${descfile}"
 		fi
 
 		# Check valgrind logfile(s).
