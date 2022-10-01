@@ -61,6 +61,9 @@ valgrind_prepare_directory() {
 		mv "${supp_tmp}" "${valgrind_suppressions}"
 		mv "${fds_tmp}" "${fds}"
 	fi
+
+	# We don't want to back up this directory.
+	[ "$(uname)" = "FreeBSD" ] && chflags nodump "${out_valgrind}"
 }
 
 ## valgrind_check_optional ():

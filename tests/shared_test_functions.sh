@@ -65,6 +65,9 @@ prepare_directory() {
 		rm -rf ${out}
 	fi
 	mkdir ${out}
+
+	# We don't want to back up this directory.
+	[ "$(uname)" = "FreeBSD" ] && chflags nodump "${out}"
 }
 
 ## find_system (cmd, args):
