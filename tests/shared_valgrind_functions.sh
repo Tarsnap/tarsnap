@@ -61,6 +61,9 @@ valgrind_prepare_directory() {
 		mv "${supp_tmp}" "${valgrind_suppressions}"
 		mv "${fds_tmp}" "${fds}"
 	fi
+
+	# We don't want to back up this directory.
+	[ "$(uname)" = "FreeBSD" ] && chflags nodump "${out_valgrind}"
 }
 
 ## valgrind_check_optional ():
@@ -204,7 +207,7 @@ valgrind_ensure_suppression() {
 		    > /dev/null
 
 		# Append name to suppressions file
-		printf "# ${testname}\n" >> ${valgrind_suppressions}
+		printf "# %s\n" "${testname}" >> ${valgrind_suppressions}
 
 		# Strip out useless parts from the log file, and allow the
 		# suppressions to apply to other binaries.

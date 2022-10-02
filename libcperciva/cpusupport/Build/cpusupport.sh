@@ -11,6 +11,14 @@ SRCDIR=$(command -p dirname "$0")
 
 CFLAGS_HARDCODED="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700"
 
+# Do we want to record stderr to a file?
+if [ "${DEBUG:-0}" -eq "0" ]; then
+	outcc="/dev/null"
+else
+	outcc="cpusupport-stderr.log"
+	rm -f "${outcc}"
+fi
+
 feature() {
 	ARCH=$1
 	FEATURE=$2
@@ -27,7 +35,7 @@ feature() {
 	    "$ARCH" "$FEATURE" 1>&2
 	for CPU_CFLAGS in "$@"; do
 		if ${CC} ${CFLAGS} ${CFLAGS_HARDCODED} ${CPU_CFLAGS}	\
-		    "${feature_filename}" 2>/dev/null; then
+		    "${feature_filename}" 2>>${outcc}; then
 			rm -f a.out
 			break;
 		fi

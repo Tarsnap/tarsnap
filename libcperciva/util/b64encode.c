@@ -20,7 +20,7 @@ b64encode(const uint8_t * in, char * out, size_t len)
 	/* Repeat {read up to 3 bytes; write 4 bytes} until we're done. */
 	while (len) {
 		/* Read up to 3 bytes. */
-		for (t = j = 0; j < 3; j++) {
+		for (t = 0, j = 0; j < 3; j++) {
 			t <<= 8;
 			if (j < len)
 				t += *in++;
@@ -58,6 +58,7 @@ int
 b64decode(const char * in, size_t inlen, uint8_t * out, size_t * outlen)
 {
 	uint32_t t;
+	ptrdiff_t pos;
 	size_t deadbytes = 0;
 	size_t i;
 
@@ -92,7 +93,8 @@ b64decode(const char * in, size_t inlen, uint8_t * out, size_t * outlen)
 		/* Parse 4 bytes. */
 		for (t = 0, i = 0; i < 4; i++) {
 			t <<= 6;
-			t += (strchr(b64chars, in[i]) - b64chars) & 0x3f;
+			pos = strchr(b64chars, in[i]) - b64chars;
+			t += (uint32_t)(pos & 0x3f);
 		}
 
 		/* Output 3 bytes. */
