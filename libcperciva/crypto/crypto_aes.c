@@ -148,11 +148,17 @@ openssl_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
 	AES_KEY * kexp = &kexp_actual;
 
 	/* Expand the key, encrypt, and clean up. */
-	AES_set_encrypt_key(key, (int)(len * 8), kexp);
+	if (AES_set_encrypt_key(key, (int)(len * 8), kexp) != 0)
+		goto err0;
 	AES_encrypt(ptext, ctext, kexp);
 	insecure_memzero(kexp, sizeof(AES_KEY));
 
+	/* Success! */
 	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /* Which type of hardware acceleration should we use, if any? */
@@ -247,11 +253,14 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 		goto err0;
 
 	/* Expand the key. */
-	AES_set_encrypt_key(key, (int)(len * 8), kexp);
+	if (AES_set_encrypt_key(key, (int)(len * 8), kexp) != 0)
+		goto err1;
 
 	/* Success! */
 	return ((void *)kexp);
 
+err1:
+	free(kexp);
 err0:
 	/* Failure! */
 	return (NULL);
