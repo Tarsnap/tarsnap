@@ -144,12 +144,13 @@ static int
 openssl_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
     uint8_t * ctext)
 {
-	AES_KEY kexp;
+	AES_KEY kexp_actual;
+	AES_KEY * kexp = &kexp_actual;
 
 	/* Expand the key, encrypt, and clean up. */
-	AES_set_encrypt_key(key, (int)(len * 8), &kexp);
-	AES_encrypt(ptext, ctext, &kexp);
-	insecure_memzero(&kexp, sizeof(AES_KEY));
+	AES_set_encrypt_key(key, (int)(len * 8), kexp);
+	AES_encrypt(ptext, ctext, kexp);
+	insecure_memzero(kexp, sizeof(AES_KEY));
 
 	return (0);
 }
