@@ -293,7 +293,9 @@ will approximately double the time taken.
 Don't really create an archive; just simulate doing so.
 The list of paths added to an archive (if the
 .Fl v
-option is used) and statistics printed (if the
+option is used), progress messages (if the
+.Fl -progress-bytes
+option is used), and final statistics printed (if the
 .Fl -print-stats
 option is used) will be almost identical (typically
 within a few kB or a fraction of a percent) to if
@@ -313,6 +315,14 @@ does not contact the
 server when performing a dry run, it will not detect an
 attempt to create an archive with the same name as one
 which already exists.
+If an existing archive is being copied via
+.Cm @@ Ns Ar archive-name ,
+then some network bandwidth will be used while
+.Nm
+reads metadata about
+.Ar archive-name
+from the tarsnap server.
+.Pp
 Furthermore,
 .Fl -dry-run
 will not check whether the cache directory is out of sync.
