@@ -407,7 +407,8 @@ sock_listener(const struct sock_addr * sa)
 	return (s);
 
 err1:
-	close(s);
+	if (close(s))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -436,7 +437,8 @@ sock_connect(struct sock_addr * const * sas)
 			break;
 
 		/* Close the socket; this address didn't work. */
-		close(s);
+		if (close(s))
+			warnp("close");
 	}
 
 	/* Did we manage to connect? */
@@ -455,7 +457,8 @@ sock_connect(struct sock_addr * const * sas)
 	return (s);
 
 err1:
-	close(s);
+	if (close(s))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -532,7 +535,8 @@ sock_connect_bind_nb(const struct sock_addr * sa,
 	return (s);
 
 err1:
-	close(s);
+	if (close(s))
+		warnp("close");
 err0:
 	/* We failed to connect to this address. */
 	return (-1);

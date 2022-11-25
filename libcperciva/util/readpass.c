@@ -173,8 +173,8 @@ retry:
 	resetsigs(savedsa);
 
 	/* Close /dev/tty if we opened it. */
-	if (readfrom != stdin)
-		fclose(readfrom);
+	if ((readfrom != stdin) && fclose(readfrom))
+		warnp("fclose");
 
 	/* Copy the password out. */
 	if ((*passwd = strdup(passbuf)) == NULL) {
@@ -204,8 +204,8 @@ err3:
 		tcsetattr(fileno(readfrom), TCSAFLUSH, &term_old);
 err2:
 	/* Close /dev/tty if we opened it. */
-	if (readfrom != stdin)
-		fclose(readfrom);
+	if ((readfrom != stdin) && fclose(readfrom))
+		warnp("fclose");
 
 	/* Restore old signals and re-issue intercepted signals. */
 	resetsigs(savedsa);
