@@ -70,7 +70,7 @@ jobs:
     - name: Test clang binaries
       env:
         USE_VALGRIND: 1
-      run: make test
+      run: make test VERBOSE=1
     - name: Clean
       run: make clean
     - name: configure with gcc
@@ -97,7 +97,7 @@ jobs:
     - name: Test gcc binaries
       env:
         USE_VALGRIND: 1
-      run: make test
+      run: make test VERBOSE=1
     - name: Check for untracked files
       run: test -z "$(git status --porcelain=v1)"
   macOS:
@@ -135,4 +135,4 @@ jobs:
       # Makefile with the environment variable.
       run: make CFLAGS="${{ env.CFLAGS }}"
     - name: Tests clang binaries
-      run: make test
+      run: make test VERBOSE=1
