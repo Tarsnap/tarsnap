@@ -531,8 +531,8 @@ err6:
 err5:
 	storage_write_free(d->S);
 err4:
-	if (d->lockfd != -1)
-		close(d->lockfd);
+	if ((d->lockfd != -1) && close(d->lockfd))
+		warnp("close");
 err3:
 	free(d->cachedir);
 err2:
@@ -977,8 +977,8 @@ writetape_close(TAPE_W * d)
 	}
 
 	/* Unlock the cache directory (if applicable). */
-	if (d->lockfd != -1)
-		close(d->lockfd);
+	if ((d->lockfd != -1) && close(d->lockfd))
+		warnp("close");
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
@@ -1000,8 +1000,8 @@ err2:
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 err1:
-	if (d->lockfd != -1)
-		close(d->lockfd);
+	if ((d->lockfd != -1) && close(d->lockfd))
+		warnp("close");
 	chunkify_free(d->c_file);
 	bytebuf_free(d->hbuf);
 	stream_free(&d->t);
@@ -1029,8 +1029,8 @@ writetape_free(TAPE_W * d)
 
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
-	if (d->lockfd != -1)
-		close(d->lockfd);
+	if ((d->lockfd != -1) && close(d->lockfd))
+		warnp("close");
 	chunkify_free(d->c_file);
 	bytebuf_free(d->hbuf);
 	stream_free(&d->t);

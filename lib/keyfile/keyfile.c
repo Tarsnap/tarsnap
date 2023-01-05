@@ -527,7 +527,8 @@ keyfile_write_open(const char * filename)
 
 err1:
 	unlink(filename);
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (NULL);
