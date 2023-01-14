@@ -549,7 +549,8 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 		goto err1;
 
 	/* Unlock the cache directory. */
-	close(lockfd);
+	if (close(lockfd))
+		warnp("close");
 
 	/* Success! */
 	return (0);
@@ -567,7 +568,8 @@ err3:
 err2:
 	storage_delete_free(SD);
 err1:
-	close(lockfd);
+	if (close(lockfd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);

@@ -383,7 +383,8 @@ multitape_lock(const char * cachedir)
 	return (fd);
 
 err2:
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err1:
 	free(s);
 err0:

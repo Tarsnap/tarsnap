@@ -75,7 +75,8 @@ callback_connect(void * cookie, int s)
 
 err2:
 	/* Drop the socket since we can't use it properly. */
-	close(s);
+	if (close(s))
+		warnp("close");
 err1:
 	/* Call the upstream callback. */
 	rc = (C->callback)(C->cookie, NETWORK_STATUS_ERR);

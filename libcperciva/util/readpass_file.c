@@ -68,7 +68,8 @@ readpass_file(char ** passwd, const char * filename)
 	return (0);
 
 err2:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err1:
 	/* No harm in running this for all error paths. */
 	insecure_memzero(passbuf, MAXPASSLEN);

@@ -55,7 +55,8 @@ termios_restore(void)
 	 * to a different terminal; we don't want to restore settings to the
 	 * wrong terminal.
 	 */
-	close(fd_terminal);
+	if (close(fd_terminal))
+		warnp("close");
 }
 
 /**

@@ -45,7 +45,8 @@ dirutil_fsyncdir(const char * path)
 	/* Call fsync. */
 	if (fsync(fd)) {
 		warnp("fsync(%s)", path);
-		close(fd);
+		if (close(fd))
+			warnp("close");
 		return (-1);
 	}
 

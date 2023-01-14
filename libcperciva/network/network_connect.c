@@ -8,6 +8,7 @@
 
 #include "events.h"
 #include "sock.h"
+#include "warnp.h"
 
 #include "network.h"
 
@@ -48,7 +49,8 @@ dofailed(struct connect_cookie * C)
 {
 
 	/* Close the socket which failed to connect. */
-	close(C->s);
+	if (close(C->s))
+		warnp("close");
 
 	/* We don't have an open socket any more. */
 	C->s = -1;
@@ -88,7 +90,8 @@ callback_connect(void * cookie)
 	return (docallback(C));
 
 err1:
-	close(C->s);
+	if (close(C->s))
+		warnp("close");
 	free(C);
 
 	/* Fatal error! */
@@ -157,8 +160,8 @@ err2:
 	if (C->cookie_timeo != NULL)
 		events_timer_cancel(C->cookie_timeo);
 err1:
-	if (C->s != -1)
-		close(C->s);
+	if ((C->s != -1) && close(C->s))
+		warnp("close");
 	free(C);
 
 	/* Fatal error. */
@@ -294,7 +297,8 @@ network_connect_cancel(void * cookie)
 	/* Close any socket. */
 	if (C->s != -1) {
 		events_network_cancel(C->s, EVENTS_NETWORK_OP_WRITE);
-		close(C->s);
+		if (close(C->s))
+			warnp("close");
 	}
 
 	/* Free the cookie. */

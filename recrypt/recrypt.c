@@ -696,8 +696,10 @@ main(int argc, char **argv)
 	free(ndirpath);
 
 	/* Close lock files (not really needed as they autoclose on exit). */
-	close(odirlock);
-	close(ndirlock);
+	if (close(odirlock))
+		warnp("close");
+	if (close(ndirlock))
+		warnp("close");
 
 	return (0);
 }
