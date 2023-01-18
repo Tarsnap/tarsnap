@@ -92,7 +92,7 @@ valgrind_check_optional() {
 	fi
 }
 
-## valgrind_process_suppresion_file(filename):
+## valgrind_process_suppression_file(filename):
 # Generalize suppressions from a valgrind suppression file by omitting the
 # "fun:pl_*" and "fun:main" lines and anything below them.
 valgrind_process_suppression_file() {

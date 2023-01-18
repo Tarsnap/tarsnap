@@ -200,7 +200,7 @@ def sort_tarsnap_opts(two, one):
     if a < b:
         return -1
 
-    # It's a tie (such as -H, h), so now use capilization.
+    # It's a tie (such as -H, h), so now use capitalization.
     if one < two:
         return 1
     if one > two:
