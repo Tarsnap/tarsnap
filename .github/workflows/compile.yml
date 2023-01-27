@@ -28,8 +28,9 @@ env:
   CFLAGS_GCC_PROJECT:
   # Needed for major() / minor() / makedev() thing.
   CFLAGS_LIBARCHIVE_GCC: -Wno-error
-  CFLAGS_OSX: -Wno-poison-system-directories -I/usr/local/opt/openssl@1.1/include
-  LDFLAGS_OSX: -L/usr/local/opt/openssl@1.1/lib
+  CFLAGS_OSX: -Wno-poison-system-directories
+              -Wno-deprecated-declarations
+  LDFLAGS_OSX:
 
 jobs:
   Ubuntu:
@@ -42,6 +43,7 @@ jobs:
       run: sudo apt-get update
     - name: Install software
       run: sudo apt-get install --no-install-recommends valgrind e2fslibs-dev
+           autoconf-archive
     - name: Checkout code
       uses: actions/checkout@v2
     - name: autoreconf
