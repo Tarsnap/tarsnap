@@ -161,10 +161,10 @@ lib_libtarsnap_a_SOURCES=					\
 		lib-platform/platform.h				\
 		lib-platform/network/tsnetwork_cork.c		\
 		lib-platform/network/tsnetwork_cork.h		\
-		lib-platform/util/getfstype.c			\
-		lib-platform/util/getfstype.h			\
 		lib-platform/util/memlimit.c			\
 		lib-platform/util/memlimit.h			\
+		lib-platform/util/ts_getfstype.c		\
+		lib-platform/util/ts_getfstype.h		\
 		libcperciva/alg/sha256.c			\
 		libcperciva/alg/sha256.h			\
 		libcperciva/alg/sha256_arm.h			\
