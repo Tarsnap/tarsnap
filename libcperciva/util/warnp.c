@@ -14,7 +14,7 @@ static int syslog_priority = LOG_WARNING;
 
 /* Free the name string and clean up writing to the syslog (if applicable). */
 static void
-done(void)
+warnp_atexit(void)
 {
 
 	/* Clean up writing to the syslog (if applicable).  */
@@ -47,7 +47,7 @@ warnp_setprogname(const char * progname)
 
 	/* If we haven't already done so, register our exit handler. */
 	if (initialized == 0) {
-		atexit(done);
+		atexit(warnp_atexit);
 		initialized = 1;
 	}
 }

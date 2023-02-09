@@ -67,7 +67,7 @@ mpool_free(struct mpool * M, void * p)
 		return;
 	}
 
-	if (M->nempties	> (M->nallocs >> 8)) {
+	if (M->nempties > (M->nallocs >> 8)) {
 		/* Sanity check. */
 		assert(M->allocsize > 0);
 

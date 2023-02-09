@@ -181,7 +181,7 @@ def write_argparse(filename_py, options, optlist, descs):
     """
     _, parser_text = generate(options, optlist, descs)
 
-    # Write argparser file.
+    # Write argparse file.
     with open(filename_py, "wt", encoding="utf-8") as fileobj:
         fileobj.write(_PY_BEGIN)
         fileobj.write(parser_text)
