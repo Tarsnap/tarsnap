@@ -96,8 +96,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 
 #include "archive_multitape.h"
 #include "ccache.h"
-#include "getfstype.h"
 #include "sigquit.h"
+#include "ts_getfstype.h"
 #include "tsnetwork.h"
 
 /* Size of buffer for holding file data prior to writing. */
@@ -871,12 +871,12 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 		if ((bsdtar->option_insane_filesystems == 0) &&
 		    (descend != 0) &&
 		    (lst->st_dev != last_dev)) {
-			fstype = getfstype(tree_current_access_path(tree));
+			fstype = ts_getfstype(tree_current_access_path(tree));
 			if (fstype == NULL)
 				bsdtar_errc(bsdtar, 1, errno,
 				    "%s: Error getting filesystem type",
 				    name);
-			if (getfstype_issynthetic(fstype)) {
+			if (ts_getfstype_issynthetic(fstype)) {
 				if (!bsdtar->option_quiet)
 					bsdtar_warnc(bsdtar, 0,
 					    "Not descending into filesystem of type %s: %s",

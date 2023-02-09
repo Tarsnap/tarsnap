@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "getfstype.h"
+#include "ts_getfstype.h"
 
 /* Linux ugliness starts here. */
 #ifndef HAVE_STRUCT_STATFS_F_FSTYPENAME
@@ -187,12 +187,12 @@ static const char * synthetic_filesystems[] = {
 };
 
 /**
- * getfstype(path):
+ * ts_getfstype(path):
  * Determine the type of filesystem on which ${path} resides, and return a
  * NUL-terminated malloced string.
  */
 char *
-getfstype(const char * path)
+ts_getfstype(const char * path)
 {
 	const char * fstype = "Unknown";
 #if defined(HAVE_STRUCT_STATFS_F_FSTYPENAME)
@@ -235,12 +235,12 @@ getfstype(const char * path)
 }
 
 /**
- * getfstype_issynthetic(fstype):
+ * ts_getfstype_issynthetic(fstype):
  * Return non-zero if the filesystem type ${fstype} is on a list of
  * "synthetic" filesystems (i.e., does not contain normal file data).
  */
 int
-getfstype_issynthetic(const char * fstype)
+ts_getfstype_issynthetic(const char * fstype)
 {
 	size_t i;
 
