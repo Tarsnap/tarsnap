@@ -392,7 +392,7 @@ main(int argc, char **argv)
 			break;
 		case OPTION_ARCHIVE_NAMES:
 			if (bsdtar->option_archive_names_set)
-				bsdtar_errc(bsdtar, 1, errno,
+				bsdtar_errc(bsdtar, 1, 0,
 				    "Two --archive-names options given");
 			if (bsdtar->optarg == NULL)
 				bsdtar_errc(bsdtar, 1, 0,
@@ -442,7 +442,7 @@ main(int argc, char **argv)
 			break;
 		case OPTION_CSV_FILE: /* tarsnap */
 			if (bsdtar->option_csv_filename != NULL)
-				bsdtar_errc(bsdtar, 1, errno,
+				bsdtar_errc(bsdtar, 1, 0,
 				    "Two --csv-file options given");
 			if ((bsdtar->option_csv_filename = strdup(
 			    bsdtar->optarg)) == NULL)
