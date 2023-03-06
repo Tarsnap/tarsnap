@@ -25,7 +25,7 @@ env:
                       tar/tarsnap-tree.o tar/tarsnap-util.o
                       tar/tarsnap-write.o libarchive/libarchive.a
   CFLAGS_CLANG_PROJECT: -Wno-undef -Wno-implicit-fallthrough
-  CFLAGS_GCC_PROJECT:
+  CFLAGS_GCC_PROJECT: -Wno-cpp
   # Needed for major() / minor() / makedev() thing.
   CFLAGS_LIBARCHIVE_GCC: -Wno-error
   CFLAGS_OSX: -Wno-poison-system-directories
@@ -35,9 +35,7 @@ env:
 jobs:
   Ubuntu:
     name: Ubuntu
-    # Ubuntu 16.04 comes with valgrind-3.11, which can't handle RDRAND
-    # instructions.  We need at least Ubuntu 18.04, which has valgrind-3.13.
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - name: Update apt-get
       run: sudo apt-get update
@@ -51,18 +49,18 @@ jobs:
         autoreconf -i
     - name: configure with clang
       env:
-        CC: clang-9
+        CC: clang-10
         CFLAGS: ${{ env.CFLAGS_ALL }}
       run: ./configure
     - name: Compile libarchive with clang
       env:
-        CC: clang-9
+        CC: clang-10
         # We need to use more permissive CFLAGS for libarchive code.
         CFLAGS: ${{ env.CFLAGS_ALL }}
       run: make ${{ env.LIBARCHIVE_OBJECTS }}
     - name: Compile with clang
       env:
-        CC: clang-9
+        CC: clang-10
         CFLAGS: ${{ env.CFLAGS_ALL }}
                 ${{ env.CFLAGS_CLANG_LIBCPERCIVA }}
                 ${{ env.CFLAGS_CLANG_PROJECT }}
