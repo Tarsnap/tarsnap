@@ -464,17 +464,21 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 		bsdtar_warnc(bsdtar, 0, "Warning: Archive contains no files");
 	}
 
+	if (archive_write_close(a)) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
+		bsdtar->return_value = 1;
+	}
+
+	/* Final update, to include the final 2 blocks of padding. */
+	siginfo_setinfo(bsdtar, NULL, NULL, 0, archive_file_count(a),
+	    archive_position_uncompressed(a));
+
 	/* Always print a final message with --progress-bytes. */
 	if (bsdtar->option_progress_bytes != 0)
 		raise(SIGUSR1);
 
 	/* Print a final update (if desired). */
 	siginfo_printinfo(bsdtar, 0, 1);
-
-	if (archive_write_close(a)) {
-		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(a));
-		bsdtar->return_value = 1;
-	}
 
 cleanup:
 	/* Free file data buffer. */
