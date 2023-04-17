@@ -152,9 +152,10 @@ int multitape_metadata_recrypt(uint8_t *, size_t, uint8_t **, size_t *);
 int multitape_metadata_delete(STORAGE_D *, CHUNKS_D *, struct tapemetadata *);
 
 /**
- * Compute fraghash = SHA256(namehash || fragnum), which is the name of the
- * file containing the fragnum'th part of the index corresponding to the
- * metadata with file name namehash.
+ * multitape_metaindex_fragname(namehash, fragnum, fraghash):
+ * Compute ${fraghash = SHA256(namehash || fragnum)}, which is the name
+ * of the file containing the ${fragnum}'th part of the index corresponding to
+ * the metadata with file name ${namehash}.
  */
 void multitape_metaindex_fragname(const uint8_t[32], uint32_t, uint8_t[32]);
 
