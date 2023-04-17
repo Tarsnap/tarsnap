@@ -21,7 +21,11 @@ struct register_internal {
 	uint64_t machinenum;
 };
 
-int keygen_network_register(struct register_internal * C);
+/**
+ * keygen_network_register(C):
+ * Register a new machine key with the Tarsnap server.
+ */
+int keygen_network_register(struct register_internal *);
 
 /**
  * Create key files (either new keys or regenerated keys) and
