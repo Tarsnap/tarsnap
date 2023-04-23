@@ -25,9 +25,10 @@
  */
 
 /**
- * Compute fraghash = SHA256(namehash || fragnum), which is the name of the
- * file containing the fragnum'th part of the index corresponding to the
- * metadata with file name namehash.
+ * multitape_metaindex_fragname(namehash, fragnum, fraghash):
+ * Compute ${fraghash = SHA256(namehash || fragnum)}, which is the name
+ * of the file containing the ${fragnum}'th part of the index corresponding to
+ * the metadata with file name ${namehash}.
  */
 void
 multitape_metaindex_fragname(const uint8_t namehash[32], uint32_t fragnum,

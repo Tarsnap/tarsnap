@@ -14,6 +14,10 @@ static sendpacket_callback callback_register_send;
 static handlepacket_callback callback_register_challenge;
 static handlepacket_callback callback_register_response;
 
+/**
+ * keygen_network_register(C):
+ * Register a new machine key with the Tarsnap server.
+ */
 int
 keygen_network_register(struct register_internal * C)
 {

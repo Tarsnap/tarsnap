@@ -43,7 +43,7 @@ jobs:
       run: sudo apt-get install --no-install-recommends valgrind e2fslibs-dev
            autoconf-archive
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: autoreconf
       run:
         autoreconf -i
@@ -105,7 +105,7 @@ jobs:
     runs-on: macOS-11
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Install software
       run: brew install automake
     - name: autoreconf
