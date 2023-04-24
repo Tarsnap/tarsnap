@@ -255,6 +255,7 @@ main(int argc, char **argv)
 	size_t			 i;
 	int			 j;
 	char			*tapename_cmdline;
+	char			*xdg_configdir;
 
 	WARNP_INIT;
 
@@ -889,6 +890,35 @@ main(int argc, char **argv)
 			    bsdtar->homedir) == -1)
 				bsdtar_errc(bsdtar, 1, errno, "No memory");
 
+			configfile(bsdtar, bsdtar->conffile, 0);
+
+			/* Free string allocated by asprintf. */
+			free(bsdtar->conffile);
+			bsdtar->conffile = NULL;
+		}
+
+		/* Check if ${XDG_CONFIG_HOME} is set. */
+		if ((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL) {
+			/*
+			 * If it exists, use
+			 * ${XDG_CONFIG_HOME}/tarsnap/tarsnap.conf
+			 */
+			if (asprintf(&bsdtar->conffile,
+			    "%s/tarsnap/tarsnap.conf", xdg_configdir) == -1)
+				bsdtar_errc(bsdtar, 1, errno, "No memory");
+		} else if (bsdtar->homedir != NULL) {
+			/*
+			 * If it doesn't exist, use
+			 * $HOME/.config/tarsnap/tarsnap.conf
+			 */
+			if (asprintf(&bsdtar->conffile,
+			    "%s/.config/tarsnap/tarsnap.conf", bsdtar->homedir)
+			    == -1)
+				bsdtar_errc(bsdtar, 1, errno, "No memory");
+		}
+
+		/* Read tarsnap.conf (if applicable). */
+		if (bsdtar->conffile != NULL) {
 			configfile(bsdtar, bsdtar->conffile, 0);
 
 			/* Free string allocated by asprintf. */
