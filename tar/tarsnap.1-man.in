@@ -554,9 +554,10 @@ all take effect.
 .TP
 \fB\--no-default-config\fP
 Do not read the default configuration files
-\fI@sysconfdir@/tarsnap.conf\fP
+\fI@sysconfdir@/tarsnap.conf\fP,
+\fI$XDG_CONFIG_HOME/tarsnap/tarsnap.conf\fP,
 and
-\fI~/.tarsnaprc\fP
+\fI~/.tarsnaprc\fP.
 .TP
 \fB\--no-disk-pause\fP
 Ignore any
@@ -1141,8 +1142,21 @@ Parameters specified here only take effect if they are not
 specified via the current user's local configuration file
 or via the command line.
 .TP
+.B $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+A
+\fB\%tarsnap\fP
+configuration file for the current user.
+If the environment variable
+.IR XDG_CONFIG_HOME
+is empty, the default value of
+\fI~/.config/tarsnap/tarsnap.conf\fP
+will be used.
+Parameters specified here take effect unless they are specified via
+\fI~/.tarsnaprc\fP
+or the command line.
+.TP
 .B ~/.tarsnaprc
-The
+Another location for the
 \fB\%tarsnap\fP
 configuration file for the current user.
 Parameters specified here take effect unless they are

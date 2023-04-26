@@ -3,6 +3,10 @@
 - Fixed a problem with strict aliasing if somebody compiled with gcc11 or
   higher using -O3, does not have SSE2, and is using a passphrase-protected
   keyfile.
+- tarsnap will read a config file in $XDG_CONFIG_HOME/tarsnap/tarsnap.conf;
+  or ~/.config/tarsnap/tarsnap.conf if $XDG_CONFIG_HOME is not set.  The
+  previous config file ~/.tarsnaprc is still supported, and will not be
+  deprecated.
 
 
 Tarsnap Releases

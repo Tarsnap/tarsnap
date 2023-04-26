@@ -506,9 +506,10 @@ options specified via configuration files and the command line
 all take effect.
 .It Fl -no-default-config
 Do not read the default configuration files
-.Pa @sysconfdir@/tarsnap.conf
+.Pa @sysconfdir@/tarsnap.conf ,
+.Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf ,
 and
-.Pa ~/.tarsnaprc
+.Pa ~/.tarsnaprc .
 .It Fl -no-disk-pause
 Ignore any
 .Cm disk-pause
@@ -1016,8 +1017,20 @@ configuration file.
 Parameters specified here only take effect if they are not
 specified via the current user's local configuration file
 or via the command line.
+.It Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+A
+.Nm
+configuration file for the current user.
+If the environment variable
+.Ev XDG_CONFIG_HOME
+is empty, the default value of
+.Pa ~/.config/tarsnap/tarsnap.conf
+will be used.
+Parameters specified here take effect unless they are specified via
+.Pa ~/.tarsnaprc
+or the command line.
 .It Pa ~/.tarsnaprc
-The
+Another location for the
 .Nm
 configuration file for the current user.
 Parameters specified here take effect unless they are
