@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 /* The resulting length after base-64 encoding, not including the NUL byte. */
-#define b64len(origlen) (((origlen + 2) / 3) * 4)
+#define b64len(origlen) ((((origlen) + 2) / 3) * 4)
 
 /**
  * b64encode(in, out, len):
