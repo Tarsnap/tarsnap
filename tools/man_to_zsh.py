@@ -51,7 +51,7 @@ def add_argtypes(zsh_output):
                 line = line[:-1] + "{_files -/}\""
             elif argtype == "filename":
                 line = line[:-1] + "{_files}\""
-            elif argtype == "archive_names":
+            elif argtype == "archive-name":
                 line = line[:-1] + "(${archive_list}):\""
 
         outlines.append(line)
