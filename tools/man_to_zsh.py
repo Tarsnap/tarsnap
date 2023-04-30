@@ -21,7 +21,11 @@ _ZSH_PREAMBLE = r"""# Custom header for the zsh completion file for tarsnap
 # then archive names will not be completed.
 local archive_list_file=
 
-archive_list=( ${(uf)"$(< "${archive_list_file}")"} )
+if [ -n "${archive_list_file}" ]; then
+    archive_list=( ${(uf)"$(< "${archive_list_file}")"} )
+else
+    archive_list=
+fi
 
 """
 
