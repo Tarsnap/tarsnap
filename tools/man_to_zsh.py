@@ -21,7 +21,11 @@ _ZSH_PREAMBLE = r"""# Custom header for the zsh completion file for tarsnap
 # then archive names will not be completed.
 local archive_list_file=
 
-archive_list=( ${(uf)"$(< "${archive_list_file}")"} )
+if [ -n "${archive_list_file}" ]; then
+    archive_list=( ${(uf)"$(< "${archive_list_file}")"} )
+else
+    archive_list=
+fi
 
 """
 
@@ -47,7 +51,7 @@ def add_argtypes(zsh_output):
                 line = line[:-1] + "{_files -/}\""
             elif argtype == "filename":
                 line = line[:-1] + "{_files}\""
-            elif argtype == "archive_names":
+            elif argtype == "archive-name":
                 line = line[:-1] + "(${archive_list}):\""
 
         outlines.append(line)

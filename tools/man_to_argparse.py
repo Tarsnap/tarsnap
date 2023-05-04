@@ -61,7 +61,7 @@ def get_argtypestr(arg):
     elif arg in ["filename", "key-file"]:
         argtypestr = "filename"
     elif arg in ["archive-name"]:
-        argtypestr = "archive_list_filename"
+        argtypestr = "archive-name"
     elif arg in ["date"]:
         argtypestr = "date"
     elif arg in ["method:arg", "pattern"]:
@@ -80,7 +80,7 @@ def get_argtype(arg):
     elif argtypestr == "int":
         argtype = int
     elif ["directory", "filename", "date",
-          "archive_list_filename"].index(argtypestr) >= 0:
+          "archive-name"].index(argtypestr) >= 0:
         # No special handling (yet?)
         argtype = str
     else:
