@@ -45,7 +45,7 @@ valgrind_prepare_directory() {
 
 	# Always delete any previous valgrind directory.
 	if [ -d "${out_valgrind}" ]; then
-		rm -rf ${out_valgrind}
+		rm -rf "${out_valgrind}"
 	fi
 
 	# Bail if we don't want valgrind at all.
@@ -53,7 +53,7 @@ valgrind_prepare_directory() {
 		return
 	fi
 
-	mkdir ${out_valgrind}
+	mkdir "${out_valgrind}"
 
 	# If we don't want to generate a new suppressions file, restore it.
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
@@ -183,12 +183,12 @@ valgrind_ensure_suppression() {
 	valgrind_suppressions_log="${out_valgrind}/suppressions.pre"
 
 	# Start off with an empty suppression file
-	touch ${valgrind_suppressions}
+	touch "${valgrind_suppressions}"
 
 	# Get list of tests and the number of open descriptors at a normal exit
 	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
-	valgrind --track-fds=yes --log-file=${fds_log}			\
-	    ${potential_memleaks_binary} > "${valgrind_suppressions_tests}"
+	valgrind --track-fds=yes --log-file="${fds_log}"		\
+	    "${potential_memleaks_binary}" > "${valgrind_suppressions_tests}"
 	valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" | awk '{print $4}')
 
 	# Generate suppressions for each test
@@ -200,14 +200,14 @@ valgrind_ensure_suppression() {
 		printf "\n" | (valgrind					\
 		    --leak-check=full --show-leak-kinds=all		\
 		    --gen-suppressions=all				\
-		    --suppressions=${valgrind_suppressions}		\
-		    --log-file=${this_valgrind_supp}			\
-		    ${potential_memleaks_binary}			\
-		    ${testname})					\
+		    --suppressions="${valgrind_suppressions}"		\
+		    --log-file="${this_valgrind_supp}"			\
+		    "${potential_memleaks_binary}"			\
+		    "${testname}")					\
 		    > /dev/null
 
 		# Append name to suppressions file
-		printf "# %s\n" "${testname}" >> ${valgrind_suppressions}
+		printf "# %s\n" "${testname}" >> "${valgrind_suppressions}"
 
 		# Strip out useless parts from the log file, and allow the
 		# suppressions to apply to other binaries.
@@ -215,7 +215,7 @@ valgrind_ensure_suppression() {
 	done < "${valgrind_suppressions_tests}"
 
 	# Clean up
-	rm -f ${valgrind_suppressions_log}
+	rm -f "${valgrind_suppressions_log}"
 	printf "done.\n" 1>&2
 }
 
@@ -310,7 +310,7 @@ valgrind_check_logfile() {
 # empty string.
 valgrind_check_basenames() {
 	exitfile="$1"
-	val_basename=$( valgrind_get_basename ${exitfile} )
+	val_basename=$(valgrind_get_basename "${exitfile}")
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
 	logfiles=$(ls "${val_basename}"* 2>/dev/null)
@@ -367,5 +367,6 @@ valgrind_init() {
 
 	# Generate valgrind suppression file if it is required.  Must be
 	# done after preparing the directory.
-	valgrind_ensure_suppression ${bindir}/tests/valgrind/potential-memleaks
+	valgrind_ensure_suppression				\
+	    "${bindir}/tests/valgrind/potential-memleaks"
 }

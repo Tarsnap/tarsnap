@@ -49,7 +49,7 @@ USE_VALGRIND_NO_REGEN=${USE_VALGRIND_NO_REGEN:-0}
 # Load valgrind-related functions.  These functions will bail on a per-check
 # basis if the ${USE_VALGRIND} value does not indicate that we should run a
 # valgrind for that check.
-. ${scriptdir}/shared_valgrind_functions.sh
+. "${scriptdir}/shared_valgrind_functions.sh"
 
 # Set ${bindir} to $1 if given, else use "." for in-tree builds.
 bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
@@ -62,9 +62,9 @@ NO_EXITFILE=/dev/null
 # Delete the previous test output directory, and create a new one.
 prepare_directory() {
 	if [ -d "${out}" ]; then
-		rm -rf ${out}
+		rm -rf "${out}"
 	fi
-	mkdir ${out}
+	mkdir "${out}"
 
 	# We don't want to back up this directory.
 	[ "$(uname)" = "FreeBSD" ] && chflags nodump "${out}"
@@ -83,7 +83,7 @@ find_system() {
 	fi
 
 	# Look for ${cmd}; the "|| true" and -} make this work with set -e.
-	system_binary=$(command -v ${cmd}) || true
+	system_binary=$(command -v "${cmd}") || true
 	if [ -z "${system_binary-}" ]; then
 		system_binary=""
 		printf "System %s not found.\n" "${cmd}" 1>&2
@@ -112,8 +112,8 @@ has_pid() {
 # Waits until ${filename} exists.
 wait_for_file() {
 	filename=$1
-	while [ ! -e ${filename} ]; do
-		if [ ${VERBOSE} -ne 0 ]; then
+	while [ ! -e "${filename}" ]; do
+		if [ "${VERBOSE}" -ne 0 ]; then
 			echo "Waiting for ${filename}" 1>&2
 		fi
 		sleep 1
@@ -188,7 +188,7 @@ notify_success_or_fail() {
 	val_log_basename=$2
 
 	# Bail if there's no exitfiles.
-	exitfiles=$(ls ${log_basename}-*.exit) || true
+	exitfiles=$(ls "${log_basename}"-*.exit) || true
 	if [ -z "$exitfiles" ]; then
 		echo "FAILED" 1>&2
 		s_retval=1
@@ -200,8 +200,8 @@ notify_success_or_fail() {
 	skip_exitfiles=0
 
 	# Check each exitfile.
-	for exitfile in $(echo $exitfiles | sort); do
-		ret=$(cat ${exitfile})
+	for exitfile in $(echo "$exitfiles" | sort); do
+		ret=$(cat "${exitfile}")
 		total_exitfiles=$(( total_exitfiles + 1 ))
 		if [ "${ret}" -lt 0 ]; then
 			skip_exitfiles=$(( skip_exitfiles + 1 ))
@@ -211,11 +211,11 @@ notify_success_or_fail() {
 		descfile=$(echo "${exitfile}" | sed 's/\.exit/\.desc/g')
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!" 1>&2
-			if [ ${VERBOSE} -ne 0 ]; then
+			if [ "${VERBOSE}" -ne 0 ]; then
 				printf "File %s contains" "${exitfile}" 1>&2
 				printf " exit code %s.\n" "${ret}" 1>&2
 				printf "Test description: " 1>&2
-				cat ${descfile} 1>&2
+				cat "${descfile}" 1>&2
 			fi
 			s_retval=${ret}
 			return
@@ -251,7 +251,7 @@ notify_success_or_fail() {
 # Run a test scenario from ${scenario_filename}.
 scenario_runner() {
 	scenario_filename=$1
-	basename=$(basename ${scenario_filename} .sh)
+	basename=$(basename "${scenario_filename}" .sh)
 	printf "  %s... " "${basename}" 1>&2
 
 	# Initialize "scenario" and "check" variables.
@@ -264,7 +264,7 @@ scenario_runner() {
 
 	# Load scenario_cmd() from the scenario file.
 	unset scenario_cmd
-	. ${scenario_filename}
+	. "${scenario_filename}"
 	if ! command -v scenario_cmd 1>/dev/null ; then
 		printf "ERROR: scenario_cmd() is not defined in\n" 1>&2
 		printf "  %s\n" "${scenario_filename}" 1>&2
@@ -276,7 +276,7 @@ scenario_runner() {
 
 	# Print PASS or FAIL, and return result.
 	s_retval=0
-	notify_success_or_fail ${s_basename} ${s_val_basename}
+	notify_success_or_fail "${s_basename}" "${s_val_basename}"
 
 	return "${s_retval}"
 }
@@ -303,7 +303,7 @@ run_scenarios() {
 	for scenario in ${test_scenarios}; do
 		# We can't call this function with $( ... ) because we
 		# want to allow it to echo values to stdout.
-		scenario_runner ${scenario}
+		scenario_runner "${scenario}"
 		retval=$?
 		if [ ${retval} -gt 0 ]; then
 			exit ${retval}
