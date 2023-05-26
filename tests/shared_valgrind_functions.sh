@@ -192,7 +192,7 @@ valgrind_ensure_suppression() {
 	valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" | awk '{print $4}')
 
 	# Generate suppressions for each test
-	while read testname; do
+	while read -r testname; do
 		this_valgrind_supp="${valgrind_suppressions_log}-${testname}"
 
 		# Run valgrind on the binary, sending it a "\n" so that
@@ -257,7 +257,7 @@ valgrind_check_logfile() {
 	in_use=$(grep "in use at exit:" "${logfile}" | awk '{print $6}')
 
 	# Sanity check.
-	if [ $(echo "${in_use}" | wc -w) -ne "1" ]; then
+	if [ "$(echo "${in_use}" | wc -w)" -ne "1" ]; then
 		echo "Programmer error: invalid number valgrind outputs" 1>&2
 		exit 1
 	fi
@@ -342,7 +342,7 @@ valgrind_check_basenames() {
 		for logfile in ${logfiles} ; do
 			val_parent_pid=$(grep "Parent PID:" "${logfile}" | \
 			    awk '{ print $4 }')
-			if [ "${val_pids#*$val_parent_pid}" !=		\
+			if [ "${val_pids#*"${val_parent_pid}"}" !=	\
 			    "${val_pids}" ]; then
 				valgrind_check_logfile "${logfile}"
 				return "$?"

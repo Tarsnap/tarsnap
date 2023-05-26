@@ -79,13 +79,6 @@ int elasticarray_truncate(struct elasticarray *);
 void * elasticarray_get(struct elasticarray *, size_t, size_t);
 
 /**
- * elasticarray_iter(EA, reclen, fp):
- * Run the ${fp} function on every member of the array.  The value ${reclen}
- * must be positive.
- */
-void elasticarray_iter(struct elasticarray *, size_t, void(*)(void *));
-
-/**
  * elasticarray_free(EA):
  * Free the elastic array ${EA}.  Takes O(1) time.
  */
@@ -172,10 +165,12 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 	}								\
 	static inline void						\
 	prefix##_iter(struct prefix##_struct * EA,			\
-	    void(* free_fp)(rectype *))					\
+	    void(* fp)(rectype *))					\
 	{								\
-		elasticarray_iter((struct elasticarray *)EA,		\
-		    sizeof(rectype), (void (*)(void *))free_fp);	\
+		size_t i;						\
+									\
+		for (i = 0; i < prefix##_getsize(EA); i++)		\
+			fp(prefix##_get(EA, i));			\
 	}								\
 	static inline void						\
 	prefix##_free(struct prefix##_struct * EA)			\

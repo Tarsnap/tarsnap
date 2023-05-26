@@ -268,21 +268,6 @@ elasticarray_get(struct elasticarray * EA, size_t pos, size_t reclen)
 }
 
 /**
- * elasticarray_iter(EA, reclen, fp):
- * Run the ${fp} function on every member of the array.  The value ${reclen}
- * must be positive.
- */
-void
-elasticarray_iter(struct elasticarray * EA, size_t reclen, void(* fp)(void *))
-{
-	size_t i;
-
-	/* Apply the function to every item in the list. */
-	for (i = 0; i < elasticarray_getsize(EA, reclen); i++)
-		fp(elasticarray_get(EA, i, reclen));
-}
-
-/**
  * elasticarray_free(EA):
  * Free the elastic array ${EA}.  Takes O(1) time.
  */
