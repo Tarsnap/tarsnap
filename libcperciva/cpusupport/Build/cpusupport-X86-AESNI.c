@@ -24,7 +24,7 @@ main(void)
 
 	x = load_128(a);
 #ifdef BROKEN_MM_LOADU_SI64
-	y = _mm_loadu_si128(a);
+	y = _mm_loadu_si128((const __m128i *)a);
 #else
 	y = _mm_loadu_si64(a);
 #endif
