@@ -99,13 +99,14 @@ err0:
 
 #if defined(CPUSUPPORT_X86_AESNI)
 static int
-x86_aesni_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
-    uint8_t ctext[16])
+x86_aesni_oneshot(const uint8_t * key_unexpanded, size_t len,
+    const uint8_t ptext[16], uint8_t ctext[16])
 {
 	void * kexp_hw;
 
 	/* Expand the key and encrypt with hardware intrinsics. */
-	if ((kexp_hw = crypto_aes_key_expand_aesni(key, len)) == NULL)
+	if ((kexp_hw = crypto_aes_key_expand_aesni(key_unexpanded, len))
+	    == NULL)
 		goto err0;
 	crypto_aes_encrypt_block_aesni(ptext, ctext, kexp_hw);
 	crypto_aes_key_free_aesni(kexp_hw);
@@ -121,12 +122,12 @@ err0:
 
 #if defined(CPUSUPPORT_ARM_AES)
 static int
-arm_aes_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
-    uint8_t * ctext)
+arm_aes_oneshot(const uint8_t * key_unexpanded, size_t len,
+    const uint8_t ptext[16], uint8_t * ctext)
 {
 	void * kexp_hw;
 
-	if ((kexp_hw = crypto_aes_key_expand_arm(key, len)) == NULL)
+	if ((kexp_hw = crypto_aes_key_expand_arm(key_unexpanded, len)) == NULL)
 		goto err0;
 	crypto_aes_encrypt_block_arm(ptext, ctext, kexp_hw);
 	crypto_aes_key_free_arm(kexp_hw);
@@ -141,14 +142,14 @@ err0:
 #endif
 
 static int
-openssl_oneshot(const uint8_t * key, size_t len, const uint8_t ptext[16],
-    uint8_t * ctext)
+openssl_oneshot(const uint8_t * key_unexpanded, size_t len,
+    const uint8_t ptext[16], uint8_t * ctext)
 {
 	AES_KEY kexp_actual;
 	AES_KEY * kexp = &kexp_actual;
 
 	/* Expand the key, encrypt, and clean up. */
-	if (AES_set_encrypt_key(key, (int)(len * 8), kexp) != 0)
+	if (AES_set_encrypt_key(key_unexpanded, (int)(len * 8), kexp) != 0)
 		goto err0;
 	AES_encrypt(ptext, ctext, kexp);
 	insecure_memzero(kexp, sizeof(AES_KEY));
@@ -222,12 +223,13 @@ crypto_aes_can_use_intrinsics(void)
 }
 
 /**
- * crypto_aes_key_expand(key, len):
- * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block().  The length must be 16 or 32.
+ * crypto_aes_key_expand(key_unexpanded, len):
+ * Expand the ${len}-byte unexpanded AES key ${key_unexpanded} into a
+ * structure which can be passed to crypto_aes_encrypt_block().  The length
+ * must be 16 or 32.
  */
 struct crypto_aes_key *
-crypto_aes_key_expand(const uint8_t * key, size_t len)
+crypto_aes_key_expand(const uint8_t * key_unexpanded, size_t len)
 {
 	AES_KEY * kexp;
 
@@ -240,11 +242,11 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 
 #ifdef CPUSUPPORT_X86_AESNI
 	if (hwaccel == HW_X86_AESNI)
-		return (crypto_aes_key_expand_aesni(key, len));
+		return (crypto_aes_key_expand_aesni(key_unexpanded, len));
 #endif
 #ifdef CPUSUPPORT_ARM_AES
 	if (hwaccel == HW_ARM_AES)
-		return (crypto_aes_key_expand_arm(key, len));
+		return (crypto_aes_key_expand_arm(key_unexpanded, len));
 #endif
 #endif /* HWACCEL */
 
@@ -253,7 +255,7 @@ crypto_aes_key_expand(const uint8_t * key, size_t len)
 		goto err0;
 
 	/* Expand the key. */
-	if (AES_set_encrypt_key(key, (int)(len * 8), kexp) != 0)
+	if (AES_set_encrypt_key(key_unexpanded, (int)(len * 8), kexp) != 0)
 		goto err1;
 
 	/* Success! */
