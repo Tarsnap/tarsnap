@@ -7,17 +7,17 @@ if [ -z "${CC}" ]; then
 	echo "\$CC is not defined!  Cannot run any compiler tests." 1>&2
 	exit 1
 fi
-if ! [ ${PATH} = "$1" ]; then
+if ! [ "${PATH}" = "$1" ]; then
 	echo "WARNING: POSIX violation: $SHELL's command -p resets \$PATH" 1>&2
 	PATH=$1
 fi
 
 # Find directory of this script and the source files
-D=$(dirname $0)
+D=$(dirname "$0")
 
 FIRST=YES
 for LIB in rt xnet; do
-	if ${CC} ${CFLAGS} -l${LIB} $D/posix-trivial.c 2>/dev/null; then
+	if ${CC} ${CFLAGS} -l${LIB} "$D/posix-trivial.c" 2>/dev/null; then
 		if [ ${FIRST} = "NO" ]; then
 			printf " ";
 		fi

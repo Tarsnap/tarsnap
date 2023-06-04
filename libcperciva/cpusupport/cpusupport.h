@@ -114,13 +114,21 @@
 	}								\
 } while (0)
 
-/*
+/**
  * List of features.  If a feature here is not enabled by the appropriate
  * CPUSUPPORT_ARCH_FEATURE macro being defined, it has no effect; but if the
  * relevant macro may be defined (e.g., by Build/cpusupport.sh successfully
  * compiling Build/cpusupport-ARCH-FEATURE.c) then the C file containing the
  * corresponding run-time detection code (cpusupport_arch_feature.c) must be
  * compiled and linked in.
+ *
+ * There are a few features for which we do not have run-time checks:
+ * - X86_CPUID: compile-time is enough; if __get_cpuid() fails, then all the
+ *              x86 detection features will fail, but there's nothing we can
+ *              do about that.
+ * - X86_CPUID_COUNT: ditto.
+ * - X86_SSE42_64: the cpuid check tells us if the CPU supports SSE4.2, but
+ *                 that says nothing about whether it's in 64-bit mode.
  */
 CPUSUPPORT_FEATURE(x86, aesni, X86_AESNI);
 CPUSUPPORT_FEATURE(x86, rdrand, X86_RDRAND);

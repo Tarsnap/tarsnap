@@ -34,8 +34,8 @@ feature() {
 	printf "Checking if compiler supports %s %s feature..."		\
 	    "$ARCH" "$FEATURE" 1>&2
 	for CPU_CFLAGS in "$@"; do
-		if ${CC} ${CFLAGS} ${CFLAGS_HARDCODED} ${CPU_CFLAGS}	\
-		    "${feature_filename}" 2>>${outcc}; then
+		if ${CC} ${CPPFLAGS} ${CFLAGS} ${CFLAGS_HARDCODED}	\
+		    ${CPU_CFLAGS} "${feature_filename}" 2>>${outcc}; then
 			rm -f a.out
 			break;
 		fi

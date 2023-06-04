@@ -2,7 +2,7 @@
 
 ### Find script directory and load helper functions.
 scriptdir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)
-. ${scriptdir}/shared_test_functions.sh
+. "${scriptdir}/shared_test_functions.sh"
 
 
 ### Project-specific constants and setup
