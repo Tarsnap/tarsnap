@@ -108,16 +108,32 @@ has_pid() {
 	return 1
 }
 
-## wait_for_file (filename):
-# Waits until ${filename} exists.
-wait_for_file() {
-	filename=$1
-	while [ ! -e "${filename}" ]; do
+## wait_while(func):
+# Wait while ${func} returns 0.  If ${msleep} is defined, use that to wait
+# 100ms; otherwise, wait in 1 second increments.
+wait_while() {
+	_wait_while_ms=0
+
+	# Check for the ending condition
+	while "$@"; do
+		# Notify user (if desired)
 		if [ "${VERBOSE}" -ne 0 ]; then
-			echo "Waiting for ${filename}" 1>&2
+			printf "waited\t%ims\t%s\n"		\
+			    "${_wait_while_ms}" "$*" 1>&2
 		fi
-		sleep 1
+
+		# Wait using the appropriate binary
+		if [ -n "${msleep:-}" ];  then
+			"${msleep}" 100
+			_wait_while_ms=$((_wait_while_ms + 100))
+		else
+			sleep 1
+			_wait_while_ms=$((_wait_while_ms + 1000))
+		fi
 	done
+
+	# Success
+	return 0
 }
 
 ## setup_check_variables (description, check_prev=1):

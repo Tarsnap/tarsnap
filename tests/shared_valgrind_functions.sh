@@ -238,6 +238,18 @@ valgrind_setup_cmd() {
 	echo "${c_valgrind_cmd}"
 }
 
+## valgrind_incomplete:
+# Return 0 if at least one valgrind log file is not complete.
+valgrind_incomplete() {
+	# The exit code of `grep -L` is undesirable: if at least one file
+	# contains the pattern, it returns 0.  To detect if at least one file
+	# does *not* contain the pattern, we need to check grep's output,
+	# rather than the exit code.
+	_valgrind_incomplete_logfiles=$(grep -L "ERROR SUMMARY"		\
+	    "${out_valgrind}"/*.log)
+	test -n "${_valgrind_incomplete_logfiles}"
+}
+
 ## valgrind_get_basename (exitfile):
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
