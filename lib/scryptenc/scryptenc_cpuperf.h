@@ -26,8 +26,8 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#ifndef _SCRYPTENC_CPUPERF_H_
-#define _SCRYPTENC_CPUPERF_H_
+#ifndef SCRYPTENC_CPUPERF_H_
+#define SCRYPTENC_CPUPERF_H_
 
 /**
  * scryptenc_cpuperf(opps):
@@ -36,4 +36,4 @@
  */
 int scryptenc_cpuperf(double *);
 
-#endif /* !_SCRYPTENC_CPUPERF_H_ */
+#endif /* !SCRYPTENC_CPUPERF_H_ */

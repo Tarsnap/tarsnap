@@ -26,8 +26,8 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#ifndef _SCRYPTENC_H_
-#define _SCRYPTENC_H_
+#ifndef SCRYPTENC_H_
+#define SCRYPTENC_H_
 
 #include <stdint.h>
 #include <stdio.h>
@@ -177,4 +177,4 @@ int scryptdec_file_copy(struct scryptdec_file_cookie *, FILE *);
  */
 void scryptdec_file_cookie_free(struct scryptdec_file_cookie *);
 
-#endif /* !_SCRYPTENC_H_ */
+#endif /* !SCRYPTENC_H_ */

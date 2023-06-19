@@ -26,8 +26,8 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#ifndef _CRYPTO_SCRYPT_H_
-#define _CRYPTO_SCRYPT_H_
+#ifndef CRYPTO_SCRYPT_H_
+#define CRYPTO_SCRYPT_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,4 +44,4 @@
 int crypto_scrypt(const uint8_t *, size_t, const uint8_t *, size_t, uint64_t,
     uint32_t, uint32_t, uint8_t *, size_t);
 
-#endif /* !_CRYPTO_SCRYPT_H_ */
+#endif /* !CRYPTO_SCRYPT_H_ */

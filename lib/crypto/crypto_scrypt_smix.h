@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_SCRYPT_SMIX_H_
-#define _CRYPTO_SCRYPT_SMIX_H_
+#ifndef CRYPTO_SCRYPT_SMIX_H_
+#define CRYPTO_SCRYPT_SMIX_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -14,4 +14,4 @@
  */
 void crypto_scrypt_smix(uint8_t *, size_t, uint64_t, void *, void *);
 
-#endif /* !_CRYPTO_SCRYPT_SMIX_H_ */
+#endif /* !CRYPTO_SCRYPT_SMIX_H_ */

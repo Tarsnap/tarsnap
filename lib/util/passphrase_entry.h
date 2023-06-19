@@ -1,5 +1,5 @@
-#ifndef _PASSPHRASE_ENTRY_H_
-#define _PASSPHRASE_ENTRY_H_
+#ifndef PASSPHRASE_ENTRY_H_
+#define PASSPHRASE_ENTRY_H_
 
 /* How should we get the passphrase? */
 enum passphrase_entry {
@@ -31,4 +31,4 @@ int passphrase_entry_parse(const char *, enum passphrase_entry *,
 int passphrase_entry_readpass(char **, enum passphrase_entry, const char *,
     const char *, const char *, int);
 
-#endif /* !_PASSPHRASE_ENTRY_H_ */
+#endif /* !PASSPHRASE_ENTRY_H_ */
