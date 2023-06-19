@@ -330,7 +330,8 @@ ccache_read(const char * path)
 	free(R.sbuf);
 
 	/* Close the cache file. */
-	fclose(R.f);
+	if (fclose(R.f))
+		warnp("fclose");
 
 	/* Free string allocated by asprintf. */
 	free(R.s);
@@ -354,7 +355,8 @@ err5:
 	free(R.sbuf);
 	patricia_foreach(C->tree, callback_free, NULL);
 err4:
-	fclose(R.f);
+	if (fclose(R.f))
+		warnp("fclose");
 err3:
 	free(R.s);
 err2:

@@ -228,8 +228,9 @@ bsdtar_atexit(void)
 	/* Free file-parsing variables from util.c. */
 	free(bsdtar->conffile_buffer);
 	if ((bsdtar->conffile_actual != NULL) &&
-	    (bsdtar->conffile_actual != stdin))
-		fclose(bsdtar->conffile_actual);
+	    (bsdtar->conffile_actual != stdin) &&
+	    fclose(bsdtar->conffile_actual))
+		bsdtar_warnc(bsdtar, errno, "fclose");
 
 	/* Free matching and (if applicable) substitution patterns. */
 	cleanup_exclusions(bsdtar);

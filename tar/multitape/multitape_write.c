@@ -951,8 +951,10 @@ writetape_close(TAPE_W * d)
 			goto err2;
 		if (chunks_write_printstats(output, d->C, csv))
 			goto err3;
-		if (csv && fclose(output))
+		if (csv && fclose(output)) {
+			warnp("fclose");
 			goto err2;
+		}
 	}
 
 	/* Ask the chunks layer to prepare for a checkpoint. */
@@ -994,8 +996,8 @@ writetape_close(TAPE_W * d)
 	return (0);
 
 err3:
-	if (output != stderr)
-		fclose(output);
+	if ((output != stderr) && fclose(output))
+		warnp("fclose");
 err2:
 	chunks_write_free(d->C);
 	storage_write_free(d->S);

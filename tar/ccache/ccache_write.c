@@ -267,7 +267,8 @@ ccache_write(CCACHE * cache, const char * path)
 	}
 
 	/* Close the file. */
-	fclose(W.f);
+	if (fclose(W.f))
+		warnp("fclose");
 
 	/* Construct the name of the old cache file. */
 	if (asprintf(&s_old, "%s/cache", path) == -1) {
@@ -298,7 +299,8 @@ ccache_write(CCACHE * cache, const char * path)
 	return (0);
 
 err2:
-	fclose(W.f);
+	if (fclose(W.f))
+		warnp("fclose");
 err1:
 	free(W.s);
 err0:

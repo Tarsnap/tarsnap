@@ -151,8 +151,10 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 		    withname ? tapename : NULL, csv))
 			goto err4;
 
-		if (csv && fclose(output))
+		if (csv && fclose(output)) {
+			warnp("fclose");
 			goto err3;
+		}
 	}
 
 	/* Close storage and chunk layer cookies. */
@@ -175,8 +177,8 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 err5:
 	multitape_metadata_free(&tmd);
 err4:
-	if (output != stderr)
-		fclose(output);
+	if ((output != stderr) && fclose(output))
+		warnp("fclose");
 err3:
 	chunks_delete_free(C);
 err2:
