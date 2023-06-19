@@ -120,7 +120,7 @@ tsnetwork_connect(int s, const struct sockaddr * addr, socklen_t addrlen,
 	    (errno == ENETDOWN) ||
 	    (errno == ENETUNREACH) ||
 #ifdef FREEBSD_PORTRANGE_BUG
-	/**
+	/*-
 	 * If FreeBSD's net.inet.ip.portrange.randomized sysctl is set to 1
 	 * (the default value) FreeBSD sometimes reuses a source port faster
 	 * than might naively be expected.  This doesn't cause any problems
