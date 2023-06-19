@@ -1848,14 +1848,6 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_totals_set = 1;
-	} else if (strcmp(conf_opt, "print-stats") == 0) {
-		if ((bsdtar->mode != 'c') && (bsdtar->mode != 'd'))
-			goto badmode;
-		if (bsdtar->option_print_stats_set)
-			goto optset;
-
-		bsdtar->option_print_stats = 1;
-		bsdtar->option_print_stats_set = 1;
 	} else if (strcmp(conf_opt, "passphrase") == 0) {
 		if (bsdtar->option_passphrase_entry != PASSPHRASE_UNSET)
 			goto optset;
@@ -1867,6 +1859,14 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if ((bsdtar->option_passphrase_arg = strdup(str)) == NULL)
 			bsdtar_errc(bsdtar, 1, ENOMEM,
 			    "Cannot allocate memory");
+	} else if (strcmp(conf_opt, "print-stats") == 0) {
+		if ((bsdtar->mode != 'c') && (bsdtar->mode != 'd'))
+			goto badmode;
+		if (bsdtar->option_print_stats_set)
+			goto optset;
+
+		bsdtar->option_print_stats = 1;
+		bsdtar->option_print_stats_set = 1;
 	} else if (strcmp(conf_opt, "progress-bytes") == 0) {
 		if (!((bsdtar->mode == 'c') || (bsdtar->mode == 'x')))
 			goto badmode;
