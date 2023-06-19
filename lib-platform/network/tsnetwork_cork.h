@@ -1,5 +1,5 @@
-#ifndef _NETWORK_CORK_H_
-#define _NETWORK_CORK_H_
+#ifndef NETWORK_CORK_H_
+#define NETWORK_CORK_H_
 
 /**
  * network_cork(fd):
@@ -15,4 +15,4 @@ int network_cork(int);
  */
 int network_uncork(int);
 
-#endif /* !_NETWORK_CORK_H_ */
+#endif /* !NETWORK_CORK_H_ */

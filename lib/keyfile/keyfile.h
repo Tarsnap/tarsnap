@@ -1,5 +1,5 @@
-#ifndef _KEYFILE_H_
-#define _KEYFILE_H_
+#ifndef KEYFILE_H_
+#define KEYFILE_H_
 
 #include <stdint.h>
 #include <stdio.h>
@@ -40,4 +40,4 @@ FILE * keyfile_write_open(const char *);
  */
 int keyfile_write_file(FILE *, uint64_t, int, char *, size_t, double);
 
-#endif /* !_KEYFILE_H_ */
+#endif /* !KEYFILE_H_ */

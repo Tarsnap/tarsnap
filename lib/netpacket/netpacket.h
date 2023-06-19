@@ -1,5 +1,5 @@
-#ifndef _NETPACKET_H_
-#define _NETPACKET_H_
+#ifndef NETPACKET_H_
+#define NETPACKET_H_
 
 #include <stdint.h>
 
@@ -228,4 +228,4 @@ void netpacket_getstats(NETPACKET_CONNECTION *, uint64_t *, uint64_t *,
  */
 int netpacket_close(NETPACKET_CONNECTION *);
 
-#endif /* !_NETPACKET_H_ */
+#endif /* !NETPACKET_H_ */

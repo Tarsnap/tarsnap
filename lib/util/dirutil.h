@@ -1,5 +1,5 @@
-#ifndef _DIRUTIL_H_
-#define _DIRUTIL_H_
+#ifndef DIRUTIL_H_
+#define DIRUTIL_H_
 
 /**
  * dirutil_fsyncdir(path):
@@ -13,4 +13,4 @@ int dirutil_fsyncdir(const char *);
  */
 int build_dir(const char *, const char *);
 
-#endif /* !_DIRUTIL_H_ */
+#endif /* !DIRUTIL_H_ */

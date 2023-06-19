@@ -1,5 +1,5 @@
-#ifndef _CHUNKIFY_H_
-#define _CHUNKIFY_H_
+#ifndef CHUNKIFY_H_
+#define CHUNKIFY_H_
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -64,4 +64,4 @@ int chunkify_end(CHUNKIFIER *);
  */
 void chunkify_free(CHUNKIFIER *);
 
-#endif /* !_CHUNKIFY_H_ */
+#endif /* !CHUNKIFY_H_ */

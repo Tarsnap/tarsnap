@@ -1,5 +1,5 @@
-#ifndef _HEXLINK_H_
-#define _HEXLINK_H_
+#ifndef HEXLINK_H_
+#define HEXLINK_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -20,4 +20,4 @@ int hexlink_write(const char *, const uint8_t *, size_t);
  */
 int hexlink_read(const char *, uint8_t *, size_t);
 
-#endif /* !_HEXLINK_H_ */
+#endif /* !HEXLINK_H_ */

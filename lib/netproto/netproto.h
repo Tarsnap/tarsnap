@@ -1,5 +1,5 @@
-#ifndef _NETPROTO_H_
-#define _NETPROTO_H_
+#ifndef NETPROTO_H_
+#define NETPROTO_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -79,4 +79,4 @@ int netproto_flush(NETPROTO_CONNECTION *);
  */
 int netproto_close(NETPROTO_CONNECTION *);
 
-#endif /* !_NETPROTO_H_ */
+#endif /* !NETPROTO_H_ */

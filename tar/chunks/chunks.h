@@ -1,5 +1,5 @@
-#ifndef _CHUNKS_H_
-#define _CHUNKS_H_
+#ifndef CHUNKS_H_
+#define CHUNKS_H_
 
 #include <stddef.h>
 #include <stdio.h>
@@ -272,4 +272,4 @@ void chunks_stats_extrastats(CHUNKS_S *, size_t);
  */
 int chunks_initialize(const char *);
 
-#endif /* !_CHUNKS_H_ */
+#endif /* !CHUNKS_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_INTERNAL_H_
-#define _CRYPTO_INTERNAL_H_
+#ifndef CRYPTO_INTERNAL_H_
+#define CRYPTO_INTERNAL_H_
 
 #include <stdint.h>
 
@@ -97,4 +97,4 @@ int crypto_file_init_keys(void);
  */
 void crypto_MGF1(uint8_t *, size_t, uint8_t *, size_t);
 
-#endif /* !_CRYPTO_INTERNAL_H_ */
+#endif /* !CRYPTO_INTERNAL_H_ */

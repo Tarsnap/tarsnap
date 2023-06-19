@@ -1,5 +1,5 @@
-#ifndef _ARCHIVE_MULTITAPE_H_
-#define _ARCHIVE_MULTITAPE_H_
+#ifndef ARCHIVE_MULTITAPE_H_
+#define ARCHIVE_MULTITAPE_H_
 
 #include <stdint.h>
 #include <time.h>
@@ -54,4 +54,4 @@ void archive_write_multitape_truncate(void *);
 int archive_multitape_copy(struct archive *, void *, struct archive *,
     void *);
 
-#endif /* !_ARCHIVE_MULTITAPE_H_ */
+#endif /* !ARCHIVE_MULTITAPE_H_ */
