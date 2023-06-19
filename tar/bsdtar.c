@@ -1868,7 +1868,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			bsdtar_errc(bsdtar, 1, ENOMEM,
 			    "Cannot allocate memory");
 	} else if (strcmp(conf_opt, "progress-bytes") == 0) {
-		if (!((bsdtar->mode != 'c') || (bsdtar->mode != 'x')))
+		if (!((bsdtar->mode == 'c') || (bsdtar->mode == 'x')))
 			goto badmode;
 		if (bsdtar->option_progress_bytes_set)
 			goto optset;
