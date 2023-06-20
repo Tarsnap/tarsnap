@@ -1,5 +1,5 @@
-#ifndef _NETWORK_INTERNAL_H_
-#define _NETWORK_INTERNAL_H_
+#ifndef NETWORK_INTERNAL_H_
+#define NETWORK_INTERNAL_H_
 
 /* Macros for handling struct timeval values. */
 #define tv_lt(a, b)				\
@@ -59,4 +59,4 @@ int network_bwlimit_get(int, size_t *);
  */
 int network_bwlimit_eat(int, size_t);
 
-#endif /* !_NETWORK_INTERNAL_H_ */
+#endif /* !NETWORK_INTERNAL_H_ */

@@ -1,5 +1,5 @@
-#ifndef _TS_GETFSTYPE_H_
-#define _TS_GETFSTYPE_H_
+#ifndef TS_GETFSTYPE_H_
+#define TS_GETFSTYPE_H_
 
 /**
  * ts_getfstype(path):
@@ -15,4 +15,4 @@ char * ts_getfstype(const char *);
  */
 int ts_getfstype_issynthetic(const char *);
 
-#endif /* !_TS_GETFSTYPE_H_ */
+#endif /* !TS_GETFSTYPE_H_ */

@@ -1,5 +1,5 @@
-#ifndef _MULTITAPE_H_
-#define _MULTITAPE_H_
+#ifndef MULTITAPE_H_
+#define MULTITAPE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -226,4 +226,4 @@ int recovertape(uint64_t, const char *, int);
  */
 int nuketape(uint64_t);
 
-#endif /* !_MULTITAPE_H_ */
+#endif /* !MULTITAPE_H_ */

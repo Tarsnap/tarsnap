@@ -1,5 +1,5 @@
-#ifndef _KEYGEN_H_
-#define _KEYGEN_H_
+#ifndef KEYGEN_H_
+#define KEYGEN_H_
 
 #include <stdint.h>
 
@@ -41,4 +41,4 @@ int keygen_actual(struct register_internal * C,
 		const uint64_t maxmem, const double maxtime,
 		const char * oldkeyfilename);
 
-#endif /* !_KEYGEN_H_ */
+#endif /* !KEYGEN_H_ */

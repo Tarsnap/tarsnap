@@ -1,5 +1,5 @@
-#ifndef _PATRICIA_H_
-#define _PATRICIA_H_
+#ifndef PATRICIA_H_
+#define PATRICIA_H_
 
 #include <stddef.h>	/* size_t */
 #include <stdint.h>	/* uint8_t */
@@ -57,4 +57,4 @@ int patricia_foreach(PATRICIA *, int(void *, uint8_t *, size_t, void *),
  */
 void patricia_free(PATRICIA *);
 
-#endif /* !_PATRICIA_H_ */
+#endif /* !PATRICIA_H_ */

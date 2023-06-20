@@ -1,5 +1,5 @@
-#ifndef _CCACHE_H_
-#define _CCACHE_H_
+#ifndef CCACHE_H_
+#define CCACHE_H_
 
 #include <sys/stat.h>
 
@@ -77,4 +77,4 @@ void ccache_free(CCACHE *);
  */
 int ccache_remove(const char *);
 
-#endif /* !_CCACHE_H_ */
+#endif /* !CCACHE_H_ */

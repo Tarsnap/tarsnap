@@ -1,5 +1,5 @@
-#ifndef _STORAGE_INTERNAL_H_
-#define _STORAGE_INTERNAL_H_
+#ifndef STORAGE_INTERNAL_H_
+#define STORAGE_INTERNAL_H_
 
 /**
  * storage_transaction_start_write(NPC, machinenum, lastseq, seqnum):
@@ -26,4 +26,4 @@ int storage_transaction_start_delete(NETPACKET_CONNECTION *, uint64_t,
 int storage_transaction_start_fsck(NETPACKET_CONNECTION *, uint64_t,
     uint8_t[32], uint8_t);
 
-#endif /* !_STORAGE_INTERNAL_H_ */
+#endif /* !STORAGE_INTERNAL_H_ */

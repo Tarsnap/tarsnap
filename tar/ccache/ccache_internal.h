@@ -1,5 +1,5 @@
-#ifndef _CCACHE_INTERNAL_H_
-#define _CCACHE_INTERNAL_H_
+#ifndef CCACHE_INTERNAL_H_
+#define CCACHE_INTERNAL_H_
 
 #include <sys/stat.h>
 
@@ -67,4 +67,4 @@ struct ccache_record_external {
 /* Make sure the compiler isn't padding inappropriately. */
 CTASSERT(sizeof(struct ccache_record_external) == 52);
 
-#endif /* !_CCACHE_INTERNAL_H_ */
+#endif /* !CCACHE_INTERNAL_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CHUNKS_INTERNAL_H_
-#define _CHUNKS_INTERNAL_H_
+#ifndef CHUNKS_INTERNAL_H_
+#define CHUNKS_INTERNAL_H_
 
 #include <stdint.h>
 #include <stdio.h>
@@ -118,4 +118,4 @@ int chunks_stats_printheader(FILE *, int);
 int chunks_stats_print(FILE *, struct chunkstats *, const char *,
     struct chunkstats *, int);
 
-#endif /* !_CHUNKS_INTERNAL_H_ */
+#endif /* !CHUNKS_INTERNAL_H_ */

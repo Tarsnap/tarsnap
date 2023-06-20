@@ -1,5 +1,5 @@
-#ifndef _SIGQUIT_H_
-#define _SIGQUIT_H_
+#ifndef SIGQUIT_H_
+#define SIGQUIT_H_
 
 #include <signal.h>
 
@@ -12,4 +12,4 @@ extern sig_atomic_t sigquit_received;
  */
 int sigquit_init(void);
 
-#endif /* !_SIGQUIT_H_ */
+#endif /* !SIGQUIT_H_ */

@@ -1,5 +1,5 @@
-#ifndef _NETPACKET_INTERNAL_H_
-#define _NETPACKET_INTERNAL_H_
+#ifndef NETPACKET_INTERNAL_H_
+#define NETPACKET_INTERNAL_H_
 
 #include <stdint.h>
 
@@ -61,4 +61,4 @@ int netpacket_hmac_append(uint8_t, uint8_t *, size_t, int);
  */
 int netpacket_op_packetsent(void *, int);
 
-#endif /* !_NETPACKET_INTERNAL_H_ */
+#endif /* !NETPACKET_INTERNAL_H_ */

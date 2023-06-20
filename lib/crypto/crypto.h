@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_H_
-#define _CRYPTO_H_
+#ifndef CRYPTO_H_
+#define CRYPTO_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -256,4 +256,4 @@ void crypto_session_free(CRYPTO_SESSION *);
 int crypto_passwd_to_dh(const char *, const uint8_t[32],
     uint8_t[CRYPTO_DH_PUBLEN], uint8_t[CRYPTO_DH_PRIVLEN]);
 
-#endif /* !_CRYPTO_H_ */
+#endif /* !CRYPTO_H_ */

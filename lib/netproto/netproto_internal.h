@@ -1,5 +1,5 @@
-#ifndef _NETPROTO_INTERNAL_H_
-#define _NETPROTO_INTERNAL_H_
+#ifndef NETPROTO_INTERNAL_H_
+#define NETPROTO_INTERNAL_H_
 
 #include <stdint.h>
 
@@ -57,4 +57,4 @@ struct netproto_connection_internal * netproto_open(int);
 int netproto_keyexchange(struct netproto_connection_internal *, const char *,
     network_callback *, void *);
 
-#endif /* !_NETPROTO_INTERNAL_H_ */
+#endif /* !NETPROTO_INTERNAL_H_ */

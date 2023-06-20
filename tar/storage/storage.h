@@ -1,5 +1,5 @@
-#ifndef _STORAGE_H_
-#define _STORAGE_H_
+#ifndef STORAGE_H_
+#define STORAGE_H_
 
 #include <stdint.h>	/* uint8_t, uint64_t */
 #include <unistd.h>	/* size_t */
@@ -208,4 +208,4 @@ int storage_transaction_commitfromcheckpoint(uint64_t, uint8_t);
  */
 int storage_directory_read(uint64_t, char, int, uint8_t **, size_t *);
 
-#endif /* !_STORAGE_H_ */
+#endif /* !STORAGE_H_ */

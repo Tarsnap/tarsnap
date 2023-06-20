@@ -511,7 +511,7 @@ chunks_directory_commit(const char * cachepath, const char * osuff,
 		}
 	}
 
-	/**
+	/*-
 	 * We want to move ${t} to ${s} in a crash-proof way.  Unfortunately
 	 * the POSIX rename(2) syscall merely guarantees that if ${s} already
 	 * exists then ${s} will always exist -- not that the file being

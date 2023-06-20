@@ -1,5 +1,5 @@
-#ifndef _TSNETWORK_H_
-#define _TSNETWORK_H_
+#ifndef TSNETWORK_H_
+#define TSNETWORK_H_
 
 #include <sys/types.h>
 #include <sys/select.h>
@@ -166,4 +166,4 @@ void network_getselectstats(double *, double *, double *, double *);
  */
 void network_fini(void);
 
-#endif /* !_TSNETWORK_H_ */
+#endif /* !TSNETWORK_H_ */

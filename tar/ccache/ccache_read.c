@@ -241,7 +241,7 @@ ccache_read(const char * path)
 		goto emptycache;
 	}
 
-	/**
+	/*-
 	 * We read the cache file in three steps:
 	 * 1. Read a little-endian uint32_t which indicates the number of
 	 *    records in the cache file.

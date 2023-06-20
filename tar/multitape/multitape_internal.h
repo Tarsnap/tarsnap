@@ -1,5 +1,5 @@
-#ifndef _MULTITAPE_INTERNAL_H_
-#define _MULTITAPE_INTERNAL_H_
+#ifndef MULTITAPE_INTERNAL_H_
+#define MULTITAPE_INTERNAL_H_
 
 #include <sys/types.h>
 
@@ -209,4 +209,4 @@ int multitape_lock(const char *);
  */
 int multitape_sequence(const char *, uint8_t[32]);
 
-#endif /* !_MULTITAPE_INTERNAL_H_ */
+#endif /* !MULTITAPE_INTERNAL_H_ */

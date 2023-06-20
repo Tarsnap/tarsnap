@@ -220,7 +220,7 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err1;
 	}
 
-	/**
+	/*-
 	 * We make three passes through the cache tree:
 	 * 1. Counting the number of records which will be written to disk.
 	 *    This is necessary since records in the cache which are too old

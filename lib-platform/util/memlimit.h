@@ -26,8 +26,8 @@
  * This file was originally written by Colin Percival as part of the Tarsnap
  * online backup system.
  */
-#ifndef _MEMLIMIT_H_
-#define _MEMLIMIT_H_
+#ifndef MEMLIMIT_H_
+#define MEMLIMIT_H_
 
 #include <stddef.h>
 
@@ -41,4 +41,4 @@
  */
 int memtouse(size_t, double, size_t *);
 
-#endif /* !_MEMLIMIT_H_ */
+#endif /* !MEMLIMIT_H_ */

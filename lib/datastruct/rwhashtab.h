@@ -1,5 +1,5 @@
-#ifndef _RWHASHTAB_H_
-#define _RWHASHTAB_H_
+#ifndef RWHASHTAB_H_
+#define RWHASHTAB_H_
 
 #include <stddef.h>	/* size_t */
 #include <stdint.h>	/* uint8_t */
@@ -52,4 +52,4 @@ int rwhashtab_foreach(RWHASHTAB *, int(void *, void *), void *);
  */
 void rwhashtab_free(RWHASHTAB *);
 
-#endif /* !_RWHASHTAB_H_ */
+#endif /* !RWHASHTAB_H_ */

@@ -1,5 +1,5 @@
-#ifndef _TVMATH_H_
-#define _TVMATH_H_
+#ifndef TVMATH_H_
+#define TVMATH_H_
 
 #include <sys/time.h>
 
@@ -21,4 +21,4 @@ int tvmath_subctime(struct timeval *);
  */
 int tvmath_rsubctime(struct timeval *);
 
-#endif /* !_TVMATH_H_ */
+#endif /* !TVMATH_H_ */

@@ -1,5 +1,5 @@
-#ifndef _TARSNAP_OPT_H_
-#define _TARSNAP_OPT_H_
+#ifndef TARSNAP_OPT_H_
+#define TARSNAP_OPT_H_
 
 /* Use multiple TCP connections when writing an archive. */
 extern int tarsnap_opt_aggressive_networking;
@@ -22,4 +22,4 @@ extern uint64_t tarsnap_opt_checkpointbytes;
 /* Print statistics about netpacket transfer. */
 extern int tarsnap_opt_debug_network_stats;
 
-#endif /* !_TARSNAP_OPT_H_ */
+#endif /* !TARSNAP_OPT_H_ */

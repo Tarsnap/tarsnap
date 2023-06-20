@@ -1,5 +1,5 @@
-#ifndef _STORAGE_READ_CACHE_H_
-#define _STORAGE_READ_CACHE_H_
+#ifndef STORAGE_READ_CACHE_H_
+#define STORAGE_READ_CACHE_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -48,4 +48,4 @@ void storage_read_cache_find(struct storage_read_cache *, char,
  */
 void storage_read_cache_free(struct storage_read_cache *);
 
-#endif /* !_STORAGE_READ_CACHE_H_ */
+#endif /* !STORAGE_READ_CACHE_H_ */

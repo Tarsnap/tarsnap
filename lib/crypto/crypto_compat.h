@@ -1,5 +1,5 @@
-#ifndef _CRYPTO_COMPAT_H_
-#define _CRYPTO_COMPAT_H_
+#ifndef CRYPTO_COMPAT_H_
+#define CRYPTO_COMPAT_H_
 
 #include <openssl/ossl_typ.h>
 
@@ -40,4 +40,4 @@ RSA * crypto_compat_RSA_generate_key(void);
  */
 void crypto_compat_free(void);
 
-#endif /* !_CRYPTO_COMPAT_H_ */
+#endif /* !CRYPTO_COMPAT_H_ */
