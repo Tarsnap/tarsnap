@@ -291,7 +291,8 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	return (HT);
 
 err4:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err3:
 	free(*dir);
 err2:
@@ -372,7 +373,8 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 	return (0);
 
 err2:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err1:
 	free(s);
 err0:

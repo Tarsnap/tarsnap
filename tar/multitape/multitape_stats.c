@@ -118,15 +118,17 @@ statstape_printglobal(TAPE_S * d, const char * csv_filename)
 		goto err1;
 
 	/* Close CSV output file, if requested. */
-	if (csv && fclose(output))
+	if (csv && fclose(output)) {
+		warnp("fclose");
 		goto err0;
+	}
 
 	/* Success! */
 	return (0);
 
 err1:
-	if (output != stdout)
-		fclose(output);
+	if ((output != stdout) && fclose(output))
+		warnp("fclose");
 err0:
 	/* Failure! */
 	return (-1);
@@ -190,8 +192,10 @@ statstape_printall(TAPE_S * d, const char * csv_filename)
 	free(flist);
 
 	/* Close CSV output file, if requested. */
-	if (csv && fclose(output))
+	if (csv && fclose(output)) {
+		warnp("fclose");
 		goto err0;
+	}
 
 	/* Success! */
 	return (0);
@@ -201,8 +205,8 @@ err3:
 err2:
 	free(flist);
 err1:
-	if (output != stdout)
-		fclose(output);
+	if ((output != stdout) && fclose(output))
+		warnp("fclose");
 err0:
 	/* Failure! */
 	return (-1);
@@ -347,8 +351,10 @@ statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename)
 		goto err1;
 
 	/* Close CSV output file. */
-	if (csv && fclose(output))
+	if (csv && fclose(output)) {
+		warnp("fclose");
 		goto err0;
+	}
 
 	/* Success! */
 	return (0);
@@ -356,8 +362,8 @@ statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename)
 err2:
 	multitape_metadata_free(&tmd);
 err1:
-	if (output != stdout)
-		fclose(output);
+	if ((output != stdout) && fclose(output))
+		warnp("fclose");
 err0:
 	/* Failure! */
 	return (rc);
