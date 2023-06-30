@@ -78,19 +78,19 @@ if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 "$D/posix-sta
 	printf %s "-DPOSIXFAIL_STAT_ST_MTIM"
 	echo "WARNING: POSIX violation: struct stat does not contain st_mtim" 1>&2
 fi
-NEED_STD_C99=""
+CFLAGS_C99=""
 if ! ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L "$D/posix-restrict.c" 2>/dev/null; then
 	echo "WARNING: POSIX violation: ${CC} does not accept the 'restrict' keyword" 1>&2
 	if ${CC} ${CFLAGS} -D_POSIX_C_SOURCE=200809L -std=c99 "$D/posix-restrict.c" 2>/dev/null; then
 		[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 		printf %s "-std=c99"
-		NEED_STD_C99="-std=c99"
+		CFLAGS_C99="-std=c99"
 	fi
 fi
-if ! ${CC} ${CFLAGS} ${NEED_STD_C99} -D_POSIX_C_SOURCE=200809L -DARGNAME="" "$D/posix-abstract-declarator.c" 2>/dev/null; then
+if ! ${CC} ${CFLAGS} ${CFLAGS_C99} -D_POSIX_C_SOURCE=200809L -DARGNAME="" "$D/posix-abstract-declarator.c" 2>/dev/null; then
 	echo "WARNING: POSIX violation: ${CC} does not accept qualifiers in an abstract declarator" 1>&2
 	# Test compile with -DPOSIXFAIL_ABSTRACT_DECLARATOR
-	if ${CC} ${CFLAGS} ${NEED_STD_C99} -D_POSIX_C_SOURCE=200809L -DPOSIXFAIL_ABSTRACT_DECLARATOR "$D/posix-abstract-declarator.c" 2>/dev/null; then
+	if ${CC} ${CFLAGS} ${CFLAGS_C99} -D_POSIX_C_SOURCE=200809L -DPOSIXFAIL_ABSTRACT_DECLARATOR "$D/posix-abstract-declarator.c" 2>/dev/null; then
 		[ ${FIRST} = "NO" ] && printf " "; FIRST=NO
 		printf %s "-DPOSIXFAIL_ABSTRACT_DECLARATOR"
 	fi

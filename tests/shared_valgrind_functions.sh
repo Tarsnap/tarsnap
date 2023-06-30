@@ -17,6 +17,8 @@ set -o noclobber -o nounset
 #   Check for any memory leaks recorded in valgrind logfiles associated with a
 #   test exitfile.  Return the filename if there's a leak; otherwise return an
 #   empty string.
+# - valgrind_incomplete():
+#   Check if any valgrind log files are incomplete.
 
 # A non-zero value unlikely to be used as an exit code by the programs being
 # tested.
@@ -228,7 +230,7 @@ valgrind_setup_cmd() {
 		return
 	fi
 
-	val_logfilename="${s_val_basename}-${count_str}-%p.log"
+	val_logfilename="${s_val_basename}-${s_count_str}-%p.log"
 	c_valgrind_cmd="valgrind \
 		--log-file=${val_logfilename} \
 		--track-fds=yes \

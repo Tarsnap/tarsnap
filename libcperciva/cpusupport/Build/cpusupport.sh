@@ -4,6 +4,7 @@ if ! [ "${PATH}" = "$1" ]; then
 	echo "WARNING: POSIX violation: $SHELL's command -p resets \$PATH" 1>&2
 	PATH=$1
 fi
+
 # Standard output should be written to cpusupport-config.h, which is both a
 # C header file defining CPUSUPPORT_ARCH_FEATURE macros and sourceable sh
 # code which sets CFLAGS_ARCH_FEATURE environment variables.
