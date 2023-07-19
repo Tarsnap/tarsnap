@@ -102,7 +102,7 @@ err0:
 
 /**
  * entropy_read_done(er):
- * Release any resources used by {er}.
+ * Release any resources used by ${er}.
  */
 int
 entropy_read_done(struct entropy_read_cookie * er)

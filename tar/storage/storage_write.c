@@ -302,7 +302,7 @@ int
 storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
     char class, const uint8_t name[32])
 {
-	struct write_file_internal  * C;
+	struct write_file_internal * C;
 
 	/* No-op on NULL. */
 	if (S == NULL)
