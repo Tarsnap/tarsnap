@@ -8,7 +8,7 @@ if [ -z "${CC}" ]; then
 	exit 1
 fi
 if ! [ "${PATH}" = "$1" ]; then
-	echo "WARNING: POSIX violation: $SHELL's command -p resets \$PATH" 1>&2
+	echo "WARNING: POSIX violation: ${SHELL}'s command -p resets \$PATH" 1>&2
 	PATH=$1
 fi
 
@@ -17,8 +17,8 @@ D=$(dirname "$0")
 
 FIRST=YES
 for LIB in rt xnet; do
-	if ${CC} ${CFLAGS} -l${LIB} "$D/posix-trivial.c" 2>/dev/null; then
-		if [ ${FIRST} = "NO" ]; then
+	if ${CC} ${CFLAGS} -l"${LIB}" "${D}/posix-trivial.c" 2>/dev/null; then
+		if [ "${FIRST}" = "NO" ]; then
 			printf " ";
 		fi
 		printf "%s" "-l${LIB}";

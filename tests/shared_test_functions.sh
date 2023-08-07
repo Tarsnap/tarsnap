@@ -218,7 +218,7 @@ notify_success_or_fail() {
 
 	# Bail if there's no exitfiles.
 	exitfiles=$(ls "${log_basename}"-*.exit) || true
-	if [ -z "$exitfiles" ]; then
+	if [ -z "${exitfiles}" ]; then
 		echo "FAILED" 1>&2
 		s_retval=1
 		return
@@ -229,7 +229,7 @@ notify_success_or_fail() {
 	skip_exitfiles=0
 
 	# Check each exitfile.
-	for exitfile in $(echo "$exitfiles" | sort); do
+	for exitfile in $(echo "${exitfiles}" | sort); do
 		ret=$(cat "${exitfile}")
 		total_exitfiles=$(( total_exitfiles + 1 ))
 		if [ "${ret}" -lt 0 ]; then
@@ -265,8 +265,8 @@ notify_success_or_fail() {
 	done
 
 	# Notify about skip or success.
-	if [ ${skip_exitfiles} -gt 0 ]; then
-		if [ ${skip_exitfiles} -eq ${total_exitfiles} ]; then
+	if [ "${skip_exitfiles}" -gt 0 ]; then
+		if [ "${skip_exitfiles}" -eq "${total_exitfiles}" ]; then
 			echo "SKIP!" 1>&2
 		else
 			echo "PARTIAL SUCCESS / SKIP!" 1>&2
@@ -334,8 +334,8 @@ run_scenarios() {
 		# want to allow it to echo values to stdout.
 		scenario_runner "${scenario}"
 		retval=$?
-		if [ ${retval} -gt 0 ]; then
-			exit ${retval}
+		if [ "${retval}" -gt 0 ]; then
+			exit "${retval}"
 		fi
 	done
 }

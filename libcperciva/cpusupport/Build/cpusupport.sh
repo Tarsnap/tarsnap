@@ -1,7 +1,7 @@
 # Should be sourced by `command -p sh path/to/cpusupport.sh "$PATH"` from
 # within a Makefile.
 if ! [ "${PATH}" = "$1" ]; then
-	echo "WARNING: POSIX violation: $SHELL's command -p resets \$PATH" 1>&2
+	echo "WARNING: POSIX violation: ${SHELL}'s command -p resets \$PATH" 1>&2
 	PATH=$1
 fi
 
@@ -33,16 +33,16 @@ feature() {
 
 	# Check if we can compile this feature (and any required arguments).
 	printf "Checking if compiler supports %s %s feature..."		\
-	    "$ARCH" "$FEATURE" 1>&2
+	    "${ARCH}" "${FEATURE}" 1>&2
 	for CPU_CFLAGS in "$@"; do
 		if ${CC} ${CPPFLAGS} ${CFLAGS} ${CFLAGS_HARDCODED}	\
-		    ${CPU_CFLAGS} "${feature_filename}" 2>>${outcc}; then
+		    ${CPU_CFLAGS} "${feature_filename}" 2>>"${outcc}"; then
 			rm -f a.out
 			break;
 		fi
 		CPU_CFLAGS=NOTSUPPORTED;
 	done
-	case $CPU_CFLAGS in
+	case ${CPU_CFLAGS} in
 	NOTSUPPORTED)
 		echo " no" 1>&2
 		;;
@@ -51,7 +51,7 @@ feature() {
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		;;
 	*)
-		echo " yes, via $CPU_CFLAGS" 1>&2
+		echo " yes, via ${CPU_CFLAGS}" 1>&2
 		echo "#define CPUSUPPORT_${ARCH}_${FEATURE} 1"
 		echo "#ifdef cpusupport_dummy"
 		echo "export CFLAGS_${ARCH}_${FEATURE}=\"${CPU_CFLAGS}\""
