@@ -43,7 +43,7 @@ int elasticarray_resize(struct elasticarray *, size_t, size_t);
  * functions have been called with different values of reclen).  The value
  * ${reclen} must be positive.
  */
-size_t elasticarray_getsize(struct elasticarray *, size_t);
+size_t elasticarray_getsize(const struct elasticarray *, size_t);
 
 /**
  * elasticarray_append(EA, buf, nrec, reclen):
@@ -99,14 +99,15 @@ int elasticarray_export(struct elasticarray *, void **, size_t *, size_t);
  * that the elastic array remains intact.)  The value ${reclen} must be
  * positive.
  */
-int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
+int elasticarray_exportdup(const struct elasticarray *, void **, size_t *,
+    size_t);
 
 /**
  * ELASTICARRAY_DECL(type, prefix, rectype):
  * Declare the type ${type} and the following functions:
  * ${type} ${prefix}_init(size_t nrec);
  * int ${prefix}_resize(${type} EA, size_t nrec);
- * size_t ${prefix}_getsize(${type} EA);
+ * size_t ${prefix}_getsize(const ${type} EA);
  * int ${prefix}_append(${type} EA, const void * buf, size_t nrec);
  * void ${prefix}_shrink(${type} EA, size_t nrec);
  * int ${prefix}_truncate(${type} EA);
@@ -130,9 +131,10 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 		    nrec, sizeof(rectype)));				\
 	}								\
 	static inline size_t						\
-	prefix##_getsize(struct prefix##_struct * EA)			\
+	prefix##_getsize(const struct prefix##_struct * EA)		\
 	{								\
-		return (elasticarray_getsize((struct elasticarray *)EA,	\
+		return (elasticarray_getsize(				\
+		    (const struct elasticarray *)EA,			\
 		    sizeof(rectype)));					\
 	}								\
 	static inline int						\
@@ -185,11 +187,11 @@ int elasticarray_exportdup(struct elasticarray *, void **, size_t *, size_t);
 		    (void **)buf, nrec, sizeof(rectype)));		\
 	}								\
 	static inline int						\
-	prefix##_exportdup(struct prefix##_struct * EA, rectype ** buf,	\
-	    size_t * nrec)						\
+	prefix##_exportdup(const struct prefix##_struct * EA,		\
+	    rectype ** buf, size_t * nrec)				\
 	{								\
-		return (						\
-		    elasticarray_exportdup((struct elasticarray *)EA,	\
+		return (elasticarray_exportdup(				\
+		    (const struct elasticarray *)EA,			\
 		    (void **)buf, nrec, sizeof(rectype)));		\
 	}								\
 	static void (* prefix##_dummyptr)(void);			\

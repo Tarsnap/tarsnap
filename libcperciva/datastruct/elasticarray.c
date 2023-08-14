@@ -141,7 +141,7 @@ err0:
  * ${reclen} must be positive.
  */
 size_t
-elasticarray_getsize(struct elasticarray * EA, size_t reclen)
+elasticarray_getsize(const struct elasticarray * EA, size_t reclen)
 {
 
 	return (EA->size / reclen);
@@ -324,8 +324,8 @@ err0:
  * positive.
  */
 int
-elasticarray_exportdup(struct elasticarray * EA, void ** buf, size_t * nrec,
-    size_t reclen)
+elasticarray_exportdup(const struct elasticarray * EA, void ** buf,
+    size_t * nrec, size_t reclen)
 {
 
 	/* Allocate buffer for the caller's copy of the data. */
