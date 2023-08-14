@@ -359,8 +359,8 @@ err0:
  * and a signal is received, exit.
  */
 int
-events_network_select(struct timeval * tv,
-    volatile sig_atomic_t * interrupt_requested)
+events_network_select(const struct timeval * tv,
+    const volatile sig_atomic_t * interrupt_requested)
 {
 	int timeout;
 

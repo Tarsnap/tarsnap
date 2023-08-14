@@ -22,7 +22,7 @@ static void events_timer_shutdown(void);
 
 /* Set tv := <current time> + tdelta. */
 static int
-gettimeout(struct timeval * tv, struct timeval * tdelta)
+gettimeout(struct timeval * tv, const struct timeval * tdelta)
 {
 
 	if (monoclock_get(tv))

@@ -35,7 +35,7 @@ static int instantiated = 0;
 #define GENERATE_MAXLEN	65536
 
 static int instantiate(void);
-static void update(uint8_t *, size_t);
+static void update(const uint8_t *, size_t);
 static int reseed(void);
 static void generate(uint8_t *, size_t);
 
@@ -93,7 +93,7 @@ instantiate(void)
  * Update the DRBG state using the provided data.  (Section 10.1.2.2)
  */
 static void
-update(uint8_t * data, size_t datalen)
+update(const uint8_t * data, size_t datalen)
 {
 	HMAC_SHA256_CTX ctx;
 	uint8_t K[32];
