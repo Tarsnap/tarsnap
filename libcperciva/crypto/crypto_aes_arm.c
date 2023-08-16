@@ -110,17 +110,19 @@ SubWord_RotWord_XOR_duplicate(uint8x16_t a, const uint32_t rcon)
 } while (0)
 
 /**
- * crypto_aes_key_expand_128_arm(key, rkeys):
- * Expand the 128-bit AES key ${key} into the 11 round keys ${rkeys}.  This
- * implementation uses ARM AES instructions, and should only be used if
- * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
+ * crypto_aes_key_expand_128_arm(key_unexpanded, rkeys):
+ * Expand the 128-bit unexpanded AES key ${key_unexpanded} into the 11 round
+ * keys ${rkeys}.  This implementation uses ARM AES instructions, and should
+ * only be used if CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes()
+ * returns nonzero.
  */
 static void
-crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
+crypto_aes_key_expand_128_arm(const uint8_t key_unexpanded[16],
+    uint8x16_t rkeys[11])
 {
 
 	/* The first round key is just the key. */
-	rkeys[0] = vld1q_u8(&key[0]);
+	rkeys[0] = vld1q_u8(&key_unexpanded[0]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -153,18 +155,20 @@ crypto_aes_key_expand_128_arm(const uint8_t key[16], uint8x16_t rkeys[11])
 } while (0)
 
 /**
- * crypto_aes_key_expand_256_arm(key, rkeys):
- * Expand the 256-bit AES key ${key} into the 15 round keys ${rkeys}.  This
- * implementation uses ARM AES instructions, and should only be used if
- * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
+ * crypto_aes_key_expand_256_arm(key_unexpanded, rkeys):
+ * Expand the 256-bit unexpanded AES key ${key_unexpanded} into the 15 round
+ * keys ${rkeys}.  This implementation uses ARM AES instructions, and should
+ * only be used if CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes()
+ * returns nonzero.
  */
 static void
-crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
+crypto_aes_key_expand_256_arm(const uint8_t key_unexpanded[32],
+    uint8x16_t rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
-	rkeys[0] = vld1q_u8(&key[0]);
-	rkeys[1] = vld1q_u8(&key[16]);
+	rkeys[0] = vld1q_u8(&key_unexpanded[0]);
+	rkeys[1] = vld1q_u8(&key_unexpanded[16]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -188,14 +192,15 @@ crypto_aes_key_expand_256_arm(const uint8_t key[32], uint8x16_t rkeys[15])
 }
 
 /**
- * crypto_aes_key_expand_arm(key, len):
- * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block_arm().  The length must be 16 or 32.  This
- * implementation uses ARM AES instructions, and should only be used if
- * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
+ * crypto_aes_key_expand_arm(key_unexpanded, len):
+ * Expand the ${len}-byte unexpanded AES key ${key_unexpanded} into a
+ * structure which can be passed to crypto_aes_encrypt_block_arm().  The
+ * length must be 16 or 32.  This implementation uses ARM AES instructions,
+ * and should only be used if CPUSUPPORT_ARM_AES is defined and
+ * cpusupport_arm_aes() returns nonzero.
  */
 void *
-crypto_aes_key_expand_arm(const uint8_t * key, size_t len)
+crypto_aes_key_expand_arm(const uint8_t * key_unexpanded, size_t len)
 {
 	struct crypto_aes_key_arm * kexp;
 
@@ -209,10 +214,10 @@ crypto_aes_key_expand_arm(const uint8_t * key, size_t len)
 	/* Compute round keys. */
 	if (len == 16) {
 		kexp->nr = 10;
-		crypto_aes_key_expand_128_arm(key, kexp->rkeys);
+		crypto_aes_key_expand_128_arm(key_unexpanded, kexp->rkeys);
 	} else if (len == 32) {
 		kexp->nr = 14;
-		crypto_aes_key_expand_256_arm(key, kexp->rkeys);
+		crypto_aes_key_expand_256_arm(key_unexpanded, kexp->rkeys);
 	} else {
 		warn0("Unsupported AES key length: %zu bytes", len);
 		goto err1;

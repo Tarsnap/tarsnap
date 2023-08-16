@@ -5,11 +5,12 @@
 #include <stdint.h>
 
 /**
- * crypto_aes_key_expand_arm(key, len):
- * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block_arm().  The length must be 16 or 32.  This
- * implementation uses ARM AES instructions, and should only be used if
- * CPUSUPPORT_ARM_AES is defined and cpusupport_arm_aes() returns nonzero.
+ * crypto_aes_key_expand_arm(key_unexpanded, len):
+ * Expand the ${len}-byte unexpanded AES key ${key_unexpanded} into a
+ * structure which can be passed to crypto_aes_encrypt_block_arm().  The
+ * length must be 16 or 32.  This implementation uses ARM AES instructions,
+ * and should only be used if CPUSUPPORT_ARM_AES is defined and
+ * cpusupport_arm_aes() returns nonzero.
  */
 void * crypto_aes_key_expand_arm(const uint8_t *, size_t);
 

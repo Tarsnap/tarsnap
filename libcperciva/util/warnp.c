@@ -17,7 +17,7 @@ static void
 warnp_atexit(void)
 {
 
-	/* Clean up writing to the syslog (if applicable).  */
+	/* Clean up writing to the syslog (if applicable). */
 	if (use_syslog)
 		closelog();
 
@@ -144,7 +144,7 @@ void
 warnp_syslog(int enable)
 {
 
-	/* Clean up writing to the syslog (if applicable).  */
+	/* Clean up writing to the syslog (if applicable). */
 	if (use_syslog && !enable)
 		closelog();
 

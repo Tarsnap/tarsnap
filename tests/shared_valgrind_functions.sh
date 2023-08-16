@@ -17,6 +17,8 @@ set -o noclobber -o nounset
 #   Check for any memory leaks recorded in valgrind logfiles associated with a
 #   test exitfile.  Return the filename if there's a leak; otherwise return an
 #   empty string.
+# - valgrind_incomplete():
+#   Check if any valgrind log files are incomplete.
 
 # A non-zero value unlikely to be used as an exit code by the programs being
 # tested.
@@ -49,7 +51,7 @@ valgrind_prepare_directory() {
 	fi
 
 	# Bail if we don't want valgrind at all.
-	if [ "$USE_VALGRIND" -eq 0 ]; then
+	if [ "${USE_VALGRIND}" -eq 0 ]; then
 		return
 	fi
 
@@ -70,7 +72,7 @@ valgrind_prepare_directory() {
 # Return a $USE_VALGRIND variable defined; if it was previously defined and
 # was greater than 0, then check that valgrind is available in the $PATH.
 valgrind_check_optional() {
-	if [ "$USE_VALGRIND" -gt 0 ]; then
+	if [ "${USE_VALGRIND}" -gt 0 ]; then
 		# Look for valgrind in $PATH.
 		if ! command -v valgrind >/dev/null 2>&1; then
 			printf "valgrind not found\n" 1>&2
@@ -118,8 +120,8 @@ valgrind_process_suppression_file() {
 
 	# Skip "${filename}00" because that doesn't contain a suppression.
 	i=1
-	while [ "$i" -le "${num_segments}" ]; do
-		segfilename="$(printf "%s%02i" "${filename}" "$i")"
+	while [ "${i}" -le "${num_segments}" ]; do
+		segfilename="$(printf "%s%02i" "${filename}" "${i}")"
 
 		# Find last relevant line.
 		lastline="$(grep -n "}" "${segfilename}" | cut -f1 -d:)"
@@ -147,7 +149,7 @@ valgrind_process_suppression_file() {
 
 		# Only keep the beginning of each suppression.
 		lastline="$((lastline - 1))"
-		head -n "$lastline" "${segfilename}" >>	\
+		head -n "${lastline}" "${segfilename}" >>	\
 		    "${valgrind_suppressions}"
 		printf "}\n" >> "${valgrind_suppressions}"
 
@@ -165,7 +167,7 @@ valgrind_ensure_suppression() {
 	potential_memleaks_binary=$1
 
 	# Quit if we're not using valgrind.
-	if [ ! "$USE_VALGRIND" -gt 0 ]; then
+	if [ ! "${USE_VALGRIND}" -gt 0 ]; then
 		return
 	fi;
 
@@ -228,7 +230,7 @@ valgrind_setup_cmd() {
 		return
 	fi
 
-	val_logfilename="${s_val_basename}-${count_str}-%p.log"
+	val_logfilename="${s_val_basename}-${s_count_str}-%p.log"
 	c_valgrind_cmd="valgrind \
 		--log-file=${val_logfilename} \
 		--track-fds=yes \
@@ -236,6 +238,18 @@ valgrind_setup_cmd() {
 		--errors-for-leak-kinds=all \
 		--suppressions=${valgrind_suppressions}"
 	echo "${c_valgrind_cmd}"
+}
+
+## valgrind_incomplete:
+# Return 0 if at least one valgrind log file is not complete.
+valgrind_incomplete() {
+	# The exit code of `grep -L` is undesirable: if at least one file
+	# contains the pattern, it returns 0.  To detect if at least one file
+	# does *not* contain the pattern, we need to check grep's output,
+	# rather than the exit code.
+	_valgrind_incomplete_logfiles=$(grep -L "ERROR SUMMARY"		\
+	    "${out_valgrind}"/*.log)
+	test -n "${_valgrind_incomplete_logfiles}"
 }
 
 ## valgrind_get_basename (exitfile):

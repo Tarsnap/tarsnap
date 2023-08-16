@@ -33,13 +33,15 @@ struct crypto_aes_key_aesni {
 } while (0)
 
 /**
- * crypto_aes_key_expand_128_aesni(key, rkeys):
- * Expand the 128-bit AES key ${key} into the 11 round keys ${rkeys}.  This
- * implementation uses x86 AESNI instructions, and should only be used if
- * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
+ * crypto_aes_key_expand_128_aesni(key_unexpanded, rkeys):
+ * Expand the 128-bit AES unexpanded key ${key_unexpanded} into the 11 round
+ * keys ${rkeys}.  This implementation uses x86 AESNI instructions, and should
+ * only be used if CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni()
+ * returns nonzero.
  */
 static void
-crypto_aes_key_expand_128_aesni(const uint8_t key[16], __m128i rkeys[11])
+crypto_aes_key_expand_128_aesni(const uint8_t key_unexpanded[16],
+    __m128i rkeys[11])
 {
 
 	/* The first round key is just the key. */
@@ -53,7 +55,7 @@ crypto_aes_key_expand_128_aesni(const uint8_t key[16], __m128i rkeys[11])
 	 * that alignment-requirement-increasing compiler warnings get
 	 * disabled.
 	 */
-	rkeys[0] = _mm_loadu_si128((const __m128i *)&key[0]);
+	rkeys[0] = _mm_loadu_si128((const __m128i *)&key_unexpanded[0]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -87,13 +89,15 @@ crypto_aes_key_expand_128_aesni(const uint8_t key[16], __m128i rkeys[11])
 } while (0)
 
 /**
- * crypto_aes_key_expand_256_aesni(key, rkeys):
- * Expand the 256-bit AES key ${key} into the 15 round keys ${rkeys}.  This
- * implementation uses x86 AESNI instructions, and should only be used if
- * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
+ * crypto_aes_key_expand_256_aesni(key_unexpanded, rkeys):
+ * Expand the 256-bit unexpanded AES key ${key_unexpanded} into the 15 round
+ * keys ${rkeys}.  This implementation uses x86 AESNI instructions, and should
+ * only be used if CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni()
+ * returns nonzero.
  */
 static void
-crypto_aes_key_expand_256_aesni(const uint8_t key[32], __m128i rkeys[15])
+crypto_aes_key_expand_256_aesni(const uint8_t key_unexpanded[32],
+    __m128i rkeys[15])
 {
 
 	/* The first two round keys are just the key. */
@@ -107,8 +111,8 @@ crypto_aes_key_expand_256_aesni(const uint8_t key[32], __m128i rkeys[15])
 	 * that alignment-requirement-increasing compiler warnings get
 	 * disabled.
 	 */
-	rkeys[0] = _mm_loadu_si128((const __m128i *)&key[0]);
-	rkeys[1] = _mm_loadu_si128((const __m128i *)&key[16]);
+	rkeys[0] = _mm_loadu_si128((const __m128i *)&key_unexpanded[0]);
+	rkeys[1] = _mm_loadu_si128((const __m128i *)&key_unexpanded[16]);
 
 	/*
 	 * Each of the remaining round keys are computed from the preceding
@@ -137,14 +141,15 @@ crypto_aes_key_expand_256_aesni(const uint8_t key[32], __m128i rkeys[15])
 }
 
 /**
- * crypto_aes_key_expand_aesni(key, len):
- * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block_aesni().  The length must be 16 or 32.  This
- * implementation uses x86 AESNI instructions, and should only be used if
- * CPUSUPPORT_X86_AESNI is defined and cpusupport_x86_aesni() returns nonzero.
+ * crypto_aes_key_expand_aesni(key_unexpanded, len):
+ * Expand the ${len}-byte unexpanded AES key ${key_unexpanded} into a
+ * structure which can be passed to crypto_aes_encrypt_block_aesni().  The
+ * length must be 16 or 32.  This implementation uses x86 AESNI instructions,
+ * and should only be used if CPUSUPPORT_X86_AESNI is defined and
+ * cpusupport_x86_aesni() returns nonzero.
  */
 void *
-crypto_aes_key_expand_aesni(const uint8_t * key, size_t len)
+crypto_aes_key_expand_aesni(const uint8_t * key_unexpanded, size_t len)
 {
 	struct crypto_aes_key_aesni * kexp;
 
@@ -158,10 +163,10 @@ crypto_aes_key_expand_aesni(const uint8_t * key, size_t len)
 	/* Compute round keys. */
 	if (len == 16) {
 		kexp->nr = 10;
-		crypto_aes_key_expand_128_aesni(key, kexp->rkeys);
+		crypto_aes_key_expand_128_aesni(key_unexpanded, kexp->rkeys);
 	} else if (len == 32) {
 		kexp->nr = 14;
-		crypto_aes_key_expand_256_aesni(key, kexp->rkeys);
+		crypto_aes_key_expand_256_aesni(key_unexpanded, kexp->rkeys);
 	} else {
 		warn0("Unsupported AES key length: %zu bytes", len);
 		goto err1;

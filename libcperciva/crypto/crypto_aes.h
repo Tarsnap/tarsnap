@@ -16,9 +16,10 @@ struct crypto_aes_key;
 int crypto_aes_can_use_intrinsics(void);
 
 /**
- * crypto_aes_key_expand(key, len):
- * Expand the ${len}-byte AES key ${key} into a structure which can be passed
- * to crypto_aes_encrypt_block().  The length must be 16 or 32.
+ * crypto_aes_key_expand(key_unexpanded, len):
+ * Expand the ${len}-byte unexpanded AES key ${key_unexpanded} into a
+ * structure which can be passed to crypto_aes_encrypt_block().  The length
+ * must be 16 or 32.
  */
 struct crypto_aes_key * crypto_aes_key_expand(const uint8_t *, size_t);
 
