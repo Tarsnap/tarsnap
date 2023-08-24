@@ -37,10 +37,12 @@
 #       and log files.
 # - s_val_basename: this is the basename for the scenario's
 #       valgrind log files.
-# - s_count: this is the count of the scenario's checks (so that
-#       each check can have distinct files).
-# - s_count_str: ${s_count} expressed as a two-digit string.
 # - s_retval: this is the overall exit code of the scenario.
+# - c_count_next: this is the count of the scenario's checks (so that
+#       each check can have distinct files).
+# - c_count_str: the previous value of ${c_count_next}, expressed as a
+#       two-digit string.  In other words, when we're working on the Nth
+#       check, ${c_count_next} is N, while ${c_count_str} is N-1.
 # - c_exitfile: this contains the exit code of each check.
 # - c_valgrind_min: this is the minimum value of USE_VALGRIND
 #       which will enable valgrind checking for this check.
@@ -152,7 +154,7 @@ wait_while() {
 ## setup_check_variables (description, check_prev=1):
 # Set up the "check" variables ${c_exitfile} and ${c_valgrind_cmd}, the
 # latter depending on the previously-defined ${c_valgrind_min}.
-# Advances the number of checks ${s_count} so that the next call to this
+# Advance the number of checks ${c_count_next} so that the next call to this
 # function will set up new filenames.  Write ${description} into a
 # file.  If ${check_prev} is non-zero, check that the previous
 # ${c_exitfile} exists.
@@ -174,18 +176,18 @@ setup_check_variables() {
 	fi
 
 	# Set up the "exit" file.
-	s_count_str=$(printf "%02d" "${s_count}")
-	c_exitfile="${s_basename}-${s_count_str}.exit"
+	c_count_str=$(printf "%02d" "${c_count_next}")
+	c_exitfile="${s_basename}-${c_count_str}.exit"
 
 	# Write the "description" file.
 	printf "%s\n" "${description}" >				\
-		"${s_basename}-${s_count_str}.desc"
+		"${s_basename}-${c_count_str}.desc"
 
 	# Set up the valgrind command (or an empty string).
 	c_valgrind_cmd="$(valgrind_setup_cmd)"
 
 	# Advances the number of checks.
-	s_count=$((s_count + 1))
+	c_count_next=$((c_count_next + 1))
 }
 
 ## expected_exitcode (expected, exitcode):
@@ -286,7 +288,7 @@ scenario_runner() {
 	# Initialize "scenario" and "check" variables.
 	s_basename=${out}/${basename}
 	s_val_basename=${out_valgrind}/${basename}
-	s_count=0
+	c_count_next=0
 	c_exitfile="${NO_EXITFILE}"
 	c_valgrind_min=9
 	c_valgrind_cmd=""
