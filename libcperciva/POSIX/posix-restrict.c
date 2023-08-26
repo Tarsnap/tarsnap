@@ -1,5 +1,5 @@
 static int
-foo(char * restrict x, char * restrict y)
+foo(const char * restrict x, const char * restrict y)
 {
 
 	return (x == y);

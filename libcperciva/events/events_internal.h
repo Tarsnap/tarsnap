@@ -35,7 +35,8 @@ struct eventrec * events_immediate_get(void);
  * stored in ${tv} may be modified.  If ${*interrupt_requested} is non-zero
  * and a signal is received, exit.
  */
-int events_network_select(struct timeval *, volatile sig_atomic_t *);
+int events_network_select(const struct timeval *,
+    const volatile sig_atomic_t *);
 
 /**
  * events_network_selectstats_startclock(void):

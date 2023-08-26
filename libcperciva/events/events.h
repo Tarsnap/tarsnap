@@ -98,7 +98,7 @@ int events_run(void);
  * status code from the callback).  May be interrupted by events_interrupt()
  * (and return 0).
  */
-int events_spin(int *);
+int events_spin(const int *);
 
 /**
  * events_interrupt(void):

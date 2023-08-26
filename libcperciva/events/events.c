@@ -207,7 +207,7 @@ events_run(void)
  * (and return 0).
  */
 int
-events_spin(int * done)
+events_spin(const int * done)
 {
 	int rc = 0;
 
