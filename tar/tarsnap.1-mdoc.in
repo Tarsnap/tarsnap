@@ -121,6 +121,19 @@ flag is specified two or more times, the command
 line with which
 .Nm
 was invoked to create each archive is also printed.
+.Pp
+If the
+.Fl -null
+argument is also specified, each archive name will be separated by a single
+null character.
+If the
+.Fl v
+flag is also specified, then the creation time will be separated by two null
+characters.
+If the
+.Fl v
+flag is specified two times, then the arguments in the command line will be
+separated by three null characters.
 .It Fl -print-stats
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
@@ -604,8 +617,8 @@ option specified in a configuration file.
 (use with
 .Fl I ,
 .Fl T ,
-or
-.Fl X )
+.Fl X ,
+or list-archives modes only)
 Filenames or patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the
