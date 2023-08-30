@@ -212,6 +212,24 @@ err0:
 	return (-1);
 }
 
+/* Print ${sep}. */
+static int
+print_sep(char sep)
+{
+
+	if (fprintf(stdout, "%c", sep) < 0) {
+		warnp("fprintf");
+		goto err0;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /**
  * statstape_printlist_item(d, tapehash, verbose, print_nulls):
  * Print the name of the archive with ${tapehash}.  If ${verbose} > 0, print
@@ -246,7 +264,13 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
 			warnp("Cannot format date");
 			goto err1;
 		}
-		if (fprintf(stdout, "\t%s", datebuf) < 0) {
+
+		/* Print field separator. */
+		if (print_sep('\t'))
+			goto err1;
+
+		/* Print date. */
+		if (fprintf(stdout, "%s", datebuf) < 0) {
 			warnp("fprintf");
 			goto err1;
 		}
@@ -254,20 +278,26 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
 
 	/* Print command line. */
 	if (verbose > 1) {
+		/* Print field separator. */
+		if (print_sep('\t'))
+			goto err1;
+
 		for (arg = 0; arg < tmd.argc; arg++) {
-			if (fprintf(stdout, arg ? " %s" : "\t%s",
-			    tmd.argv[arg]) < 0) {
+			/* Print arg separator. */
+			if ((arg > 0) && print_sep(' '))
+				goto err1;
+
+			/* Print arg. */
+			if (fprintf(stdout, "%s", tmd.argv[arg]) < 0) {
 				warnp("fprintf");
 				goto err1;
 			}
 		}
 	}
 
-	/* End line. */
-	if (fprintf(stdout, "\n") < 0) {
-		warnp("fprintf");
+	/* Print archive separator. */
+	if (print_sep('\n'))
 		goto err1;
-	}
 
 	/* Free parsed metadata. */
 	multitape_metadata_free(&tmd);
