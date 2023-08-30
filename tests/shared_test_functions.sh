@@ -12,7 +12,7 @@
 #
 ### Design
 #
-# The main function is scenario_runner(scenario_filename), which
+# The main function is _scenario_runner(scenario_filename), which
 # takes a scenario file as the argument, and runs a
 #     scenario_cmd()
 # function which was defined in that file.
@@ -30,6 +30,8 @@
 #   Check if ${expected} matches ${actual}.
 # - run_scenarios():
 #   Run scenarios in the test directory.
+#
+# We adopt the convention of "private" function names beginning with an _.
 #
 ### Variables
 #
@@ -75,9 +77,9 @@ bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 NO_EXITFILE=/dev/null
 
 
-## prepare_directory():
+## _prepare_directory():
 # Delete the previous test output directory, and create a new one.
-prepare_directory() {
+_prepare_directory() {
 	if [ -d "${out}" ]; then
 		rm -rf "${out}"
 	fi
@@ -209,14 +211,14 @@ expected_exitcode() {
 	fi
 }
 
-## notify_success_or_fail (log_basename, val_log_basename):
+## _notify_success_or_fail (log_basename, val_log_basename):
 # Examine all "exit code" files beginning with ${log_basename} and
 # print "SUCCESS!", "FAILED!", "SKIP!", or "PARTIAL SUCCESS / SKIP!"
 # as appropriate.  Check any valgrind log files associated with the
 # test and print "FAILED!" if appropriate, along with the valgrind
 # logfile.  If the test failed and ${VERBOSE} is non-zero, print
 # the description to stderr.
-notify_success_or_fail() {
+_notify_success_or_fail() {
 	log_basename=$1
 	val_log_basename=$2
 
@@ -280,9 +282,9 @@ notify_success_or_fail() {
 	fi
 }
 
-## scenario_runner (scenario_filename):
+## _scenario_runner (scenario_filename):
 # Run a test scenario from ${scenario_filename}.
-scenario_runner() {
+_scenario_runner() {
 	scenario_filename=$1
 	basename=$(basename "${scenario_filename}" .sh)
 	printf "  %s... " "${basename}" 1>&2
@@ -309,7 +311,7 @@ scenario_runner() {
 
 	# Print PASS or FAIL, and return result.
 	s_retval=0
-	notify_success_or_fail "${s_basename}" "${s_val_basename}"
+	_notify_success_or_fail "${s_basename}" "${s_val_basename}"
 
 	return "${s_retval}"
 }
@@ -326,7 +328,7 @@ run_scenarios() {
 	fi
 
 	# Clean up any previous directory, and create a new one.
-	prepare_directory
+	_prepare_directory
 
 	# Clean up any previous valgrind directory, and prepare for new
 	# valgrind tests (if applicable).
@@ -337,7 +339,7 @@ run_scenarios() {
 	for scenario in ${test_scenarios}; do
 		# We can't call this function with $( ... ) because we
 		# want to allow it to echo values to stdout.
-		scenario_runner "${scenario}"
+		_scenario_runner "${scenario}"
 		retval=$?
 		if [ "${retval}" -gt 0 ]; then
 			exit "${retval}"

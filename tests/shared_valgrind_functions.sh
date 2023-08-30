@@ -20,6 +20,8 @@ set -o noclobber -o nounset
 # - valgrind_incomplete():
 #   Check if any valgrind log files are incomplete.
 #
+# We adopt the convention of "private" function names beginning with an _.
+#
 ### Variables
 #
 # Wherever possible, this suite uses local variables and
@@ -31,10 +33,10 @@ set -o noclobber -o nounset
 # tested.
 valgrind_exit_code=108
 
-## valgrind_prepare_directory ():
+## _valgrind_prepare_directory ():
 # Clean up a previous valgrind directory, and prepare for new valgrind tests
 # (if applicable).
-valgrind_prepare_directory() {
+_valgrind_prepare_directory() {
 	# If we don't want to generate new suppressions files, move them.
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
 		# Bail if the file doesn't exist.
@@ -73,10 +75,10 @@ valgrind_prepare_directory() {
 	[ "$(uname)" = "FreeBSD" ] && chflags nodump "${out_valgrind}"
 }
 
-## valgrind_check_optional ():
+## _valgrind_check_optional ():
 # If ${USE_VALGRIND} is greater than 0, check that valgrind is available in
 # the ${PATH} and is at least version 3.13.
-valgrind_check_optional() {
+_valgrind_check_optional() {
 	if [ "${USE_VALGRIND}" -gt 0 ]; then
 		# Look for valgrind in ${PATH}.
 		if ! command -v valgrind >/dev/null 2>&1; then
@@ -99,10 +101,10 @@ valgrind_check_optional() {
 	fi
 }
 
-## valgrind_process_suppression_file(filename):
+## _valgrind_process_suppression_file(filename):
 # Generalize suppressions from a valgrind suppression file by omitting the
 # "fun:pl_*" and "fun:main" lines and anything below them.
-valgrind_process_suppression_file() {
+_valgrind_process_suppression_file() {
 	filename=$1
 
 	# How many segments do we have?
@@ -163,12 +165,12 @@ valgrind_process_suppression_file() {
 	done
 }
 
-## valgrind_ensure_suppression (potential_memleaks_binary):
+## _valgrind_ensure_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
 # those leaks when testing other binaries.  Record a log file which shows the
 # open file descriptors in ${valgrind_fds_log}.
-valgrind_ensure_suppression() {
+_valgrind_ensure_suppression() {
 	potential_memleaks_binary=$1
 
 	# Quit if we're not using valgrind.
@@ -212,7 +214,7 @@ valgrind_ensure_suppression() {
 
 		# Strip out useless parts from the log file, and allow the
 		# suppressions to apply to other binaries.
-		valgrind_process_suppression_file "${this_valgrind_supp}"
+		_valgrind_process_suppression_file "${this_valgrind_supp}"
 	done < "${valgrind_suppressions_tests}"
 
 	# Clean up
@@ -251,19 +253,19 @@ valgrind_incomplete() {
 	test -n "${_valgrind_incomplete_logfiles}"
 }
 
-## valgrind_get_basename (exitfile):
+## _valgrind_get_basename (exitfile):
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
-valgrind_get_basename() {
+_valgrind_get_basename() {
 	exitfile=$1
 	basename=$(basename "${exitfile}" ".exit")
 	echo "${out_valgrind}/${basename}"
 }
 
-## valgrind_check_logfile(logfile)
+## _valgrind_check_logfile(logfile)
 # Check for any (unsuppressed) memory leaks recorded in a valgrind logfile.
 # Echo the filename if there's a leak; otherwise, echo nothing.
-valgrind_check_logfile() {
+_valgrind_check_logfile() {
 	logfile=$1
 
 	# Bytes in use at exit.
@@ -325,7 +327,7 @@ valgrind_check_logfile() {
 # empty string.
 valgrind_check_basenames() {
 	exitfile="$1"
-	val_basename=$(valgrind_get_basename "${exitfile}")
+	val_basename=$(_valgrind_get_basename "${exitfile}")
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
 	logfiles=$(ls "${val_basename}"* 2>/dev/null)
@@ -339,7 +341,7 @@ valgrind_check_basenames() {
 
 	# Check a single file.
 	if [ "${num_logfiles}" -eq "1" ]; then
-		valgrind_check_logfile "${logfiles}"
+		_valgrind_check_logfile "${logfiles}"
 		return
 	fi
 
@@ -359,7 +361,7 @@ valgrind_check_basenames() {
 			    awk '{ print $4 }')
 			if [ "${val_pids#*"${val_parent_pid}"}" !=	\
 			    "${val_pids}" ]; then
-				valgrind_check_logfile "${logfile}"
+				_valgrind_check_logfile "${logfile}"
 				return "$?"
 			fi
 		done
@@ -379,13 +381,13 @@ valgrind_init() {
 	valgrind_fds_log="${out_valgrind}/fds.log"
 
 	# If we want valgrind, check that the version is high enough.
-	valgrind_check_optional
+	_valgrind_check_optional
 
 	# Remove any previous directory, and create a new one.
-	valgrind_prepare_directory
+	_valgrind_prepare_directory
 
 	# Generate valgrind suppression file if it is required.  Must be
 	# done after preparing the directory.
-	valgrind_ensure_suppression				\
+	_valgrind_ensure_suppression				\
 	    "${bindir}/tests/valgrind/potential-memleaks"
 }
