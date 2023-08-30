@@ -19,6 +19,13 @@ set -o noclobber -o nounset
 #   empty string.
 # - valgrind_incomplete():
 #   Check if any valgrind log files are incomplete.
+#
+### Variables
+#
+# Wherever possible, this suite uses local variables and
+# explicitly-passed arguments, with the following exceptions:
+# - valgrind_suppressions: filename of valgrind suppressions.
+# - valgrind_fds_log: filename of the log of open file descriptors.
 
 # A non-zero value unlikely to be used as an exit code by the programs being
 # tested.
@@ -30,8 +37,6 @@ valgrind_exit_code=108
 valgrind_prepare_directory() {
 	# If we don't want to generate new suppressions files, move them.
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
-		valgrind_suppressions="${out_valgrind}/suppressions"
-		fds="${out_valgrind}/fds.log"
 		# Bail if the file doesn't exist.
 		if [ ! -e "${valgrind_suppressions}" ]; then
 			echo "No valgrind suppressions file" 1>&2
@@ -42,7 +47,7 @@ valgrind_prepare_directory() {
 		supp_tmp="$(mktemp /tmp/valgrind-suppressions.XXXXXX)"
 		fds_tmp="$(mktemp /tmp/valgrind-fds.XXXXXX)"
 		mv "${valgrind_suppressions}" "${supp_tmp}"
-		mv "${fds}" "${fds_tmp}"
+		mv "${valgrind_fds_log}" "${fds_tmp}"
 	fi
 
 	# Always delete any previous valgrind directory.
@@ -61,7 +66,7 @@ valgrind_prepare_directory() {
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
 		# Move the files back.
 		mv "${supp_tmp}" "${valgrind_suppressions}"
-		mv "${fds_tmp}" "${fds}"
+		mv "${fds_tmp}" "${valgrind_fds_log}"
 	fi
 
 	# We don't want to back up this directory.
@@ -161,8 +166,8 @@ valgrind_process_suppression_file() {
 ## valgrind_ensure_suppression (potential_memleaks_binary):
 # Run the ${potential_memleaks_binary} through valgrind, keeping
 # track of any apparent memory leak in order to suppress reporting
-# those leaks when testing other binaries.  Record how many file descriptors
-# are open at exit in ${valgrind_fds}.
+# those leaks when testing other binaries.  Record a log file which shows the
+# open file descriptors in ${valgrind_fds_log}.
 valgrind_ensure_suppression() {
 	potential_memleaks_binary=$1
 
@@ -171,17 +176,12 @@ valgrind_ensure_suppression() {
 		return
 	fi;
 
-	fds_log="${out_valgrind}/fds.log"
-
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
 		printf "Using old valgrind suppressions\n" 1>&2
-		valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" |	\
-		   awk '{print $4}')
 		return
 	fi
 
 	printf "Generating valgrind suppressions... " 1>&2
-	valgrind_suppressions="${out_valgrind}/suppressions"
 	valgrind_suppressions_log="${out_valgrind}/suppressions.pre"
 
 	# Start off with an empty suppression file
@@ -189,9 +189,8 @@ valgrind_ensure_suppression() {
 
 	# Get list of tests and the number of open descriptors at a normal exit
 	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
-	valgrind --track-fds=yes --log-file="${fds_log}"		\
+	valgrind --track-fds=yes --log-file="${valgrind_fds_log}"	\
 	    "${potential_memleaks_binary}" > "${valgrind_suppressions_tests}"
-	valgrind_fds=$(grep "FILE DESCRIPTORS" "${fds_log}" | awk '{print $4}')
 
 	# Generate suppressions for each test
 	while read -r testname; do
@@ -301,6 +300,8 @@ valgrind_check_logfile() {
 	# match the simple test case (executing potential_memleaks without
 	# running any actual tests).
 	fds_in_use=$(grep "FILE DESCRIPTORS" "${logfile}" | awk '{print $4}')
+	valgrind_fds=$(grep "FILE DESCRIPTORS" "${valgrind_fds_log}" | \
+	    awk '{print $4}')
 	if [ "${fds_in_use}" != "${valgrind_fds}" ] ; then
 		# There is an unsuppressed leak.
 		echo "${logfile}"
@@ -373,6 +374,10 @@ valgrind_check_basenames() {
 # Clear previous valgrind output, and prepare for running valgrind tests
 # (if applicable).
 valgrind_init() {
+	# Set up global variables.
+	valgrind_suppressions="${out_valgrind}/suppressions"
+	valgrind_fds_log="${out_valgrind}/fds.log"
+
 	# If we want valgrind, check that the version is high enough.
 	valgrind_check_optional
 
