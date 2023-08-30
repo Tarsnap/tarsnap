@@ -1007,8 +1007,11 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--newer-mtime", "cxt");
 	if (bsdtar->option_absolute_paths)
 		only_mode(bsdtar, "-P", "cxt");
-	if (bsdtar->option_null)
-		only_mode(bsdtar, "--null", "cxt");
+	if (bsdtar->option_null) {
+		/* Allow in --list-archives or cxt modes. */
+		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
+			only_mode(bsdtar, "--null", "cxt");
+	}
 
 	/* We should only have remaining args in -c, -t, and -x modes. */
 	if (bsdtar->argc != 0) {

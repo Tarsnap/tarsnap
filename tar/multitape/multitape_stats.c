@@ -212,14 +212,26 @@ err0:
 	return (-1);
 }
 
-/* Print ${sep}. */
+/* Print ${sep} if ${nulls} is zero; otherwise, print ${num} NULs. */
 static int
-print_sep(char sep)
+print_sep(char sep, int nulls, int num)
 {
+	int i;
 
-	if (fprintf(stdout, "%c", sep) < 0) {
-		warnp("fprintf");
-		goto err0;
+	if (nulls == 0) {
+		/* Print the normal separator. */
+		if (fprintf(stdout, "%c", sep) < 0) {
+			warnp("fprintf");
+			goto err0;
+		}
+	} else {
+		/* Print the specified number of NULs. */
+		for (i = 0; i < num; i++) {
+			if (fprintf(stdout, "%c", '\0') < 0) {
+				warnp("fprintf");
+				goto err0;
+			}
+		}
 	}
 
 	/* Success! */
@@ -234,10 +246,13 @@ err0:
  * statstape_printlist_item(d, tapehash, verbose, print_nulls):
  * Print the name of the archive with ${tapehash}.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
- * program invocation which created the archive.
+ * program invocation which created the archive.  If ${print_nulls} > 0, print
+ * null character(s) between archives names and fields instead of newlines,
+ * tabs, and spaces.
  */
 static int
-statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
+statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
+    int print_nulls)
 {
 	struct tapemetadata tmd;
 	struct tm * ltime;
@@ -266,7 +281,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
 		}
 
 		/* Print field separator. */
-		if (print_sep('\t'))
+		if (print_sep('\t', print_nulls, 2))
 			goto err1;
 
 		/* Print date. */
@@ -279,12 +294,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
 	/* Print command line. */
 	if (verbose > 1) {
 		/* Print field separator. */
-		if (print_sep('\t'))
+		if (print_sep('\t', print_nulls, 2))
 			goto err1;
 
 		for (arg = 0; arg < tmd.argc; arg++) {
 			/* Print arg separator. */
-			if ((arg > 0) && print_sep(' '))
+			if ((arg > 0) && print_sep(' ', print_nulls, 3))
 				goto err1;
 
 			/* Print arg. */
@@ -296,7 +311,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose)
 	}
 
 	/* Print archive separator. */
-	if (print_sep('\n'))
+	if (print_sep('\n', print_nulls, 1))
 		goto err1;
 
 	/* Free parsed metadata. */
@@ -313,13 +328,15 @@ err0:
 }
 
 /**
- * statstape_printlist(d, verbose):
+ * statstape_printlist(d, verbose, print_nulls):
  * Print the names of each of the archives in a set.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
- * program invocation which created the archive.
+ * program invocation which created the archive.  If ${print_nulls} > 0, print
+ * null character(s) between archives names and fields instead of newlines,
+ * tabs, and spaces.
  */
 int
-statstape_printlist(TAPE_S * d, int verbose)
+statstape_printlist(TAPE_S * d, int verbose, int print_nulls)
 {
 	uint8_t * flist;
 	size_t nfiles;
@@ -331,7 +348,8 @@ statstape_printlist(TAPE_S * d, int verbose)
 
 	/* Iterate through the files. */
 	for (file = 0; file < nfiles; file++) {
-		if (statstape_printlist_item(d, &flist[file * 32], verbose))
+		if (statstape_printlist_item(d, &flist[file * 32], verbose,
+		    print_nulls))
 			goto err1;
 	}
 
