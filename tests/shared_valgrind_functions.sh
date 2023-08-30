@@ -11,7 +11,7 @@ set -o noclobber -o nounset
 #   Clear previous valgrind output, and prepare for running valgrind tests
 #   (if applicable).
 # - valgrind_setup_cmd():
-#   Set up the valgrind command if $USE_VALGRIND is greater than or equal to
+#   Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
 #   ${valgrind_min}.
 # - valgrind_check_basenames(exitfile):
 #   Check for any memory leaks recorded in valgrind logfiles associated with a
@@ -69,11 +69,11 @@ valgrind_prepare_directory() {
 }
 
 ## valgrind_check_optional ():
-# Return a $USE_VALGRIND variable defined; if it was previously defined and
-# was greater than 0, then check that valgrind is available in the $PATH.
+# If ${USE_VALGRIND} is greater than 0, check that valgrind is available in
+# the ${PATH} and is at least version 3.13.
 valgrind_check_optional() {
 	if [ "${USE_VALGRIND}" -gt 0 ]; then
-		# Look for valgrind in $PATH.
+		# Look for valgrind in ${PATH}.
 		if ! command -v valgrind >/dev/null 2>&1; then
 			printf "valgrind not found\n" 1>&2
 			exit 1
@@ -222,7 +222,7 @@ valgrind_ensure_suppression() {
 }
 
 ## valgrind_setup_cmd ():
-# Set up the valgrind command if $USE_VALGRIND is greater than or equal to
+# Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
 # ${valgrind_min}.
 valgrind_setup_cmd() {
 	# Bail if we don't want to use valgrind for this check.

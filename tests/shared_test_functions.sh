@@ -18,6 +18,8 @@
 # function which was defined in that file.
 #
 # Functions which are available to other scripts as a "public API" are:
+# - find_system(cmd, args):
+#   Look for ${cmd} in the ${PATH}, and ensure that it supports ${args}.
 # - has_pid(cmd):
 #   Look for a ${cmd} in $(ps).
 # - wait_while(func):
@@ -86,7 +88,7 @@ prepare_directory() {
 }
 
 ## find_system (cmd, args):
-# Look for ${cmd} in the $PATH, and ensure that it supports ${args}.
+# Look for ${cmd} in the ${PATH}, and ensure that it supports ${args}.
 find_system() {
 	cmd=$1
 	cmd_with_args="$1 ${2:-}"
@@ -312,8 +314,9 @@ scenario_runner() {
 	return "${s_retval}"
 }
 
-## run_scenarios (scenario_filenames):
-# Run all scenarios matching ${scenario_filenames}.
+## run_scenarios ():
+# Run all scenarios in the test directory.  If the environment variable ${N}
+# is specified, only run the scenario corresponding to that number.
 run_scenarios() {
 	# Get the test number(s) to run.
 	if [ "${N:-0}" -gt "0" ]; then
