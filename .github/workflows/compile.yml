@@ -1,10 +1,10 @@
 name: Compile & test
 
-# Run whenever we push to any branch without a "/", other than [coverity-scan].
+# Run whenever we push to any branch other than [coverity-scan].
 on:
   push:
     branches:
-    - '*'
+    - '**'
     - '!coverity-scan'
 
 env:
