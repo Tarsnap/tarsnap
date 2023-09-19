@@ -674,7 +674,7 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 	if ((NPC = netpacket_open(USERAGENT)) == NULL)
 		goto err0;
 
-	/* Loop until the we error out or we get a "success" response. */
+	/* Loop until we error out or we get a "success" response. */
 	do {
 		/* Send a request and get a response. */
 		C.done = 0;
