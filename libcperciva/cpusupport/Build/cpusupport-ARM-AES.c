@@ -17,5 +17,6 @@ main(void)
 
 	lanes = vdupq_laneq_u32(lanes, 0);
 
+	/* Success! */
 	return (0);
 }
