@@ -230,7 +230,7 @@ valgrind_setup_cmd() {
 		return
 	fi
 
-	val_logfilename="${s_val_basename}-${s_count_str}-%p.log"
+	val_logfilename="${s_val_basename}-${c_count_str}-%p.log"
 	c_valgrind_cmd="valgrind \
 		--log-file=${val_logfilename} \
 		--track-fds=yes \
