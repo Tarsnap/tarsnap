@@ -10,9 +10,9 @@ set -o noclobber -o nounset
 # - valgrind_init():
 #   Clear previous valgrind output, and prepare for running valgrind tests
 #   (if applicable).
-# - valgrind_setup_cmd():
+# - valgrind_setup_cmd(str):
 #   Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
-#   ${valgrind_min}.
+#   ${valgrind_min}.  If ${str} is not blank, include it in the log filename.
 # - valgrind_check_basenames(exitfile):
 #   Check for any memory leaks recorded in valgrind logfiles associated with a
 #   test exitfile.  Return the filename if there's a leak; otherwise return an
@@ -203,6 +203,7 @@ _valgrind_ensure_suppression() {
 		printf "\n" | (valgrind					\
 		    --leak-check=full --show-leak-kinds=all		\
 		    --gen-suppressions=all				\
+		    --trace-children=yes				\
 		    --suppressions="${valgrind_suppressions}"		\
 		    --log-file="${this_valgrind_supp}"			\
 		    "${potential_memleaks_binary}"			\
@@ -222,19 +223,29 @@ _valgrind_ensure_suppression() {
 	printf "done.\n" 1>&2
 }
 
-## valgrind_setup_cmd ():
+## valgrind_setup_cmd (str):
 # Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
-# ${valgrind_min}.
+# ${valgrind_min}.  If ${str} is not blank, include it in the log filename.
 valgrind_setup_cmd() {
+	str=${1:-}
+
 	# Bail if we don't want to use valgrind for this check.
 	if [ "${USE_VALGRIND}" -lt "${c_valgrind_min}" ]; then
 		return
 	fi
 
-	val_logfilename="${s_val_basename}-${c_count_str}-%p.log"
+	# Set up the log filename.
+	if [ -n "${str}" ]; then
+		val_logfilename="${s_val_basename}-${c_count_str}-${str}-%p.log"
+	else
+		val_logfilename="${s_val_basename}-${c_count_str}-%p.log"
+	fi
+
+	# Set up valgrind command.
 	c_valgrind_cmd="valgrind \
 		--log-file=${val_logfilename} \
 		--track-fds=yes \
+		--trace-children=yes \
 		--leak-check=full --show-leak-kinds=all \
 		--errors-for-leak-kinds=all \
 		--suppressions=${valgrind_suppressions}"
@@ -344,6 +355,16 @@ valgrind_check_basenames() {
 		_valgrind_check_logfile "${logfiles}"
 		return
 	fi
+
+	# If the valgrind logfiles contain "-valgrind-parent-", then we only
+	# want to check the parent (the lowest pid).
+	for logfile in ${logfiles} ; do
+		if [ "${logfile#*-valgrind-parent-}" != "${logfile}" ]; then
+			# Only check the parent
+			_valgrind_check_logfile "${logfile}"
+			return "$?"
+		fi
+	done
 
 	# If there's two files, there's a fork() -- likely within
 	# daemonize() -- so only pay attention to the child.
