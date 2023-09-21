@@ -15,6 +15,9 @@
 
 #include "tsnetwork.h"
 
+#define RECV 0
+#define SEND 1
+
 /*
  * If MSG_NOSIGNAL isn't defined, define it to zero; and then fiddle with
  * the socket options when needed.
@@ -35,7 +38,7 @@ struct network_buf_cookie {
 	size_t bufpos;
 	struct timeval timeout;
 	struct timeval timeout_max;
-	ssize_t (* sendrecv)(int, void *, size_t, int);
+	int sendrecv;
 	int netop;
 	int flags;
 };
@@ -44,7 +47,7 @@ static int callback_buf(void * cookie, int timedout);
 static int network_buf(int fd, uint8_t * buf, size_t buflen,
     struct timeval * to0, struct timeval * to1,
     network_callback * callback, void * cookie,
-    ssize_t (* sendrecv)(int, void *, size_t, int), int netop, int flags);
+    int sendrecv, int netop, int flags);
 
 /**
  * callback_buf(cookie, status):
@@ -106,7 +109,11 @@ callback_buf(void * cookie, int status)
 	oplen = C->buflen - C->bufpos;
 	if (oplen > bwlimit)
 		oplen = bwlimit;
-	len = (C->sendrecv)(C->fd, C->buf + C->bufpos, oplen, C->flags);
+	/* Send or recv. */
+	if (C->sendrecv == SEND)
+		len = send(C->fd, C->buf + C->bufpos, oplen, C->flags);
+	else
+		len = recv(C->fd, C->buf + C->bufpos, oplen, C->flags);
 #ifndef HAVE_MSG_NOSIGNAL
 	/* Save errno in case it gets clobbered by setsockopt() or signal(). */
 	saved_errno = errno;
@@ -210,8 +217,7 @@ static int
 network_buf(int fd, uint8_t * buf, size_t buflen,
     struct timeval * to0, struct timeval * to1,
     network_callback * callback, void * cookie,
-    ssize_t (* sendrecv)(int, void *, size_t, int), int netop,
-    int flags)
+    int sendrecv, int netop, int flags)
 {
 	struct network_buf_cookie * C;
 	struct timeval timeo;
@@ -275,7 +281,7 @@ tsnetwork_read(int fd, uint8_t * buf, size_t buflen,
 	}
 
 	return (network_buf(fd, buf, buflen, to0, to1, callback, cookie,
-	    recv, NETWORK_OP_READ, 0));
+	    RECV, NETWORK_OP_READ, 0));
 }
 
 /**
@@ -295,6 +301,5 @@ tsnetwork_write(int fd, const uint8_t * buf, size_t buflen,
 
 	return (network_buf(fd, (uint8_t *)(uintptr_t)buf, buflen,
 	    to0, to1, callback, cookie,
-	    (ssize_t (*)(int, void *, size_t, int))send, NETWORK_OP_WRITE,
-	    MSG_NOSIGNAL));
+	    SEND, NETWORK_OP_WRITE, MSG_NOSIGNAL));
 }
