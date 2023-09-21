@@ -421,6 +421,7 @@ endofchunk:
 			return (rc);
 	}
 
+	/* Success! */
 	return (0);
 }
 
@@ -449,6 +450,7 @@ chunkify_end(CHUNKIFIER * c)
 	/* Prepare for more input. */
 	chunkify_start(c);
 
+	/* Success! */
 	return (0);
 }
 

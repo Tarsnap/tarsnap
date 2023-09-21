@@ -222,6 +222,8 @@ rwhashtab_insert(RWHASHTAB * H, void * rec)
 	/* Insert the record. */
 	H->ht[htpos] = rec;
 	H->numentries += 1;
+
+	/* Success! */
 	return (0);
 }
 
@@ -262,6 +264,7 @@ rwhashtab_foreach(RWHASHTAB * H, int func(void *, void *), void * cookie)
 		}
 	}
 
+	/* Success! */
 	return (0);
 }
 

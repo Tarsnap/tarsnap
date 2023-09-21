@@ -91,6 +91,7 @@ callback_free(void * rec, void * cookie)
 	if (ch->zlen_flags & CHDATA_MALLOC)
 		free(rec);
 
+	/* Success! */
 	return (0);
 }
 
