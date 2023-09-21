@@ -590,7 +590,7 @@ Ignore any
 option specified in a configuration file.
 .It Fl -nodump
 (c mode only)
-Honor the nodump file flag by skipping this file.
+Honor the nodump file flag by skipping this file or directory.
 .It Fl -noisy-warnings
 Be verbose when warning about network glitches.
 This is probably only useful for debugging purposes.
