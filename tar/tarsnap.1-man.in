@@ -655,7 +655,7 @@ option specified in a configuration file.
 .TP
 \fB\--nodump\fP
 (c mode only)
-Honor the nodump file flag by skipping this file.
+Honor the nodump file flag by skipping this file or directory.
 .TP
 \fB\--noisy-warnings\fP
 Be verbose when warning about network glitches.

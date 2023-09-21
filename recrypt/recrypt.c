@@ -701,5 +701,6 @@ main(int argc, char **argv)
 	if (close(ndirlock))
 		warnp("close");
 
+	/* Success! */
 	return (0);
 }

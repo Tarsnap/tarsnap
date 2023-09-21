@@ -318,5 +318,6 @@ nochunk:
 			return (-1);
 	}
 
+	/* Success! */
 	return (0);
 }

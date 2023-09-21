@@ -46,6 +46,7 @@ getclockdiff(struct timeval * st, double * diffd)
 		return (1);
 	*diffd = timeval_diff((*st), en);
 
+	/* Success! */
 	return (0);
 }
 
@@ -109,5 +110,7 @@ scryptenc_cpuperf(double * opps)
 
 	/* We can do approximately i salsa20/8 cores per diffd seconds. */
 	*opps = (double)i / diffd;
+
+	/* Success! */
 	return (SCRYPT_OK);
 }
