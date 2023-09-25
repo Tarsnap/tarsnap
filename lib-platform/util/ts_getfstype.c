@@ -156,7 +156,7 @@ static struct ftyperec {
 	{SELINUX_MAGIC, "selinux"},
 	{0, NULL}
 };
-#endif /* HAVE_STATFS_F_TYPE */
+#endif /* HAVE_STRUCT_STATFS_F_TYPE */
 #endif /* !HAVE_STRUCT_STATVFS_F_FSTYPENAME */
 #endif /* !HAVE_STRUCT_STATVFS_F_BASETYPE */
 #endif /* !HAVE_STRUCT_STATFS_F_FSTYPENAME */
