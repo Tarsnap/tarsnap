@@ -296,6 +296,8 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 	FILE *f;
 	char *buff, *buff_end, *line_start, *line_end, *p;
 	size_t buff_length, new_buff_length, bytes_read, bytes_wanted;
+	size_t buff_end_pos;
+	size_t line_end_pos;
 	const char * separator;
 	size_t seplen;
 	int lastcharwasr = 0;
@@ -376,12 +378,14 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 				bsdtar_errc(bsdtar, 1, ENOMEM,
 				    "Line too long in %s", pathname);
 			buff_length = new_buff_length;
+			buff_end_pos = buff_end - buff;
+			line_end_pos = line_end - buff;
 			p = realloc(buff, buff_length);
 			if (p == NULL)
 				bsdtar_errc(bsdtar, 1, ENOMEM,
 				    "Line too long in %s", pathname);
-			buff_end = p + (buff_end - buff);
-			line_end = p + (line_end - buff);
+			buff_end = p + buff_end_pos;
+			line_end = p + line_end_pos;
 			line_start = buff = p;
 			bsdtar->conffile_buffer = buff;
 		}
