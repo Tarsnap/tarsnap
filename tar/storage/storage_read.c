@@ -29,7 +29,7 @@ struct read_file_internal {
 };
 
 struct read_file_cookie {
-	int (*callback)(void *, int, uint8_t *, size_t);
+	int (* callback)(void *, int, uint8_t *, size_t);
 	void * cookie;
 	struct storage_read_internal * S;
 	uint64_t machinenum;

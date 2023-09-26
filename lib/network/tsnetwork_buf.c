@@ -67,7 +67,7 @@ callback_buf(void * cookie, int status)
 #ifdef SO_NOSIGPIPE
 	int val;
 #else
-	void (*oldsig)(int);
+	void (* oldsig)(int);
 #endif
 #endif
 

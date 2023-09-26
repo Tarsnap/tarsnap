@@ -26,7 +26,7 @@ struct mpool {
 	uint64_t nempties;
 	int state;
 	void ** allocs_static;
-	void (*atexitfunc)(void);
+	void (* atexitfunc)(void);
 };
 
 static inline void

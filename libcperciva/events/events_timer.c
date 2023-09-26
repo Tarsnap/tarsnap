@@ -47,7 +47,7 @@ err0:
  * cookie which can be passed to events_timer_cancel() or events_timer_reset().
  */
 void *
-events_timer_register(int (*func)(void *), void * cookie,
+events_timer_register(int (* func)(void *), void * cookie,
     const struct timeval * timeo)
 {
 	struct eventrec * r;
@@ -100,7 +100,7 @@ err0:
  * floating-point value specifying a number of seconds.
  */
 void *
-events_timer_register_double(int (*func)(void *), void * cookie,
+events_timer_register_double(int (* func)(void *), void * cookie,
     double timeo)
 {
 	struct timeval tv;

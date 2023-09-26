@@ -7,7 +7,7 @@
 #include "tsnetwork.h"
 
 struct netproto_connection_internal {
-	int (*cancel)(void *);
+	int (* cancel)(void *);
 	void * cookie;
 	int fd;
 	NETWORK_WRITEQ * Q;

@@ -214,7 +214,7 @@ clearbit(size_t pollpos, short bit)
  * fail.
  */
 int
-events_network_register(int (*func)(void *), void * cookie, int s, int op)
+events_network_register(int (* func)(void *), void * cookie, int s, int op)
 {
 	struct eventrec ** r;
 

@@ -87,8 +87,8 @@ struct multitape_write_internal {
 
 	/* Callbacks to the chunkification cache. */
 	void * callback_cookie;
-	int (*callback_chunk)(void *, struct chunkheader *);
-	int (*callback_trailer)(void *, const uint8_t *, size_t);
+	int (* callback_chunk)(void *, struct chunkheader *);
+	int (* callback_trailer)(void *, const uint8_t *, size_t);
 };
 
 static int tapepresent(STORAGE_W *, const char *, const char *);
