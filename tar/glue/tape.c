@@ -179,7 +179,7 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar)
 		goto err1;
 
 	/* Ask for the list of archives to be printed. */
-	if (statstape_printlist(d, bsdtar->verbose))
+	if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null))
 		goto err2;
 
 	/* We're done.  Close the archive set. */

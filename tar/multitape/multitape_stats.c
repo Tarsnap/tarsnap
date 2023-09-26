@@ -212,22 +212,135 @@ err0:
 	return (-1);
 }
 
+/* Print ${sep} if ${nulls} is zero; otherwise, print ${num} NULs. */
+static int
+print_sep(char sep, int nulls, int num)
+{
+	int i;
+
+	if (nulls == 0) {
+		/* Print the normal separator. */
+		if (fprintf(stdout, "%c", sep) < 0) {
+			warnp("fprintf");
+			goto err0;
+		}
+	} else {
+		/* Print the specified number of NULs. */
+		for (i = 0; i < num; i++) {
+			if (fprintf(stdout, "%c", '\0') < 0) {
+				warnp("fprintf");
+				goto err0;
+			}
+		}
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /**
- * statstape_printlist(d, verbose):
- * Print the names of each of the archives in a set.  If ${verbose} > 0, print
+ * statstape_printlist_item(d, tapehash, verbose, print_nulls):
+ * Print the name of the archive with ${tapehash}.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
- * program invocation which created the archive.
+ * program invocation which created the archive.  If ${print_nulls} > 0, print
+ * null character(s) between archives names and fields instead of newlines,
+ * tabs, and spaces.
  */
-int
-statstape_printlist(TAPE_S * d, int verbose)
+static int
+statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
+    int print_nulls)
 {
 	struct tapemetadata tmd;
-	uint8_t * flist;
-	size_t nfiles;
-	size_t file;
 	struct tm * ltime;
 	char datebuf[DATEBUFLEN];
 	int arg;
+
+	/* Read the tape metadata. */
+	if (multitape_metadata_get_byhash(d->SR, NULL, &tmd, tapehash, 0))
+		goto err0;
+
+	/* Print name. */
+	if (fprintf(stdout, "%s", tmd.name) < 0) {
+		warnp("fprintf");
+		goto err1;
+	}
+
+	/* Print creation time. */
+	if (verbose > 0 && tmd.ctime != -1) {
+		if ((ltime = localtime(&tmd.ctime)) == NULL) {
+			warnp("localtime");
+			goto err1;
+		}
+		if (strftime(datebuf, DATEBUFLEN, "%F %T", ltime) == 0) {
+			warnp("Cannot format date");
+			goto err1;
+		}
+
+		/* Print field separator. */
+		if (print_sep('\t', print_nulls, 2))
+			goto err1;
+
+		/* Print date. */
+		if (fprintf(stdout, "%s", datebuf) < 0) {
+			warnp("fprintf");
+			goto err1;
+		}
+	}
+
+	/* Print command line. */
+	if (verbose > 1) {
+		/* Print field separator. */
+		if (print_sep('\t', print_nulls, 2))
+			goto err1;
+
+		for (arg = 0; arg < tmd.argc; arg++) {
+			/* Print arg separator. */
+			if ((arg > 0) && print_sep(' ', print_nulls, 3))
+				goto err1;
+
+			/* Print arg. */
+			if (fprintf(stdout, "%s", tmd.argv[arg]) < 0) {
+				warnp("fprintf");
+				goto err1;
+			}
+		}
+	}
+
+	/* Print archive separator. */
+	if (print_sep('\n', print_nulls, 1))
+		goto err1;
+
+	/* Free parsed metadata. */
+	multitape_metadata_free(&tmd);
+
+	/* Success! */
+	return (0);
+
+err1:
+	multitape_metadata_free(&tmd);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * statstape_printlist(d, verbose, print_nulls):
+ * Print the names of each of the archives in a set.  If ${verbose} > 0, print
+ * the creation times; if ${verbose} > 1, print the argument vector of the
+ * program invocation which created the archive.  If ${print_nulls} > 0, print
+ * null character(s) between archives names and fields instead of newlines,
+ * tabs, and spaces.
+ */
+int
+statstape_printlist(TAPE_S * d, int verbose, int print_nulls)
+{
+	uint8_t * flist;
+	size_t nfiles;
+	size_t file;
 
 	/* Get a list of the metadata files. */
 	if (storage_directory_read(d->machinenum, 'm', 0, &flist, &nfiles))
@@ -235,53 +348,9 @@ statstape_printlist(TAPE_S * d, int verbose)
 
 	/* Iterate through the files. */
 	for (file = 0; file < nfiles; file++) {
-		/* Read the tape metadata. */
-		if (multitape_metadata_get_byhash(d->SR, NULL, &tmd,
-		    &flist[file * 32], 0))
+		if (statstape_printlist_item(d, &flist[file * 32], verbose,
+		    print_nulls))
 			goto err1;
-
-		/* Print name. */
-		if (fprintf(stdout, "%s", tmd.name) < 0) {
-			warnp("fprintf");
-			goto err2;
-		}
-
-		/* Print creation time. */
-		if (verbose > 0 && tmd.ctime != -1) {
-			if ((ltime = localtime(&tmd.ctime)) == NULL) {
-				warnp("localtime");
-				goto err2;
-			}
-			if (strftime(datebuf, DATEBUFLEN, "%F %T",
-			    ltime) == 0) {
-				warnp("Cannot format date");
-				goto err2;
-			}
-			if (fprintf(stdout, "\t%s", datebuf) < 0) {
-				warnp("fprintf");
-				goto err2;
-			}
-		}
-
-		/* Print command line. */
-		if (verbose > 1) {
-			for (arg = 0; arg < tmd.argc; arg++) {
-				if (fprintf(stdout, arg ? " %s" : "\t%s",
-				    tmd.argv[arg]) < 0) {
-					warnp("fprintf");
-					goto err2;
-				}
-			}
-		}
-
-		/* End line. */
-		if (fprintf(stdout, "\n") < 0) {
-			warnp("fprintf");
-			goto err2;
-		}
-
-		/* Free parsed metadata. */
-		multitape_metadata_free(&tmd);
 	}
 
 	/* Free the list of files. */
@@ -290,8 +359,6 @@ statstape_printlist(TAPE_S * d, int verbose)
 	/* Success! */
 	return (0);
 
-err2:
-	multitape_metadata_free(&tmd);
 err1:
 	free(flist);
 err0:
