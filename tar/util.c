@@ -302,6 +302,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 	size_t seplen;
 	int lastcharwasr = 0;
 	int ret;
+	int fread_errno;
 
 	if (null) {
 		separator = "";
@@ -335,6 +336,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 		/* Get some more data into the buffer. */
 		bytes_wanted = buff + buff_length - buff_end;
 		bytes_read = fread(buff_end, 1, bytes_wanted, f);
+		fread_errno = errno;
 		buff_end += bytes_read;
 		/* Process all complete lines in the buffer. */
 		while (line_end < buff_end) {
@@ -363,7 +365,7 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 		if (feof(f))
 			break;
 		if (ferror(f))
-			bsdtar_errc(bsdtar, 1, errno,
+			bsdtar_errc(bsdtar, 1, fread_errno,
 			    "Can't read %s", pathname);
 		if (line_start > buff) {
 			/* Move a leftover fractional line to the beginning. */
