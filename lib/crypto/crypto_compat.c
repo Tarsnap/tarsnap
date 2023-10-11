@@ -197,7 +197,7 @@ crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
  * Generate a key pair.
  */
 RSA *
-crypto_compat_RSA_generate_key()
+crypto_compat_RSA_generate_key(void)
 {
 	RSA * key;
 
