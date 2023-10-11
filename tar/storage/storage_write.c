@@ -10,6 +10,7 @@
 #include "netproto.h"
 #include "storage_internal.h"
 #include "tarsnap_opt.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "storage.h"

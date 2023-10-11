@@ -1,8 +1,8 @@
 #ifndef STORAGE_READ_CACHE_H_
 #define STORAGE_READ_CACHE_H_
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /**
  * storage_read_cache_init(void):

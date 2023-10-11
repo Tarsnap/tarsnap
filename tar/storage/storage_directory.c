@@ -11,6 +11,7 @@
 #include "netproto.h"
 #include "storage_internal.h"
 #include "sysendian.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "storage.h"

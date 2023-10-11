@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "chunks.h"
 #include "crypto.h"
 #include "crypto_verify_bytes.h"
+#include "storage.h"
 #include "sysendian.h"
 #include "warnp.h"
 

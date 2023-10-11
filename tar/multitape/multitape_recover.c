@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "multitape_internal.h"
+#include "storage.h"
 
 #include "multitape.h"
 
