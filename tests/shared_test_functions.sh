@@ -77,9 +77,9 @@ bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 NO_EXITFILE=/dev/null
 
 
-## _prepare_directory():
+## _prepdir():
 # Delete the previous test output directory, and create a new one.
-_prepare_directory() {
+_prepdir() {
 	if [ -d "${out}" ]; then
 		rm -rf "${out}"
 	fi
@@ -211,14 +211,14 @@ expected_exitcode() {
 	fi
 }
 
-## _notify_success_or_fail (log_basename, val_log_basename):
+## _check (log_basename, val_log_basename):
 # Examine all "exit code" files beginning with ${log_basename} and
 # print "SUCCESS!", "FAILED!", "SKIP!", or "PARTIAL SUCCESS / SKIP!"
 # as appropriate.  Check any valgrind log files associated with the
 # test and print "FAILED!" if appropriate, along with the valgrind
 # logfile.  If the test failed and ${VERBOSE} is non-zero, print
 # the description to stderr.
-_notify_success_or_fail() {
+_check() {
 	log_basename=$1
 	val_log_basename=$2
 
@@ -311,7 +311,7 @@ _scenario_runner() {
 
 	# Print PASS or FAIL, and return result.
 	s_retval=0
-	_notify_success_or_fail "${s_basename}" "${s_val_basename}"
+	_check "${s_basename}" "${s_val_basename}"
 
 	return "${s_retval}"
 }
@@ -328,7 +328,7 @@ run_scenarios() {
 	fi
 
 	# Clean up any previous directory, and create a new one.
-	_prepare_directory
+	_prepdir
 
 	# Clean up any previous valgrind directory, and prepare for new
 	# valgrind tests (if applicable).
