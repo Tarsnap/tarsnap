@@ -29,9 +29,6 @@ set -o noclobber -o nounset
 # - valgrind_suppressions: filename of valgrind suppressions.
 # - valgrind_fds_log: filename of the log of open file descriptors.
 
-# A non-zero value unlikely to be used as an exit code by the programs being
-# tested.
-valgrind_exit_code=108
 
 ## _val_prepdir ():
 # Clean up a previous valgrind directory, and prepare for new valgrind tests
@@ -79,26 +76,65 @@ _val_prepdir() {
 # If ${USE_VALGRIND} is greater than 0, check that valgrind is available in
 # the ${PATH} and is at least version 3.13.
 _val_checkver() {
-	if [ "${USE_VALGRIND}" -gt 0 ]; then
-		# Look for valgrind in ${PATH}.
-		if ! command -v valgrind >/dev/null 2>&1; then
-			printf "valgrind not found\n" 1>&2
-			exit 1
-		fi
+	# Quit if we're not using valgrind.
+	if [ ! "${USE_VALGRIND}" -gt 0 ]; then
+		return
+	fi;
 
-		# Check the version.
-		version=$(valgrind --version | cut -d "-" -f 2)
-		major=$(echo "${version}" | cut -d "." -f 1)
-		minor=$(echo "${version}" | cut -d "." -f 2)
-		if [ "${major}" -lt "3" ]; then
-			printf "valgrind must be at least version 3.13\n" 1>&2
-			exit 1;
-		fi
-		if [ "${major}" -eq "3" ] && [ "${minor}" -lt "13" ]; then
-			printf "valgrind must be at least version 3.13\n" 1>&2
-			exit 1;
+	# Look for valgrind in $PATH.
+	if ! command -v valgrind >/dev/null 2>&1; then
+		printf "valgrind not found\n" 1>&2
+		exit 1
+	fi
+
+	# Check the version.
+	version=$(valgrind --version | cut -d "-" -f 2)
+	major=$(echo "${version}" | cut -d "." -f 1)
+	minor=$(echo "${version}" | cut -d "." -f 2)
+	if [ "${major}" -lt "3" ]; then
+		printf "valgrind must be at least version 3.13\n" 1>&2
+		exit 1;
+	fi
+	if [ "${major}" -eq "3" ] && [ "${minor}" -lt "13" ]; then
+		printf "valgrind must be at least version 3.13\n" 1>&2
+		exit 1;
+	fi
+}
+
+## _val_seg(filename):
+# Generalize an already-segmented portion of a valgrind suppressions file;
+# write the result to ${valgrind_suppressions}.
+_val_seg() {
+	_val_seg_filename=$1
+
+	# Find last relevant line.
+	lastline="$(grep -n "}" "${_val_seg_filename}" | cut -f1 -d:)"
+
+	# Cut off anything below the 1st "fun:pl_" (inclusive).
+	funcline="$(grep -n "fun:pl_" "${_val_seg_filename}" |		\
+		cut -f1 -d: |						\
+		head -n1)"
+	if [ -n "${funcline}" ]; then
+		if [ "${lastline}" -gt "${funcline}" ]; then
+			lastline="${funcline}"
 		fi
 	fi
+
+	# Cut off anything below "fun:main" (including that line).  (Due to
+	# linking and/or optimizations, some memory leaks occur without
+	# "fun:pl_" appearing in the valgrind suppression.)
+	funcline="$(grep -n "fun:main" "${_val_seg_filename}" | cut -f1 -d:)"
+	if [ -n "${funcline}" ]; then
+		if [ "${lastline}" -gt "${funcline}" ]; then
+			lastline="${funcline}"
+		fi
+	fi
+
+	# Only keep the beginning of each suppression.
+	lastline="$((lastline - 1))"
+	head -n "${lastline}" "${_val_seg_filename}" >>		\
+	    "${valgrind_suppressions}"
+	printf "}\n" >> "${valgrind_suppressions}"
 }
 
 ## _val_generalize(filename):
@@ -122,43 +158,14 @@ _val_generalize() {
 	fi
 
 	# Split into segments.
-	csplit -f "${filename}" "${filename}" "/{/"		\
-	    "{$((num_segments - 1))}" > /dev/null
+	csplit -f "${filename}" "${filename}"			\
+	    "/{/" "{$((num_segments - 1))}" > /dev/null
 
 	# Skip "${filename}00" because that doesn't contain a suppression.
 	i=1
 	while [ "${i}" -le "${num_segments}" ]; do
-		segfilename="$(printf "%s%02i" "${filename}" "${i}")"
-
-		# Find last relevant line.
-		lastline="$(grep -n "}" "${segfilename}" | cut -f1 -d:)"
-
-		# Cut off anything below the 1st "fun:pl_" (inclusive).
-		funcline="$(grep -n "fun:pl_" "${segfilename}" |	\
-			cut -f1 -d: |					\
-			head -n1)"
-		if [ -n "${funcline}" ]; then
-			if [ "${lastline}" -gt "${funcline}" ]; then
-				lastline="${funcline}"
-			fi
-		fi
-
-		# Cut off anything below "fun:main" (including that line).
-		# (Due to linking and/or optimizations, some memory leaks
-		# occur without "fun:pl_" appearing in the valgrind
-		# suppression.)
-		funcline="$(grep -n "fun:main" "${segfilename}" | cut -f1 -d:)"
-		if [ -n "${funcline}" ]; then
-			if [ "${lastline}" -gt "${funcline}" ]; then
-				lastline="${funcline}"
-			fi
-		fi
-
-		# Only keep the beginning of each suppression.
-		lastline="$((lastline - 1))"
-		head -n "${lastline}" "${segfilename}" >>	\
-		    "${valgrind_suppressions}"
-		printf "}\n" >> "${valgrind_suppressions}"
+		# Process segment
+		_val_seg "$(printf "%s%02i" "${filename}" "${i}")"
 
 		# Advance to the next suppression.
 		i=$((i + 1))

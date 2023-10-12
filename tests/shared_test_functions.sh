@@ -76,6 +76,10 @@ bindir=$(CDPATH='' cd -- "$(dirname -- "${1-.}")" && pwd -P)
 # Default value (should be set by tests).
 NO_EXITFILE=/dev/null
 
+# A non-zero value unlikely to be used as an exit code by the programs being
+# tested.
+valgrind_exit_code=108
+
 
 ## _prepdir():
 # Delete the previous test output directory, and create a new one.
@@ -247,8 +251,8 @@ _check() {
 		if [ "${ret}" -gt 0 ]; then
 			echo "FAILED!" 1>&2
 			if [ "${VERBOSE}" -ne 0 ]; then
-				printf "File %s contains" "${exitfile}" 1>&2
-				printf " exit code %s.\n" "${ret}" 1>&2
+				printf "File %s contains exit code %s.\n" \
+				    "${exitfile}" "${ret}" 1>&2
 				printf "Test description: " 1>&2
 				cat "${descfile}" 1>&2
 			fi
