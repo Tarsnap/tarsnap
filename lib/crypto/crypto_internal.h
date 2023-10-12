@@ -93,7 +93,8 @@ int crypto_file_init_keys(void);
 
 /**
  * crypto_MGF1(seed, seedlen, buf, buflen):
- * The MGF1 mask generation function, as specified in RFC 3447.
+ * The MGF1 mask generation function, as specified in RFC 3447 section B.2.1,
+ * using SHA256 as the hash function.
  */
 void crypto_MGF1(uint8_t *, size_t, uint8_t *, size_t);
 

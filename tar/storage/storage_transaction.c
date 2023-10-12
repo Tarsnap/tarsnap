@@ -9,6 +9,7 @@
 #include "crypto_entropy.h"
 #include "netpacket.h"
 #include "netproto.h"
+#include "tsnetwork.h"
 #include "warnp.h"
 
 #include "storage.h"

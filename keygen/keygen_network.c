@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "crypto.h"
 #include "crypto_dh.h"
 #include "crypto_verify_bytes.h"
 #include "keygen.h"

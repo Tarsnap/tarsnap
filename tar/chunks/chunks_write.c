@@ -14,6 +14,7 @@
 #include "chunks_internal.h"
 #include "hexify.h"
 #include "rwhashtab.h"
+#include "storage.h"
 #include "warnp.h"
 
 #include "chunks.h"

@@ -2,6 +2,7 @@
 #include <stddef.h>
 
 #include <openssl/bn.h>
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
@@ -197,7 +198,7 @@ crypto_compat_RSA_export(RSA * key, const BIGNUM ** n, const BIGNUM ** e,
  * Generate a key pair.
  */
 RSA *
-crypto_compat_RSA_generate_key()
+crypto_compat_RSA_generate_key(void)
 {
 	RSA * key;
 

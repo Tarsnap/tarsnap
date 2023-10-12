@@ -19,7 +19,8 @@
 
 /**
  * crypto_MGF1(seed, seedlen, buf, buflen):
- * The MGF1 mask generation function, as specified in RFC 3447.
+ * The MGF1 mask generation function, as specified in RFC 3447 section B.2.1,
+ * using SHA256 as the hash function.
  */
 void
 crypto_MGF1(uint8_t * seed, size_t seedlen, uint8_t * buf, size_t buflen)
