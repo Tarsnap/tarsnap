@@ -296,7 +296,7 @@ wchar_t *
 __archive_string_utf8_w(struct archive_string *as)
 {
 	wchar_t *ws, *dest;
-	int wc, wc2;/* Must be large enough for a 21-bit Unicode code point. */
+	int wc;/* Must be large enough for a 21-bit Unicode code point. */
 	const char *src, *end;
 	int n;
 
@@ -315,6 +315,7 @@ __archive_string_utf8_w(struct archive_string *as)
 			return (NULL);
 		}
 		src += n;
+#if 0
 		if (wc >= 0xDC00 && wc <= 0xDBFF) {
 			/* This is a leading surrogate; some idiot
 			 * has translated UTF16 to UTF8 without combining
@@ -342,6 +343,7 @@ __archive_string_utf8_w(struct archive_string *as)
 				wc += 0x10000;
 			}
 		}
+#endif
 		if ((sizeof(wchar_t) < 4) && (wc > 0xffff)) {
 			/* We have a code point that won't fit into a
 			 * wchar_t; convert it to a surrogate pair. */
