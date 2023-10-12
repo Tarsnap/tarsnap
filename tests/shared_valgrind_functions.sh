@@ -43,10 +43,10 @@ _val_prepdir() {
 		fi
 
 		# Move the files away.
-		supp_tmp="$(mktemp /tmp/valgrind-suppressions.XXXXXX)"
-		fds_tmp="$(mktemp /tmp/valgrind-fds.XXXXXX)"
-		mv "${valgrind_suppressions}" "${supp_tmp}"
-		mv "${valgrind_fds_log}" "${fds_tmp}"
+		_val_prepdir_supp_tmp="$(mktemp /tmp/valgrind-suppressions.XXXXXX)"
+		_val_prepdir_fds_tmp="$(mktemp /tmp/valgrind-fds.XXXXXX)"
+		mv "${valgrind_suppressions}" "${_val_prepdir_supp_tmp}"
+		mv "${valgrind_fds_log}" "${_val_prepdir_fds_tmp}"
 	fi
 
 	# Always delete any previous valgrind directory.
@@ -64,8 +64,8 @@ _val_prepdir() {
 	# If we don't want to generate a new suppressions file, restore it.
 	if [ "${USE_VALGRIND_NO_REGEN}" -gt 0 ]; then
 		# Move the files back.
-		mv "${supp_tmp}" "${valgrind_suppressions}"
-		mv "${fds_tmp}" "${valgrind_fds_log}"
+		mv "${_val_prepdir_supp_tmp}" "${valgrind_suppressions}"
+		mv "${_val_prepdir_fds_tmp}" "${valgrind_fds_log}"
 	fi
 
 	# We don't want to back up this directory.
@@ -88,14 +88,15 @@ _val_checkver() {
 	fi
 
 	# Check the version.
-	version=$(valgrind --version | cut -d "-" -f 2)
-	major=$(echo "${version}" | cut -d "." -f 1)
-	minor=$(echo "${version}" | cut -d "." -f 2)
-	if [ "${major}" -lt "3" ]; then
+	_val_checkver_version=$(valgrind --version | cut -d "-" -f 2)
+	_val_checkver_major=$(echo "${_val_checkver_version}" | cut -d "." -f 1)
+	_val_checkver_minor=$(echo "${_val_checkver_version}" | cut -d "." -f 2)
+	if [ "${_val_checkver_major}" -lt "3" ]; then
 		printf "valgrind must be at least version 3.13\n" 1>&2
 		exit 1;
 	fi
-	if [ "${major}" -eq "3" ] && [ "${minor}" -lt "13" ]; then
+	if [ "${_val_checkver_major}" -eq "3" ] &&			\
+	    [ "${_val_checkver_minor}" -lt "13" ]; then
 		printf "valgrind must be at least version 3.13\n" 1>&2
 		exit 1;
 	fi
@@ -108,31 +109,32 @@ _val_seg() {
 	_val_seg_filename=$1
 
 	# Find last relevant line.
-	lastline="$(grep -n "}" "${_val_seg_filename}" | cut -f1 -d:)"
+	_val_seg_lastline="$(grep -n "}" "${_val_seg_filename}" | cut -f1 -d:)"
 
 	# Cut off anything below the 1st "fun:pl_" (inclusive).
-	funcline="$(grep -n "fun:pl_" "${_val_seg_filename}" |		\
+	_val_seg_funcline="$(grep -n "fun:pl_" "${_val_seg_filename}" |	\
 		cut -f1 -d: |						\
 		head -n1)"
-	if [ -n "${funcline}" ]; then
-		if [ "${lastline}" -gt "${funcline}" ]; then
-			lastline="${funcline}"
+	if [ -n "${_val_seg_funcline}" ]; then
+		if [ "${_val_seg_lastline}" -gt "${_val_seg_funcline}" ]; then
+			_val_seg_lastline="${_val_seg_funcline}"
 		fi
 	fi
 
 	# Cut off anything below "fun:main" (including that line).  (Due to
 	# linking and/or optimizations, some memory leaks occur without
 	# "fun:pl_" appearing in the valgrind suppression.)
-	funcline="$(grep -n "fun:main" "${_val_seg_filename}" | cut -f1 -d:)"
-	if [ -n "${funcline}" ]; then
-		if [ "${lastline}" -gt "${funcline}" ]; then
-			lastline="${funcline}"
+	_val_seg_funcline="$(grep -n "fun:main" "${_val_seg_filename}" | \
+	    cut -f1 -d:)"
+	if [ -n "${_val_seg_funcline}" ]; then
+		if [ "${_val_seg_lastline}" -gt "${_val_seg_funcline}" ]; then
+			_val_seg_lastline="${_val_seg_funcline}"
 		fi
 	fi
 
 	# Only keep the beginning of each suppression.
-	lastline="$((lastline - 1))"
-	head -n "${lastline}" "${_val_seg_filename}" >>		\
+	_val_seg_lastline="$((_val_seg_lastline - 1))"
+	head -n "${_val_seg_lastline}" "${_val_seg_filename}" >>	\
 	    "${valgrind_suppressions}"
 	printf "}\n" >> "${valgrind_suppressions}"
 }
@@ -141,34 +143,35 @@ _val_seg() {
 # Generalize suppressions from a valgrind suppression file by omitting the
 # "fun:pl_*" and "fun:main" lines and anything below them.
 _val_generalize() {
-	filename=$1
+	_val_generalize_filename=$1
 
 	# How many segments do we have?
-	num_segments="$(grep -c "^{" "${filename}")"
+	_val_generalize_num_segments="$(grep -c "^{" "${_val_generalize_filename}")"
 
 	# Bail if there's nothing to do.
-	if [ "${num_segments}" -eq "0" ]; then
+	if [ "${_val_generalize_num_segments}" -eq "0" ]; then
 		return
 	fi
 
 	# Sanity check.
-	if [ "${num_segments}" -gt 100 ]; then
+	if [ "${_val_generalize_num_segments}" -gt 100 ]; then
 		printf "More than 100 valgrind suppressions?!\n" 1>&2
 		exit 1
 	fi
 
 	# Split into segments.
-	csplit -f "${filename}" "${filename}"			\
-	    "/{/" "{$((num_segments - 1))}" > /dev/null
+	csplit -f "${_val_generalize_filename}" "${_val_generalize_filename}" \
+	    "/{/" "{$((_val_generalize_num_segments - 1))}" > /dev/null
 
 	# Skip "${filename}00" because that doesn't contain a suppression.
-	i=1
-	while [ "${i}" -le "${num_segments}" ]; do
+	_val_generalize_i=1
+	while [ "${_val_generalize_i}" -le "${_val_generalize_num_segments}" ]; do
 		# Process segment
-		_val_seg "$(printf "%s%02i" "${filename}" "${i}")"
+		_val_seg "$(printf "%s%02i"				\
+		    "${_val_generalize_filename}" "${_val_generalize_i}")"
 
 		# Advance to the next suppression.
-		i=$((i + 1))
+		_val_generalize_i=$((_val_generalize_i + 1))
 	done
 }
 
@@ -178,7 +181,7 @@ _val_generalize() {
 # those leaks when testing other binaries.  Record a log file which shows the
 # open file descriptors in ${valgrind_fds_log}.
 _val_ensure() {
-	potential_memleaks_binary=$1
+	_val_ensure_potential_memleaks_binary=$1
 
 	# Quit if we're not using valgrind.
 	if [ ! "${USE_VALGRIND}" -gt 0 ]; then
@@ -191,19 +194,20 @@ _val_ensure() {
 	fi
 
 	printf "Generating valgrind suppressions... " 1>&2
-	valgrind_suppressions_log="${out_valgrind}/suppressions.pre"
+	_val_ensure_log="${out_valgrind}/suppressions.pre"
 
 	# Start off with an empty suppression file
 	touch "${valgrind_suppressions}"
 
 	# Get list of tests and the number of open descriptors at a normal exit
-	valgrind_suppressions_tests="${out_valgrind}/suppressions-names.txt"
+	_val_ensure_names="${out_valgrind}/suppressions-names.txt"
 	valgrind --track-fds=yes --log-file="${valgrind_fds_log}"	\
-	    "${potential_memleaks_binary}" > "${valgrind_suppressions_tests}"
+	    "${_val_ensure_potential_memleaks_binary}"			\
+	    > "${_val_ensure_names}"
 
 	# Generate suppressions for each test
-	while read -r testname; do
-		this_valgrind_supp="${valgrind_suppressions_log}-${testname}"
+	while read -r _val_ensure_testname; do
+		_val_ensure_thisl="${_val_ensure_log}-${_val_ensure_testname}"
 
 		# Run valgrind on the binary, sending it a "\n" so that
 		# a test which uses STDIN will not wait for user input.
@@ -212,21 +216,22 @@ _val_ensure() {
 		    --gen-suppressions=all				\
 		    --trace-children=yes				\
 		    --suppressions="${valgrind_suppressions}"		\
-		    --log-file="${this_valgrind_supp}"			\
-		    "${potential_memleaks_binary}"			\
-		    "${testname}")					\
+		    --log-file="${_val_ensure_thisl}"			\
+		    "${_val_ensure_potential_memleaks_binary}"		\
+		    "${_val_ensure_testname}")				\
 		    > /dev/null
 
 		# Append name to suppressions file
-		printf "# %s\n" "${testname}" >> "${valgrind_suppressions}"
+		printf "# %s\n" "${_val_ensure_testname}"		\
+		    >> "${valgrind_suppressions}"
 
 		# Strip out useless parts from the log file, and allow the
 		# suppressions to apply to other binaries.
-		_val_generalize "${this_valgrind_supp}"
-	done < "${valgrind_suppressions_tests}"
+		_val_generalize "${_val_ensure_thisl}"
+	done < "${_val_ensure_names}"
 
 	# Clean up
-	rm -f "${valgrind_suppressions_log}"
+	rm -f "${_val_ensure_log}"
 	printf "done.\n" 1>&2
 }
 
@@ -234,7 +239,7 @@ _val_ensure() {
 # Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
 # ${valgrind_min}.  If ${str} is not blank, include it in the log filename.
 valgrind_setup() {
-	str=${1:-}
+	_valgrind_setup_str=${1:-}
 
 	# Bail if we don't want to use valgrind for this check.
 	if [ "${USE_VALGRIND}" -lt "${c_valgrind_min}" ]; then
@@ -242,21 +247,21 @@ valgrind_setup() {
 	fi
 
 	# Set up the log filename.
-	if [ -n "${str}" ]; then
-		val_logfilename="${s_val_basename}-${c_count_str}-${str}-%p.log"
+	if [ -n "${_valgrind_setup_str}" ]; then
+		_valgrind_setup_logfilename="${s_val_basename}-${c_count_str}-${_valgrind_setup_str}-%p.log"
 	else
-		val_logfilename="${s_val_basename}-${c_count_str}-%p.log"
+		_valgrind_setup_logfilename="${s_val_basename}-${c_count_str}-%p.log"
 	fi
 
 	# Set up valgrind command.
-	c_valgrind_cmd="valgrind \
-		--log-file=${val_logfilename} \
+	_valgrind_setup_cmd="valgrind \
+		--log-file=${_valgrind_setup_logfilename} \
 		--track-fds=yes \
 		--trace-children=yes \
 		--leak-check=full --show-leak-kinds=all \
 		--errors-for-leak-kinds=all \
 		--suppressions=${valgrind_suppressions}"
-	echo "${c_valgrind_cmd}"
+	echo "${_valgrind_setup_cmd}"
 }
 
 ## valgrind_incomplete:
@@ -275,22 +280,22 @@ valgrind_incomplete() {
 # Return the filename without ".log" of the valgrind logfile corresponding to
 # ${exitfile}.
 _val_getbase() {
-	exitfile=$1
-	basename=$(basename "${exitfile}" ".exit")
-	echo "${out_valgrind}/${basename}"
+	_val_getbase_exitfile=$1
+	_val_getbase_basename=$(basename "${_val_getbase_exitfile}" ".exit")
+	echo "${out_valgrind}/${_val_getbase_basename}"
 }
 
 ## _val_checkl(logfile)
 # Check for any (unsuppressed) memory leaks recorded in a valgrind logfile.
 # Echo the filename if there's a leak; otherwise, echo nothing.
 _val_checkl() {
-	logfile=$1
+	_val_checkl_logfile=$1
 
 	# Bytes in use at exit.
-	in_use=$(grep "in use at exit:" "${logfile}" | awk '{print $6}')
+	_val_checkl_in_use=$(grep "in use at exit:" "${_val_checkl_logfile}" | awk '{print $6}')
 
 	# Sanity check.
-	if [ "$(echo "${in_use}" | wc -w)" -ne "1" ]; then
+	if [ "$(echo "${_val_checkl_in_use}" | wc -w)" -ne "1" ]; then
 		echo "Programmer error: invalid number valgrind outputs" 1>&2
 		exit 1
 	fi
@@ -298,16 +303,16 @@ _val_checkl() {
 	# Check for any leaks.  Use string comparison, because valgrind formats
 	# the number with commas, and sh can't convert strings like "1,000"
 	# into an integer.
-	if [ "${in_use}" != "0" ] ; then
+	if [ "${_val_checkl_in_use}" != "0" ] ; then
 		# Check if all of the leaked bytes are suppressed.  The extra
 		# whitespace in " suppressed" is necessary to distinguish
 		# between two instances of "suppressed" in the log file.  Use
 		# string comparison due to the format of the number.
-		suppressed=$(grep " suppressed:" "${logfile}" |	\
+		_val_checkl_suppressed=$(grep " suppressed:" "${_val_checkl_logfile}" |	\
 		    awk '{print $3}')
-		if [ "${in_use}" != "${suppressed}" ]; then
+		if [ "${_val_checkl_in_use}" != "${_val_checkl_suppressed}" ]; then
 			# There is an unsuppressed leak.
-			echo "${logfile}"
+			echo "${_val_checkl_logfile}"
 			return
 		fi
 	fi
@@ -319,22 +324,22 @@ _val_checkl() {
 	# descriptors.  The important thing is that the number of fds should
 	# match the simple test case (executing potential_memleaks without
 	# running any actual tests).
-	fds_in_use=$(grep "FILE DESCRIPTORS" "${logfile}" | awk '{print $4}')
-	valgrind_fds=$(grep "FILE DESCRIPTORS" "${valgrind_fds_log}" | \
+	_val_checkl_fds_in_use=$(grep "FILE DESCRIPTORS" "${_val_checkl_logfile}" | awk '{print $4}')
+	_val_checkl_valgrind_fds=$(grep "FILE DESCRIPTORS" "${valgrind_fds_log}" | \
 	    awk '{print $4}')
-	if [ "${fds_in_use}" != "${valgrind_fds}" ] ; then
+	if [ "${_val_checkl_fds_in_use}" != "${_val_checkl_valgrind_fds}" ] ; then
 		# There is an unsuppressed leak.
-		echo "${logfile}"
+		echo "${_val_checkl_logfile}"
 		return
 	fi
 
 	# Check the error summary.
-	num_errors=$(grep "ERROR SUMMARY: " "${logfile}" | awk '{print $4}')
-	if [ "${num_errors}" -gt 0 ]; then
+	_val_checkl_num_errors=$(grep "ERROR SUMMARY: " "${_val_checkl_logfile}" | awk '{print $4}')
+	if [ "${_val_checkl_num_errors}" -gt 0 ]; then
 		# There was some other error(s) -- invalid read or write,
 		# conditional jump based on uninitialized value(s), invalid
 		# free, etc.
-		echo "${logfile}"
+		echo "${_val_checkl_logfile}"
 		return
 	fi
 }
@@ -344,52 +349,52 @@ _val_checkl() {
 # test exitfile.  Return the filename if there's a leak; otherwise return an
 # empty string.
 valgrind_check() {
-	exitfile="$1"
-	val_basename=$(_val_getbase "${exitfile}")
+	_valgrind_check_exitfile="$1"
+	_valgrind_check_basename=$(_val_getbase "$1")
 
 	# Get list of files to check.  (Yes, the star goes outside the quotes.)
-	logfiles=$(ls "${val_basename}"* 2>/dev/null)
-	num_logfiles=$(echo "${logfiles}" | wc -w)
+	_valgrind_check_logfiles=$(ls "${_valgrind_check_basename}"* 2>/dev/null)
+	_valgrind_check_num=$(echo "${_valgrind_check_logfiles}" | wc -w)
 
 	# Bail if we don't have any valgrind logfiles to check.
 	# Use numeric comparison, because wc leaves a tab in the output.
-	if [ "${num_logfiles}" -eq "0" ] ; then
+	if [ "${_valgrind_check_num}" -eq "0" ] ; then
 		return
 	fi
 
 	# Check a single file.
-	if [ "${num_logfiles}" -eq "1" ]; then
-		_val_checkl "${logfiles}"
+	if [ "${_valgrind_check_num}" -eq "1" ]; then
+		_val_checkl "${_valgrind_check_logfiles}"
 		return
 	fi
 
 	# If the valgrind logfiles contain "-valgrind-parent-", then we only
 	# want to check the parent (the lowest pid).
-	for logfile in ${logfiles} ; do
-		if [ "${logfile#*-valgrind-parent-}" != "${logfile}" ]; then
+	for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
+		if [ "${_valgrind_check_logfile#*-valgrind-parent-}" != "${_valgrind_check_logfile}" ]; then
 			# Only check the parent
-			_val_checkl "${logfile}"
+			_val_checkl "${_valgrind_check_logfile}"
 			return "$?"
 		fi
 	done
 
 	# If there's two files, there's a fork() -- likely within
 	# daemonize() -- so only pay attention to the child.
-	if [ "${num_logfiles}" -eq "2" ]; then
+	if [ "${_valgrind_check_num}" -eq "2" ]; then
 		# Find both pids.
-		val_pids=""
-		for logfile in ${logfiles} ; do
-			val_pid=$(head -n 1 "${logfile}" | cut -d "=" -f 3)
-			val_pids="${val_pids} ${val_pid}"
+		_valgrind_check_val_pids=""
+		for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
+			_valgrind_check_val_pid=$(head -n 1 "${_valgrind_check_logfile}" | cut -d "=" -f 3)
+			_valgrind_check_val_pids="${_valgrind_check_val_pids} ${_valgrind_check_val_pid}"
 		done
 
 		# Find the logfile which has a parent in the list of pids.
-		for logfile in ${logfiles} ; do
-			val_parent_pid=$(grep "Parent PID:" "${logfile}" | \
+		for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
+			_valgrind_check_val_parent_pid=$(grep "Parent PID:" "${_valgrind_check_logfile}" | \
 			    awk '{ print $4 }')
-			if [ "${val_pids#*"${val_parent_pid}"}" !=	\
-			    "${val_pids}" ]; then
-				_val_checkl "${logfile}"
+			if [ "${_valgrind_check_val_pids#*"${_valgrind_check_val_parent_pid}"}" !=	\
+			    "${_valgrind_check_val_pids}" ]; then
+				_val_checkl "${_valgrind_check_logfile}"
 				return "$?"
 			fi
 		done
