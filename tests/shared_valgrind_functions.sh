@@ -10,10 +10,10 @@ set -o noclobber -o nounset
 # - valgrind_init():
 #   Clear previous valgrind output, and prepare for running valgrind tests
 #   (if applicable).
-# - valgrind_setup_cmd(str):
+# - valgrind_setup(str):
 #   Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
 #   ${valgrind_min}.  If ${str} is not blank, include it in the log filename.
-# - valgrind_check_basenames(exitfile):
+# - valgrind_check(exitfile):
 #   Check for any memory leaks recorded in valgrind logfiles associated with a
 #   test exitfile.  Return the filename if there's a leak; otherwise return an
 #   empty string.
@@ -223,10 +223,10 @@ _valgrind_ensure_suppression() {
 	printf "done.\n" 1>&2
 }
 
-## valgrind_setup_cmd (str):
+## valgrind_setup (str):
 # Set up the valgrind command if ${USE_VALGRIND} is greater than or equal to
 # ${valgrind_min}.  If ${str} is not blank, include it in the log filename.
-valgrind_setup_cmd() {
+valgrind_setup() {
 	str=${1:-}
 
 	# Bail if we don't want to use valgrind for this check.
@@ -332,11 +332,11 @@ _valgrind_check_logfile() {
 	fi
 }
 
-## valgrind_check_basenames (exitfile):
+## valgrind_check (exitfile):
 # Check for any memory leaks recorded in valgrind logfiles associated with a
 # test exitfile.  Return the filename if there's a leak; otherwise return an
 # empty string.
-valgrind_check_basenames() {
+valgrind_check() {
 	exitfile="$1"
 	val_basename=$(_valgrind_get_basename "${exitfile}")
 

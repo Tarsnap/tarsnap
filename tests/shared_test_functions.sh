@@ -24,7 +24,7 @@
 #   Look for a ${cmd} in $(ps).
 # - wait_while(func):
 #   Wait until ${func} returns non-zero.
-# - setup_check_variables(description, check_prev):
+# - setup_check(description, check_prev):
 #   Set up the below variables.
 # - expected_exitcode(expected, actual):
 #   Check if ${expected} matches ${actual}.
@@ -155,14 +155,14 @@ wait_while() {
 	return 0
 }
 
-## setup_check_variables (description, check_prev=1):
+## setup_check (description, check_prev=1):
 # Set up the "check" variables ${c_exitfile} and ${c_valgrind_cmd}, the
 # latter depending on the previously-defined ${c_valgrind_min}.
 # Advance the number of checks ${c_count_next} so that the next call to this
 # function will set up new filenames.  Write ${description} into a
 # file.  If ${check_prev} is non-zero, check that the previous
 # ${c_exitfile} exists.
-setup_check_variables() {
+setup_check() {
 	description=$1
 	check_prev=${2:-1}
 
@@ -188,7 +188,7 @@ setup_check_variables() {
 		"${s_basename}-${c_count_str}.desc"
 
 	# Set up the valgrind command (or an empty string).
-	c_valgrind_cmd="$(valgrind_setup_cmd)"
+	c_valgrind_cmd="$(valgrind_setup)"
 
 	# Advances the number of checks.
 	c_count_next=$((c_count_next + 1))
@@ -261,7 +261,7 @@ _notify_success_or_fail() {
 		fi
 
 		# Check valgrind logfile(s).
-		val_failed="$(valgrind_check_basenames "${exitfile}")"
+		val_failed="$(valgrind_check "${exitfile}")"
 		if [ -n "${val_failed}" ]; then
 			echo "FAILED!" 1>&2
 			s_retval="${valgrind_exit_code}"

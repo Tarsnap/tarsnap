@@ -10,7 +10,7 @@ tmp="${s_basename}-tmp"
 
 scenario_cmd() {
 	# Check tarsnap --dry-run -c -v
-	setup_check_variables "check -v"
+	setup_check "check -v"
 	${c_valgrind_cmd} ./tarsnap --no-default-config		\
 		--dry-run -c -C "${scriptdir}"			\
 		-v						\
@@ -20,12 +20,12 @@ scenario_cmd() {
 	echo $? > "${c_exitfile}"
 
 	# Check output of tarsnap --dry-run -c -v
-	setup_check_variables "check -v output"
+	setup_check "check -v output"
 	cmp "${out_v}" "${scriptdir}/06-progress-output-v.good"
 	echo $? > "${c_exitfile}"
 
 	# Check tarsnap --dry-run -c --progress-bytes 1k
-	setup_check_variables "check --progress-bytes 1k"
+	setup_check "check --progress-bytes 1k"
 	${c_valgrind_cmd} ./tarsnap --no-default-config		\
 		--dry-run -c -C "${scriptdir}"			\
 		--progress-bytes 1k				\
@@ -39,12 +39,12 @@ scenario_cmd() {
 	mv "${tmp}" "${out_pb}"
 
 	# Check output of tarsnap --dry-run -c --progress-bytes 1k
-	setup_check_variables "check --progress-bytes 1k output"
+	setup_check "check --progress-bytes 1k output"
 	cmp "${out_pb}" "${scriptdir}/06-progress-output-pb.good"
 	echo $? > "${c_exitfile}"
 
 	# Check tarsnap --dry-run -c -v --progress-bytes 1k
-	setup_check_variables "check -v --progress-bytes 1k"
+	setup_check "check -v --progress-bytes 1k"
 	${c_valgrind_cmd} ./tarsnap --no-default-config		\
 		--dry-run -c -C "${scriptdir}"			\
 		-v --progress-bytes 1k				\
@@ -58,12 +58,12 @@ scenario_cmd() {
 	mv "${tmp}" "${out_vpb_1k}"
 
 	# Check output of tarsnap --dry-run -c -v --progress-bytes 1k
-	setup_check_variables "check -v --progress-bytes 1k output"
+	setup_check "check -v --progress-bytes 1k output"
 	cmp "${out_vpb_1k}" "${scriptdir}/06-progress-output-vpb-1k.good"
 	echo $? > "${c_exitfile}"
 
 	# Check tarsnap --dry-run -c -v --progress-bytes 20k
-	setup_check_variables "check -v --progress-bytes 20k"
+	setup_check "check -v --progress-bytes 20k"
 	${c_valgrind_cmd} ./tarsnap --no-default-config		\
 		--dry-run -c -C "${scriptdir}"			\
 		-v --progress-bytes 20k				\
@@ -77,7 +77,7 @@ scenario_cmd() {
 	mv "${tmp}" "${out_vpb_20k}"
 
 	# Check output of tarsnap --dry-run -c -v --progress-bytes 20k
-	setup_check_variables "check -v --progress-bytes 20k output"
+	setup_check "check -v --progress-bytes 20k output"
 	cmp "${out_vpb_20k}" "${scriptdir}/06-progress-output-vpb-20k.good"
 	echo $? > "${c_exitfile}"
 }
