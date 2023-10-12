@@ -12,5 +12,6 @@ main(void)
 	output = vsha256su0q_u32(w0, w4);
 	(void)output; /* UNUSED */
 
+	/* Success! */
 	return (0);
 }

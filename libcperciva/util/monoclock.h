@@ -25,8 +25,8 @@ int monoclock_get_cputime(struct timeval *);
 
 /**
  * monoclock_getres(resd):
- * Store an upper limit on timer granularity in ${resd}. If CLOCK_MONOTONIC is
- * available, use that clock; if CLOCK_MONOTONIC is unavailable, use
+ * Store an upper limit on timer granularity in ${resd}.  If CLOCK_MONOTONIC
+ * is available, use that clock; if CLOCK_MONOTONIC is unavailable, use
  * CLOCK_REALTIME (if available) or gettimeofday(2).  For this value to be
  * meaningful, we assume that clock_getres(x) succeeds iff clock_gettime(x)
  * succeeds.

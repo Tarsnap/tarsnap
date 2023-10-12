@@ -62,7 +62,7 @@ static int minq = 32;
  * [0, 31].  Return a cookie which can be passed to events_immediate_cancel().
  */
 void *
-events_immediate_register(int (*func)(void *), void * cookie, int prio)
+events_immediate_register(int (* func)(void *), void * cookie, int prio)
 {
 	struct eventrec * r;
 	struct eventq * q;

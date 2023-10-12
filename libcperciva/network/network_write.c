@@ -31,7 +31,7 @@
 #endif
 
 struct network_write_cookie {
-	int (*callback)(void *, ssize_t);
+	int (* callback)(void *, ssize_t);
 	void * cookie;
 	int fd;
 	const uint8_t * buf;
@@ -66,7 +66,7 @@ callback_buf(void * cookie)
 	size_t oplen;
 	ssize_t len;
 #ifdef POSIXFAIL_MSG_NOSIGNAL
-	void (*oldsig)(int);
+	void (* oldsig)(int);
 	int saved_errno;
 #endif
 

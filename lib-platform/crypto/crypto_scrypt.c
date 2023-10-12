@@ -45,7 +45,7 @@
 
 #include "crypto_scrypt.h"
 
-static void (*smix_func)(uint8_t *, size_t, uint64_t, void *, void *) = NULL;
+static void (* smix_func)(uint8_t *, size_t, uint64_t, void *, void *) = NULL;
 
 /**
  * crypto_scrypt_internal(passwd, passwdlen, salt, saltlen, N, r, p, buf,
@@ -56,7 +56,7 @@ static int
 crypto_scrypt_internal(const uint8_t * passwd, size_t passwdlen,
     const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t _r, uint32_t _p,
     uint8_t * buf, size_t buflen,
-    void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
+    void (* smix)(uint8_t *, size_t, uint64_t, void *, void *))
 {
 	void * B0, * V0, * XY0;
 	uint8_t * B;
@@ -192,7 +192,7 @@ static struct scrypt_test {
 };
 
 static int
-testsmix(void (*smix)(uint8_t *, size_t, uint64_t, void *, void *))
+testsmix(void (* smix)(uint8_t *, size_t, uint64_t, void *, void *))
 {
 	uint8_t hbuf[TESTLEN];
 

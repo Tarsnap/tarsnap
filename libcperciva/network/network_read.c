@@ -12,7 +12,7 @@
 #include "network.h"
 
 struct network_read_cookie {
-	int (*callback)(void *, ssize_t);
+	int (* callback)(void *, ssize_t);
 	void * cookie;
 	int fd;
 	uint8_t * buf;

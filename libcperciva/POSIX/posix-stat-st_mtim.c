@@ -8,5 +8,6 @@ main(void)
 	/* Can we reference st_mtim? */
 	(void)sb.st_mtim.tv_sec;
 
+	/* Success! */
 	return (0);
 }

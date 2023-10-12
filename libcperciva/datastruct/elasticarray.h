@@ -112,7 +112,7 @@ int elasticarray_exportdup(const struct elasticarray *, void **, size_t *,
  * void ${prefix}_shrink(${type} EA, size_t nrec);
  * int ${prefix}_truncate(${type} EA);
  * ${rectype} * ${prefix}_get(${type} EA, size_t pos);
- * void ${prefix}_iter(${type} EA, void(*)(void *));
+ * void ${prefix}_iter(${type} EA, void (*)(void *));
  * void ${prefix}_free(${type} EA);
  */
 #define ELASTICARRAY_DECL(type, prefix, rectype)			\
@@ -167,7 +167,7 @@ int elasticarray_exportdup(const struct elasticarray *, void **, size_t *,
 	}								\
 	static inline void						\
 	prefix##_iter(struct prefix##_struct * EA,			\
-	    void(* fp)(rectype *))					\
+	    void (* fp)(rectype *))					\
 	{								\
 		size_t i;						\
 									\

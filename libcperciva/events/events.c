@@ -11,7 +11,7 @@
 
 /* Event structure. */
 struct eventrec {
-	int (*func)(void *);
+	int (* func)(void *);
 	void * cookie;
 };
 
@@ -28,7 +28,7 @@ static volatile sig_atomic_t interrupt_requested = 0;
  * Package ${func}, ${cookie} into a struct eventrec.
  */
 struct eventrec *
-events_mkrec(int (*func)(void *), void * cookie)
+events_mkrec(int (* func)(void *), void * cookie)
 {
 	struct eventrec * r;
 

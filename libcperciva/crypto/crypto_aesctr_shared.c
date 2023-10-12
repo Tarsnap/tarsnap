@@ -81,6 +81,7 @@ crypto_aesctr_stream_pre_wholeblock(struct crypto_aesctr * stream,
 		    buflen_p, 16 - bytemod, bytemod);
 	}
 
+	/* Success! */
 	return (0);
 }
 

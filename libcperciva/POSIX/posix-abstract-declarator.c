@@ -9,6 +9,8 @@ func(int arr[static restrict 1])
 {
 
 	(void)arr; /* UNUSED */
+
+	/* Success! */
 	return (0);
 }
 
@@ -17,5 +19,7 @@ main(void)
 {
 
 	(void)func; /* UNUSED */
+
+	/* Success! */
 	return (0);
 }

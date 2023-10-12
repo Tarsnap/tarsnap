@@ -67,7 +67,7 @@ static struct aes_test {
 
 /* Test a function against test vectors. */
 static int
-functest(int(* func)(const uint8_t *, size_t, const uint8_t[16], uint8_t[16]))
+functest(int (* func)(const uint8_t *, size_t, const uint8_t[16], uint8_t[16]))
 {
 	struct aes_test * knowngood;
 	uint8_t ctext[16];
