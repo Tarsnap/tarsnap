@@ -25,16 +25,6 @@
 /* Compatibility for LibreSSL 2.7.0+: pretend to be OpenSSL 1.1.0. */
 #define OPENSSL_VERSION_NUMBER 0x1010000fL
 
-/*
- * To free the shared memory in 2.7.0+, we need to run EVP_cleanup() in
- * crypto_compat_free().  This function is documented as being deprecated on
- * LibreSSL 2.7.0+ (and a no-op on OpenSSL 1.1.0+), but LibreSSL's
- * crypto/evp/names.c clearly shows that EVP_cleanup() does stuff, and
- * valgrind memory checks show that we need to call it manually.
- * (Checked in LibreSSL 2.7.0 and 3.4.2.)
- */
-#define NEED_EVP_CLEANUP
-
 #else
 /* Compatibility for LibreSSL before 2.7.0: pretend to be OpenSSL 1.0.1g. */
 #define OPENSSL_VERSION_NUMBER 0x1000107fL
@@ -277,8 +267,8 @@ crypto_compat_free(void)
 	/* Free OpenSSL error strings. */
 	ERR_free_strings();
 
-#ifdef NEED_EVP_CLEANUP
-	/* Additional cleaning needed for some versions of LibreSSL. */
+#if LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+	/* Additional cleaning needed for LibreSSL 2.7.0 to 3.5.x. */
 	EVP_cleanup();
 #endif
 
