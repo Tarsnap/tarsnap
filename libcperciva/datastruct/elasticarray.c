@@ -168,8 +168,7 @@ elasticarray_append(struct elasticarray * EA,
 	size_t nsize;
 
 	/* Check for overflow. */
-	if ((nrec > SIZE_MAX / reclen) ||
-	    (nrec * reclen > SIZE_MAX - EA->size)) {
+	if (nrec > ((SIZE_MAX - EA->size) / reclen)) {
 		errno = ENOMEM;
 		goto err0;
 	}
@@ -212,8 +211,7 @@ elasticarray_shrink(struct elasticarray * EA, size_t nrec, size_t reclen)
 	size_t nsize;
 
 	/* Figure out how much to keep. */
-	if ((nrec > SIZE_MAX / reclen) ||
-	    (nrec * reclen > EA->size))
+	if (nrec > EA->size / reclen)
 		nsize = 0;
 	else
 		nsize = EA->size - nrec * reclen;
