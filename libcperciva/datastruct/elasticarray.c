@@ -30,7 +30,7 @@ resize(struct elasticarray * EA, size_t nsize)
 		nalloc = EA->alloc * 2;
 		if (nalloc < nsize)
 			nalloc = nsize;
-	} else if (EA->alloc > nsize * 4) {
+	} else if (EA->alloc / 4 > nsize) {
 		/* We need to shrink the buffer. */
 		nalloc = nsize * 2;
 	} else {
