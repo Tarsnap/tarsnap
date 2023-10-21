@@ -7,7 +7,7 @@ passphrase="hunter2"
 
 scenario_cmd() {
 	# Try to create a cache directory with a wrong passphrase.
-	setup_check_variables "check --initialize-cachedir, bad passphrase"
+	setup_check "check --initialize-cachedir, bad passphrase"
 	echo "wrong passphrase" |				\
 		${c_valgrind_cmd} ./tarsnap --no-default-config \
 		--keyfile "${keyfile}"				\
@@ -18,7 +18,7 @@ scenario_cmd() {
 	expected_exitcode 1 $? > "${c_exitfile}"
 
 	# Create a cache directory with the correct passphrase.
-	setup_check_variables "check --initialize-cachedir, passphrase stdin"
+	setup_check "check --initialize-cachedir, passphrase stdin"
 	echo "${passphrase}" |					\
 		${c_valgrind_cmd} ./tarsnap --no-default-config \
 		--keyfile "${keyfile}"				\
@@ -29,7 +29,7 @@ scenario_cmd() {
 	echo $? > "${c_exitfile}"
 
 	# Create a cache directory with the correct passphrase in env.
-	setup_check_variables "check --initialize-cachedir, passphrase env"
+	setup_check "check --initialize-cachedir, passphrase env"
 	PASSENV="hunter2"					\
 		${c_valgrind_cmd} ./tarsnap --no-default-config	\
 		--keyfile "${keyfile}"				\
@@ -40,7 +40,7 @@ scenario_cmd() {
 	echo $? > "${c_exitfile}"
 
 	# Create a cache directory with the correct passphrase in a file.
-	setup_check_variables "check --initialize-cachedir, passphrase file"
+	setup_check "check --initialize-cachedir, passphrase file"
 	printf "hunter2\n" > "${s_basename}-passphrase.txt"
 	${c_valgrind_cmd} ./tarsnap --no-default-config		\
 		--keyfile "${keyfile}"				\
