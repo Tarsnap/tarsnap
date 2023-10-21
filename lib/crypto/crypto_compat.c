@@ -25,16 +25,6 @@
 /* Compatibility for LibreSSL 2.7.0+: pretend to be OpenSSL 1.1.0. */
 #define OPENSSL_VERSION_NUMBER 0x1010000fL
 
-/*
- * To free the shared memory in 2.7.0+, we need to run EVP_cleanup() in
- * crypto_compat_free().  This function is documented as being deprecated on
- * LibreSSL 2.7.0+ (and a no-op on OpenSSL 1.1.0+), but LibreSSL's
- * crypto/evp/names.c clearly shows that EVP_cleanup() does stuff, and
- * valgrind memory checks show that we need to call it manually.
- * (Checked in LibreSSL 2.7.0 and 3.4.2.)
- */
-#define NEED_EVP_CLEANUP
-
 #else
 /* Compatibility for LibreSSL before 2.7.0: pretend to be OpenSSL 1.0.1g. */
 #define OPENSSL_VERSION_NUMBER 0x1000107fL
@@ -255,23 +245,34 @@ void
 crypto_compat_free(void)
 {
 
+#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER > 0x1010000fL
+	/* OpenSSL 1.1.0 and higher: do nothing; the library uses atexit(). */
+#elif defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER > 0x3070100fL
+	/* LibreSSL 3.7.1 and higher. */
+	OPENSSL_cleanup();
+#elif defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER > 0x3060000fL
+	/* LibreSSL 3.6.0 to 3.7.0. */
+	OPENSSL_cleanup();
+	CRYPTO_cleanup_all_ex_data();
+#else
+	/* Easerlier versions of OpenSSL and LibreSSL. */
+
 	/* Free OpenSSL error queue. */
 #if OPENSSL_VERSION_NUMBER < 0x10000000L
 	ERR_remove_state(0);
 #elif OPENSSL_VERSION_NUMBER < 0x10100000L
 	ERR_remove_thread_state(NULL);
-#else
-	/* Nothing needed for OpenSSL >= 1.1. */
 #endif
 
 	/* Free OpenSSL error strings. */
 	ERR_free_strings();
 
-#ifdef NEED_EVP_CLEANUP
-	/* Additional cleaning needed for some versions of LibreSSL. */
+#if LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+	/* Additional cleaning needed for LibreSSL 2.7.0 to 3.5.x. */
 	EVP_cleanup();
 #endif
 
 	/* A more general OpenSSL cleanup function. */
 	CRYPTO_cleanup_all_ex_data();
+#endif
 }
