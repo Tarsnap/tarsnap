@@ -1,11 +1,13 @@
 name: Compile & test
 
-# Run whenever we push to any branch other than [coverity-scan].
+# Run whenever we push to any branch other than [coverity-scan], or if we
+# manually trigger a workflow.
 on:
   push:
     branches:
     - '**'
     - '!coverity-scan'
+  workflow_dispatch:
 
 env:
   # Shared variables amongst all projects / platforms / compilers.
