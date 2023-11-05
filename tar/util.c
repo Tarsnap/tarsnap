@@ -63,6 +63,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/util.c,v 1.23 2008/12/15 06:00:25 kientzle E
 #define iswprint isprint
 #endif
 
+#include <assert.h>
+
 #include "bsdtar.h"
 
 static void	bsdtar_vwarnc(struct bsdtar *, int code,
@@ -362,8 +364,11 @@ process_lines(struct bsdtar *bsdtar, const char *pathname,
 			} else
 				line_end++;
 		}
-		if (feof(f))
+		if (feof(f)) {
+			/* fread() should not set EOF unless this is true. */
+			assert(bytes_read < bytes_wanted);
 			break;
+		}
 		if (ferror(f))
 			bsdtar_errc(bsdtar, 1, fread_errno,
 			    "Can't read %s", pathname);
