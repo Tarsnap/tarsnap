@@ -10,7 +10,7 @@ RELEASEDATE=`date "+%B %d, %Y"`
 
 # Copy bits in
 mkdir "${DESTDIR}"
-cp BUILDING COPYING Makefile.am configure.ac tsserver .autom4te.cfg "${DESTDIR}/"
+cp BUILDING COPYING NEWS.md README.md STYLE Makefile.am configure.ac tsserver .autom4te.cfg "${DESTDIR}/"
 cp -R keygen keymgmt keyregen lib lib-platform libarchive libcperciva m4 misc pkg recrypt tar tests "${DESTDIR}/"
 
 # Copy with substitution
