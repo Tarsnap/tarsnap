@@ -10,6 +10,7 @@
 
 #include "chunks.h"
 #include "ctassert.h"
+#include "hexify.h"
 #include "multitape_internal.h"
 #include "storage.h"
 #include "sysendian.h"
@@ -243,21 +244,41 @@ err0:
 }
 
 /**
- * statstape_printlist_item(d, tapehash, verbose, print_nulls):
+ * statstape_printlist_item(d, tapehash, verbose, print_nulls, print_hash):
  * Print the name of the archive with ${tapehash}.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
  * program invocation which created the archive.  If ${print_nulls} > 0, print
  * null character(s) between archives names and fields instead of newlines,
- * tabs, and spaces.
+ * tabs, and spaces.  If ${print_hash} > 0 and ${verbose} is 0, print the hash
+ * instead of the archive name.  If ${print_hash} > 0 and ${verbose} > 0,
+ * print hash in addition to the normal behaviour.
  */
 static int
 statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
-    int print_nulls)
+    int print_nulls, int print_hash)
 {
 	struct tapemetadata tmd;
+	char hexstr[65];
 	struct tm * ltime;
 	char datebuf[DATEBUFLEN];
 	int arg;
+
+	/* Print archive hash. */
+	if (print_hash) {
+		hexify(tapehash, hexstr, 32);
+		fprintf(stdout, "%s", hexstr);
+
+		if (verbose == 0) {
+			/* We're finished; print archive separator and quit. */
+			if (print_sep('\n', print_nulls, 1))
+				goto err1;
+			goto done;
+		} else {
+			/* We have more fields; print field separator. */
+			if (print_sep('\t', print_nulls, 2))
+				goto err1;
+		}
+	}
 
 	/* Read the tape metadata. */
 	if (multitape_metadata_get_byhash(d->SR, NULL, &tmd, tapehash, 0))
@@ -317,6 +338,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	/* Free parsed metadata. */
 	multitape_metadata_free(&tmd);
 
+done:
 	/* Success! */
 	return (0);
 
@@ -328,15 +350,17 @@ err0:
 }
 
 /**
- * statstape_printlist(d, verbose, print_nulls):
+ * statstape_printlist(d, verbose, print_nulls, print_hashes):
  * Print the names of each of the archives in a set.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
  * program invocation which created the archive.  If ${print_nulls} > 0, print
  * null character(s) between archives names and fields instead of newlines,
- * tabs, and spaces.
+ * tabs, and spaces.  If ${print_hashes} > 0 and ${verbose} is 0, print hashes
+ * instead of archive names.  If ${print_hashes} > 0 and ${verbose} > 0, print
+ * hashes in addition to the normal behaviour.
  */
 int
-statstape_printlist(TAPE_S * d, int verbose, int print_nulls)
+statstape_printlist(TAPE_S * d, int verbose, int print_nulls, int print_hashes)
 {
 	uint8_t * flist;
 	size_t nfiles;
@@ -349,7 +373,7 @@ statstape_printlist(TAPE_S * d, int verbose, int print_nulls)
 	/* Iterate through the files. */
 	for (file = 0; file < nfiles; file++) {
 		if (statstape_printlist_item(d, &flist[file * 32], verbose,
-		    print_nulls))
+		    print_nulls, print_hashes))
 			goto err1;
 	}
 
