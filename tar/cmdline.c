@@ -109,6 +109,7 @@ static struct option {
 	{ "keyfile",		  1, OPTION_KEYFILE },
 	{ "list",                 0, 't' },
 	{ "list-archives",	  0, OPTION_LIST_ARCHIVES },
+	{ "list-archives-hashes", 0, OPTION_LIST_ARCHIVES_HASHES },
 	{ "lowmem",		  0, OPTION_LOWMEM },
 	{ "maxbw",		  1, OPTION_MAXBW },
 	{ "maxbw-rate",		  1, OPTION_MAXBW_RATE },

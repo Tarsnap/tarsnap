@@ -546,6 +546,9 @@ main(int argc, char **argv)
 		case OPTION_LIST_ARCHIVES: /* multitar */
 			set_mode(bsdtar, opt, "--list-archives");
 			break;
+		case OPTION_LIST_ARCHIVES_HASHES: /* tarsnap */
+			set_mode(bsdtar, opt, "--list-archives-hashes");
+			break;
 		case OPTION_LOWMEM: /* tarsnap */
 			optq_push(bsdtar, "lowmem", NULL);
 			break;
@@ -941,6 +944,7 @@ main(int argc, char **argv)
 	if ((bsdtar->ntapes == 0) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS &&
 	     bsdtar->mode != OPTION_LIST_ARCHIVES &&
+	     bsdtar->mode != OPTION_LIST_ARCHIVES_HASHES &&
 	     bsdtar->mode != OPTION_RECOVER &&
 	     bsdtar->mode != OPTION_FSCK &&
 	     bsdtar->mode != OPTION_FSCK_PRUNE &&
@@ -1009,7 +1013,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "-P", "cxt");
 	if (bsdtar->option_null) {
 		/* Allow in --list-archives or cxt modes. */
-		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
+		if ((bsdtar->mode != OPTION_LIST_ARCHIVES) &&
+		    (bsdtar->mode != OPTION_LIST_ARCHIVES_HASHES))
 			only_mode(bsdtar, "--null", "cxt");
 	}
 
@@ -1181,6 +1186,7 @@ main(int argc, char **argv)
 
 		/* FALLTHROUGH */
 	case OPTION_LIST_ARCHIVES:
+	case OPTION_LIST_ARCHIVES_HASHES:
 	case 'r':
 	case 't':
 	case 'x':
@@ -1230,6 +1236,9 @@ main(int argc, char **argv)
 		break;
 	case OPTION_LIST_ARCHIVES:
 		tarsnap_mode_list_archives(bsdtar, 0);
+		break;
+	case OPTION_LIST_ARCHIVES_HASHES:
+		tarsnap_mode_list_archives(bsdtar, 1);
 		break;
 	case OPTION_NUKE:
 		tarsnap_mode_nuke(bsdtar);
