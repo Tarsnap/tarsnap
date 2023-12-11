@@ -56,9 +56,9 @@ _tarsnap ()
 		  --fsck --fsck-prune --humanize-numbers --include \
 		  --initialize-cachedir --insane-filesystems --iso-dates \
 		  --keep-going --keep-newer-files --keyfile \
-		  --list-archives --lowmem --maxbw --maxbw-rate \
-		  --maxbw-rate-down --maxbw-rate-up --newer \
-		  --newer-mtime --newer-than --newer-mtime-than \
+		  --list-archives --list-archives-hashes --lowmem \
+		  --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
+		  --newer --newer-mtime --newer-than --newer-mtime-than \
 		  --no-aggressive-networking --no-config-exclude \
 		  --no-config-include --no-default-config \
 		  --no-disk-pause --no-force-resources \
