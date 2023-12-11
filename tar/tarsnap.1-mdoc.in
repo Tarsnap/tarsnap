@@ -63,6 +63,9 @@
 .Brq Fl -list-archives
 .Fl -keyfile Ar key-file
 .Nm
+.Brq Fl -list-archives-hashes
+.Fl -keyfile Ar key-file
+.Nm
 .Brq Fl -print-stats
 .Fl -keyfile Ar key-file
 .Fl -cachedir Ar cache-dir
@@ -134,6 +137,15 @@ If the
 .Fl v
 flag is specified two times, then the arguments in the command line will be
 separated by three null characters.
+.It Fl -list-archives-hashes
+As per
+.Fl -list-archive ,
+except that it prints archive hashes.
+If the
+.Fl v
+flag is specified one or more times, print the archive name as well.
+.Pp
+This option is intended for the GUI and is not needed for command-line usage.
 .It Fl -print-stats
 Print global statistics concerning the archives stored, and optionally
 information about individual archive(s).
@@ -618,7 +630,7 @@ option specified in a configuration file.
 .Fl I ,
 .Fl T ,
 .Fl X ,
-or list-archives modes only)
+list-archives, or list-archives-hashes modes only)
 Filenames or patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the

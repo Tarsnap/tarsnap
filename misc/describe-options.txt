@@ -29,6 +29,7 @@
 --keep-newer-files	keep files which are newer than the extracted files
 --keyfile		specify key file
 --list-archives		print the names of archives stored		MODE
+--list-archives-hashes	print the hashes of archives stored		MODE
 --lowmem		reduce memory usage by not caching small files
 --maxbw			stop if more than ARG bytes of upstream bw is used
 --maxbw-rate		limit bandwidth to ARG bytes per second
