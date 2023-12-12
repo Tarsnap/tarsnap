@@ -172,14 +172,16 @@ int statstape_printglobal(TAPE_S *, const char *);
 int statstape_printall(TAPE_S *, const char *);
 
 /**
- * statstape_printlist(d, verbose, print_nulls):
+ * statstape_printlist(d, verbose, print_nulls, print_hashes):
  * Print the names of each of the archives in a set.  If ${verbose} > 0, print
  * the creation times; if ${verbose} > 1, print the argument vector of the
  * program invocation which created the archive.  If ${print_nulls} > 0, print
  * null character(s) between archives names and fields instead of newlines,
- * tabs, and spaces.
+ * tabs, and spaces.  If ${print_hashes} > 0 and ${verbose} is 0, print hashes
+ * instead of archive names.  If ${print_hashes} > 0 and ${verbose} > 0, print
+ * hashes in addition to the normal behaviour.
  */
-int statstape_printlist(TAPE_S *, int, int);
+int statstape_printlist(TAPE_S *, int, int, int);
 
 /**
  * statstape_print(d, tapename, csv_filename):

@@ -1229,7 +1229,7 @@ main(int argc, char **argv)
 		tarsnap_mode_recover(bsdtar, 0);
 		break;
 	case OPTION_LIST_ARCHIVES:
-		tarsnap_mode_list_archives(bsdtar);
+		tarsnap_mode_list_archives(bsdtar, 0);
 		break;
 	case OPTION_NUKE:
 		tarsnap_mode_nuke(bsdtar);

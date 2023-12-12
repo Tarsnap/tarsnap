@@ -170,7 +170,7 @@ err1:
  * Print the names of all the archives.
  */
 void
-tarsnap_mode_list_archives(struct bsdtar *bsdtar)
+tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 {
 	TAPE_S * d;
 
@@ -179,7 +179,8 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar)
 		goto err1;
 
 	/* Ask for the list of archives to be printed. */
-	if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null))
+	if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null,
+	    print_hashes))
 		goto err2;
 
 	/* We're done.  Close the archive set. */

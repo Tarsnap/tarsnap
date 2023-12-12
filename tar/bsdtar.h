@@ -309,7 +309,7 @@ void	tarsnap_mode_t(struct bsdtar *bsdtar);
 void	tarsnap_mode_x(struct bsdtar *bsdtar);
 void	tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey);
 void	tarsnap_mode_initialize_cachedir(struct bsdtar *bsdtar);
-void	tarsnap_mode_list_archives(struct bsdtar *bsdtar);
+void	tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes);
 void	tarsnap_mode_nuke(struct bsdtar *bsdtar);
 void	tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey);
 int	unmatched_inclusions(struct bsdtar *bsdtar);
