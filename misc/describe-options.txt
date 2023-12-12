@@ -20,6 +20,7 @@
 --force-resources	force the decryption of a passphrase-encrypted keyfile
 --fsck			perform some integrity checks and reconstruct cache	MODE
 --fsck-prune		run as --fsck, but prune any corrupt archives	MODE
+--hashes		make --list-archives print hashes
 --humanize-numbers	use SI prefixes for --print-stats
 --include		process only certain files or directories
 --initialize-cachedir	create and initialize the cachedir		MODE
