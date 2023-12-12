@@ -53,9 +53,9 @@ _tarsnap ()
 		  --check-links --checkpoint-bytes --chroot --configfile \
 		  --creationtime --csv-file --disk-pause --dry-run \
 		  --dump-config --exclude --fast-read --force-resources \
-		  --fsck --fsck-prune --humanize-numbers --include \
-		  --initialize-cachedir --insane-filesystems --iso-dates \
-		  --keep-going --keep-newer-files --keyfile \
+		  --fsck --fsck-prune --hashes --humanize-numbers \
+		  --include --initialize-cachedir --insane-filesystems \
+		  --iso-dates --keep-going --keep-newer-files --keyfile \
 		  --list-archives --lowmem --maxbw --maxbw-rate \
 		  --maxbw-rate-down --maxbw-rate-up --newer \
 		  --newer-mtime --newer-than --newer-mtime-than \

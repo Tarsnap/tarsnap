@@ -77,6 +77,7 @@ struct bsdtar {
 	char		  option_dont_traverse_mounts; /* --one-file-system */
 	char		  option_dryrun; /* --dry-run */
 	char		  option_fast_read; /* --fast-read */
+	int               option_hashes;
 	char		  option_honor_nodump; /* --nodump */
 	char		  option_interactive; /* -w */
 	char		  option_keep_going; /* --keep-going */
@@ -210,6 +211,7 @@ enum {
 	OPTION_FSCK_DELETE,	/* Operation mode, not a real option */
 	OPTION_FSCK_PRUNE,
 	OPTION_FSCK_WRITE,	/* Operation mode, not a real option */
+	OPTION_HASHES,
 	OPTION_HELP,
 	OPTION_INCLUDE,
 	OPTION_INITIALIZE_CACHEDIR,
@@ -309,7 +311,7 @@ void	tarsnap_mode_t(struct bsdtar *bsdtar);
 void	tarsnap_mode_x(struct bsdtar *bsdtar);
 void	tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey);
 void	tarsnap_mode_initialize_cachedir(struct bsdtar *bsdtar);
-void	tarsnap_mode_list_archives(struct bsdtar *bsdtar);
+void	tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes);
 void	tarsnap_mode_nuke(struct bsdtar *bsdtar);
 void	tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey);
 int	unmatched_inclusions(struct bsdtar *bsdtar);

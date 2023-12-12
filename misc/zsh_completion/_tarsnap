@@ -231,6 +231,7 @@ _shtab_tarsnap__initialize_cachedir_options=(
 
 _shtab_tarsnap__list_archives_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
+  "--hashes[make --list-archives print hashes]"
   "-v[produce verbose output]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
   "--configfile[add file to the list of configuration files to be read]:filename:{_files}"
