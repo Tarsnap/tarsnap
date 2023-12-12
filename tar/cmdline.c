@@ -95,6 +95,7 @@ static struct option {
 	{ "force-resources",	  0, OPTION_FORCE_RESOURCES },
 	{ "fsck",		  0, OPTION_FSCK },
 	{ "fsck-prune",		  0, OPTION_FSCK_PRUNE },
+	{ "hashes",		  0, OPTION_HASHES },
 	{ "help",                 0, OPTION_HELP },
 	{ "humanize-numbers",	  0, OPTION_HUMANIZE_NUMBERS },
 	{ "include",              1, OPTION_INCLUDE },

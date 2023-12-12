@@ -492,6 +492,9 @@ main(int argc, char **argv)
 			/* Hack: -h by itself is the "help" command. */
 			possible_help_request = 1;
 			break;
+		case OPTION_HASHES: /* tarsnap */
+			bsdtar->option_hashes = 1;
+			break;
 		case OPTION_HELP: /* GNU tar, others */
 			long_help(bsdtar);
 			exit(0);
@@ -1229,7 +1232,7 @@ main(int argc, char **argv)
 		tarsnap_mode_recover(bsdtar, 0);
 		break;
 	case OPTION_LIST_ARCHIVES:
-		tarsnap_mode_list_archives(bsdtar, 0);
+		tarsnap_mode_list_archives(bsdtar, bsdtar->option_hashes);
 		break;
 	case OPTION_NUKE:
 		tarsnap_mode_nuke(bsdtar);
