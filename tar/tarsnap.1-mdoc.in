@@ -348,7 +348,7 @@ specified pattern.
 Note that exclusions take precedence over patterns or filenames
 specified on the command line.
 .It Fl f Ar archive-name
-(c, d, x, t, r, and print-stats modes only)
+(c, d, x, t, r, list-archives, and print-stats modes only)
 Operate on the archive
 .Ar archive-name .
 In mode c, if archive creation is interrupted by \&^Q,
@@ -370,6 +370,24 @@ Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when
 repeatedly creating archives from the same files/directories (e.g.,
 daily backups).
+.Pp
+As a special case, if used with
+.Fl -list-archives -hashes
+then
+.Fl f
+indicates a
+.Ar tapehash
+instead of an
+.Ar archive-name ,
+and will print metadata about the specified archive(s).
+This combination of options is intended for the GUI and is not needed for
+command-line usage.
+.Po Fl f
+cannot be used with
+.Fl -list-archives
+if it does not also include
+.Fl -hashes .
+.Pc
 .It Fl -force-resources
 Force the decryption of a passphrase-encrypted key file to proceed
 even if it is anticipated to require an excessive amount of memory

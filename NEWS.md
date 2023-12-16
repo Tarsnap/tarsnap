@@ -15,6 +15,10 @@
   of archive names.  If one or more -v arguments are specified, it will print
   other metadata (as per --list-archives).  This option is intended for the
   GUI and is not needed for command-line usage.
+- tarsnap now accepts -f TAPEHASH with --list-archives --hashes, which prints
+  metadata about the specified archive(s).  Multiple -f options may be
+  specified.  This option is intended for the GUI and is not needed for
+  command-line usage.
 
 
 Tarsnap Releases
