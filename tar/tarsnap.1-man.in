@@ -365,7 +365,7 @@ Note that exclusions take precedence over patterns or filenames
 specified on the command line.
 .TP
 \fB\-f\fP \fIarchive-name\fP
-(c, d, x, t, r, and print-stats modes only)
+(c, d, x, t, r, list-archives, and print-stats modes only)
 Operate on the archive
 \fIarchive-name\fP.
 In mode c, if archive creation is interrupted by \&^Q,
@@ -387,6 +387,24 @@ Note that each archive created must have a different name; consequently
 many users find it useful to include timestamps in archive names when
 repeatedly creating archives from the same files/directories (e.g.,
 daily backups).
+.PP
+As a special case, if used with
+\fB\--list-archives\fP -hashes
+then
+\fB\-f\fP
+indicates a
+\fItapehash\fP
+instead of an
+\fIarchive-name\fP,
+and will print metadata about the specified archive(s).
+This combination of options is intended for the GUI and is not needed for
+command-line usage.
+Po \fB\-f\fP
+cannot be used with
+\fB\--list-archives\fP
+if it does not also include
+\fB\--hashes\fP.
+Pc
 .TP
 \fB\--force-resources\fP
 Force the decryption of a passphrase-encrypted key file to proceed
