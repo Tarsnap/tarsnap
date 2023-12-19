@@ -41,7 +41,8 @@ static void generate(uint8_t *, size_t);
 
 #ifdef CPUSUPPORT_X86_RDRAND
 static void
-update_from_rdrand(void) {
+update_from_rdrand(void)
+{
 	unsigned int buf[8];
 
 	/* This is only *extra* entropy, so it's ok if it fails. */

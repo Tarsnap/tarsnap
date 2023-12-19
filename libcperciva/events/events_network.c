@@ -22,8 +22,8 @@
  * for it to be larger than size_t unless there's an undocumented limit on
  * the number of descriptors which can be polled (since poll takes an array,
  * the size of which must fit into a size_t); and nfds_t should be able to
- * the value INT_MAX + 1 (in case every possible file descriptor is in use
- * and being polled for).
+ * store the value INT_MAX + 1 (in case every possible file descriptor is in
+ * use and being polled for).
  */
 CTASSERT((nfds_t)(-1) <= (size_t)(-1));
 CTASSERT((nfds_t)((size_t)(INT_MAX) + 1) == (size_t)(INT_MAX) + 1);
@@ -65,7 +65,7 @@ static size_t fdscanpos;
  *     S[i].reader != NULL <==> (fds[S[i].pollpos].events & POLLIN) != 0
  *     S[i].writer != NULL <==> (fds[S[i].pollpos].events & POLLOUT) != 0
  * 5. We don't have events ready which we don't want:
- *     (fds[j].revents & (POLLIN | POLLOUT) & (~fds[j].events])) == 0
+ *     (fds[j].revents & (POLLIN | POLLOUT) & (~fds[j].events)) == 0
  * 6. Returned events are in position to be scanned later:
  *     fds[j].revents != 0 ==> f < fdscanpos.
  */
@@ -451,7 +451,7 @@ events_network_get(void)
 			break;
 		}
 
-		/* Are we ready for reading? */
+		/* Are we ready for writing? */
 		if (fds[fdscanpos].revents & POLLOUT) {
 			r = socketlist_get(S,
 			    (size_t)fds[fdscanpos].fd)->writer;
