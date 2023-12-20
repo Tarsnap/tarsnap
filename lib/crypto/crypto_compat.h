@@ -4,8 +4,8 @@
 #include <openssl/ossl_typ.h>
 
 /**
- * crypto_compat_RSA_valid_size(rsa):
- * Return nonzero if ${rsa} has a valid size, and zero for an invalid size.
+ * crypto_compat_RSA_valid_size(key):
+ * Return nonzero if ${key} has a valid size, and zero for an invalid size.
  */
 int crypto_compat_RSA_valid_size(const RSA * const key);
 

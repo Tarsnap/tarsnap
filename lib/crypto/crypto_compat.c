@@ -34,21 +34,21 @@
 #endif /* LIBRESSL_VERSION_NUMBER */
 
 /**
- * crypto_compat_RSA_valid_size(rsa):
- * Return nonzero if ${rsa} has a valid size, and zero for an invalid size.
+ * crypto_compat_RSA_valid_size(key):
+ * Return nonzero if ${key} has a valid size, and zero for an invalid size.
  */
 int
-crypto_compat_RSA_valid_size(const RSA * const rsa)
+crypto_compat_RSA_valid_size(const RSA * const key)
 {
 
 	/* Sanity checks. */
-	assert(rsa != NULL);
+	assert(key != NULL);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-	assert(rsa->n != NULL);
-	return ((RSA_size(rsa) == 256) && (BN_num_bits(rsa->n) == 2048));
+	assert(key->n != NULL);
+	return ((RSA_size(key) == 256) && (BN_num_bits(key->n) == 2048));
 #else
-	return ((RSA_size(rsa) == 256) && (RSA_bits(rsa) == 2048));
+	return ((RSA_size(key) == 256) && (RSA_bits(key) == 2048));
 #endif
 }
 
@@ -255,7 +255,7 @@ crypto_compat_free(void)
 	OPENSSL_cleanup();
 	CRYPTO_cleanup_all_ex_data();
 #else
-	/* Easerlier versions of OpenSSL and LibreSSL. */
+	/* Earlier versions of OpenSSL and LibreSSL. */
 
 	/* Free OpenSSL error queue. */
 #if OPENSSL_VERSION_NUMBER < 0x10000000L

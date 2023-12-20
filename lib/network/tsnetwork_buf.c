@@ -43,7 +43,7 @@ struct network_buf_cookie {
 	int flags;
 };
 
-static int callback_buf(void * cookie, int timedout);
+static int callback_buf(void * cookie, int status);
 static int network_buf(int fd, uint8_t * buf, size_t buflen,
     struct timeval * to0, struct timeval * to1,
     network_callback * callback, void * cookie,

@@ -34,6 +34,8 @@ sock_resolve_unix(const char * addr)
 	if ((sa_un = calloc(1, sizeof(struct sockaddr_un))) == NULL)
 		goto err0;
 	sa_un->sun_family = AF_UNIX;
+
+	/* Safely copy addr into the structure. */
 	if (strlen(addr) >= sizeof(sa_un->sun_path)) {
 		warn0("socket path too long: %s", addr);
 		goto err1;
