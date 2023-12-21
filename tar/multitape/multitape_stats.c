@@ -253,7 +253,7 @@ err0:
  * instead of the archive name.  If ${print_hash} > 0 and ${verbose} > 0,
  * print hash in addition to the normal behaviour.
  */
-static int
+int
 statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
     int print_nulls, int print_hash)
 {

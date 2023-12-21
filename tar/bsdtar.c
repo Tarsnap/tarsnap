@@ -954,6 +954,7 @@ main(int argc, char **argv)
 		    "Archive name must be specified");
 	if ((bsdtar->ntapes > 1) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS &&
+	     bsdtar->mode != OPTION_LIST_ARCHIVES &&
 	     bsdtar->mode != 'd'))
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Option -f may only be specified once in mode %s",
@@ -989,10 +990,13 @@ main(int argc, char **argv)
 	}
 
 	/*
-	 * The -f option doesn't make sense for --list-archives, --fsck,
-	 * --fsck-prune, or --nuke.
+	 * The -f option doesn't make sense for --fsck, --fsck-prune, or
+	 * --nuke.  It can be used with --list-archives --hash, but not
+	 * --list-archives on its own; sanity-checking that detail is
+	 * done in tarsnap_mode_list_archives().
 	 */
 	if ((bsdtar->ntapes > 0) &&
+	    (bsdtar->mode != OPTION_LIST_ARCHIVES) &&
 	    (bsdtar->mode != OPTION_PRINT_STATS))
 		only_mode(bsdtar, "-f", "cxtdr");
 

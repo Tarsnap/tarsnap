@@ -7,6 +7,7 @@
 
 #include "archive.h"
 #include "ccache.h"
+#include "hexify.h"
 #include "multitape.h"
 
 #include "bsdtar.h"
@@ -173,15 +174,42 @@ void
 tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 {
 	TAPE_S * d;
+	uint8_t hash[32];
+	size_t i;
+
+	/* Sanity check. */
+	if ((print_hashes == 0) && (bsdtar->ntapes > 0)) {
+		bsdtar_warnc(bsdtar, 0, "--list-archives: can only use -f"
+		    " with --hashes");
+		goto err1;
+	}
 
 	/* Open the archive set for statistics purposes. */
 	if ((d = statstape_open(bsdtar->machinenum, NULL)) == NULL)
 		goto err1;
 
 	/* Ask for the list of archives to be printed. */
-	if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null,
-	    print_hashes))
-		goto err2;
+	if (bsdtar->ntapes == 0) {
+		if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null,
+		    print_hashes))
+			goto err2;
+	} else {
+		/* User wants metadata about specific archive(s). */
+		for (i = 0; i < bsdtar->ntapes; i++) {
+			/* Convert ascii hex to a hash. */
+			if (unhexify(bsdtar->tapenames[i], hash, 32)) {
+				bsdtar_warnc(bsdtar, 0,
+				    "Invalid archive hash: %s",
+				    bsdtar->tapenames[i]);
+				goto err1;
+			}
+
+			/* Print desired metadata about the archive. */
+			if (statstape_printlist_item(d, hash,
+			    bsdtar->verbose, bsdtar->option_null, 1))
+				goto err2;
+		}
+	}
 
 	/* We're done.  Close the archive set. */
 	if (statstape_close(d))
