@@ -438,16 +438,16 @@ tree_next(struct tree *t)
 			t->dirname_length = t->path_length;
 			if (chdir(t->stack->name) != 0) {
 				/* chdir() failed; return error */
-				tree_pop(t);
 				t->tree_errno = errno;
+				tree_pop(t);
 				return (t->visit_type = TREE_ERROR_DIR);
 			}
 			t->depth++;
 			t->d = opendir(".");
 			if (t->d == NULL) {
+				t->tree_errno = errno;
 				r = tree_ascend(t); /* Undo "chdir" */
 				tree_pop(t);
-				t->tree_errno = errno;
 				t->visit_type = r != 0 ? r : TREE_ERROR_DIR;
 				return (t->visit_type);
 			}
