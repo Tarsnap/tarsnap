@@ -89,6 +89,9 @@ struct multitape_write_internal {
 	void * callback_cookie;
 	int (* callback_chunk)(void *, struct chunkheader *);
 	int (* callback_trailer)(void *, const uint8_t *, size_t);
+
+	/* Used for communication with the storage layer. */
+	int * storage_modified;
 };
 
 static int tapepresent(STORAGE_W *, const char *, const char *);
@@ -398,14 +401,15 @@ err0:
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime, csv_filename):
+ *     dryrun, creationtime, csv_filename, storage_modified):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
     const char * tapename, int argc, char ** argv, int printstats,
-    int dryrun, time_t creationtime, const char * csv_filename)
+    int dryrun, time_t creationtime, const char * csv_filename,
+    int * storage_modified)
 {
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
@@ -514,6 +518,9 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 
 	/* No data has entered or exited c_file. */
 	d->c_file_in = d->c_file_out = 0;
+
+	/* Set up communication with the storage layer. */
+	d->storage_modified = storage_modified;
 
 	/* Success! */
 	return (d);

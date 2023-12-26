@@ -390,6 +390,7 @@ main(int argc, char **argv)
 	FILE *odir, *ndir;
 	const char * ch;
 	const char * missingkey = NULL;
+	int storage_modified = 0;
 
 	WARNP_INIT;
 
@@ -700,6 +701,8 @@ main(int argc, char **argv)
 		warnp("close");
 	if (close(ndirlock))
 		warnp("close");
+
+	(void)storage_modified; /* UNUSED */
 
 	/* Success! */
 	return (0);
