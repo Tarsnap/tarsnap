@@ -354,6 +354,26 @@ Furthermore,
 \fB\--dry-run\fP
 will not check whether the cache directory is out of sync.
 .TP
+\fB\--dry-run-metadata\fP
+(c mode only)
+Don't really create an archive; just simulate doing so.
+This is similar to
+\fB\--dry-run\fP,
+except that it doesn't read any files; it only processes filesystem metadata.
+.PP
+This is significantly faster than a regular
+\fB\--dry-run\fP,
+but it is still suitable for checking which filesystem entries will be
+archived (with
+\fB\-v\fP),
+or getting the total uncompressed archive size (via
+\fB\--totals\fP
+or
+\fB\--progress-bytes\fP).
+.PP
+This option cannot be used with
+\fB\--print-stats\fP.
+.TP
 \fB\--dump-config\fP
 Print out the command-line and all non-blank lines read from config files.
 .TP

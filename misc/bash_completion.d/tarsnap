@@ -52,13 +52,13 @@ _tarsnap ()
 	longopts="--aggressive-networking --archive-names --cachedir \
 		  --check-links --checkpoint-bytes --chroot --configfile \
 		  --creationtime --csv-file --disk-pause --dry-run \
-		  --dump-config --exclude --fast-read --force-resources \
-		  --fsck --fsck-prune --hashes --humanize-numbers \
-		  --include --initialize-cachedir --insane-filesystems \
-		  --iso-dates --keep-going --keep-newer-files --keyfile \
-		  --list-archives --lowmem --maxbw --maxbw-rate \
-		  --maxbw-rate-down --maxbw-rate-up --newer \
-		  --newer-mtime --newer-than --newer-mtime-than \
+		  --dry-run-metadata --dump-config --exclude --fast-read \
+		  --force-resources --fsck --fsck-prune --hashes \
+		  --humanize-numbers --include --initialize-cachedir \
+		  --insane-filesystems --iso-dates --keep-going \
+		  --keep-newer-files --keyfile --list-archives --lowmem \
+		  --maxbw --maxbw-rate --maxbw-rate-down --maxbw-rate-up \
+		  --newer --newer-mtime --newer-than --newer-mtime-than \
 		  --no-aggressive-networking --no-config-exclude \
 		  --no-config-include --no-default-config \
 		  --no-disk-pause --no-force-resources \

@@ -527,6 +527,7 @@ _shtab_tarsnap_c_options=(
   "--creationtime[manually specify a creation time for the archive]:X:"
   "--disk-pause[often pause for ARG ms while creating an archive]:X:"
   "--dry-run[do not really create an archive\; just simulate doing so]"
+  "--dry-run-metadata[do not really create an archive\; just simulate the metadata]"
   "--exclude[do not process certain files or directories]:pattern:"
   "-f[specify name of archive to operate on]:archive-name:(${archive_list}):"
   "-H[store the targets of a symbolic links]"
