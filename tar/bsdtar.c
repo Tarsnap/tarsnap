@@ -1271,9 +1271,13 @@ main(int argc, char **argv)
 		chdir(cachedir);
 #endif
 
-	if (bsdtar->return_value != 0)
+	if (bsdtar->return_value != 0) {
+		/* If we modified the storage, return 2 instead. */
+		if (bsdtar->storage_modified)
+			bsdtar->return_value = 2;
 		bsdtar_warnc(bsdtar, 0,
 		    "Error exit delayed from previous errors.");
+	}
 	return (bsdtar->return_value);
 }
 

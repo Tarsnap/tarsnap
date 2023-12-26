@@ -25,16 +25,18 @@
 #include "multitape_internal.h"
 
 static int multitape_docheckpoint(const char *, uint64_t, uint8_t);
-static int multitape_docommit(const char *, uint64_t, uint8_t);
+static int multitape_docommit(const char *, uint64_t, uint8_t, int *);
 
 /**
- * multitape_cleanstate(cachedir, machinenum, key):
+ * multitape_cleanstate(cachedir, machinenum, key, storage_modified):
  * Complete any pending checkpoint or commit.  The value ${key} should be 0
  * if the write access key should be used to sign a commit request, or 1 if
- * the delete access key should be used.
+ * the delete access key should be used.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
 int
-multitape_cleanstate(const char * cachedir, uint64_t machinenum, uint8_t key)
+multitape_cleanstate(const char * cachedir, uint64_t machinenum, uint8_t key,
+    int * storage_modified)
 {
 
 	/* Complete any pending checkpoint. */
@@ -42,7 +44,7 @@ multitape_cleanstate(const char * cachedir, uint64_t machinenum, uint8_t key)
 		goto err0;
 
 	/* Complete any pending commit. */
-	if (multitape_docommit(cachedir, machinenum, key))
+	if (multitape_docommit(cachedir, machinenum, key, storage_modified))
 		goto err0;
 
 	/* Success! */
@@ -197,11 +199,12 @@ err0:
 }
 
 /**
- * multitape_docommit(cachedir, machinenum, key):
+ * multitape_docommit(cachedir, machinenum, key, storage_modified):
  * Complete any pending commit.
  */
 static int
-multitape_docommit(const char * cachedir, uint64_t machinenum, uint8_t key)
+multitape_docommit(const char * cachedir, uint64_t machinenum, uint8_t key,
+    int * storage_modified)
 {
 	char * s, * t;
 	uint8_t seqnum[32];
@@ -234,7 +237,8 @@ multitape_docommit(const char * cachedir, uint64_t machinenum, uint8_t key)
 		goto err1;
 
 	/* Ask the storage layer to commit the transaction. */
-	if (storage_transaction_commit(machinenum, seqnum, key))
+	if (storage_transaction_commit(machinenum, seqnum, key,
+	    storage_modified))
 		goto err1;
 
 	/* Remove ${cachedir}/cseq if it exists. */
@@ -285,13 +289,14 @@ err0:
 }
 
 /**
- * multitape_commit(cachedir, machinenum, seqnum, key):
+ * multitape_commit(cachedir, machinenum, seqnum, key, storage_modified):
  * Commit the most recent transaction.  The value ${key} is defined as in
- * multitape_cleanstate.
+ * multitape_cleanstate.  If the data on the server has been modified, set
+ * ${*storage_modified} to 1.
  */
 int
 multitape_commit(const char * cachedir, uint64_t machinenum,
-    const uint8_t seqnum[32], uint8_t key)
+    const uint8_t seqnum[32], uint8_t key, int * storage_modified)
 {
 	char * s;
 
@@ -308,7 +313,7 @@ multitape_commit(const char * cachedir, uint64_t machinenum,
 	free(s);
 
 	/* Complete the commit. */
-	if (multitape_docommit(cachedir, machinenum, key))
+	if (multitape_docommit(cachedir, machinenum, key, storage_modified))
 		goto err0;
 
 	/* Success! */

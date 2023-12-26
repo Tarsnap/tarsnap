@@ -182,22 +182,25 @@ int storage_transaction_checkpoint(uint64_t, const uint8_t[32],
     const uint8_t[32], uint8_t);
 
 /**
- * storage_transaction_commit(machinenum, seqnum, whichkey):
+ * storage_transaction_commit(machinenum, seqnum, whichkey, storage_modified):
  * Commit the transaction ${seqnum} if it is the most recent uncommitted
  * transaction.  The value ${whichkey} specifies a key which should be used
  * to sign the commit request: 0 if the write key should be used, and 1 if
- * the delete key should be used.
+ * the delete key should be used.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
-int storage_transaction_commit(uint64_t, const uint8_t[32], uint8_t);
+int storage_transaction_commit(uint64_t, const uint8_t[32], uint8_t, int *);
 
 /**
- * storage_transaction_commitfromcheckpoint(machinenum, whichkey):
+ * storage_transaction_commitfromcheckpoint(machinenum, whichkey,
+ *     storage_modified):
  * If a write transaction is currently in progress and has a checkpoint,
  * commit it.  The value ${whichkey} specifies a key which should be used
  * to sign the commit request: 0 if the write key should be used, and 1 if
- * the delete key should be used.
+ * the delete key should be used.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
-int storage_transaction_commitfromcheckpoint(uint64_t, uint8_t);
+int storage_transaction_commitfromcheckpoint(uint64_t, uint8_t, int *);
 
 /**
  * storage_directory_read(machinenum, class, key, flist, nfiles):

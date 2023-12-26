@@ -50,12 +50,12 @@ int readtape_close(TAPE_R *);
 
 /**
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
- *     dryrun, creationtime, csv_filename):
+ *     dryrun, creationtime, csv_filename, storage_modified):
  * Create a tape with the given name, and return a cookie which can be used
  * for accessing it.  The argument vector must be long-lived.
  */
 TAPE_W * writetape_open(uint64_t, const char *, const char *, int, char **,
-    int, int, time_t, const char *);
+    int, int, time_t, const char *, int *);
 
 /**
  * writetape_setcallbacks(d, callback_chunk, callback_trailer,
@@ -133,15 +133,16 @@ TAPE_D * deletetape_init(uint64_t);
 
 /**
  * deletetape(d, machinenum, cachedir, tapename, printstats, withname,
- *     csv_filename):
+ *     csv_filename, storage_modified):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
  * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
  * or -1 on other errors.  If ${csv_filename} is specified, output in CSV
- * format instead of to stderr.
+ * format instead of to stderr.  If the data on the server has been modified,
+ * set ${*storage_modified} to 1.
  */
 int deletetape(TAPE_D *, uint64_t, const char *, const char *, int, int,
-    const char *);
+    const char *, int *);
 
 /**
  * deletetape_free(d):
@@ -211,14 +212,15 @@ int statstape_print(TAPE_S *, const char *, const char *);
 int statstape_close(TAPE_S *);
 
 /**
- * fscktape(machinenum, cachedir, prune, whichkey):
+ * fscktape(machinenum, cachedir, prune, whichkey, storage_modified):
  * Correct any inconsistencies in the archive set (by removing orphaned or
  * corrupt files) and reconstruct the chunk directory in ${cachedir}.  If
  * ${prune} is zero, don't correct inconsistencies; instead, exit with an
  * error.  If ${whichkey} is zero, use the write key (for non-pruning fsck
- * only); otherwise, use the delete key.
+ * only); otherwise, use the delete key.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
-int fscktape(uint64_t, const char *, int, int);
+int fscktape(uint64_t, const char *, int, int, int *);
 
 /**
  * statstape_initialize(machinenum, cachedir):
@@ -229,17 +231,19 @@ int fscktape(uint64_t, const char *, int, int);
 int statstape_initialize(uint64_t, const char *);
 
 /**
- * recovertape(machinenum, cachedir, whichkey):
+ * recovertape(machinenum, cachedir, whichkey, storage_modified):
  * Complete any pending checkpoint or commit, including a checkpoint in a
  * write transaction being performed by a different machine (if any).  If
  * ${whichkey} is zero, use the write key; otherwise, use the delete key.
+ * If the data on the server has been modified, set ${*storage_modified} to 1.
  */
-int recovertape(uint64_t, const char *, int);
+int recovertape(uint64_t, const char *, int, int *);
 
 /**
- * nuketape(machinenum):
- * Delete all files in the archive set.
+ * nuketape(machinenum, storage_modified):
+ * Delete all files in the archive set.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
-int nuketape(uint64_t);
+int nuketape(uint64_t, int *);
 
 #endif /* !MULTITAPE_H_ */

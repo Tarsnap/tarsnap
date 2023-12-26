@@ -163,6 +163,9 @@ struct bsdtar {
 	/* Used for communicating with multitape code. */
 	void		 *write_cookie;
 
+	/* Used for communication with the storage layer. */
+	int		  storage_modified;
+
 	/* Chunkification cache. */
 	void		 *chunk_cache;
 

@@ -446,15 +446,17 @@ phase5(STORAGE_D * SD, CHUNKS_S * C)
 }
 
 /**
- * fscktape(machinenum, cachedir, prune, whichkey):
+ * fscktape(machinenum, cachedir, prune, whichkey, storage_modified):
  * Correct any inconsistencies in the archive set (by removing orphaned or
  * corrupt files) and reconstruct the chunk directory in ${cachedir}.  If
  * ${prune} is zero, don't correct inconsistencies; instead, exit with an
  * error.  If ${whichkey} is zero, use the write key (for non-pruning fsck
- * only); otherwise, use the delete key.
+ * only); otherwise, use the delete key.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
 int
-fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
+fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey,
+    int * storage_modified)
 {
 	STORAGE_D * SD;
 	STORAGE_R * SR;
@@ -471,7 +473,7 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 		goto err0;
 
 	/* Make sure the lower layers are in a clean state. */
-	if (multitape_cleanstate(cachedir, machinenum, key))
+	if (multitape_cleanstate(cachedir, machinenum, key, storage_modified))
 		goto err1;
 
 	/*
@@ -479,7 +481,8 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 	 * machine, we might as well commit it -- we're going to regenerate
 	 * all of our local state anyway.
 	 */
-	if (storage_transaction_commitfromcheckpoint(machinenum, key))
+	if (storage_transaction_commitfromcheckpoint(machinenum, key,
+	    storage_modified))
 		goto err1;
 
 	/* Start a storage-layer fsck transaction. */
@@ -545,7 +548,8 @@ fscktape(uint64_t machinenum, const char * cachedir, int prune, int whichkey)
 		goto err1;
 
 	/* Commit the transaction. */
-	if (multitape_commit(cachedir, machinenum, seqnum, key))
+	if (multitape_commit(cachedir, machinenum, seqnum, key,
+	    storage_modified))
 		goto err1;
 
 	/* Unlock the cache directory. */

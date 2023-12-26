@@ -1205,6 +1205,9 @@ specified via the command line.
 .SH EXIT STATUS
 .ad l
 The \fBtarsnap\fP utility exits 0 on success, and >0 if an error occurs.
+.PP
+An exit code of 2 indicates that an error has occurred and the server-side
+state was modified.
 .SH EXAMPLES
 .ad l
 Register with the server and generate keys:

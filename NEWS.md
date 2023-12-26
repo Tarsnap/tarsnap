@@ -19,6 +19,8 @@
   metadata about the specified archive(s).  Multiple -f options may be
   specified.  This option is intended for the GUI and is not needed for
   command-line usage.
+- If the server-side state was modified and tarsnap exits with an error, it
+  will now have an exit code of 2.
 
 
 Tarsnap Releases

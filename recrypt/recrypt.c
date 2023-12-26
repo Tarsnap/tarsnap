@@ -390,6 +390,7 @@ main(int argc, char **argv)
 	FILE *odir, *ndir;
 	const char * ch;
 	const char * missingkey = NULL;
+	int storage_modified = 0;
 
 	WARNP_INIT;
 
@@ -483,7 +484,8 @@ main(int argc, char **argv)
 	 * completed, and get the current sequence # for future reference.
 	 */
 	printf("Validating new machine state...");
-	if (multitape_cleanstate(ncachedir, nmachinenum, 0)) {
+	if (multitape_cleanstate(ncachedir, nmachinenum, 0,
+	    &storage_modified)) {
 		warnp("Cannot complete pending checkpoint or commit");
 		exit(1);
 	}
@@ -520,7 +522,8 @@ main(int argc, char **argv)
 	 * implies PEBKAC, but safety belts are good anyway).
 	 */
 	printf("Validating old machine state...");
-	if (multitape_cleanstate(ocachedir, omachinenum, 1)) {
+	if (multitape_cleanstate(ocachedir, omachinenum, 1,
+	    &storage_modified)) {
 		warnp("Cannot complete pending checkpoint or commit");
 		exit(1);
 	}
@@ -617,7 +620,8 @@ main(int argc, char **argv)
 		}
 
 		/* Commit the write transaction. */
-		if (multitape_commit(ncachedir, nmachinenum, nseqnum, 0)) {
+		if (multitape_commit(ncachedir, nmachinenum, nseqnum, 0,
+		    &storage_modified)) {
 			warnp("Cannot commit write transaction");
 			exit(1);
 		}
@@ -681,7 +685,8 @@ main(int argc, char **argv)
 
 	/* Commit the delete transaction and delete the old chunk dir. */
 	printf("Committing block deletes...");
-	if (multitape_commit(ocachedir, omachinenum, oseqnum, 1)) {
+	if (multitape_commit(ocachedir, omachinenum, oseqnum, 1,
+	    &storage_modified)) {
 		warnp("Cannot commit delete transaction");
 		exit(1);
 	}
@@ -700,6 +705,8 @@ main(int argc, char **argv)
 		warnp("close");
 	if (close(ndirlock))
 		warnp("close");
+
+	(void)storage_modified; /* UNUSED */
 
 	/* Success! */
 	return (0);

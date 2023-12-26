@@ -1077,6 +1077,9 @@ specified via the command line.
 .El
 .Sh EXIT STATUS
 .Ex -std
+.Pp
+An exit code of 2 indicates that an error has occurred and the server-side
+state was modified.
 .Sh EXAMPLES
 Register with the server and generate keys:
 .Dl Nm tarsnap-keygen Fl -keyfile Pa /usr/tarsnap.key Fl -user Ar me@example.com Fl -machine Ar myserver
