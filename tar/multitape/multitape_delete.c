@@ -63,17 +63,18 @@ err0:
 
 /**
  * deletetape(d, machinenum, cachedir, tapename, printstats, withname,
- *     csv_filename):
+ *     csv_filename, storage_modified):
  * Delete the specified tape, and print statistics to stderr if requested.
  * If ${withname} is non-zero, print statistics with the archive name, not
  * just as "This archive".  Return 0 on success, 1 if the tape does not exist,
  * or -1 on other errors.  If ${csv_filename} is specified, output in CSV
- * format instead of to stderr.
+ * format instead of to stderr.  If the data on the server has been modified,
+ * set ${*storage_modified} to 1.
  */
 int
 deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
     const char * tapename, int printstats, int withname,
-    const char * csv_filename)
+    const char * csv_filename, int * storage_modified)
 {
 	struct tapemetadata tmd;
 	CHUNKS_D * C;		/* Chunk layer delete cookie. */
@@ -95,7 +96,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 		goto err0;
 
 	/* Make sure the lower layers are in a clean state. */
-	if (multitape_cleanstate(cachedir, machinenum, 1))
+	if (multitape_cleanstate(cachedir, machinenum, 1, storage_modified))
 		goto err1;
 
 	/* Get sequence number (# of last committed transaction). */
@@ -164,7 +165,7 @@ deletetape(TAPE_D * d, uint64_t machinenum, const char * cachedir,
 		goto err1;
 
 	/* Commit the transaction. */
-	if (multitape_commit(cachedir, machinenum, seqnum, 1))
+	if (multitape_commit(cachedir, machinenum, seqnum, 1, storage_modified))
 		goto err1;
 
 	/* Unlock the cache directory. */

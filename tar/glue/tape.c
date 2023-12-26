@@ -32,7 +32,8 @@ tarsnap_mode_d(struct bsdtar *bsdtar)
 			    bsdtar->tapenames[i]);
 		switch (deletetape(d, bsdtar->machinenum, bsdtar->cachedir,
 		    bsdtar->tapenames[i], bsdtar->option_print_stats,
-		    bsdtar->ntapes > 1 ? 1 : 0, bsdtar->option_csv_filename)) {
+		    bsdtar->ntapes > 1 ? 1 : 0, bsdtar->option_csv_filename,
+		    &bsdtar->storage_modified)) {
 		case 0:
 			break;
 		case 1:
@@ -234,7 +235,8 @@ void
 tarsnap_mode_fsck(struct bsdtar *bsdtar, int prune, int whichkey)
 {
 
-	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey)) {
+	if (fscktape(bsdtar->machinenum, bsdtar->cachedir, prune, whichkey,
+	    &bsdtar->storage_modified)) {
 		bsdtar_warnc(bsdtar, 0, "Error fscking archives");
 		goto err0;
 	}
@@ -306,7 +308,7 @@ tarsnap_mode_nuke(struct bsdtar *bsdtar)
 		goto err0;
 	}
 
-	if (nuketape(bsdtar->machinenum)) {
+	if (nuketape(bsdtar->machinenum, &bsdtar->storage_modified)) {
 		bsdtar_warnc(bsdtar, 0, "Error nuking archives");
 		goto err0;
 	}
@@ -327,7 +329,8 @@ void
 tarsnap_mode_recover(struct bsdtar *bsdtar, int whichkey)
 {
 
-	if (recovertape(bsdtar->machinenum, bsdtar->cachedir, whichkey))
+	if (recovertape(bsdtar->machinenum, bsdtar->cachedir, whichkey,
+	    &bsdtar->storage_modified))
 		goto err1;
 
 	/* Success! */

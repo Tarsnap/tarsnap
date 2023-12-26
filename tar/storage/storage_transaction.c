@@ -779,15 +779,17 @@ err0:
 }
 
 /**
- * storage_transaction_commitfromcheckpoint(machinenum, whichkey):
+ * storage_transaction_commitfromcheckpoint(machinenum, whichkey,
+ *     storage_modified):
  * If a write transaction is currently in progress and has a checkpoint,
  * commit it.  The value ${whichkey} specifies a key which should be used
  * to sign the commit request: 0 if the write key should be used, and 1 if
- * the delete key should be used.
+ * the delete key should be used.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
 int
 storage_transaction_commitfromcheckpoint(uint64_t machinenum,
-    uint8_t whichkey)
+    uint8_t whichkey, int * storage_modified)
 {
 	struct transaction_ischeckpointed_internal C;
 	NETPACKET_CONNECTION * NPC;
@@ -832,7 +834,7 @@ storage_transaction_commitfromcheckpoint(uint64_t machinenum,
 	/* If we have a checkpointed write transaction, commit it. */
 	if (C.status == 1) {
 		if (storage_transaction_commit(machinenum, C.tnonce,
-		    whichkey))
+		    whichkey, storage_modified))
 			goto err0;
 	}
 

@@ -61,12 +61,13 @@ struct tapemetaindex {
 #define MAXIFRAG	MAXCHUNK
 
 /**
- * multitape_cleanstate(cachedir, machinenum, key):
+ * multitape_cleanstate(cachedir, machinenum, key, storage_modified):
  * Complete any pending checkpoint or commit.  The value ${key} should be 0
  * if the write access key should be used to sign a commit request, or 1 if
- * the delete access key should be used.
+ * the delete access key should be used.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
-int multitape_cleanstate(const char *, uint64_t, uint8_t);
+int multitape_cleanstate(const char *, uint64_t, uint8_t, int *);
 
 /**
  * multitape_checkpoint(cachedir, machinenum, seqnum):
@@ -75,11 +76,13 @@ int multitape_cleanstate(const char *, uint64_t, uint8_t);
 int multitape_checkpoint(const char *, uint64_t, const uint8_t[32]);
 
 /**
- * multitape_commit(cachedir, machinenum, seqnum, key):
+ * multitape_commit(cachedir, machinenum, seqnum, key, storage_modified):
  * Commit the most recent transaction.  The value ${key} is defined as in
- * multitape_cleanstate.
+ * multitape_cleanstate.  If the data on the server has been modified, set
+ * ${*storage_modified} to 1.
  */
-int multitape_commit(const char *, uint64_t, const uint8_t[32], uint8_t);
+int multitape_commit(const char *, uint64_t, const uint8_t[32], uint8_t,
+    int *);
 
 /**
  * multitape_chunkiter_tmd(S, C, tmd, func, cookie, quiet):

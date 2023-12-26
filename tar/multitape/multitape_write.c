@@ -466,7 +466,8 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err3;
 
 	/* If this isn't a dry run, finish any pending commit. */
-	if ((dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0))
+	if ((dryrun == 0) && multitape_cleanstate(cachedir, machinenum, 0,
+	    storage_modified))
 		goto err4;
 
 	/* If this isn't a dry run, get the sequence number. */
@@ -981,7 +982,8 @@ writetape_close(TAPE_W * d)
 		if (multitape_checkpoint(d->cachedir, d->machinenum,
 		    d->seqnum))
 			goto err1;
-		if (multitape_cleanstate(d->cachedir, d->machinenum, 0))
+		if (multitape_cleanstate(d->cachedir, d->machinenum, 0,
+		    d->storage_modified))
 			goto err1;
 	}
 

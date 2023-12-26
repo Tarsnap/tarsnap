@@ -9,11 +9,12 @@
 #include "multitape.h"
 
 /**
- * nuketape(machinenum):
- * Delete all files in the archive set.
+ * nuketape(machinenum, storage_modified):
+ * Delete all files in the archive set.  If the data on the server has been
+ * modified, set ${*storage_modified} to 1.
  */
 int
-nuketape(uint64_t machinenum)
+nuketape(uint64_t machinenum, int * storage_modified)
 {
 	STORAGE_D * SD;
 	uint8_t seqnum[32];
@@ -73,7 +74,7 @@ nuketape(uint64_t machinenum)
 	 * sure that the cache directory is in sync with the server) and
 	 * ask the storage layer to commit the transaction.
 	 */
-	if (storage_transaction_commit(machinenum, seqnum, 1))
+	if (storage_transaction_commit(machinenum, seqnum, 1, storage_modified))
 		goto err0;
 
 	/* Success! */
