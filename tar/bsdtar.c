@@ -463,7 +463,16 @@ main(int argc, char **argv)
 			optq_push(bsdtar, "disk-pause", bsdtar->optarg);
 			break;
 		case OPTION_DRYRUN: /* tarsnap */
+			if (bsdtar->option_dryrun != 0)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Can only specify one --dry-run* option");
 			bsdtar->option_dryrun = 1;
+			break;
+		case OPTION_DRYRUN_METADATA: /* tarsnap */
+			if (bsdtar->option_dryrun != 0)
+				bsdtar_errc(bsdtar, 1, 0,
+				    "Can only specify one --dry-run* option");
+			bsdtar->option_dryrun = 2;
 			break;
 		case OPTION_EXCLUDE: /* GNU tar */
 			optq_push(bsdtar, "exclude", bsdtar->optarg);
@@ -988,6 +997,9 @@ main(int argc, char **argv)
 			tarsnap_opt_aggressive_networking = 0;
 		}
 	}
+	if ((bsdtar->option_dryrun == 2) && bsdtar->option_print_stats)
+		bsdtar_errc(bsdtar, 1, 0, "--dry-run-metadata is "
+		    "incompatible with --print-stats");
 
 	/*
 	 * The -f option doesn't make sense for --fsck, --fsck-prune, or
@@ -1044,8 +1056,10 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "-U", "x");
 	if (bsdtar->option_warn_links)
 		only_mode(bsdtar, "--check-links", "c");
-	if (bsdtar->option_dryrun)
+	if (bsdtar->option_dryrun == 1)
 		only_mode(bsdtar, "--dry-run", "c");
+	if (bsdtar->option_dryrun == 2)
+		only_mode(bsdtar, "--dry-run-metadata", "c");
 
 	/* Check other parameters only permitted in certain modes. */
 	if (bsdtar->symlink_mode != '\0') {

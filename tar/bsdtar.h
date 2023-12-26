@@ -75,7 +75,7 @@ struct bsdtar {
 	char		  option_chroot; /* --chroot */
 	char		 *option_csv_filename; /* --csv-filename */
 	char		  option_dont_traverse_mounts; /* --one-file-system */
-	char		  option_dryrun; /* --dry-run */
+	char		  option_dryrun; /* --dry-run / --dry-run-metadata */
 	char		  option_fast_read; /* --fast-read */
 	int               option_hashes;
 	char		  option_honor_nodump; /* --nodump */
@@ -207,6 +207,7 @@ enum {
 	OPTION_DEBUG_NETWORK_STATS,
 	OPTION_DISK_PAUSE,
 	OPTION_DRYRUN,
+	OPTION_DRYRUN_METADATA,
 	OPTION_DUMP_CONFIG,
 	OPTION_EXCLUDE,
 	OPTION_FORCE_RESOURCES,
