@@ -314,6 +314,8 @@ err:
  *
  * The value returned is zero, or the first nonzero value returned by the
  * callback function.
+ *
+ * If ${c} is NULL, do nothing.
  */
 int
 chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
@@ -322,6 +324,10 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 	uint32_t yka_tmp;
 	size_t i;
 	int rc;
+
+	/* Bail if we don't have a chunkifier. */
+	if (c == NULL)
+		return (0);
 
 	for (i = 0; i < buflen; i++) {
 		/* Add byte to buffer. */
@@ -432,11 +438,17 @@ endofchunk:
  *
  * The value returned is zero or the nonzero value returned by the callback
  * function.
+ *
+ * If ${c} is NULL, do nothing.
  */
 int
 chunkify_end(CHUNKIFIER * c)
 {
 	int rc;
+
+	/* Bail if we don't have a chunkifier. */
+	if (c == NULL)
+		return (0);
 
 	/* If we haven't started the chunk yet, don't end it either. */
 	if (c->k == 0)

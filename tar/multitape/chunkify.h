@@ -44,6 +44,8 @@ CHUNKIFIER * chunkify_init(uint32_t, uint32_t, chunkify_callback *, void *);
  *
  * The value returned is zero, or the first nonzero value returned by the
  * callback function.
+ *
+ * If ${c} is NULL, do nothing.
  */
 int chunkify_write(CHUNKIFIER *, const uint8_t *, size_t);
 
@@ -54,6 +56,8 @@ int chunkify_write(CHUNKIFIER *, const uint8_t *, size_t);
  *
  * The value returned is zero or the nonzero value returned by the callback
  * function.
+ *
+ * If ${c} is NULL, do nothing.
  */
 int chunkify_end(CHUNKIFIER *);
 
