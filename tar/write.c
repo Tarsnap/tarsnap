@@ -1217,6 +1217,10 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 	ssize_t	bytes_written;
 	off_t	progress = 0;
 
+	/* If we have --dry-run-metadata, don't read any file data. */
+	if (bsdtar->option_dryrun == 2)
+		return (0);
+
 	bytes_read = read(fd, bsdtar->buff, FILEDATABUFLEN);
 	while (bytes_read > 0) {
 		disk_pause(bsdtar->disk_pause);
