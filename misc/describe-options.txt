@@ -14,6 +14,7 @@
 --csv-file		write statistics in CSV format to a file
 --disk-pause		often pause for ARG ms while creating an archive
 --dry-run		do not really create an archive; just simulate doing so
+--dry-run-metadata	do not really create an archive; just simulate the metadata
 --dump-config		print all config lines
 --exclude		do not process certain files or directories
 --fast-read		stop after the first entry which matches the ARG	DUP-q

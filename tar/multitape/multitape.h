@@ -52,7 +52,9 @@ int readtape_close(TAPE_R *);
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
  *     dryrun, creationtime, csv_filename, storage_modified):
  * Create a tape with the given name, and return a cookie which can be used
- * for accessing it.  The argument vector must be long-lived.
+ * for accessing it.  The argument vector must be long-lived.  If ${dryrun}
+ * is 2, do not pass any data to the chunkifier or chunk layer; and in this
+ * case, ${printstats} cannot be non-zero.
  */
 TAPE_W * writetape_open(uint64_t, const char *, const char *, int, char **,
     int, int, time_t, const char *, int *);

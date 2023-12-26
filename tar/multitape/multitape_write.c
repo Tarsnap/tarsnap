@@ -106,13 +106,17 @@ static int flushtape(TAPE_W *, int);
 
 /* Initialize stream. */
 static int
-stream_init(struct stream * S, chunkify_callback callback, void * cookie)
+stream_init(struct stream * S, chunkify_callback callback, void * cookie,
+    int no_chunkifier)
 {
 
 	/* Create chunkifier. */
-	if ((S->c =
-	    chunkify_init(MEANCHUNK, MAXCHUNK, callback, cookie)) == NULL)
+	if (!no_chunkifier) {
+		if ((S->c = chunkify_init(MEANCHUNK, MAXCHUNK, callback,
+		    cookie)) == NULL)
 		goto err0;
+	} else
+		S->c = NULL;
 
 	/* Allocate elastic array to hold chunk headers. */
 	if ((S->index = chunklist_init(0)) == NULL)
@@ -403,7 +407,9 @@ err0:
  * writetape_open(machinenum, cachedir, tapename, argc, argv, printstats,
  *     dryrun, creationtime, csv_filename, storage_modified):
  * Create a tape with the given name, and return a cookie which can be used
- * for accessing it.  The argument vector must be long-lived.
+ * for accessing it.  The argument vector must be long-lived.  If ${dryrun}
+ * is 2, do not pass any data to the chunkifier or chunk layer; and in this
+ * case, ${printstats} cannot be non-zero.
  */
 TAPE_W *
 writetape_open(uint64_t machinenum, const char * cachedir,
@@ -414,6 +420,13 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 	struct multitape_write_internal * d;
 	uint8_t lastseq[32];
 	size_t argvlen;
+	int no_chunkifiers;
+
+	/* Sanity check options. */
+	assert(!((dryrun == 2) && printstats));
+
+	/* We don't want the chunkifiers in this case. */
+	no_chunkifiers = (dryrun == 2);
 
 	/* Allocate memory. */
 	if ((d = malloc(sizeof(struct multitape_write_internal))) == NULL)
@@ -501,11 +514,11 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err6;
 
 	/* Initialize streams. */
-	if (stream_init(&d->h, &callback_h, (void *)d))
+	if (stream_init(&d->h, &callback_h, (void *)d, no_chunkifiers))
 		goto err6;
-	if (stream_init(&d->c, &callback_c, (void *)d))
+	if (stream_init(&d->c, &callback_c, (void *)d, no_chunkifiers))
 		goto err7;
-	if (stream_init(&d->t, &callback_t, (void *)d))
+	if (stream_init(&d->t, &callback_t, (void *)d, no_chunkifiers))
 		goto err8;
 
 	/* Initialize header buffer. */
@@ -513,9 +526,12 @@ writetape_open(uint64_t machinenum, const char * cachedir,
 		goto err9;
 
 	/* Initialize file chunkifier. */
-	if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK, &callback_file,
-	    (void *)d)) == NULL)
-		goto err10;
+	if (!no_chunkifiers) {
+		if ((d->c_file = chunkify_init(MEANCHUNK, MAXCHUNK,
+		    &callback_file, (void *)d)) == NULL)
+			goto err10;
+	} else
+		d->c_file = NULL;
 
 	/* No data has entered or exited c_file. */
 	d->c_file_in = d->c_file_out = 0;

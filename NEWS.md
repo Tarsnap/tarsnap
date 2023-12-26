@@ -21,6 +21,11 @@
   command-line usage.
 - If the server-side state was modified and tarsnap exits with an error, it
   will now have an exit code of 2.
+- tarsnap -c now accepts --dry-run-metadata, which simulates creating an
+  archive without reading any file data.  This is significantly faster than a
+  regular --dry-run, and is suitable for checking which filesystem entries
+  will be archived (with -v) or checking the total archive size (with --totals
+  or --progress-bytes).
 
 
 Tarsnap Releases
