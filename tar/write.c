@@ -793,7 +793,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 			    "%s: Unable to continue traversing directory tree",
 			    name);
 		if (tree_ret == TREE_ERROR_DIR) {
-			bsdtar_warnc(bsdtar, errno,
+			bsdtar_warnc(bsdtar, tree_errno(tree),
 			    "%s: Couldn't visit directory", name);
 			bsdtar->return_value = 1;
 		}
