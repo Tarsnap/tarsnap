@@ -392,6 +392,7 @@ tree_next(struct tree *t)
 			if (de == NULL) {
 				if (errno) {
 					/* If readdir fails, we're screwed. */
+					t->tree_errno = errno;
 					closedir(t->d);
 					t->d = NULL;
 					t->visit_type = TREE_ERROR_FATAL;

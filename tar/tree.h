@@ -71,7 +71,8 @@ int tree_close(struct tree *);
  * fatal error, but it does imply that the relevant subtree won't be
  * visited.  TREE_ERROR_FATAL is returned for an error that left the
  * traversal completely hosed.  Right now, this is only returned for
- * chdir() failures during ascent.
+ * chdir() failures during ascent, or readdir() failures when looking
+ * for the next entry.
  */
 #define	TREE_REGULAR	1
 #define	TREE_POSTDESCENT	2
