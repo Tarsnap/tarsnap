@@ -167,7 +167,7 @@ _val_generalize() {
 	_val_generalize_i=1
 	while [ "${_val_generalize_i}" -le "${_val_generalize_num_segments}" ]; do
 		# Process segment
-		_val_seg "$(printf "%s%02i"				\
+		_val_seg "$(printf "%s%02d"				\
 		    "${_val_generalize_filename}" "${_val_generalize_i}")"
 
 		# Advance to the next suppression.

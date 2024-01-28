@@ -61,7 +61,7 @@ def handle_file(filename):
                     if not is_block_correct_order(include_block):
                         print("Non-alphabetical include block")
                         print("\t%s" % filename)
-                        print("\tstarts line %i" % i)
+                        print("\tstarts line %d" % i)
                         print("\t%s" % include_block)
                     include_block = []
 
