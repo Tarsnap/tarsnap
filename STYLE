@@ -47,6 +47,8 @@ not erroneous.)
 The first statement in main(), after variable declarations, should be
 "WARNP_INIT;" in order to set the program name used for printing warnings.
 
+We use %d rather than %i in printf and warn0/warnp strings.
+
 In general, functions should be structured with one return statement per
 status, e.g., one return() for success and one return() for failure.  Errors
 should be handled by using goto to enter the error return path, e.g.,

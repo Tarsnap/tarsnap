@@ -20,7 +20,7 @@ def handle_file(filename):
                 if " " in func_text_search.split("(")[0]:
                     print("--------- WARNING: possible style violation")
                     print("\t%s" % filename)
-                    print("\tline %i" % i)
+                    print("\tline %d" % i)
                     print(func_text)
                 func_text = ""
             if line[0] == "\t" or line[0] == " " or line[0] == "_":

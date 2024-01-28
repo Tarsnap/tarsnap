@@ -183,14 +183,14 @@ siginfo_printinfo(struct bsdtar *bsdtar, off_t progress, int finalmsg)
 			if ((s_total_uncompressed = humansize(
 			    siginfo->total_uncompressed)) == NULL)
 				goto err0;
-			safe_fprintf(stderr, "Processed %i entries, %s",
+			safe_fprintf(stderr, "Processed %d entries, %s",
 			    siginfo->file_count, s_total_uncompressed);
 
 			/* Clean up. */
 			free(s_total_uncompressed);
 		} else {
 			safe_fprintf(stderr,
-			    "Processed %i entries, %" PRId64 " bytes",
+			    "Processed %d entries, %" PRId64 " bytes",
 			    siginfo->file_count, siginfo->total_uncompressed);
 		}
 

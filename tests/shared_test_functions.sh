@@ -143,7 +143,7 @@ wait_while() {
 	while "$@"; do
 		# Notify user (if desired)
 		if [ "${VERBOSE}" -ne 0 ]; then
-			printf "waited\t%ims\t%s\n"		\
+			printf "waited\t%dms\t%s\n"		\
 			    "${_wait_while_ms}" "$*" 1>&2
 		fi
 
