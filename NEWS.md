@@ -31,7 +31,7 @@
 Tarsnap Releases
 ================
 
-### Tarsnap 1.0.40
+### Tarsnap 1.0.40 (February 10, 2022)
 
 - tarsnap now accepts a --dump-config option to print the command-line and all
   non-blank lines read from config files.
