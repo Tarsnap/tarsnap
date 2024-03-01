@@ -399,8 +399,8 @@ err0:
 
 /**
  * multitape_sequence(cachedir, seqnum):
- * Return the sequence number of the last committed transaction in the
- * cache directory ${cachedir}, or 0 if no transactions have ever been
+ * Set ${seqnum} to the sequence number of the last committed transaction in
+ * the cache directory ${cachedir}, or 0 if no transactions have ever been
  * committed.
  */
 int

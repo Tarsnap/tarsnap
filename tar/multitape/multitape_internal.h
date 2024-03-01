@@ -205,9 +205,9 @@ int multitape_metaindex_delete(STORAGE_D *, CHUNKS_D *,
 int multitape_lock(const char *);
 
 /**
- * multitape_sequence(cachedir, lastseq):
- * Set ${lastseq} to the sequence number of the last committed transaction
- * in the cache directory ${cachedir}, or 0 if no transactions have ever been
+ * multitape_sequence(cachedir, seqnum):
+ * Set ${seqnum} to the sequence number of the last committed transaction in
+ * the cache directory ${cachedir}, or 0 if no transactions have ever been
  * committed.
  */
 int multitape_sequence(const char *, uint8_t[32]);
