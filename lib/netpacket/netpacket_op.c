@@ -292,6 +292,10 @@ err0:
 	return (-1);
 }
 
+/**
+ * netpacket_op_packetsent(cookie, status):
+ * Callback for packet send completion via netpacket_op interface.
+ */
 int
 netpacket_op_packetsent(void * cookie, int status)
 {

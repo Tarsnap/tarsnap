@@ -425,8 +425,8 @@ done:
 }
 
 /**
- * chunks_directory_free(htab, dir):
- * Free the hash table ${htab} of struct chunkdata records, all of its
+ * chunks_directory_free(HT, dir):
+ * Free the hash table ${HT} of struct chunkdata records, all of its
  * elements, and ${dir}.
  */
 void
