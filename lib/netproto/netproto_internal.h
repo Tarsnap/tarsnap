@@ -40,14 +40,6 @@ struct netproto_connection_internal * netproto_alloc(int (*)(void *), void *);
 int netproto_setfd(struct netproto_connection_internal *, int);
 
 /**
- * netproto_open(fd):
- * Create and return a network protocol connection cookie for use on the
- * connected socket ${fd}.  Note that netproto_keyexchange() must be called
- * before _writepacket or _readpacket are called on the cookie.
- */
-struct netproto_connection_internal * netproto_open(int);
-
-/**
  * netproto_keyexchange(C, useragent, callback, cookie):
  * Perform protocol negotiation and key exchange with the tarsnap server
  * on the newly opened connection with cookie ${C}.  When the negotiation
