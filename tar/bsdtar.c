@@ -78,6 +78,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/bsdtar.c,v 1.93 2008/11/08 04:43:24 kientzle
 #include <assert.h>
 
 #include "bsdtar.h"
+#include "chunks.h"
 #include "crypto.h"
 #include "dirutil.h"
 #include "humansize.h"
@@ -987,6 +988,25 @@ main(int argc, char **argv)
 		bsdtar_errc(bsdtar, 1, 0,
 		    "Cache directory must be specified for %s",
 		    bsdtar->modestr);
+	if (bsdtar->mode == 'd' ||
+	    bsdtar->mode == OPTION_RECOVER ||
+	    bsdtar->mode == OPTION_PRINT_STATS) {
+		switch (chunks_directory_exists(bsdtar->cachedir)) {
+		case 1:
+			/* Exists; good. */
+			break;
+		case 0:
+			/* Does not exist; error and exit. */
+			bsdtar_errc(bsdtar, 1, 0,
+			    "Cache directory must already exist for %s;"
+			    " check --cachedir and/or run --fsck",
+			    bsdtar->modestr);
+		case -1:
+			/* Could not check; error and exit. */
+			bsdtar_errc(bsdtar, 1, errno,
+			    "Could not check if cachedir exists");
+		}
+	}
 	if (tarsnap_opt_aggressive_networking != 0) {
 		if ((bsdtar->bwlimit_rate_up != 0) ||
 		    (bsdtar->bwlimit_rate_down != 0)) {
