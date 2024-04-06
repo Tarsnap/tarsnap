@@ -22,8 +22,8 @@
 #   Look for ${cmd} in the ${PATH}, and ensure that it supports ${args}.
 # - has_pid(cmd):
 #   Look for a ${cmd} in $(ps).
-# - wait_while(func):
-#   Wait until ${func} returns non-zero.
+# - wait_while(timeout, func):
+#   Wait up to ${timeout} milliseconds, or until ${func} returns non-zero.
 # - setup_check(description, check_prev):
 #   Set up the below variables.
 # - expected_exitcode(expected, actual):
@@ -133,11 +133,14 @@ has_pid() {
 	return 1
 }
 
-## wait_while(func):
+## wait_while(timeout, func):
 # Wait while ${func} returns 0.  If ${msleep} is defined, use that to wait
-# 100ms; otherwise, wait in 1 second increments.
+# 100ms; otherwise, wait in 1 second increments.  If ${timeout} is non-zero,
+# return 1 if ${timeout} milliseconds have passed.
 wait_while() {
 	_wait_while_ms=0
+	_wait_while_timeout=$1
+	shift 1
 
 	# Check for the ending condition
 	while "$@"; do
@@ -147,8 +150,17 @@ wait_while() {
 			    "${_wait_while_ms}" "$*" 1>&2
 		fi
 
+		# Bail if we've exceeded the timeout
+		if [ "${_wait_while_timeout}" -gt 0 ] &&	\
+		    [ "${_wait_while_ms}" -gt "${_wait_while_timeout}" ]; then
+			if [ "${VERBOSE}" -ne 0 ]; then
+				printf "Bail; timeout exceeded\n" 1>&2
+			fi
+			return 1
+		fi
+
 		# Wait using the appropriate binary
-		if [ -n "${msleep:-}" ];  then
+		if [ -n "${msleep:-}" ]; then
 			"${msleep}" 100
 			_wait_while_ms=$((_wait_while_ms + 100))
 		else

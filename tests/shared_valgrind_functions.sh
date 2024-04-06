@@ -344,6 +344,44 @@ _val_checkl() {
 	fi
 }
 
+## _get_pids (logfiles):
+# Extract a list of pids in the format %08d from ${logfiles}.
+_get_pids() {
+	_get_pids_logfiles=$1
+
+	_get_pids_pids=""
+	for _get_pids_logfile in ${_valgrind_check_logfiles} ; do
+		# Get the pid.
+		_get_pids_pid=$(printf "%s" "${_get_pids_logfile%%.log}" | \
+		    rev | cut -d "-" -f 1 | rev)
+		# Zero-pad it and add it to the new list.
+		_get_pids_pids=$(printf "%s %08d"			\
+		    "${_get_pids_pids}" "${_get_pids_pid}")
+	done
+
+	echo "${_get_pids_pids}"
+}
+
+## _is_parent (logfile, pids):
+# If the parent pid of ${logfile} is in ${pids}, return 0; otherwise, return 1.
+_is_parent () {
+	_is_parent_logfile=$1
+	_is_parent_pids=$2
+
+	# Get the parent pid from the valgrind logfile
+	ppid=$(grep "Parent PID:" "${_is_parent_logfile}" | \
+	    awk '{ print $4 }')
+	ppid=$(printf "%08d" "${ppid}")
+
+	# If the parent is in the list of pids, this isn't the parent process.
+	if [ "${_is_parent_pids#*"${ppid}"}" != "${_is_parent_pids}" ] ; then
+		return 1
+	fi
+
+	# Yes, this is the parent process.
+	return 0
+}
+
 ## valgrind_check (exitfile):
 # Check for any memory leaks recorded in valgrind logfiles associated with a
 # test exitfile.  Return the filename if there's a leak; otherwise return an
@@ -368,41 +406,45 @@ valgrind_check() {
 		return
 	fi
 
+	# Get a normalized list of pids.
+	_valgrind_check_pids=$(_get_pids "${_valgrind_check_logfiles}")
+
 	# If the valgrind logfiles contain "-valgrind-parent-", then we only
-	# want to check the parent (the lowest pid).
-	for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
-		if [ "${_valgrind_check_logfile#*-valgrind-parent-}" != "${_valgrind_check_logfile}" ]; then
-			# Only check the parent
-			_val_checkl "${_valgrind_check_logfile}"
-			return "$?"
-		fi
-	done
-
-	# If there's two files, there's a fork() -- likely within
-	# daemonize() -- so only pay attention to the child.
-	if [ "${_valgrind_check_num}" -eq "2" ]; then
-		# Find both pids.
-		_valgrind_check_val_pids=""
-		for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
-			_valgrind_check_val_pid=$(head -n 1 "${_valgrind_check_logfile}" | cut -d "=" -f 3)
-			_valgrind_check_val_pids="${_valgrind_check_val_pids} ${_valgrind_check_val_pid}"
-		done
-
-		# Find the logfile which has a parent in the list of pids.
-		for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
-			_valgrind_check_val_parent_pid=$(grep "Parent PID:" "${_valgrind_check_logfile}" | \
-			    awk '{ print $4 }')
-			if [ "${_valgrind_check_val_pids#*"${_valgrind_check_val_parent_pid}"}" !=	\
-			    "${_valgrind_check_val_pids}" ]; then
-				_val_checkl "${_valgrind_check_logfile}"
-				return "$?"
-			fi
-		done
+	# want to check the parent.  The parent is the logfile whose "parent
+	# pid" is not in the list of pids.  (If one logfile contains
+	# "-valgrind-parent-" then all of them should have it, so we can
+	# simply check if that string occurs in the list of logfiles.)
+	if [ "${_valgrind_check_logfiles#*-valgrind-parent-}" !=	\
+	    "${_valgrind_check_logfiles}" ]; then
+		_valgrind_check_parent=1
+	else
+		_valgrind_check_parent=0
 	fi
 
-	# Programmer error; hard bail.
-	echo "Programmer error: wrong number of valgrind logfiles!" 1>&2
-	exit 1
+	# Check the logfiles depending on whether it's the parent or not,
+	# and whether we want to check the parent or children.
+	for _valgrind_check_logfile in ${_valgrind_check_logfiles} ; do
+		if _is_parent "${_valgrind_check_logfile}"	\
+		    "${_valgrind_check_pids}" ; then
+			# This is the parent.
+			if [ "${_valgrind_check_parent}" -eq 1 ] ; then
+				_val_checkl "${_valgrind_check_logfile}"
+				# Bail if there's a problem.
+				if [ "$?" -ne 0 ]; then
+					return
+				fi
+			fi
+		else
+			# This is a child.
+			if [ "${_valgrind_check_parent}" -eq 0 ] ; then
+				_val_checkl "${_valgrind_check_logfile}"
+				# Bail if there's a problem.
+				if [ "$?" -ne 0 ]; then
+					return
+				fi
+			fi
+		fi
+	done
 }
 
 ## valgrind_init():
