@@ -112,7 +112,7 @@ line with which
 was invoked to create each archive is also printed.
 .PP
 If the
-\fB\--null\fP
+\fB\--null-output\fP
 argument is also specified, each archive name will be separated by a single
 null character.
 If the
@@ -732,14 +732,18 @@ option specified in a configuration file.
 (use with
 \fB\-I\fP,
 \fB\-T\fP,
-\fB\-X\fP,
-or list-archives modes only)
+or
+\fB\-X\fP)
 Filenames or patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the
 \fB\-print0\fP
 option to
 \fBfind\fP(1).
+.TP
+\fB\--null-output\fP
+(list-archives mode only)
+Filenames in output are separated by null characters, not by newlines.
 .TP
 \fB\--numeric-owner\fP
 (x mode only)
