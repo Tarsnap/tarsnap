@@ -65,6 +65,7 @@
 --normalmem		ignore any lowmem or verylowmem option
 --nuke			delete all of the archives stored		MODE
 --null			filenames or patterns are separated by null characters
+--null-output		filenames in output are separated by null characters
 --numeric-owner		ignore symbolic user and group names when restoring
 --one-file-system	do not cross mount points
 --passphrase		read passphrase from ARG instead of /dev/tty
