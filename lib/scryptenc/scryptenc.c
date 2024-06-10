@@ -58,7 +58,7 @@ static int checkparams(size_t, double, double, int, uint32_t, uint32_t, int,
 #ifdef POSIXFAIL_ABSTRACT_DECLARATOR
 static int scryptdec_file_load_header(FILE * infile, uint8_t header[static 96]);
 #else
-static int scryptdec_file_load_header(FILE *, uint8_t [static 96]);
+static int scryptdec_file_load_header(FILE *, uint8_t[static 96]);
 #endif
 
 struct scryptdec_file_cookie {
@@ -734,7 +734,8 @@ err0:
 }
 
 /**
- * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
+ * scryptdec_file_prep(infile, passwd, passwdlen, params, verbose, force,
+ *     cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy().

@@ -151,7 +151,8 @@ int scryptdec_file(FILE *, FILE *, const uint8_t *, size_t,
     struct scryptenc_params *, int, int);
 
 /**
- * scryptdec_file_prep(infile, passwd, passwdlen, params, force, cookie):
+ * scryptdec_file_prep(infile, passwd, passwdlen, params, verbose, force,
+ *     cookie):
  * Prepare to decrypt ${infile}, including checking the passphrase.  Allocate
  * a cookie at ${cookie}.  After calling this function, ${infile} should not
  * be modified until the decryption is completed by scryptdec_file_copy().
