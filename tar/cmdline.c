@@ -152,6 +152,7 @@ static struct option {
 	{ "no-totals",		  0, OPTION_NO_TOTALS },
 	{ "nuke",		  0, OPTION_NUKE },
 	{ "null",		  0, OPTION_NULL },
+	{ "null-output",	  0, OPTION_NULL_OUTPUT },
 	{ "numeric-owner",	  0, OPTION_NUMERIC_OWNER },
 	{ "one-file-system",	  0, OPTION_ONE_FILE_SYSTEM },
 	{ "passphrase",		  1, OPTION_PASSPHRASE },

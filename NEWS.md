@@ -7,10 +7,10 @@
   or ~/.config/tarsnap/tarsnap.conf if $XDG_CONFIG_HOME is not set.  The
   previous config file ~/.tarsnaprc is still supported, and will not be
   deprecated.
-- tarsnap now permits --null with --list-archives, separating each archive
-  name with a null character (like `find -print0`).  If one or more -v
-  arguments are specified, multiple null characters are used to separate
-  fields; see the man page for details.
+- tarsnap now accepts --null-output, which causes --list-archives to separate
+  each archive name with a null character (like `find -print0`).  If one or
+  more -v arguments are specified, multiple null characters are used to
+  separate fields; see the man page for details.
 - tarsnap now accepts --hashes, which causes --list-archives to print hashes
   of archive names.  If one or more -v arguments are specified, it will print
   other metadata (as per --list-archives).  This option is intended for the

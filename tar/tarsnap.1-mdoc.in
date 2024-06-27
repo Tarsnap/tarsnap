@@ -123,7 +123,7 @@ line with which
 was invoked to create each archive is also printed.
 .Pp
 If the
-.Fl -null
+.Fl -null-output
 argument is also specified, each archive name will be separated by a single
 null character.
 If the
@@ -662,14 +662,17 @@ option specified in a configuration file.
 (use with
 .Fl I ,
 .Fl T ,
-.Fl X ,
-or list-archives modes only)
+or
+.Fl X )
 Filenames or patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the
 .Fl print0
 option to
 .Xr find 1 .
+.It Fl -null-output
+(list-archives mode only)
+Filenames in output are separated by null characters, not by newlines.
 .It Fl -numeric-owner
 (x mode only)
 Ignore symbolic user and group names when restoring archives to disk,
