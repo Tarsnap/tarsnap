@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /**
- * SHA256_Transform_sse2(state, block):
+ * SHA256_Transform_sse2(state, block, W, S):
  * Compute the SHA256 block compression function, transforming ${state} using
  * the data in ${block}.  This implementation uses x86 SSE2 instructions, and
  * should only be used if _SSE2 is defined and cpusupport_x86_sse2() returns
