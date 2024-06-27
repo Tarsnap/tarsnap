@@ -21,6 +21,7 @@
 #include "sysendian.h"
 #include "warnp.h"
 
+#include "chunks.h"
 #include "chunks_internal.h"
 
 /* On-disk extra data statistics structure; integers are little-endian. */
