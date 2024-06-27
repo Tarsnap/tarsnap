@@ -16,7 +16,7 @@
  * method to read the passphrase, using ${passphrase_arg} if applicable.
  */
 int keyfile_read(const char *, uint64_t *, int, int, enum passphrase_entry,
-    const char * passphrase_arg);
+    const char *);
 
 /**
  * keyfile_write(filename, machinenum, keys, passphrase, maxmem, cputime):

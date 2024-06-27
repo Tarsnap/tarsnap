@@ -93,8 +93,7 @@ void chunks_stats_zero(struct chunkstats *);
  * Adjust ${stats} for the addition of ${copies} chunks each having length
  * ${len} and compressed length ${zlen}.
  */
-void chunks_stats_add(struct chunkstats *, size_t len, size_t zlen,
-    ssize_t copies);
+void chunks_stats_add(struct chunkstats *, size_t, size_t, ssize_t);
 
 /**
  * chunks_stats_addstats(to, from):

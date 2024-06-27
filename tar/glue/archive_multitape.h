@@ -26,8 +26,7 @@ void * archive_read_open_multitape(struct archive *, uint64_t, const char *);
  * Return a cookie which can be passed to the multitape layer.
  */
 void * archive_write_open_multitape(struct archive *, uint64_t, const char *,
-    const char *, int argc, char ** argv, int, int, time_t, const char *,
-    int *);
+    const char *, int, char **, int, int, time_t, const char *, int *);
 
 /**
  * archive_write_multitape_setmode(a, cookie, mode):
