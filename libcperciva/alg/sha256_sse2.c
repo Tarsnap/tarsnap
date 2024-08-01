@@ -21,7 +21,7 @@ mm_bswap_epi32(__m128i a)
 {
 
 	/* Swap bytes in each 16-bit word. */
-        a = _mm_or_si128(_mm_slli_epi16(a, 8), _mm_srli_epi16(a, 8));
+	a = _mm_or_si128(_mm_slli_epi16(a, 8), _mm_srli_epi16(a, 8));
 
 	/* Swap all 16-bit words. */
 	a = _mm_shufflelo_epi16(a, _MM_SHUFFLE(2, 3, 0, 1));
