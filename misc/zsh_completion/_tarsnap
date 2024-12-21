@@ -233,6 +233,7 @@ _shtab_tarsnap__list_archives_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "-f[specify hash of archive name to operate on (requires --hashes)]:tapehash"
   "--hashes[make --list-archives print hashes]"
+  "--null-output[filenames in output are separated by null characters]"
   "-v[produce verbose output]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
   "--configfile[add file to the list of configuration files to be read]:filename:{_files}"
