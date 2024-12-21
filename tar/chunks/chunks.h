@@ -262,7 +262,7 @@ int chunks_stats_addchunk(CHUNKS_S *, const uint8_t *, size_t, size_t);
 void chunks_stats_extrastats(CHUNKS_S *, size_t);
 
 /*
- * Function used by --initialize-cachedir.
+ * Functions used by --initialize-cachedir and checking for a chunks directory.
  */
 
 /**
@@ -271,5 +271,12 @@ void chunks_stats_extrastats(CHUNKS_S *, size_t);
  * success, -1 on error, and 1 if the file already exists.
  */
 int chunks_initialize(const char *);
+
+/**
+ * chunks_directory_exists(cachepath):
+ * Return 1 if the /directory file exists within ${cachepath}, 0 if it does
+ * not, or -1 if there is an error.
+ */
+int chunks_directory_exists(const char *);
 
 #endif /* !CHUNKS_H_ */
