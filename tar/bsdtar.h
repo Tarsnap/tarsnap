@@ -84,6 +84,7 @@ struct bsdtar {
 	char		  option_no_owner; /* -o */
 	char		  option_no_subdirs; /* -n */
 	char		  option_null; /* --null */
+	char		  option_null_output; /* --null-output */
 	char		  option_numeric_owner; /* --numeric-owner */
 	char		  option_print_stats; /* --print-stats */
 	uint64_t	  option_progress_bytes; /* --progress-bytes */
@@ -262,6 +263,7 @@ enum {
 	OPTION_NORMALMEM,
 	OPTION_NUKE,
 	OPTION_NULL,
+	OPTION_NULL_OUTPUT,
 	OPTION_NUMERIC_OWNER,
 	OPTION_ONE_FILE_SYSTEM,
 	OPTION_PASSPHRASE,

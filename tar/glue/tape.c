@@ -191,8 +191,8 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 
 	/* Ask for the list of archives to be printed. */
 	if (bsdtar->ntapes == 0) {
-		if (statstape_printlist(d, bsdtar->verbose, bsdtar->option_null,
-		    print_hashes))
+		if (statstape_printlist(d, bsdtar->verbose,
+		    bsdtar->option_null_output, print_hashes))
 			goto err2;
 	} else {
 		/* User wants metadata about specific archive(s). */
@@ -207,7 +207,7 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 
 			/* Print desired metadata about the archive. */
 			if (statstape_printlist_item(d, hash,
-			    bsdtar->verbose, bsdtar->option_null, 1))
+			    bsdtar->verbose, bsdtar->option_null_output, 1))
 				goto err2;
 		}
 	}
