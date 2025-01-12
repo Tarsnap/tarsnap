@@ -26,5 +26,7 @@ CPUSUPPORT_FEATURE_DECL(x86, ssse3)
 
 unsupported:
 #endif
+
+	/* Not supported. */
 	return (0);
 }
