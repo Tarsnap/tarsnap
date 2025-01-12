@@ -47,6 +47,7 @@ compar(void * cookie, const void * x, const void * y)
 
 	(void)cookie; /* UNUSED */
 
+	/* Compare the times. */
 	return (tvcmp(&_x->tv, &_y->tv));
 }
 

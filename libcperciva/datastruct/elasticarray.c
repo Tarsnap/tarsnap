@@ -271,6 +271,7 @@ void *
 elasticarray_get(struct elasticarray * EA, size_t pos, size_t reclen)
 {
 
+	/* Calculate the pointer address. */
 	return ((uint8_t *)(EA->buf) + pos * reclen);
 }
 
