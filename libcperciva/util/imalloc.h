@@ -18,15 +18,16 @@ imalloc(size_t nrec, size_t reclen)
 	/* Sanity check. */
 	assert(reclen != 0);
 
+	/* Handle cases where we don't allocate memory. */
 	if (nrec == 0)
 		return (NULL);
-
 	if (nrec > SIZE_MAX / reclen) {
 		errno = ENOMEM;
 		return (NULL);
-	} else {
-		return (malloc(nrec * reclen));
 	}
+
+	/* Allocate memory. */
+	return (malloc(nrec * reclen));
 }
 
 /**
