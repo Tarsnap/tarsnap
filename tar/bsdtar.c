@@ -705,6 +705,9 @@ main(int argc, char **argv)
 		case OPTION_NULL: /* GNU tar */
 			bsdtar->option_null++;
 			break;
+		case OPTION_NULL_OUTPUT: /* tarsnap */
+			bsdtar->option_null_output++;
+			break;
 		case OPTION_NUMERIC_OWNER: /* GNU tar */
 			bsdtar->option_numeric_owner++;
 			break;
@@ -1046,10 +1049,11 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--newer-mtime", "cxt");
 	if (bsdtar->option_absolute_paths)
 		only_mode(bsdtar, "-P", "cxt");
-	if (bsdtar->option_null) {
-		/* Allow in --list-archives or cxt modes. */
+	if (bsdtar->option_null)
+		only_mode(bsdtar, "--null", "cxt");
+	if (bsdtar->option_null_output) {
 		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
-			only_mode(bsdtar, "--null", "cxt");
+			only_mode(bsdtar, "--null-output", "");
 	}
 
 	/* We should only have remaining args in -c, -t, and -x modes. */
