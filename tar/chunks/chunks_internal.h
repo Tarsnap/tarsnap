@@ -62,13 +62,6 @@ int chunks_directory_write(const char *, RWHASHTAB *, struct chunkstats *,
     const char *);
 
 /**
- * chunks_directory_exists(cachepath):
- * Return 1 if the /directory file exists within ${cachepath}, 0 if it does
- * not, or -1 if there is an error.
- */
-int chunks_directory_exists(const char *);
-
-/**
  * chunks_directory_free(HT, dir):
  * Free the hash table ${HT} of struct chunkdata records, all of its
  * elements, and ${dir}.
