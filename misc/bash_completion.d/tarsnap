@@ -68,9 +68,9 @@ _tarsnap ()
 		  --no-progress-bytes --no-quiet --no-retry-forever \
 		  --no-snaptime --no-store-atime --no-totals --nodump \
 		  --noisy-warnings --normalmem --nuke --null \
-		  --numeric-owner --one-file-system --passphrase \
-		  --print-stats --progress-bytes --quiet --recover \
-		  --resume-extract --retry-forever --snaptime \
+		  --null-output --numeric-owner --one-file-system \
+		  --passphrase --print-stats --progress-bytes --quiet \
+		  --recover --resume-extract --retry-forever --snaptime \
 		  --store-atime --strip-components --totals \
 		  --verify-config --version --verylowmem"
 
