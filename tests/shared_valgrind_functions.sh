@@ -254,12 +254,13 @@ valgrind_setup() {
 	fi
 
 	# Set up valgrind command.
-	_valgrind_setup_cmd="valgrind \
-		--log-file=${_valgrind_setup_logfilename} \
-		--track-fds=yes \
-		--trace-children=yes \
-		--leak-check=full --show-leak-kinds=all \
-		--errors-for-leak-kinds=all \
+	_valgrind_setup_cmd="valgrind				\
+		--log-file=${_valgrind_setup_logfilename}	\
+		--track-fds=yes					\
+		--trace-children=yes				\
+		--leak-check=full				\
+		--show-leak-kinds=all				\
+		--errors-for-leak-kinds=all			\
 		--suppressions=${valgrind_suppressions}"
 	echo "${_valgrind_setup_cmd}"
 }
@@ -333,9 +334,13 @@ _val_checkl() {
 		return
 	fi
 
-	# Check the error summary.
+	# Check the error summary.  Get the number of expected errors from the
+	# ${valgrind_fds_log} file.  (Ideally this would be 0, but due to
+	# porting issues, some versions of valgrind on some platforms always
+	# report a non-zero number of errors.)
 	_val_checkl_num_errors=$(grep "ERROR SUMMARY: " "${_val_checkl_logfile}" | awk '{print $4}')
-	if [ "${_val_checkl_num_errors}" -gt 0 ]; then
+	_val_checkl_num_errors_basic=$(grep "ERROR SUMMARY: " "${valgrind_fds_log}" | awk '{ print $4}')
+	if [ "${_val_checkl_num_errors}" != "${_val_checkl_num_errors_basic}" ]; then
 		# There was some other error(s) -- invalid read or write,
 		# conditional jump based on uninitialized value(s), invalid
 		# free, etc.

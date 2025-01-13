@@ -44,6 +44,8 @@ align_ptr(uint8_t * arr, size_t alignment)
 	 */
 	offset = (uintptr_t)(&arr[0]) % alignment;
 	offset = (alignment - offset) % alignment;
+
+	/* Return the aligned pointer. */
 	return ((void *)&arr[offset]);
 }
 

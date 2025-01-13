@@ -57,4 +57,11 @@ char * sock_addr_prettyprint(const struct sock_addr *);
  */
 char * sock_addr_ensure_port(const char *);
 
+/**
+ * sock_addr_validate(addr):
+ * Check that ${addr} is syntactically valid, but do not perform any address
+ * resolution.
+ */
+int sock_addr_validate(const char *);
+
 #endif /* !SOCK_UTIL_H_ */

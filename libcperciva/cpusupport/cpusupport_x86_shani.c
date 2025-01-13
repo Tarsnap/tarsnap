@@ -31,5 +31,7 @@ CPUSUPPORT_FEATURE_DECL(x86, shani)
 
 unsupported:
 #endif
+
+	/* Not supported. */
 	return (0);
 }

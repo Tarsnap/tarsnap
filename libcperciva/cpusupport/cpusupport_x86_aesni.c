@@ -26,5 +26,7 @@ CPUSUPPORT_FEATURE_DECL(x86, aesni)
 
 unsupported:
 #endif
+
+	/* Not supported. */
 	return (0);
 }

@@ -33,8 +33,11 @@ static inline void
 mpool_atexit(struct mpool * M)
 {
 
+	/* Free all items on the stack. */
 	while (M->stacklen)
 		free(M->allocs[--M->stacklen]);
+
+	/* If we allocated a stack, free it. */
 	if (M->allocs != M->allocs_static)
 		free(M->allocs);
 }
@@ -43,14 +46,23 @@ static inline void *
 mpool_malloc(struct mpool * M, size_t len)
 {
 
+	/* Count the total number of allocation requests. */
 	M->nallocs++;
+
+	/* If we have an object on the stack, use that. */
 	if (M->stacklen)
 		return (M->allocs[--(M->stacklen)]);
+
+	/* Count allocation requests where the pool was already empty. */
 	M->nempties++;
+
+	/* Initialize the atexit function (the first time we reach here). */
 	if (M->state == 0) {
 		atexit(M->atexitfunc);
 		M->state = 1;
 	}
+
+	/* Allocate a new object. */
 	return (malloc(len));
 }
 
@@ -59,18 +71,25 @@ mpool_free(struct mpool * M, void * p)
 {
 	void ** allocs_new;
 
+	/* Behave consistently with free(NULL). */
 	if (p == NULL)
 		return;
 
+	/* If we have space in the stack, cache the object. */
 	if (M->stacklen < M->allocsize) {
 		M->allocs[M->stacklen++] = p;
 		return;
 	}
 
+	/*
+	 * Autotuning: If more than 1/256 of mpool_malloc() calls resulted in
+	 * a malloc(), double the stack.
+	 */
 	if (M->nempties > (M->nallocs >> 8)) {
 		/* Sanity check. */
 		assert(M->allocsize > 0);
 
+		/* Allocate new stack and copy pointers into it. */
 		allocs_new = (void **)malloc(M->allocsize * 2 * sizeof(void *));
 		if (allocs_new) {
 			memcpy(allocs_new, M->allocs,
@@ -84,6 +103,8 @@ mpool_free(struct mpool * M, void * p)
 			free(p);
 	} else
 		free(p);
+
+	/* Reset statistics. */
 	M->nempties = 0;
 	M->nallocs = 0;
 }
