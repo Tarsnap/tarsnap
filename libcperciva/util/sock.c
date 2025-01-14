@@ -242,6 +242,10 @@ sock_resolve(const char * addr)
 	char * ips;
 	long p;
 
+	/* Check syntax. */
+	if (sock_addr_validate(addr))
+		goto err0;
+
 	/* If the address starts with '/', it's a Unix domain socket. */
 	if (addr[0] == '/') {
 		res = sock_resolve_unix(addr);

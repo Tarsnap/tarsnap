@@ -11,6 +11,7 @@
 
 #include "asprintf.h"
 #include "sock.h"
+#include "warnp.h"
 
 #include "sock_internal.h"
 #include "sock_util.h"
@@ -334,4 +335,36 @@ sock_addr_ensure_port(const char * addr)
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * sock_addr_validate(addr):
+ * Check that ${addr} is syntactically valid, but do not perform any address
+ * resolution.
+ */
+int
+sock_addr_validate(const char * addr)
+{
+
+	/* Sanity check. */
+	assert(addr != NULL);
+
+	/* Check for an empty address. */
+	if (strlen(addr) == 0) {
+		warn0("Empty socket address.");
+		goto err0;
+	}
+
+	/* If this isn't a UNIX socket address, check for a missing hostname. */
+	if ((addr[0] != '/') && (addr[0] == ':')) {
+		warn0("No host in \"%s\"", addr);
+		goto err0;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
