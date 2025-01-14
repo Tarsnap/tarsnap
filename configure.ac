@@ -316,7 +316,7 @@ AC_CHECK_TYPE([wchar_t],
 m4_version_prereq([2.70], [], [AC_HEADER_TIME])
 
 # Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
+m4_version_prereq([2.72], [], [AC_PROG_GCC_TRADITIONAL])
 AC_HEADER_MAJOR
 AC_FUNC_FSEEKO
 AC_FUNC_MEMCMP
