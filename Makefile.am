@@ -211,6 +211,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/events/events_network.c		\
 		libcperciva/events/events_network_selectstats.c	\
 		libcperciva/events/events_timer.c		\
+		libcperciva/external/queue/queue.h		\
 		libcperciva/network/network.h			\
 		libcperciva/network/network_accept.c		\
 		libcperciva/network/network_connect.c		\
@@ -288,17 +289,33 @@ LIBTARSNAP_A=	lib/libtarsnap.a
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
 
+# Add libcperciva files to dist
+#
 # crypto_aesctr_shared.c is in this list because it can't be included in the
 # _SOURCES because it should only be included as part of another translation
 # unit.
 EXTRA_DIST=								\
+		libcperciva/POSIX/README				\
+		libcperciva/POSIX/posix-abstract-declarator.c		\
+		libcperciva/POSIX/posix-cflags.sh			\
+		libcperciva/POSIX/posix-clock_gettime.c			\
+		libcperciva/POSIX/posix-clock_realtime.c		\
+		libcperciva/POSIX/posix-inet-addrstrlen.c		\
+		libcperciva/POSIX/posix-inet6-addrstrlen.c		\
+		libcperciva/POSIX/posix-l.sh				\
+		libcperciva/POSIX/posix-msg_nosignal.c			\
+		libcperciva/POSIX/posix-restrict.c			\
+		libcperciva/POSIX/posix-stat-st_mtim.c			\
+		libcperciva/POSIX/posix-trivial.c			\
 		libcperciva/cpusupport/Build/cpusupport.sh		\
+		libcperciva/cpusupport/Build/cpusupport-ARM-AES.c	\
 		libcperciva/cpusupport/Build/cpusupport-ARM-SHA256.c	\
 		libcperciva/cpusupport/Build/cpusupport-HWCAP-ELF_AUX_INFO.c \
 		libcperciva/cpusupport/Build/cpusupport-HWCAP-GETAUXVAL.c \
 		libcperciva/cpusupport/Build/cpusupport-X86-AESNI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-CPUID_COUNT.c \
+		libcperciva/cpusupport/Build/cpusupport-X86-RDRAND.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SHANI.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c	\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c	\
@@ -615,6 +632,24 @@ tests_valgrind_potential_memleaks_CPPFLAGS =		\
 		-D_XOPEN_SOURCE=700			\
 		${CFLAGS_POSIX}
 
+# Add test files to dist
+EXTRA_DIST+=	tests/01-trivial.sh			\
+		tests/01-trivial.sh			\
+		tests/02-c-dry-run-no-keyfile.sh	\
+		tests/03-c-dry-run-fake-keyfile.sh	\
+		tests/04-c-d-real-keyfile.sh		\
+		tests/05-passphrase.sh			\
+		tests/06-progress-output.sh		\
+		tests/06-progress-output-pb.good	\
+		tests/06-progress-output-v.good		\
+		tests/06-progress-output-vpb-1k.good	\
+		tests/06-progress-output-vpb-20k.good	\
+		tests/fake-passphrased.keys		\
+		tests/fake.keys				\
+		tests/shared_test_functions.sh		\
+		tests/shared_valgrind_functions.sh	\
+		tests/test_tarsnap.sh
+
 #  Tarsnap configuration file
 if INSTALL_CONF_NO_SAMPLE
 tar/tarsnap.conf: tar/tarsnap.conf.sample
@@ -653,6 +688,7 @@ keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	cat $(top_srcdir)/keymgmt/tarsnap-keymgmt.1-@MANVER@ > keymgmt/tarsnap-keymgmt.1.tmp
 	mv $@.tmp $@
 
+# Add man files to dist
 EXTRA_DIST+=	keygen/tarsnap-keygen.1-man		\
 		keygen/tarsnap-keygen.1-mdoc		\
 		keymgmt/tarsnap-keymgmt.1-man		\
@@ -667,6 +703,13 @@ EXTRA_DIST+=	keygen/tarsnap-keygen.1-man		\
 		tar/tarsnap.conf.5-mdoc.in		\
 		tar/tarsnap.conf.sample
 CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
+
+# Add misc files to dist
+EXTRA_DIST+=	BUILDING				\
+		lib/netpacket/packets.txt		\
+		libcperciva/COPYRIGHT			\
+		misc/describe-options.txt		\
+		pkg/
 
 #
 # Misc helper scripts
