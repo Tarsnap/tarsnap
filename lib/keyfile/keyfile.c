@@ -507,6 +507,7 @@ keyfile_write_open(const char * filename)
 {
 	FILE * f;
 	int fd;
+	int saved_errno;
 
 	/* Attempt to create the file. */
 	if ((fd = open(filename, O_WRONLY | O_CREAT | O_EXCL,
@@ -519,8 +520,10 @@ keyfile_write_open(const char * filename)
 	}
 
 	/* Wrap the fd into a FILE. */
-	if ((f = fdopen(fd, "w")) == NULL)
+	if ((f = fdopen(fd, "w")) == NULL) {
+		saved_errno = errno;
 		goto err1;
+	}
 
 	/* Success! */
 	return (f);
@@ -529,6 +532,7 @@ err1:
 	unlink(filename);
 	if (close(fd))
 		warnp("close");
+	errno = saved_errno;
 err0:
 	/* Failure! */
 	return (NULL);
