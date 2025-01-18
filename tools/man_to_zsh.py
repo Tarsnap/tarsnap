@@ -131,7 +131,7 @@ def write_zsh(filename_zsh, options, optlist, descs):
     """ Write the options into the zsh completion file.  """
     # Sanity-check shtab version
     if shtab.__version__ != _HANDLES_SHTAB_VERSION:
-        print("Script designed for shtab %s; found %s instead" % (
+        print("ERROR: script designed for shtab %s; found %s instead" % (
               _HANDLES_SHTAB_VERSION, shtab.__version__))
         exit(1)
     # Get a zsh completion file.

@@ -13,6 +13,7 @@ import man_to_argparse
 import man_to_completion
 import man_to_zsh
 
+MAX_DESC = 43
 
 @dataclasses.dataclass
 class OptArg:
@@ -117,6 +118,9 @@ class Descriptions:
             # Allow for multiple tabs in the line.
             sl = re.split("\t+", line.rstrip())
             desc = sl[1]
+            if len(desc) > MAX_DESC:
+                print("WARNING: description of %s %i chars; %i max" % (
+                    sl[0], len(desc), MAX_DESC))
 
             # Are we dealing with a normal option, a duplicate, or a mode?
             if len(sl) == 2:
