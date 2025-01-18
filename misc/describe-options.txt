@@ -2,111 +2,114 @@
 #
 # Format:
 #     --option \t+ description [\t+ (MODE|DUP-.*)]
-
---aggressive-networking	use multiple TCP connections
---archive-names		read a list of archive names from a file
---cachedir		specify cache directory
---check-links		warn unless all links to each file are archived
---checkpoint-bytes	add a checkpoint after every ARG bytes of uploaded data
---chroot		chroot to the current directory after -C options
---configfile		add file to the list of configuration files to be read
---creationtime		manually specify a creation time for the archive
---csv-file		write statistics in CSV format to a file
---disk-pause		often pause for ARG ms while creating an archive
---dry-run		do not really create an archive; just simulate doing so
---dry-run-metadata	do not really create an archive; just simulate the metadata
---dump-config		print all config lines
---exclude		do not process certain files or directories
---fast-read		stop after the first entry which matches the ARG	DUP-q
---force-resources	force the decryption of a passphrase-encrypted keyfile
---fsck			perform some integrity checks and reconstruct cache	MODE
---fsck-prune		run as --fsck, but prune any corrupt archives	MODE
---hashes		make --list-archives print hashes
---humanize-numbers	use SI prefixes for --print-stats
---include		process only certain files or directories
---initialize-cachedir	create and initialize the cachedir		MODE
---insane-filesystems	allow descent into synthetic filesystems such as procfs
---iso-dates		print dates as yyyy-mm-dd hh:mm:ss
---keep-going		keep going after finding an archive which does not exist
---keep-newer-files	keep files which are newer than the extracted files
---keyfile		specify key file
---list-archives		print the names of archives stored		MODE
---lowmem		reduce memory usage by not caching small files
---maxbw			stop if more than ARG bytes of upstream bw is used
---maxbw-rate		limit bandwidth to ARG bytes per second
---maxbw-rate-down	limit download bandwidth to ARG bytes per second
---maxbw-rate-up		limit upload bandwidth to ARG bytes per second
---newer			only add files and dirs newer than the given date
---newer-mtime		like --newer, but it uses mtime instead of ctime
---newer-mtime-than	like --newer-than, but it uses mtime instead of ctime
---newer-than		only include files and dirs newer than the given file
+#
+# To avoid truncating descriptions in an 80x25 terminal window, they must be
+# 43 chars or less.
+#
+--aggressive-networking		use multiple TCP connections
+--archive-names			read a list of archive names from a file
+--cachedir			specify cache directory
+--check-links			warn unless all links to files are archived
+--checkpoint-bytes		checkpoint every ARG bytes of uploaded data
+--chroot			chroot to the current directory after -C
+--configfile			add to the list of config files to be read
+--creationtime			manually specify a creation time
+--csv-file			write statistics in CSV format to a file
+--disk-pause			often pause for ARG ms while archiving
+--dry-run			simulate archive creation (with file data)
+--dry-run-metadata		simulate archive creation (metadata only)
+--dump-config			print all config lines
+--exclude			do not process certain files or directories
+--fast-read			stop after the first selected entry	DUP-q
+--force-resources		no passphrase-encrypted resource limits
+--fsck				integrity checks and reconstruct cache	MODE
+--fsck-prune			run as --fsck, but prune corrupt archives	MODE
+--hashes			make --list-archives print hashes
+--humanize-numbers		use SI prefixes for --print-stats
+--include			process only certain files or directories
+--initialize-cachedir		create and initialize the cachedir	MODE
+--insane-filesystems		allow descent into synthetic filesystems
+--iso-dates			print dates as yyyy-mm-dd hh:mm:ss
+--keep-going			keep going after missing an archive
+--keep-newer-files		do not overwrite newer existing files
+--keyfile			specify key file
+--list-archives			print the names of archives stored	MODE
+--lowmem			reduce memory usage with limited cache
+--maxbw				limit upload to ARG bytes
+--maxbw-rate			limit bandwidth to ARG bytes per second
+--maxbw-rate-down		limit download to ARG bytes per second
+--maxbw-rate-up			limit upload to ARG bytes per second
+--newer				only add files and dirs newer than ARG
+--newer-mtime			like --newer, but mtime instead of ctime
+--newer-mtime-than		like --newer-than, but mtime not ctime
+--newer-than			only include paths dirs newer than the ARG
 --no-aggressive-networking	ignore any aggressive-networking option
---no-config-exclude	ignore any exclude option
---no-config-include	ignore any include option
---no-default-config	do not read the default configuration files
---no-disk-pause		ignore any disk-pause option
---no-force-resources	ignore any force-resources option
---no-humanize-numbers	ignore any humanize-numbers option
---no-insane-filesystems	ignore any insane-filesystems option
---no-iso-dates		ignore any iso-dates option
---no-maxbw		ignore any maximum bandwidth option
---no-maxbw-rate-down	ignore any download maximum bandwidth option
---no-maxbw-rate-up	ignore any upload maximum bandwidth option
---no-nodump		ignore any nodump option
---no-print-stats	ignore any print-stats option
---no-progress-bytes	ignore any progress-bytes option
---no-quiet		ignore any quiet option
---no-retry-forever	ignore any retry-forever option
---no-snaptime		ignore any snaptime option
---no-store-atime	ignore any store-atime option
---no-totals		ignore any totals option
---nodump		honor the nodump file flag by skipping this file
---noisy-warnings	be verbose when warning about network glitches
---normalmem		ignore any lowmem or verylowmem option
---nuke			delete all of the archives stored		MODE
---null			filenames or patterns are separated by null characters
---null-output		archive names in output are separated by null characters
---numeric-owner		ignore symbolic user and group names when restoring
---one-file-system	do not cross mount points
---passphrase		read passphrase from ARG instead of /dev/tty
---print-stats		print global statistics concerning stored archives	MODE
---print-stats		print statistics for the archive
---progress-bytes	print a progress messsage after each X bytes
---quiet			avoid printing some warnings
---recover		recover a partial archive from a checkpoint	MODE
---resume-extract	don't extract files that are already on disk
---retry-forever		continue trying to connect to Tarsnap server forever
---snaptime		file with mtime prior to snapshot creation time
---store-atime		store file access times
---strip-components	remove the specified ARG number of leading path elements
---totals		print the size of the archive after creating it
---verify-config		check the configuration file(s) for syntactic errors	MODE
---version		print version number of tarsnap and exit	MODE
---verylowmem		reduce memory usage, by not caching anything
--C			change directory before adding files
--H			store the targets of a symbolic links
--I			read the list of names to be extracted from filename ARG
--L			all symbolic links will be followed
--O			write files to stdout (-x) or stderr (-t)
--P			preserve pathnames
--S			extract files as sparse files
--T			read the list of files to be extracted from filename ARG
--U			unlink files before creating them
--X			read a list of exclusion patterns from filename ARG
--c			create an archive			MODE
--d			delete the specified archive		MODE
--f			specify name of archive to operate on
--h			print help
--k			do not overwrite existing files
--l			warn unless all links to each file are archived
--m			do not extract modification time
--n			do not recursively archive the contents of directories
--o			use the current uid and gid; requires -p
--p			preserve file permissions
--q			stop after the first entry which matches the ARG
--r			extract an archive to a tar stream and write to stdout	MODE
--s			modify file or archive member names according to pattern
--t			list archive contents to stdout		MODE
--v			produce verbose output
--w			ask for confirmation for every action
--x			extract to disk from the archive	MODE
+--no-config-exclude		ignore any exclude option
+--no-config-include		ignore any include option
+--no-default-config		do not read the default configuration files
+--no-disk-pause			ignore any disk-pause option
+--no-force-resources		ignore any force-resources option
+--no-humanize-numbers		ignore any humanize-numbers option
+--no-insane-filesystems		ignore any insane-filesystems option
+--no-iso-dates			ignore any iso-dates option
+--no-maxbw			ignore any maxbw option
+--no-maxbw-rate-down		ignore any maxbw-rate-down option
+--no-maxbw-rate-up		ignore any maxbw-rate-up option
+--no-nodump			ignore any nodump option
+--no-print-stats		ignore any print-stats option
+--no-progress-bytes		ignore any progress-bytes option
+--no-quiet			ignore any quiet option
+--no-retry-forever		ignore any retry-forever option
+--no-snaptime			ignore any snaptime option
+--no-store-atime		ignore any store-atime option
+--no-totals			ignore any totals option
+--nodump			do not read files with the nodump file flag
+--noisy-warnings		verbose when warning about network glitches
+--normalmem			ignore any lowmem or verylowmem option
+--nuke				delete all of the archives stored	MODE
+--null				input split by NULs instead of newlines
+--null-output			output split by NULs instead of newlines
+--numeric-owner			ignore symbolic ownership when restoring
+--one-file-system		do not cross mount points
+--passphrase			read passphrase from ARG, not /dev/tty
+--print-stats			print global statistics concerning archives	MODE
+--print-stats			print statistics for the archive
+--progress-bytes		print a progress messsage each X bytes
+--quiet				avoid printing some warnings
+--recover			recover a partial archive from a checkpoint	MODE
+--resume-extract		don't extract files that are on disk
+--retry-forever			don't stop connecting to the Tarsnap server
+--snaptime			file with mtime prior to snapshot creation
+--store-atime			store file access times
+--strip-components		remove ARG number of leading path elements
+--totals			print the size of the archive
+--verify-config			check config file(s) for syntactic errors	MODE
+--version			print version number of tarsnap and exit	MODE
+--verylowmem			reduce memory usage by not caching anything
+-C				change directory before adding files
+-H				store the targets of a symbolic links
+-I				read the list of names to be extracted
+-L				all symbolic links will be followed
+-O				write files to stdout (-x) or stderr (-t)
+-P				preserve pathnames
+-S				extract files as sparse files
+-T				read the list of files to be extracted
+-U				unlink files before creating them
+-X				read a list of exclusion patterns
+-c				create an archive			MODE
+-d				delete the specified archive		MODE
+-f				specify name of archive to operate on
+-h				print help
+-k				do not overwrite existing files
+-l				warn unless all links to files are archived
+-m				do not extract modification time
+-n				do not recurse into directories
+-o				use the current uid and gid; requires -p
+-p				preserve file permissions
+-q				stop after the first selected entry
+-r				extract an archive to to stdout	MODE
+-s				modify names according to pattern
+-t				list archive contents to stdout		MODE
+-v				produce verbose output
+-w				ask for confirmation for every action
+-x				extract to disk from the archive	MODE
