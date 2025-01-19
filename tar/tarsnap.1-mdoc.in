@@ -680,8 +680,8 @@ This is often used to read filenames output by the
 option to
 .Xr find 1 .
 .It Fl -null-output
-(list-archives mode only)
-Archive names in output are separated by null characters, not by newlines.
+(x, t, and list-archives modes only)
+Archive names and filenames in output are separated by null characters, not by newlines.
 .It Fl -numeric-owner
 (x mode only)
 Ignore symbolic user and group names when restoring archives to disk,

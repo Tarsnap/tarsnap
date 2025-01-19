@@ -686,6 +686,22 @@ pathcmp(const char *a, const char *b)
 	return (*(const unsigned char *)a - *(const unsigned char *)b);
 }
 
+/* Print ${sep} if appropriate; otherwise, print ${num} NULs. */
+void
+print_sep(struct bsdtar *bsdtar, FILE * out, char sep, int num)
+{
+	int i;
+
+	if (bsdtar->option_null_output == 0) {
+		/* Print the normal separator. */
+		fprintf(out, "%c", sep);
+	} else {
+		/* Print the specified number of NULs. */
+		for (i = 0; i < num; i++)
+			fprintf(out, "%c", '\0');
+	}
+}
+
 /*
  * Display information about the current file.
  *
