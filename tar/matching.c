@@ -94,7 +94,7 @@ int
 exclude_from_file(struct bsdtar *bsdtar, const char *pathname)
 {
 	return (process_lines(bsdtar, pathname, &exclude,
-	    bsdtar->option_null));
+	    bsdtar->option_null_input));
 }
 
 int
@@ -115,7 +115,7 @@ int
 include_from_file(struct bsdtar *bsdtar, const char *pathname)
 {
 	return (process_lines(bsdtar, pathname, &include,
-	    bsdtar->option_null));
+	    bsdtar->option_null_input));
 }
 
 static void

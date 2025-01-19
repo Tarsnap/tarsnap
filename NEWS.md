@@ -11,6 +11,8 @@
   each archive name with a null character (like `find -print0`).  If one or
   more -v arguments are specified, multiple null characters are used to
   separate fields; see the man page for details.
+- tarsnap now accepts --null-input as a synonym for --null.  For compatibility
+  reasons, --null is still supported, and will not be deprecated.
 - tarsnap now accepts --hashes, which causes --list-archives to print hashes
   of archive names.  If one or more -v arguments are specified, it will print
   other metadata (as per --list-archives).  This option is intended for the
