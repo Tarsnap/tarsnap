@@ -68,11 +68,12 @@ _tarsnap ()
 		  --no-progress-bytes --no-quiet --no-retry-forever \
 		  --no-snaptime --no-store-atime --no-totals --nodump \
 		  --noisy-warnings --normalmem --nuke --null \
-		  --null-output --numeric-owner --one-file-system \
-		  --passphrase --print-stats --progress-bytes --quiet \
-		  --recover --resume-extract --retry-forever --snaptime \
-		  --store-atime --strip-components --totals \
-		  --verify-config --version --verylowmem"
+		  --null-input --null-output --numeric-owner \
+		  --one-file-system --passphrase --print-stats \
+		  --progress-bytes --quiet --recover --resume-extract \
+		  --retry-forever --snaptime --store-atime \
+		  --strip-components --totals --verify-config --version \
+		  --verylowmem"
 
 	# Available short options
 	shortopts="-c -d -t -x -r -C -f -H -h -I -k -L -l -m -n -O -o -P \

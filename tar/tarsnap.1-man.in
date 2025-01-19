@@ -734,7 +734,17 @@ option specified in a configuration file.
 \fB\-T\fP,
 or
 \fB\-X\fP)
-Filenames or patterns are separated by null characters,
+Synonym for
+\fB\--null-input\fP.
+Kept for historical reasons and compatibility with other tar utilities.
+.TP
+\fB\--null-input\fP
+(use with
+\fB\-I\fP,
+\fB\-T\fP,
+or
+\fB\-X\fP)
+Filenames, archive names, and patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the
 \fB\-print0\fP
@@ -964,10 +974,10 @@ The special name
 on a line by itself will cause the current directory to be changed to
 the directory specified on the following line.
 Names are terminated by newlines unless
-\fB\--null\fP
+\fB\--null-input\fP
 is specified.
 Note that
-\fB\--null\fP
+\fB\--null-input\fP
 also disables the special handling of lines containing
 ``-C''.
 If
