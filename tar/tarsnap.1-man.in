@@ -752,8 +752,8 @@ option to
 \fBfind\fP(1).
 .TP
 \fB\--null-output\fP
-(list-archives mode only)
-Archive names in output are separated by null characters, not by newlines.
+(x, t, and list-archives modes only)
+Archive names and filenames in output are separated by null characters, not by newlines.
 .TP
 \fB\--numeric-owner\fP
 (x mode only)
