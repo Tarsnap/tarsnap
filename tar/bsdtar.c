@@ -703,7 +703,8 @@ main(int argc, char **argv)
 			set_mode(bsdtar, opt, "--nuke");
 			break;
 		case OPTION_NULL: /* GNU tar */
-			bsdtar->option_null++;
+		case OPTION_NULL_INPUT: /* tarsnap */
+			bsdtar->option_null_input++;
 			break;
 		case OPTION_NULL_OUTPUT: /* tarsnap */
 			bsdtar->option_null_output++;
@@ -1049,8 +1050,8 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--newer-mtime", "cxt");
 	if (bsdtar->option_absolute_paths)
 		only_mode(bsdtar, "-P", "cxt");
-	if (bsdtar->option_null)
-		only_mode(bsdtar, "--null", "cxt");
+	if (bsdtar->option_null_input)
+		only_mode(bsdtar, "--null-input", "cxt");
 	if (bsdtar->option_null_output) {
 		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
 			only_mode(bsdtar, "--null-output", "");

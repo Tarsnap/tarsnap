@@ -664,7 +664,16 @@ option specified in a configuration file.
 .Fl T ,
 or
 .Fl X )
-Filenames or patterns are separated by null characters,
+Synonym for
+.Fl -null-input .
+Kept for historical reasons and compatibility with other tar utilities.
+.It Fl -null-input
+(use with
+.Fl I ,
+.Fl T ,
+or
+.Fl X )
+Filenames, archive names, and patterns are separated by null characters,
 not by newlines.
 This is often used to read filenames output by the
 .Fl print0
@@ -869,10 +878,10 @@ The special name
 on a line by itself will cause the current directory to be changed to
 the directory specified on the following line.
 Names are terminated by newlines unless
-.Fl -null
+.Fl -null-input
 is specified.
 Note that
-.Fl -null
+.Fl -null-input
 also disables the special handling of lines containing
 .Dq -C .
 If

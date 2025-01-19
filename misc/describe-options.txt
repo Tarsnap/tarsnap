@@ -68,6 +68,7 @@
 --normalmem			ignore any lowmem or verylowmem option
 --nuke				delete all of the archives stored	MODE
 --null				input split by NULs instead of newlines
+--null-input			input split by NULs instead of newlines
 --null-output			output split by NULs instead of newlines
 --numeric-owner			ignore symbolic ownership when restoring
 --one-file-system		do not cross mount points

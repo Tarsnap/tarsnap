@@ -514,7 +514,7 @@ archive_names_from_file(struct bsdtar *bsdtar, struct archive *a)
 
 	bsdtar->next_line_is_dir = 0;
 	process_lines(bsdtar, bsdtar->names_from_file,
-	    archive_names_from_file_helper, bsdtar->option_null);
+	    archive_names_from_file_helper, bsdtar->option_null_input);
 	if (bsdtar->next_line_is_dir)
 		bsdtar_errc(bsdtar, 1, errno,
 		    "Unexpected end of filename list; "
@@ -533,7 +533,7 @@ archive_names_from_file_helper(struct bsdtar *bsdtar, const char *line)
 			bsdtar->return_value = 1;
 		}
 		bsdtar->next_line_is_dir = 0;
-	} else if (!bsdtar->option_null && strcmp(line, "-C") == 0)
+	} else if (!bsdtar->option_null_input && strcmp(line, "-C") == 0)
 		bsdtar->next_line_is_dir = 1;
 	else {
 		if (*line != '/')
