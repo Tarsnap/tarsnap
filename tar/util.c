@@ -750,7 +750,10 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	w = strlen(p);
 	if (w > bsdtar->u_width)
 		bsdtar->u_width = w;
-	fprintf(out, "%-*s", (int)bsdtar->u_width, p);
+	if (bsdtar->option_null_output)
+		fprintf(out, "%s", p);
+	else
+		fprintf(out, "%-*s", (int)bsdtar->u_width, p);
 	print_sep(bsdtar, out, ' ', 2);
 
 	/* Use gname if it's present, else gid. */
@@ -784,7 +787,10 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	}
 	if (w + strlen(tmp) >= bsdtar->gs_width)
 		bsdtar->gs_width = w+strlen(tmp)+1;
-	fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
+	if (bsdtar->option_null_output)
+		fprintf(out, "%s", tmp);
+	else
+		fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
 
 	/* Format the time. */
 	tim = (time_t)st->st_mtime;
