@@ -110,19 +110,6 @@ flag is specified two or more times, the command
 line with which
 \fB\%tarsnap\fP
 was invoked to create each archive is also printed.
-.PP
-If the
-\fB\--null-output\fP
-argument is also specified, each archive name will be separated by a single
-null character.
-If the
-\fB\-v\fP
-flag is also specified, then the creation time will be separated by two null
-characters.
-If the
-\fB\-v\fP
-flag is specified two times, then the arguments in the command line will be
-separated by three null characters.
 .TP
 \fB\--print-stats\fP
 Print global statistics concerning the archives stored, and optionally
@@ -752,8 +739,14 @@ option to
 \fBfind\fP(1).
 .TP
 \fB\--null-output\fP
-(list-archives mode only)
-Archive names in output are separated by null characters, not by newlines.
+(x, t, and list-archives modes only)
+Archive names and filenames in output are separated by null characters, not by
+newlines.
+.PP
+If there are multiple fields on a line, they will be separated by two null
+characters.
+If a command line is printed within one of those fields, each argument will be
+separated by three null characters.
 .TP
 \fB\--numeric-owner\fP
 (x mode only)
