@@ -736,20 +736,22 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	}
 	if (!now)
 		time(&now);
-	fprintf(out, "%s %d ",
-	    archive_entry_strmode(entry),
-	    (int)(st->st_nlink));
+	fprintf(out, "%s", archive_entry_strmode(entry));
+	fprintf(out, " ");
+	fprintf(out, "%d", (int)(st->st_nlink));
+	fprintf(out, " ");
 
 	/* Use uname if it's present, else uid. */
 	p = archive_entry_uname(entry);
 	if ((p == NULL) || (*p == '\0')) {
-		sprintf(tmp, "%lu ", (unsigned long)st->st_uid);
+		sprintf(tmp, "%lu", (unsigned long)st->st_uid);
 		p = tmp;
 	}
 	w = strlen(p);
 	if (w > bsdtar->u_width)
 		bsdtar->u_width = w;
-	fprintf(out, "%-*s ", (int)bsdtar->u_width, p);
+	fprintf(out, "%-*s", (int)bsdtar->u_width, p);
+	fprintf(out, " ");
 
 	/* Use gname if it's present, else gid. */
 	p = archive_entry_gname(entry);
@@ -804,13 +806,21 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 #endif
 	}
 	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
-	fprintf(out, " %s ", tmp);
+	fprintf(out, " ");
+	fprintf(out, "%s", tmp);
+	fprintf(out, " ");
 	safe_fprintf(out, "%s", archive_entry_pathname(entry));
 
 	/* Extra information for links. */
-	if (archive_entry_hardlink(entry)) /* Hard link */
-		safe_fprintf(out, " link to %s",
-		    archive_entry_hardlink(entry));
-	else if (S_ISLNK(st->st_mode)) /* Symbolic link */
-		safe_fprintf(out, " -> %s", archive_entry_symlink(entry));
+	if (archive_entry_hardlink(entry)) { /* Hard link */
+		fprintf(out, " ");
+		fprintf(out, "link to");
+		fprintf(out, " ");
+		safe_fprintf(out, "%s", archive_entry_hardlink(entry));
+	} else if (S_ISLNK(st->st_mode)) { /* Symbolic link */
+		fprintf(out, " ");
+		fprintf(out, "->");
+		fprintf(out, " ");
+		safe_fprintf(out, "%s", archive_entry_symlink(entry));
+	}
 }
