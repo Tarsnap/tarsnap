@@ -12,7 +12,9 @@
   more -v arguments are specified, multiple null characters are used to
   separate fields; see the man page for details.
 - tarsnap now accepts --null-output with -x and -t, which causes them to
-  separate each filename with a null character.
+  separate each filename with a null character.  If there are multiple fields
+  on a line, null characters are used instead of spaces; see the man page for
+  details.
 - tarsnap now accepts --null-input as a synonym for --null.  For compatibility
   reasons, --null is still supported, and will not be deprecated.
 - tarsnap now accepts --hashes, which causes --list-archives to print hashes
