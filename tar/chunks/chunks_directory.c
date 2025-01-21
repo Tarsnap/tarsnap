@@ -319,7 +319,6 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 	struct chunkstats_external cse;
 	FILE * f;
 	char * s;
-	int fd;
 
 	/* The caller must pass the cachepath, and a suffix to use. */
 	assert(cachepath != NULL);
@@ -351,18 +350,8 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 		goto err2;
 
 	/* Call fsync on the new chunk directory and close it. */
-	if (fflush(f)) {
-		warnp("fflush(%s)", s);
+	if (dirutil_fsync(f, s))
 		goto err2;
-	}
-	if ((fd = fileno(f)) == -1) {
-		warnp("fileno(%s)", s);
-		goto err2;
-	}
-	if (fsync(fd)) {
-		warnp("fsync(%s)", s);
-		goto err2;
-	}
 	if (fclose(f)) {
 		warnp("fclose(%s)", s);
 		goto err1;

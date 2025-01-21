@@ -61,6 +61,38 @@ dirutil_fsyncdir(const char * path)
 }
 
 /**
+ * dirutil_fsync(fp, name):
+ * Attempt to write the contents of ${fp} to disk.  Do not close ${fp}.
+ *
+ * Caveat: "Disks lie" - Kirk McKusick.
+ */
+int
+dirutil_fsync(FILE * fp, const char * name)
+{
+	int fd;
+
+	if (fflush(fp)) {
+		warnp("fflush(%s)", name);
+		goto err0;
+	}
+	if ((fd = fileno(fp)) == -1) {
+		warnp("fileno(%s)", name);
+		goto err0;
+	}
+	if (fsync(fd)) {
+		warnp("fsync(%s)", name);
+		goto err0;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
  * build_dir(dir, diropt):
  * Make sure that ${dir} exists, creating it (and any parents) as necessary.
  */
