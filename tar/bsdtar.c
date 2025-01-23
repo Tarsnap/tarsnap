@@ -1311,11 +1311,15 @@ main(int argc, char **argv)
 #endif
 
 	if (bsdtar->return_value != 0) {
-		/* If we modified the storage, return 2 instead. */
-		if (bsdtar->storage_modified)
-			bsdtar->return_value = 2;
 		bsdtar_warnc(bsdtar, 0,
 		    "Error exit delayed from previous errors.");
+		/* If we modified the storage, return 2 instead, and warn. */
+		if (bsdtar->storage_modified) {
+			bsdtar->return_value = 2;
+			bsdtar_warnc(bsdtar, 0,
+			    "Data on server was modified, but it might not"
+			    "be exactly what you requested");
+		}
 	}
 	return (bsdtar->return_value);
 }
