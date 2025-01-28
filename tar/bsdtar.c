@@ -1374,7 +1374,8 @@ usage(struct bsdtar *bsdtar)
 static void
 version(void)
 {
-	printf("tarsnap %s\n", PACKAGE_VERSION);
+
+	fprintf(stdout, "tarsnap %s\n", PACKAGE_VERSION);
 	exit(0);
 }
 
@@ -1414,7 +1415,8 @@ long_help(struct bsdtar *bsdtar)
 	fflush(stderr);
 
 	p = (strcmp(prog, "tarsnap") != 0) ? "(tarsnap)" : "";
-	printf("%s%s: create and manipulate archives on the Tarsnap backup service\n", prog, p);
+	fprintf(stdout, "%s%s: create and manipulate archives on the "
+	    "Tarsnap backup service\n", prog, p);
 
 	for (p = long_help_msg; *p != '\0'; p++) {
 		if (*p == '%') {
