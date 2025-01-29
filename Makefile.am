@@ -10,6 +10,7 @@ noinst_LIBRARIES=			\
 	lib/libtarsnap_aesni.a		\
 	lib/libtarsnap_arm_aes.a	\
 	lib/libtarsnap_arm_sha256.a	\
+	lib/libtarsnap_crypto.a		\
 	lib/libtarsnap_rdrand.a		\
 	lib/libtarsnap_shani.a		\
 	lib/libtarsnap_sse2.a		\
@@ -113,16 +114,12 @@ libarchive_libarchive_a_CPPFLAGS=-I$(top_builddir)/libarchive
 # directly into other translation unit(s), and not compiled on its own.
 lib_libtarsnap_a_SOURCES=					\
 		lib/crypto/crypto.h				\
-		lib/crypto/crypto_compat.c			\
 		lib/crypto/crypto_compat.h			\
 		lib/crypto/crypto_file.c			\
 		lib/crypto/crypto_hash.c			\
 		lib/crypto/crypto_internal.h			\
-		lib/crypto/crypto_keys.c			\
 		lib/crypto/crypto_keys_server.c			\
-		lib/crypto/crypto_keys_subr.c			\
 		lib/crypto/crypto_passwd_to_dh.c		\
-		lib/crypto/crypto_rsa.c				\
 		lib/crypto/crypto_scrypt_smix.c			\
 		lib/crypto/crypto_scrypt_smix.h			\
 		lib/crypto/crypto_scrypt_smix_sse2.h		\
@@ -194,7 +191,6 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/cpusupport/cpusupport_x86_shani.c	\
 		libcperciva/cpusupport/cpusupport_x86_sse2.c	\
 		libcperciva/cpusupport/cpusupport_x86_ssse3.c	\
-		libcperciva/crypto/crypto_aes.c			\
 		libcperciva/crypto/crypto_aes.h			\
 		libcperciva/crypto/crypto_aes_aesni.h		\
 		libcperciva/crypto/crypto_aes_aesni_m128i.h	\
@@ -402,6 +398,20 @@ nodist_lib_libtarsnap_arm_sha256_a_SOURCES=			\
 lib_libtarsnap_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
 LIBTARSNAP_A+=	lib/libtarsnap_arm_sha256.a
+
+lib_libtarsnap_crypto_a_SOURCES=				\
+		lib/crypto/crypto_compat.c			\
+		lib/crypto/crypto_compat.h			\
+		lib/crypto/crypto_keys.c			\
+		lib/crypto/crypto_keys.h			\
+		lib/crypto/crypto_keys_subr.c			\
+		lib/crypto/crypto_keys_subr.h			\
+		lib/crypto/crypto_rsa.c				\
+		libcperciva/crypto/crypto_aes.c			\
+		libcperciva/crypto/crypto_aes.h
+lib_libtarsnap_crypto_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_crypto_a_CFLAGS=`. ./apisupport-config.h; echo $${CFLAGS_LIBCRYPTO_LOW_LEVEL_AES}`
+LIBTARSNAP_A+=	lib/libtarsnap_crypto.a
 
 
 #
