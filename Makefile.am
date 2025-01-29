@@ -5,13 +5,29 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 #
 # What to build and install
 #
-noinst_LIBRARIES=	libarchive/libarchive.a lib/libtarsnap.a	\
-			lib/libtarsnap_aesni.a lib/libtarsnap_rdrand.a	\
-			lib/libtarsnap_shani.a lib/libtarsnap_sse2.a	\
-			lib/libtarsnap_arm_aes.a lib/libtarsnap_arm_sha256.a
-bin_PROGRAMS=	tarsnap tarsnap-keygen tarsnap-keyregen tarsnap-recrypt tarsnap-keymgmt
-noinst_PROGRAMS=	tests/valgrind/potential-memleaks
-man_MANS=$(tarsnap_man_MANS) $(tarsnap_keygen_man_MANS) $(tarsnap_keyregen_man_MANS) $(tarsnap_recrypt_man_MANS) $(tarsnap_keymgmt_man_MANS)
+noinst_LIBRARIES=			\
+	lib/libtarsnap.a		\
+	lib/libtarsnap_aesni.a		\
+	lib/libtarsnap_arm_aes.a	\
+	lib/libtarsnap_arm_sha256.a	\
+	lib/libtarsnap_rdrand.a		\
+	lib/libtarsnap_shani.a		\
+	lib/libtarsnap_sse2.a		\
+	libarchive/libarchive.a
+bin_PROGRAMS=				\
+	tarsnap				\
+	tarsnap-keygen			\
+	tarsnap-keymgmt			\
+	tarsnap-keyregen		\
+	tarsnap-recrypt
+noinst_PROGRAMS=			\
+	tests/valgrind/potential-memleaks
+man_MANS=				\
+	$(tarsnap_man_MANS)		\
+	$(tarsnap_keygen_man_MANS)	\
+	$(tarsnap_keyregen_man_MANS)	\
+	$(tarsnap_recrypt_man_MANS)	\
+	$(tarsnap_keymgmt_man_MANS)
 CLEANFILES=	$(man_MANS)
 
 #
@@ -283,7 +299,6 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-D_XOPEN_SOURCE=700			\
 		-DTSSERVER=\"$(TSSERVER)\"		\
 		${CFLAGS_POSIX}
-
 LIBTARSNAP_A=	lib/libtarsnap.a
 
 cpusupport-config.h:
@@ -321,8 +336,11 @@ EXTRA_DIST=								\
 		libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c	\
 		libcperciva/crypto/crypto_aesctr_shared.c
 
-BUILT_SOURCES=	cpusupport-config.h
-CLEANFILES+=	cpusupport-config.h cpusupport-config.h.tmp
+BUILT_SOURCES=						\
+		cpusupport-config.h
+CLEANFILES+=						\
+		cpusupport-config.h			\
+		cpusupport-config.h.tmp
 
 lib_libtarsnap_aesni_a_SOURCES=				\
 		libcperciva/crypto/crypto_aes_aesni.c	\
@@ -331,7 +349,6 @@ nodist_lib_libtarsnap_aesni_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
 
 lib_libtarsnap_arm_aes_a_SOURCES=				\
@@ -341,7 +358,6 @@ nodist_lib_libtarsnap_arm_aes_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_arm_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_arm_aes_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_AES}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_arm_aes.a
 
 lib_libtarsnap_rdrand_a_SOURCES=				\
@@ -350,7 +366,6 @@ nodist_lib_libtarsnap_rdrand_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_rdrand_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDRAND}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_rdrand.a
 
 lib_libtarsnap_sse2_a_SOURCES=				\
@@ -360,7 +375,6 @@ nodist_lib_libtarsnap_sse2_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_sse2_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_sse2_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 
 lib_libtarsnap_shani_a_SOURCES=				\
@@ -369,7 +383,6 @@ nodist_lib_libtarsnap_shani_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_shani_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_shani_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_shani.a
 
 lib_libtarsnap_arm_sha256_a_SOURCES=				\
@@ -378,7 +391,6 @@ nodist_lib_libtarsnap_arm_sha256_a_SOURCES=			\
 		cpusupport-config.h
 lib_libtarsnap_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
-
 LIBTARSNAP_A+=	lib/libtarsnap_arm_sha256.a
 
 
@@ -456,7 +468,8 @@ tarsnap_SOURCES+=			\
 		tar/bsdtar_cygwin.c
 endif
 
-tarsnap_DEPENDENCIES = libarchive/libarchive.a		\
+tarsnap_DEPENDENCIES =					\
+		libarchive/libarchive.a			\
 		libarchive/archive_entry.h		\
 		libarchive/archive.h			\
 		$(LIBTARSNAP_A)
@@ -493,7 +506,8 @@ tarsnap_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 #
 #
 
-tarsnap_keygen_SOURCES=	keygen/keygen.c			\
+tarsnap_keygen_SOURCES=					\
+		keygen/keygen.c				\
 		keygen/keygen.h				\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
@@ -523,7 +537,8 @@ tarsnap_keygen_man_MANS=	keygen/tarsnap-keygen.1
 #
 #
 
-tarsnap_keyregen_SOURCES=	keyregen/keyregen.c	\
+tarsnap_keyregen_SOURCES=				\
+		keyregen/keyregen.c			\
 		keygen/keygen.h				\
 		keygen/keygen_actual.c			\
 		keygen/keygen_network.c
@@ -554,7 +569,8 @@ tarsnap_keyregen_man_MANS=	keyregen/tarsnap-keyregen.1
 #
 #
 
-tarsnap_recrypt_SOURCES=	recrypt/recrypt.c	\
+tarsnap_recrypt_SOURCES=				\
+		recrypt/recrypt.c			\
 		tar/chunks/chunks_delete.c		\
 		tar/chunks/chunks_directory.c		\
 		tar/chunks/chunks_stats.c		\
@@ -633,7 +649,8 @@ tests_valgrind_potential_memleaks_CPPFLAGS =		\
 		${CFLAGS_POSIX}
 
 # Add test files to dist
-EXTRA_DIST+=	tests/01-trivial.sh			\
+EXTRA_DIST+=						\
+		tests/01-trivial.sh			\
 		tests/01-trivial.sh			\
 		tests/02-c-dry-run-no-keyfile.sh	\
 		tests/03-c-dry-run-fake-keyfile.sh	\
@@ -689,7 +706,8 @@ keymgmt/tarsnap-keymgmt.1: keymgmt/tarsnap-keymgmt.1-@MANVER@
 	mv $@.tmp $@
 
 # Add man files to dist
-EXTRA_DIST+=	keygen/tarsnap-keygen.1-man		\
+EXTRA_DIST+=						\
+		keygen/tarsnap-keygen.1-man		\
 		keygen/tarsnap-keygen.1-mdoc		\
 		keymgmt/tarsnap-keymgmt.1-man		\
 		keymgmt/tarsnap-keymgmt.1-mdoc		\
@@ -705,11 +723,12 @@ EXTRA_DIST+=	keygen/tarsnap-keygen.1-man		\
 CLEANFILES+=   tar/tarsnap.1-mdoc tar/tarsnap.conf.5-mdoc
 
 # Add misc files to dist
-EXTRA_DIST+=	BUILDING				\
-		lib/netpacket/packets.txt		\
-		libcperciva/COPYRIGHT			\
-		misc/describe-options.txt		\
-		pkg/
+EXTRA_DIST+=					\
+	BUILDING				\
+	lib/netpacket/packets.txt		\
+	libcperciva/COPYRIGHT			\
+	misc/describe-options.txt		\
+	pkg/
 
 #
 # Misc helper scripts
@@ -717,7 +736,8 @@ EXTRA_DIST+=	BUILDING				\
 #
 if INSTALL_BASH_COMPLETION
 bashcompdir = $(BASH_COMPLETION_DIR)
-dist_bashcomp_DATA = misc/bash_completion.d/tarsnap	\
+dist_bashcomp_DATA =					\
+	misc/bash_completion.d/tarsnap			\
 	misc/bash_completion.d/tarsnap-keygen		\
 	misc/bash_completion.d/tarsnap-keymgmt		\
 	misc/bash_completion.d/tarsnap-keyregen		\
