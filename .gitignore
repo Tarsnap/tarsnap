@@ -23,6 +23,7 @@
 .dirstamp
 /Makefile
 /a.out.dSYM
+/apisupport-config.h
 /config.h
 /config.status
 /cpusupport-config.h

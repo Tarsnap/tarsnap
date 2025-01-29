@@ -268,6 +268,7 @@ lib_libtarsnap_a_SOURCES=					\
 		libcperciva/util/warnp.h
 
 nodist_lib_libtarsnap_a_SOURCES=				\
+		apisupport-config.h				\
 		cpusupport-config.h
 
 lib_libtarsnap_a_CPPFLAGS=				\
@@ -294,6 +295,7 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		-I$(top_srcdir)/libcperciva/external/queue \
 		-I$(top_srcdir)/libcperciva/network	\
 		-I$(top_srcdir)/libcperciva/util	\
+		-DAPISUPPORT_CONFIG_FILE=\"apisupport-config.h\" \
 		-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" \
 		-D_POSIX_C_SOURCE=200809L		\
 		-D_XOPEN_SOURCE=700			\
@@ -301,6 +303,11 @@ lib_libtarsnap_a_CPPFLAGS=				\
 		${CFLAGS_POSIX}
 LIBTARSNAP_A=	lib/libtarsnap.a
 
+# apisupport has extra CFLAGS (compared to cpusupport), because it needs to
+# access post-configure info: lib-platform/platform.h, config.h, and
+# -DHAVE_CONFIG_H.
+apisupport-config.h:
+	( export CC="${CC}"; export CFLAGS="-I${top_srcdir}/lib-platform -I${builddir} ${DEFS} ${CFLAGS}"; command -p sh $(srcdir)/libcperciva/apisupport/Build/apisupport.sh "$$PATH") > apisupport-config.h.tmp && command -p mv apisupport-config.h.tmp apisupport-config.h
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
 
@@ -337,8 +344,11 @@ EXTRA_DIST=								\
 		libcperciva/crypto/crypto_aesctr_shared.c
 
 BUILT_SOURCES=						\
+		apisupport-config.h			\
 		cpusupport-config.h
 CLEANFILES+=						\
+		apisupport-config.h			\
+		apisupport-config.h.tmp			\
 		cpusupport-config.h			\
 		cpusupport-config.h.tmp
 
