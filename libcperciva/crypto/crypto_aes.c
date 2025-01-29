@@ -1,3 +1,7 @@
+/**
+ * APISUPPORT CFLAGS: LIBCRYPTO_LOW_LEVEL_AES
+ */
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
