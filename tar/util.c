@@ -686,6 +686,22 @@ pathcmp(const char *a, const char *b)
 	return (*(const unsigned char *)a - *(const unsigned char *)b);
 }
 
+/* Print ${sep} if appropriate; otherwise, print ${num} NULs. */
+void
+print_sep(struct bsdtar *bsdtar, FILE * out, char sep, int num)
+{
+	int i;
+
+	if (bsdtar->option_null_output) {
+		/* Print the specified number of NULs. */
+		for (i = 0; i < num; i++)
+			fprintf(out, "%c", '\0');
+	} else {
+		/* Print the normal separator. */
+		fprintf(out, "%c", sep);
+	}
+}
+
 /*
  * Display information about the current file.
  *
@@ -720,20 +736,25 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	}
 	if (!now)
 		time(&now);
-	fprintf(out, "%s %d ",
-	    archive_entry_strmode(entry),
-	    (int)(st->st_nlink));
+	fprintf(out, "%s", archive_entry_strmode(entry));
+	print_sep(bsdtar, out, ' ', 2);
+	fprintf(out, "%d", (int)(st->st_nlink));
+	print_sep(bsdtar, out, ' ', 2);
 
 	/* Use uname if it's present, else uid. */
 	p = archive_entry_uname(entry);
 	if ((p == NULL) || (*p == '\0')) {
-		sprintf(tmp, "%lu ", (unsigned long)st->st_uid);
+		sprintf(tmp, "%lu", (unsigned long)st->st_uid);
 		p = tmp;
 	}
 	w = strlen(p);
 	if (w > bsdtar->u_width)
 		bsdtar->u_width = w;
-	fprintf(out, "%-*s ", (int)bsdtar->u_width, p);
+	if (bsdtar->option_null_output)
+		fprintf(out, "%s", p);
+	else
+		fprintf(out, "%-*s", (int)bsdtar->u_width, p);
+	print_sep(bsdtar, out, ' ', 2);
 
 	/* Use gname if it's present, else gid. */
 	p = archive_entry_gname(entry);
@@ -766,7 +787,10 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	}
 	if (w + strlen(tmp) >= bsdtar->gs_width)
 		bsdtar->gs_width = w+strlen(tmp)+1;
-	fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
+	if (bsdtar->option_null_output)
+		fprintf(out, "%s", tmp);
+	else
+		fprintf(out, "%*s", (int)(bsdtar->gs_width - w), tmp);
 
 	/* Format the time. */
 	tim = (time_t)st->st_mtime;
@@ -788,13 +812,22 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 #endif
 	}
 	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
-	fprintf(out, " %s ", tmp);
+	print_sep(bsdtar, out, ' ', 2);
+	fprintf(out, "%s", tmp);
+	print_sep(bsdtar, out, ' ', 2);
 	safe_fprintf(out, "%s", archive_entry_pathname(entry));
 
 	/* Extra information for links. */
-	if (archive_entry_hardlink(entry)) /* Hard link */
-		safe_fprintf(out, " link to %s",
-		    archive_entry_hardlink(entry));
-	else if (S_ISLNK(st->st_mode)) /* Symbolic link */
-		safe_fprintf(out, " -> %s", archive_entry_symlink(entry));
+	if (archive_entry_hardlink(entry)) { /* Hard link */
+		print_sep(bsdtar, out, ' ', 2);
+		fprintf(out, "link to");
+		print_sep(bsdtar, out, ' ', 2);
+		safe_fprintf(out, "%s", archive_entry_hardlink(entry));
+	} else if (S_ISLNK(st->st_mode)) { /* Symbolic link */
+		print_sep(bsdtar, out, ' ', 2);
+		fprintf(out, "->");
+		print_sep(bsdtar, out, ' ', 2);
+		safe_fprintf(out, "%s", archive_entry_symlink(entry));
+		print_sep(bsdtar, out, ' ', 2);
+	}
 }

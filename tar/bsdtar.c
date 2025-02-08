@@ -1054,7 +1054,7 @@ main(int argc, char **argv)
 		only_mode(bsdtar, "--null-input", "cxt");
 	if (bsdtar->option_null_output) {
 		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
-			only_mode(bsdtar, "--null-output", "");
+			only_mode(bsdtar, "--null-output", "xt");
 	}
 
 	/* We should only have remaining args in -c, -t, and -x modes. */
