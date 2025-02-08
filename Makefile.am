@@ -6,28 +6,28 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 # What to build and install
 #
 noinst_LIBRARIES=							\
-	libarchive/libarchive.a						\
-	lib/libtarsnap.a						\
 	lib/libcperciva_aesni.a						\
+	lib/libcperciva_arm_aes.a					\
+	lib/libcperciva_arm_sha256.a					\
 	lib/libcperciva_rdrand.a					\
 	lib/libcperciva_shani.a						\
+	lib/libtarsnap.a						\
 	lib/libtarsnap_sse2.a						\
-	lib/libcperciva_arm_aes.a					\
-	lib/libcperciva_arm_sha256.a
+	libarchive/libarchive.a
 bin_PROGRAMS=								\
 	tarsnap								\
 	tarsnap-keygen							\
+	tarsnap-keymgmt							\
 	tarsnap-keyregen						\
-	tarsnap-recrypt							\
-	tarsnap-keymgmt
+	tarsnap-recrypt
 noinst_PROGRAMS=							\
 	tests/valgrind/potential-memleaks
 man_MANS=								\
-	$(tarsnap_man_MANS)						\
 	$(tarsnap_keygen_man_MANS)					\
+	$(tarsnap_keymgmt_man_MANS)					\
 	$(tarsnap_keyregen_man_MANS)					\
-	$(tarsnap_recrypt_man_MANS)					\
-	$(tarsnap_keymgmt_man_MANS)
+	$(tarsnap_man_MANS)						\
+	$(tarsnap_recrypt_man_MANS)
 CLEANFILES=	$(man_MANS)
 
 #
@@ -98,8 +98,8 @@ libarchive_libarchive_a_SOURCES=					\
 
 if INC_WINDOWS_FILES
 libarchive_libarchive_a_SOURCES+=					\
-	libarchive/archive_windows.h					\
 	libarchive/archive_windows.c					\
+	libarchive/archive_windows.h					\
 	libarchive/filter_fork_windows.c
 endif
 
@@ -112,6 +112,15 @@ libarchive_libarchive_a_CPPFLAGS=-I$(top_builddir)/libarchive
 # Don't include crypto_aesctr_shared.c in this list, as it should be included
 # directly into other translation unit(s), and not compiled on its own.
 lib_libtarsnap_a_SOURCES=						\
+	lib-platform/crypto/crypto_scrypt.c				\
+	lib-platform/crypto/crypto_scrypt.h				\
+	lib-platform/network/tsnetwork_cork.c				\
+	lib-platform/network/tsnetwork_cork.h				\
+	lib-platform/platform.h						\
+	lib-platform/util/memlimit.c					\
+	lib-platform/util/memlimit.h					\
+	lib-platform/util/ts_getfstype.c				\
+	lib-platform/util/ts_getfstype.h				\
 	lib/crypto/crypto.h						\
 	lib/crypto/crypto_compat.c					\
 	lib/crypto/crypto_compat.h					\
@@ -172,15 +181,6 @@ lib_libtarsnap_a_SOURCES=						\
 	lib/util/sigquit.h						\
 	lib/util/tvmath.c						\
 	lib/util/tvmath.h						\
-	lib-platform/crypto/crypto_scrypt.c				\
-	lib-platform/crypto/crypto_scrypt.h				\
-	lib-platform/platform.h						\
-	lib-platform/network/tsnetwork_cork.c				\
-	lib-platform/network/tsnetwork_cork.h				\
-	lib-platform/util/memlimit.c					\
-	lib-platform/util/memlimit.h					\
-	lib-platform/util/ts_getfstype.c				\
-	lib-platform/util/ts_getfstype.h				\
 	libcperciva/alg/sha256.c					\
 	libcperciva/alg/sha256.h					\
 	libcperciva/alg/sha256_arm.h					\
@@ -271,9 +271,11 @@ nodist_lib_libtarsnap_a_SOURCES=					\
 	cpusupport-config.h
 
 lib_libtarsnap_a_CPPFLAGS=						\
-	-I$(top_srcdir)/tar						\
-	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/lib-platform/crypto				\
+	-I$(top_srcdir)/lib-platform/network				\
+	-I$(top_srcdir)/lib-platform/util				\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
@@ -282,10 +284,7 @@ lib_libtarsnap_a_CPPFLAGS=						\
 	-I$(top_srcdir)/lib/network					\
 	-I$(top_srcdir)/lib/scryptenc					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
-	-I$(top_srcdir)/lib-platform/crypto				\
-	-I$(top_srcdir)/lib-platform/network				\
-	-I$(top_srcdir)/lib-platform/util				\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/alg					\
 	-I$(top_srcdir)/libcperciva/cpusupport				\
 	-I$(top_srcdir)/libcperciva/crypto				\
@@ -294,10 +293,11 @@ lib_libtarsnap_a_CPPFLAGS=						\
 	-I$(top_srcdir)/libcperciva/external/queue			\
 	-I$(top_srcdir)/libcperciva/network				\
 	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar						\
 	-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"		\
+	-DTSSERVER=\"$(TSSERVER)\"					\
 	-D_POSIX_C_SOURCE=200809L					\
 	-D_XOPEN_SOURCE=700						\
-	-DTSSERVER=\"$(TSSERVER)\"					\
 	${CFLAGS_POSIX}
 LIBTARSNAP_A=	lib/libtarsnap.a
 
@@ -322,7 +322,6 @@ EXTRA_DIST=								\
 	libcperciva/POSIX/posix-restrict.c				\
 	libcperciva/POSIX/posix-stat-st_mtim.c				\
 	libcperciva/POSIX/posix-trivial.c				\
-	libcperciva/cpusupport/Build/cpusupport.sh			\
 	libcperciva/cpusupport/Build/cpusupport-ARM-AES.c		\
 	libcperciva/cpusupport/Build/cpusupport-ARM-SHA256.c		\
 	libcperciva/cpusupport/Build/cpusupport-HWCAP-ELF_AUX_INFO.c	\
@@ -334,6 +333,7 @@ EXTRA_DIST=								\
 	libcperciva/cpusupport/Build/cpusupport-X86-SHANI.c		\
 	libcperciva/cpusupport/Build/cpusupport-X86-SSE2.c		\
 	libcperciva/cpusupport/Build/cpusupport-X86-SSSE3.c		\
+	libcperciva/cpusupport/Build/cpusupport.sh			\
 	libcperciva/crypto/crypto_aesctr_shared.c
 
 BUILT_SOURCES=								\
@@ -369,8 +369,8 @@ lib_libcperciva_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDR
 LIBTARSNAP_A+=	lib/libcperciva_rdrand.a
 
 lib_libtarsnap_sse2_a_SOURCES=						\
-	libcperciva/alg/sha256_sse2.c					\
-	lib/crypto/crypto_scrypt_smix_sse2.c
+	lib/crypto/crypto_scrypt_smix_sse2.c				\
+	libcperciva/alg/sha256_sse2.c
 nodist_lib_libtarsnap_sse2_a_SOURCES=					\
 	cpusupport-config.h
 lib_libtarsnap_sse2_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
@@ -459,32 +459,26 @@ tarsnap_SOURCES=							\
 
 if INC_WINDOWS_FILES
 tarsnap_SOURCES+=							\
-	tar/bsdtar_windows.h						\
-	tar/bsdtar_windows.c
+	tar/bsdtar_windows.c						\
+	tar/bsdtar_windows.h
 endif
 if INC_CYGWIN_FILES
 tarsnap_SOURCES+=							\
-	tar/bsdtar_cygwin.h						\
-	tar/bsdtar_cygwin.c
+	tar/bsdtar_cygwin.c						\
+	tar/bsdtar_cygwin.h
 endif
 
 tarsnap_DEPENDENCIES =							\
-	libarchive/libarchive.a						\
-	libarchive/archive_entry.h					\
+	$(LIBTARSNAP_A)							\
 	libarchive/archive.h						\
-	$(LIBTARSNAP_A)
+	libarchive/archive_entry.h					\
+	libarchive/libarchive.a
 
 tarsnap_LDADD= libarchive/libarchive.a $(LIBTARSNAP_A)
 tarsnap_CPPFLAGS=							\
-	-I$(top_srcdir)/libarchive					\
-	-DLIBARCHIVE_STATIC						\
-	-I$(top_srcdir)/tar						\
-	-I$(top_srcdir)/tar/ccache					\
-	-I$(top_srcdir)/tar/chunks					\
-	-I$(top_srcdir)/tar/glue					\
-	-I$(top_srcdir)/tar/multitape					\
-	-I$(top_srcdir)/tar/storage					\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/lib-platform/util				\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
@@ -492,12 +486,18 @@ tarsnap_CPPFLAGS=							\
 	-I$(top_srcdir)/lib/netproto					\
 	-I$(top_srcdir)/lib/network					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
-	-I$(top_srcdir)/lib-platform/util				\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/crypto				\
 	-I$(top_srcdir)/libcperciva/datastruct				\
 	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar						\
+	-I$(top_srcdir)/tar/ccache					\
+	-I$(top_srcdir)/tar/chunks					\
+	-I$(top_srcdir)/tar/glue					\
+	-I$(top_srcdir)/tar/multitape					\
+	-I$(top_srcdir)/tar/storage					\
 	"-DETC_TARSNAP_CONF=\"${sysconfdir}/tarsnap.conf\""		\
+	-DLIBARCHIVE_STATIC						\
 	-DUSERAGENT=\"tarsnap-${VERSION}\"
 tarsnap_man_MANS=	tar/tarsnap.1 tar/tarsnap.conf.5
 
@@ -514,10 +514,9 @@ tarsnap_keygen_SOURCES=							\
 
 tarsnap_keygen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keygen_CPPFLAGS=						\
-	-I$(top_srcdir)/libarchive					\
-	-I$(top_srcdir)/tar						\
 	-I$(top_srcdir)/keygen						\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
@@ -525,9 +524,10 @@ tarsnap_keygen_CPPFLAGS=						\
 	-I$(top_srcdir)/lib/netproto					\
 	-I$(top_srcdir)/lib/network					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/crypto				\
 	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar						\
 	-DUSERAGENT=\"tarsnap-keygen-${VERSION}\"
 
 tarsnap_keygen_man_MANS=	keygen/tarsnap-keygen.1
@@ -538,17 +538,16 @@ tarsnap_keygen_man_MANS=	keygen/tarsnap-keygen.1
 #
 
 tarsnap_keyregen_SOURCES=						\
-	keyregen/keyregen.c						\
 	keygen/keygen.h							\
 	keygen/keygen_actual.c						\
-	keygen/keygen_network.c
+	keygen/keygen_network.c						\
+	keyregen/keyregen.c
 
 tarsnap_keyregen_LDADD= $(LIBTARSNAP_A)
 tarsnap_keyregen_CPPFLAGS=						\
-	-I$(top_srcdir)/libarchive					\
-	-I$(top_srcdir)/tar						\
 	-I$(top_srcdir)/keygen						\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
@@ -556,9 +555,10 @@ tarsnap_keyregen_CPPFLAGS=						\
 	-I$(top_srcdir)/lib/netproto					\
 	-I$(top_srcdir)/lib/network					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/crypto				\
 	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar						\
 	-DUSERAGENT=\"tarsnap-keyregen-${VERSION}\"
 
 tarsnap_keyregen_man_MANS=	keyregen/tarsnap-keyregen.1
@@ -589,12 +589,8 @@ tarsnap_recrypt_SOURCES=						\
 
 tarsnap_recrypt_LDADD= $(LIBTARSNAP_A)
 tarsnap_recrypt_CPPFLAGS=						\
-	-I$(top_srcdir)/tar						\
-	-I$(top_srcdir)/libarchive					\
-	-I$(top_srcdir)/tar/chunks					\
-	-I$(top_srcdir)/tar/multitape					\
-	-I$(top_srcdir)/tar/storage					\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
@@ -602,9 +598,13 @@ tarsnap_recrypt_CPPFLAGS=						\
 	-I$(top_srcdir)/lib/netproto					\
 	-I$(top_srcdir)/lib/network					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/crypto				\
 	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar						\
+	-I$(top_srcdir)/tar/chunks					\
+	-I$(top_srcdir)/tar/multitape					\
+	-I$(top_srcdir)/tar/storage					\
 	-DUSERAGENT=\"tarsnap-recrypt-${VERSION}\"
 tarsnap_recrypt_man_MANS=	recrypt/tarsnap-recrypt.1
 
@@ -618,16 +618,16 @@ tarsnap_keymgmt_SOURCES=	keymgmt/keymgmt.c
 
 tarsnap_keymgmt_LDADD= $(LIBTARSNAP_A)
 tarsnap_keymgmt_CPPFLAGS=						\
-	-I$(top_srcdir)/tar						\
-	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/lib						\
+	-I$(top_srcdir)/lib-platform					\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
 	-I$(top_srcdir)/lib/util					\
-	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/libarchive					\
 	-I$(top_srcdir)/libcperciva/crypto				\
-	-I$(top_srcdir)/libcperciva/util
+	-I$(top_srcdir)/libcperciva/util				\
+	-I$(top_srcdir)/tar
 
 tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 
@@ -656,11 +656,11 @@ EXTRA_DIST+=								\
 	tests/03-c-dry-run-fake-keyfile.sh				\
 	tests/04-c-d-real-keyfile.sh					\
 	tests/05-passphrase.sh						\
-	tests/06-progress-output.sh					\
 	tests/06-progress-output-pb.good				\
 	tests/06-progress-output-v.good					\
 	tests/06-progress-output-vpb-1k.good				\
 	tests/06-progress-output-vpb-20k.good				\
+	tests/06-progress-output.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
