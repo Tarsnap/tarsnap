@@ -8,12 +8,12 @@ AUTOMAKE_OPTIONS= foreign subdir-objects
 noinst_LIBRARIES=							\
 	libarchive/libarchive.a						\
 	lib/libtarsnap.a						\
-	lib/libtarsnap_aesni.a						\
-	lib/libtarsnap_rdrand.a						\
-	lib/libtarsnap_shani.a						\
+	lib/libcperciva_aesni.a						\
+	lib/libcperciva_rdrand.a					\
+	lib/libcperciva_shani.a						\
 	lib/libtarsnap_sse2.a						\
-	lib/libtarsnap_arm_aes.a					\
-	lib/libtarsnap_arm_sha256.a
+	lib/libcperciva_arm_aes.a					\
+	lib/libcperciva_arm_sha256.a
 bin_PROGRAMS=								\
 	tarsnap								\
 	tarsnap-keygen							\
@@ -342,31 +342,31 @@ CLEANFILES+=								\
 	cpusupport-config.h						\
 	cpusupport-config.h.tmp
 
-lib_libtarsnap_aesni_a_SOURCES=						\
+lib_libcperciva_aesni_a_SOURCES=					\
 	libcperciva/crypto/crypto_aes_aesni.c				\
 	libcperciva/crypto/crypto_aesctr_aesni.c
-nodist_lib_libtarsnap_aesni_a_SOURCES=					\
+nodist_lib_libcperciva_aesni_a_SOURCES=					\
 	cpusupport-config.h
-lib_libtarsnap_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
-lib_libtarsnap_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
-LIBTARSNAP_A+=	lib/libtarsnap_aesni.a
+lib_libcperciva_aesni_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_aesni_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_AESNI}`
+LIBTARSNAP_A+=	lib/libcperciva_aesni.a
 
-lib_libtarsnap_arm_aes_a_SOURCES=					\
+lib_libcperciva_arm_aes_a_SOURCES=					\
 	libcperciva/crypto/crypto_aes_arm.c				\
 	libcperciva/crypto/crypto_aesctr_arm.c
-nodist_lib_libtarsnap_arm_aes_a_SOURCES=				\
+nodist_lib_libcperciva_arm_aes_a_SOURCES=				\
 	cpusupport-config.h
-lib_libtarsnap_arm_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
-lib_libtarsnap_arm_aes_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_AES}`
-LIBTARSNAP_A+=	lib/libtarsnap_arm_aes.a
+lib_libcperciva_arm_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_arm_aes_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_AES}`
+LIBTARSNAP_A+=	lib/libcperciva_arm_aes.a
 
-lib_libtarsnap_rdrand_a_SOURCES=					\
+lib_libcperciva_rdrand_a_SOURCES=					\
 	libcperciva/crypto/crypto_entropy_rdrand.c
-nodist_lib_libtarsnap_rdrand_a_SOURCES=					\
+nodist_lib_libcperciva_rdrand_a_SOURCES=				\
 	cpusupport-config.h
-lib_libtarsnap_rdrand_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
-lib_libtarsnap_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDRAND}`
-LIBTARSNAP_A+=	lib/libtarsnap_rdrand.a
+lib_libcperciva_rdrand_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_rdrand_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_RDRAND}`
+LIBTARSNAP_A+=	lib/libcperciva_rdrand.a
 
 lib_libtarsnap_sse2_a_SOURCES=						\
 	libcperciva/alg/sha256_sse2.c					\
@@ -377,21 +377,21 @@ lib_libtarsnap_sse2_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libtarsnap_sse2_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SSE2}`
 LIBTARSNAP_A+=	lib/libtarsnap_sse2.a
 
-lib_libtarsnap_shani_a_SOURCES=						\
+lib_libcperciva_shani_a_SOURCES=					\
 	libcperciva/alg/sha256_shani.c
-nodist_lib_libtarsnap_shani_a_SOURCES=					\
+nodist_lib_libcperciva_shani_a_SOURCES=					\
 	cpusupport-config.h
-lib_libtarsnap_shani_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
-lib_libtarsnap_shani_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}`
-LIBTARSNAP_A+=	lib/libtarsnap_shani.a
+lib_libcperciva_shani_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_shani_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}`
+LIBTARSNAP_A+=	lib/libcperciva_shani.a
 
-lib_libtarsnap_arm_sha256_a_SOURCES=					\
+lib_libcperciva_arm_sha256_a_SOURCES=					\
 	libcperciva/alg/sha256_arm.c
-nodist_lib_libtarsnap_arm_sha256_a_SOURCES=				\
+nodist_lib_libcperciva_arm_sha256_a_SOURCES=				\
 	cpusupport-config.h
-lib_libtarsnap_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
-lib_libtarsnap_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
-LIBTARSNAP_A+=	lib/libtarsnap_arm_sha256.a
+lib_libcperciva_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
+LIBTARSNAP_A+=	lib/libcperciva_arm_sha256.a
 
 
 #
