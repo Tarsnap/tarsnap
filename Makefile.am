@@ -14,6 +14,7 @@ noinst_LIBRARIES=							\
 	lib/libcperciva_rdrand.a					\
 	lib/libcperciva_shani.a						\
 	lib/libtarsnap.a						\
+	lib/libtarsnap_rsa.a						\
 	lib/libtarsnap_sse2.a						\
 	libarchive/libarchive.a
 bin_PROGRAMS=								\
@@ -124,23 +125,16 @@ lib_libtarsnap_a_SOURCES=						\
 	lib-platform/util/ts_getfstype.c				\
 	lib-platform/util/ts_getfstype.h				\
 	lib/crypto/crypto.h						\
-	lib/crypto/crypto_compat.c					\
 	lib/crypto/crypto_compat.h					\
-	lib/crypto/crypto_file.c					\
 	lib/crypto/crypto_hash.c					\
 	lib/crypto/crypto_internal.h					\
-	lib/crypto/crypto_keys.c					\
-	lib/crypto/crypto_keys_server.c					\
-	lib/crypto/crypto_keys_subr.c					\
 	lib/crypto/crypto_passwd_to_dh.c				\
-	lib/crypto/crypto_rsa.c						\
 	lib/crypto/crypto_scrypt_smix.c					\
 	lib/crypto/crypto_scrypt_smix.h					\
 	lib/crypto/crypto_scrypt_smix_sse2.h				\
 	lib/crypto/crypto_session.c					\
 	lib/datastruct/patricia.c					\
 	lib/datastruct/patricia.h					\
-	lib/datastruct/rwhashtab.c					\
 	lib/datastruct/rwhashtab.h					\
 	lib/keyfile/keyfile.c						\
 	lib/keyfile/keyfile.h						\
@@ -420,6 +414,21 @@ nodist_lib_libcperciva_cpusupport_detect_a_SOURCES=			\
 	cpusupport-config.h
 lib_libcperciva_cpusupport_detect_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 LIBTARSNAP_A+=	lib/libcperciva_cpusupport_detect.a
+
+# The latter 3 files do not need CFLAGS_LIBCRYPTO_LOW_LEVEL_RSA,
+# but we need them in this library to resolve symbols.
+lib_libtarsnap_rsa_a_SOURCES=						\
+	lib/crypto/crypto_compat.c					\
+	lib/crypto/crypto_keys.c					\
+	lib/crypto/crypto_keys_subr.c					\
+	lib/crypto/crypto_rsa.c						\
+									\
+	lib/crypto/crypto_file.c					\
+	lib/crypto/crypto_keys_server.c					\
+	lib/datastruct/rwhashtab.c
+lib_libtarsnap_rsa_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libtarsnap_rsa_a_CFLAGS=`. ./apisupport-config.h; echo $${CFLAGS_LIBCRYPTO_LOW_LEVEL_RSA}`
+LIBTARSNAP_A+=	lib/libtarsnap_rsa.a
 
 
 #
