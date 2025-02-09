@@ -9,6 +9,7 @@ noinst_LIBRARIES=							\
 	lib/libcperciva_aesni.a						\
 	lib/libcperciva_arm_aes.a					\
 	lib/libcperciva_arm_sha256.a					\
+	lib/libcperciva_cpusupport_detect.a				\
 	lib/libcperciva_rdrand.a					\
 	lib/libcperciva_shani.a						\
 	lib/libtarsnap.a						\
@@ -187,13 +188,6 @@ lib_libtarsnap_a_SOURCES=						\
 	libcperciva/alg/sha256_shani.h					\
 	libcperciva/alg/sha256_sse2.h					\
 	libcperciva/cpusupport/cpusupport.h				\
-	libcperciva/cpusupport/cpusupport_arm_aes.c			\
-	libcperciva/cpusupport/cpusupport_arm_sha256.c			\
-	libcperciva/cpusupport/cpusupport_x86_aesni.c			\
-	libcperciva/cpusupport/cpusupport_x86_rdrand.c			\
-	libcperciva/cpusupport/cpusupport_x86_shani.c			\
-	libcperciva/cpusupport/cpusupport_x86_sse2.c			\
-	libcperciva/cpusupport/cpusupport_x86_ssse3.c			\
 	libcperciva/crypto/crypto_aes.c					\
 	libcperciva/crypto/crypto_aes.h					\
 	libcperciva/crypto/crypto_aes_aesni.h				\
@@ -392,6 +386,19 @@ nodist_lib_libcperciva_arm_sha256_a_SOURCES=				\
 lib_libcperciva_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libcperciva_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
 LIBTARSNAP_A+=	lib/libcperciva_arm_sha256.a
+
+lib_libcperciva_cpusupport_detect_a_SOURCES=				\
+	libcperciva/cpusupport/cpusupport_arm_aes.c			\
+	libcperciva/cpusupport/cpusupport_arm_sha256.c			\
+	libcperciva/cpusupport/cpusupport_x86_aesni.c			\
+	libcperciva/cpusupport/cpusupport_x86_rdrand.c			\
+	libcperciva/cpusupport/cpusupport_x86_shani.c			\
+	libcperciva/cpusupport/cpusupport_x86_sse2.c			\
+	libcperciva/cpusupport/cpusupport_x86_ssse3.c
+nodist_lib_libcperciva_cpusupport_detect_a_SOURCES=			\
+	cpusupport-config.h
+lib_libcperciva_cpusupport_detect_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+LIBTARSNAP_A+=	lib/libcperciva_cpusupport_detect.a
 
 
 #
