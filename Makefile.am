@@ -10,6 +10,7 @@ noinst_LIBRARIES=							\
 	lib/libcperciva_arm_aes.a					\
 	lib/libcperciva_arm_sha256.a					\
 	lib/libcperciva_cpusupport_detect.a				\
+	lib/libcperciva_crypto_aes.a					\
 	lib/libcperciva_rdrand.a					\
 	lib/libcperciva_shani.a						\
 	lib/libtarsnap.a						\
@@ -188,7 +189,6 @@ lib_libtarsnap_a_SOURCES=						\
 	libcperciva/alg/sha256_shani.h					\
 	libcperciva/alg/sha256_sse2.h					\
 	libcperciva/cpusupport/cpusupport.h				\
-	libcperciva/crypto/crypto_aes.c					\
 	libcperciva/crypto/crypto_aes.h					\
 	libcperciva/crypto/crypto_aes_aesni.h				\
 	libcperciva/crypto/crypto_aes_aesni_m128i.h			\
@@ -345,6 +345,17 @@ CLEANFILES+=								\
 	apisupport-config.h.tmp						\
 	cpusupport-config.h						\
 	cpusupport-config.h.tmp
+
+# libcperciva_crypto_aes depends on libcperciva_cpusupport_detect, so _crypto_aes
+# must come before _cpusupport_detect in LIBTARSNAP_A.
+lib_libcperciva_crypto_aes_a_SOURCES=					\
+	libcperciva/crypto/crypto_aes.c
+nodist_lib_libcperciva_crypto_aes_a_SOURCES=				\
+	apisupport-config.h						\
+	cpusupport-config.h
+lib_libcperciva_crypto_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_crypto_aes_a_CFLAGS=`. ./apisupport-config.h; echo $${CFLAGS_LIBCRYPTO_LOW_LEVEL_AES}`
+LIBTARSNAP_A+=	lib/libcperciva_crypto_aes.a
 
 lib_libcperciva_aesni_a_SOURCES=					\
 	libcperciva/crypto/crypto_aes_aesni.c				\
