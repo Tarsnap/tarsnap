@@ -9,6 +9,8 @@ noinst_LIBRARIES=							\
 	lib/libcperciva_aesni.a						\
 	lib/libcperciva_arm_aes.a					\
 	lib/libcperciva_arm_sha256.a					\
+	lib/libcperciva_cpusupport_detect.a				\
+	lib/libcperciva_crypto_aes.a					\
 	lib/libcperciva_rdrand.a					\
 	lib/libcperciva_shani.a						\
 	lib/libtarsnap.a						\
@@ -187,14 +189,6 @@ lib_libtarsnap_a_SOURCES=						\
 	libcperciva/alg/sha256_shani.h					\
 	libcperciva/alg/sha256_sse2.h					\
 	libcperciva/cpusupport/cpusupport.h				\
-	libcperciva/cpusupport/cpusupport_arm_aes.c			\
-	libcperciva/cpusupport/cpusupport_arm_sha256.c			\
-	libcperciva/cpusupport/cpusupport_x86_aesni.c			\
-	libcperciva/cpusupport/cpusupport_x86_rdrand.c			\
-	libcperciva/cpusupport/cpusupport_x86_shani.c			\
-	libcperciva/cpusupport/cpusupport_x86_sse2.c			\
-	libcperciva/cpusupport/cpusupport_x86_ssse3.c			\
-	libcperciva/crypto/crypto_aes.c					\
 	libcperciva/crypto/crypto_aes.h					\
 	libcperciva/crypto/crypto_aes_aesni.h				\
 	libcperciva/crypto/crypto_aes_aesni_m128i.h			\
@@ -268,6 +262,7 @@ lib_libtarsnap_a_SOURCES=						\
 	libcperciva/util/warnp.h
 
 nodist_lib_libtarsnap_a_SOURCES=					\
+	apisupport-config.h						\
 	cpusupport-config.h
 
 lib_libtarsnap_a_CPPFLAGS=						\
@@ -294,6 +289,7 @@ lib_libtarsnap_a_CPPFLAGS=						\
 	-I$(top_srcdir)/libcperciva/network				\
 	-I$(top_srcdir)/libcperciva/util				\
 	-I$(top_srcdir)/tar						\
+	-DAPISUPPORT_CONFIG_FILE=\"apisupport-config.h\"		\
 	-DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"		\
 	-DTSSERVER=\"$(TSSERVER)\"					\
 	-D_POSIX_C_SOURCE=200809L					\
@@ -301,6 +297,11 @@ lib_libtarsnap_a_CPPFLAGS=						\
 	${CFLAGS_POSIX}
 LIBTARSNAP_A=	lib/libtarsnap.a
 
+# apisupport has extra CFLAGS (compared to cpusupport), because it needs to
+# access post-configure info: lib-platform/platform.h, config.h, and
+# -DHAVE_CONFIG_H.
+apisupport-config.h:
+	( export CC="${CC}"; export CFLAGS="-I${top_srcdir}/lib-platform -I${builddir} ${DEFS} ${CFLAGS}"; command -p sh $(srcdir)/libcperciva/apisupport/Build/apisupport.sh "$$PATH") > apisupport-config.h.tmp && command -p mv apisupport-config.h.tmp apisupport-config.h
 cpusupport-config.h:
 	( export CC="${CC}"; export CFLAGS="${CFLAGS}"; command -p sh $(srcdir)/libcperciva/cpusupport/Build/cpusupport.sh "$$PATH" ) > cpusupport-config.h.tmp && command -p mv cpusupport-config.h.tmp cpusupport-config.h
 
@@ -337,10 +338,24 @@ EXTRA_DIST=								\
 	libcperciva/crypto/crypto_aesctr_shared.c
 
 BUILT_SOURCES=								\
+	apisupport-config.h						\
 	cpusupport-config.h
 CLEANFILES+=								\
+	apisupport-config.h						\
+	apisupport-config.h.tmp						\
 	cpusupport-config.h						\
 	cpusupport-config.h.tmp
+
+# libcperciva_crypto_aes depends on libcperciva_cpusupport_detect, so _crypto_aes
+# must come before _cpusupport_detect in LIBTARSNAP_A.
+lib_libcperciva_crypto_aes_a_SOURCES=					\
+	libcperciva/crypto/crypto_aes.c
+nodist_lib_libcperciva_crypto_aes_a_SOURCES=				\
+	apisupport-config.h						\
+	cpusupport-config.h
+lib_libcperciva_crypto_aes_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+lib_libcperciva_crypto_aes_a_CFLAGS=`. ./apisupport-config.h; echo $${CFLAGS_LIBCRYPTO_LOW_LEVEL_AES}`
+LIBTARSNAP_A+=	lib/libcperciva_crypto_aes.a
 
 lib_libcperciva_aesni_a_SOURCES=					\
 	libcperciva/crypto/crypto_aes_aesni.c				\
@@ -392,6 +407,19 @@ nodist_lib_libcperciva_arm_sha256_a_SOURCES=				\
 lib_libcperciva_arm_sha256_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
 lib_libcperciva_arm_sha256_a_CFLAGS=`. ./cpusupport-config.h; echo $${CFLAGS_ARM_SHA256}`
 LIBTARSNAP_A+=	lib/libcperciva_arm_sha256.a
+
+lib_libcperciva_cpusupport_detect_a_SOURCES=				\
+	libcperciva/cpusupport/cpusupport_arm_aes.c			\
+	libcperciva/cpusupport/cpusupport_arm_sha256.c			\
+	libcperciva/cpusupport/cpusupport_x86_aesni.c			\
+	libcperciva/cpusupport/cpusupport_x86_rdrand.c			\
+	libcperciva/cpusupport/cpusupport_x86_shani.c			\
+	libcperciva/cpusupport/cpusupport_x86_sse2.c			\
+	libcperciva/cpusupport/cpusupport_x86_ssse3.c
+nodist_lib_libcperciva_cpusupport_detect_a_SOURCES=			\
+	cpusupport-config.h
+lib_libcperciva_cpusupport_detect_a_CPPFLAGS=$(lib_libtarsnap_a_CPPFLAGS)
+LIBTARSNAP_A+=	lib/libcperciva_cpusupport_detect.a
 
 
 #
