@@ -43,9 +43,6 @@ static void crypto_keys_atexit(void);
 #define KEYHEADER_OFFSET_TYPE	4
 #define KEYHEADER_LEN	5
 
-/* Amount of entropy to use for seeding OpenSSL. */
-#define RANDBUFLEN	2048
-
 /**
  * export_key(key, buf, buflen):
  * If buf != NULL, export the specified key.  Return the key length in bytes.
@@ -118,13 +115,12 @@ err0:
 }
 
 /**
- * crypto_keys_init(void):
+ * crypto_keys_init_keycache(void):
  * Initialize the key cache.
  */
 int
-crypto_keys_init(void)
+crypto_keys_init_keycache(void)
 {
-	uint8_t randbuf[RANDBUFLEN];
 
 	/*
 	 * No keys yet.  memset() is insufficient since NULL is not required
@@ -147,28 +143,6 @@ crypto_keys_init(void)
 	/* It's now safe to call crypto_keys_atexit() upon exit. */
 	if (atexit(crypto_keys_atexit)) {
 		warnp("Could not initialize atexit");
-		goto err0;
-	}
-
-	/* Load OpenSSL error strings. */
-	ERR_load_crypto_strings();
-
-	/* Seed OpenSSL entropy pool. */
-	if (crypto_entropy_read(randbuf, RANDBUFLEN)) {
-		warnp("Could not obtain sufficient entropy");
-		goto err0;
-	}
-	RAND_seed(randbuf, RANDBUFLEN);
-
-	/* Load server root public key. */
-	if (crypto_keys_server_import_root()) {
-		warn0("Could not import server root public key");
-		goto err0;
-	}
-
-	/* Initialize keys owned by crypto_file. */
-	if (crypto_file_init_keys()) {
-		warn0("Could not initialize crypto_file keys");
 		goto err0;
 	}
 

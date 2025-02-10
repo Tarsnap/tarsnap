@@ -130,6 +130,7 @@ lib_libtarsnap_a_SOURCES=						\
 	lib/crypto/crypto_hash.c					\
 	lib/crypto/crypto_internal.h					\
 	lib/crypto/crypto_keys.c					\
+	lib/crypto/crypto_keys_init.c					\
 	lib/crypto/crypto_keys_server.c					\
 	lib/crypto/crypto_keys_subr.c					\
 	lib/crypto/crypto_passwd_to_dh.c				\
