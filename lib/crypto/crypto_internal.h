@@ -92,6 +92,12 @@ void crypto_keys_subr_free_HMAC(struct crypto_hmac_key **);
 int crypto_file_init_keys(void);
 
 /**
+ * crypto_keys_init_keycache(void):
+ * Initialize the key cache.
+ */
+int crypto_keys_init_keycache(void);
+
+/**
  * crypto_MGF1(seed, seedlen, buf, buflen):
  * The MGF1 mask generation function, as specified in RFC 3447 section B.2.1,
  * using SHA256 as the hash function.

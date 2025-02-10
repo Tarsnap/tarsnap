@@ -89,7 +89,7 @@ typedef struct crypto_session_internal CRYPTO_SESSION;
 
 /**
  * crypto_keys_init(void):
- * Initialize the key cache.
+ * Initialize cryptographic keys.
  */
 int crypto_keys_init(void);
 
