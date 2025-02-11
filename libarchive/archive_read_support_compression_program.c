@@ -152,7 +152,7 @@ archive_read_support_compression_program_signature(struct archive *_a,
 	/*
 	 * Allocate our private state.
 	 */
-	state = (struct program_bidder *)calloc(sizeof (*state), 1);
+	state = (struct program_bidder *)calloc(1, sizeof (*state));
 	if (state == NULL)
 		goto memerr;
 	state->cmd = strdup(cmd);
