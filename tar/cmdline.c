@@ -1,5 +1,5 @@
 /*-
- * Copyright 2006-2009 Colin Percival
+ * Copyright 2006-2025 Tarsnap Backup Inc.
  * All rights reserved.
  *
  * Portions of the file below are covered by the following license:
