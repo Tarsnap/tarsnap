@@ -828,6 +828,5 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 		fprintf(out, "->");
 		print_sep(bsdtar, out, ' ', 2);
 		safe_fprintf(out, "%s", archive_entry_symlink(entry));
-		print_sep(bsdtar, out, ' ', 2);
 	}
 }
