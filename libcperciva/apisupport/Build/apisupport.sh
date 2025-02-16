@@ -83,3 +83,5 @@ feature LIBSSL HOST_NAME "-lssl" ""			\
 	"-Wno-cast-qual"
 feature LIBCRYPTO LOW_LEVEL_AES "-lcrypto" ""		\
 	"-Wno-deprecated-declarations"
+feature LIBCRYPTO LOW_LEVEL_RSA "-lcrypto" ""		\
+	"-Wno-deprecated-declarations"
