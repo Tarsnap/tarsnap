@@ -27,6 +27,7 @@ env:
                       tar/tarsnap-tree.o tar/tarsnap-util.o
                       tar/tarsnap-write.o libarchive/libarchive.a
   CFLAGS_CLANG_PROJECT: -Wno-undef -Wno-implicit-fallthrough
+                        -Wno-reserved-identifier
   CFLAGS_GCC_PROJECT: -Wno-cpp
   # Needed for major() / minor() / makedev() thing.
   CFLAGS_LIBARCHIVE_GCC: -Wno-error
@@ -37,7 +38,7 @@ env:
 jobs:
   Ubuntu:
     name: Ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Update apt-get
       run: sudo apt-get update
@@ -51,18 +52,18 @@ jobs:
         autoreconf -i
     - name: configure with clang
       env:
-        CC: clang-10
+        CC: clang-13
         CFLAGS: ${{ env.CFLAGS_ALL }}
       run: ./configure
     - name: Compile libarchive with clang
       env:
-        CC: clang-10
+        CC: clang-13
         # We need to use more permissive CFLAGS for libarchive code.
         CFLAGS: ${{ env.CFLAGS_ALL }}
       run: make ${{ env.LIBARCHIVE_OBJECTS }}
     - name: Compile with clang
       env:
-        CC: clang-10
+        CC: clang-13
         CFLAGS: ${{ env.CFLAGS_ALL }}
                 ${{ env.CFLAGS_CLANG_LIBCPERCIVA }}
                 ${{ env.CFLAGS_CLANG_PROJECT }}
