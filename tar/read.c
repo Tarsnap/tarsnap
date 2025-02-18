@@ -282,23 +282,23 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			fflush(out);
 			r = archive_read_data_skip(a);
 			if (r == ARCHIVE_WARN) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(bsdtar, out, "\n", 1);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 			}
 			if (r == ARCHIVE_RETRY) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(bsdtar, out, "\n", 1);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 			}
 			if (r == ARCHIVE_FATAL) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(bsdtar, out, "\n", 1);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 				bsdtar->return_value = 1;
 				break;
 			}
-			print_sep(bsdtar, out, '\n', 1);
+			print_sep(bsdtar, out, "\n", 1);
 		} else {
 			/* Note: some rewrite failures prevent extraction. */
 			if (edit_pathname(bsdtar, entry))
@@ -363,11 +363,11 @@ read_archive(struct bsdtar *bsdtar, char mode)
 				safe_fprintf(stderr, ": %s",
 				    archive_error_string(a));
 				if (!bsdtar->verbose)
-					print_sep(bsdtar, stderr, '\n', 1);
+					print_sep(bsdtar, stderr, "\n", 1);
 				bsdtar->return_value = 1;
 			}
 			if (bsdtar->verbose)
-				print_sep(bsdtar, stderr, '\n', 1);
+				print_sep(bsdtar, stderr, "\n", 1);
 			if (r == ARCHIVE_FATAL)
 				break;
 		}
@@ -389,7 +389,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	if (bsdtar->verbose > 2) {
 		fprintf(stdout, "Archive Format: %s,  Compression: %s",
 		    archive_format_name(a), archive_compression_name(a));
-		print_sep(bsdtar, stdout, '\n', 1);
+		print_sep(bsdtar, stdout, "\n", 1);
 	}
 
 	/* Always print a final message for --progress-bytes. */

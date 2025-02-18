@@ -215,13 +215,13 @@ err0:
 
 /* Print ${sep} if ${nulls} is zero; otherwise, print ${num} NULs. */
 static int
-print_sep(char sep, int nulls, int num)
+print_sep(char * sep, int nulls, int num)
 {
 	int i;
 
 	if (nulls == 0) {
 		/* Print the normal separator. */
-		if (fprintf(stdout, "%c", sep) < 0) {
+		if (fprintf(stdout, "%s", sep) < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
@@ -270,12 +270,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 
 		if (verbose == 0) {
 			/* We're finished; print archive separator and quit. */
-			if (print_sep('\n', print_nulls, 1))
+			if (print_sep("\n", print_nulls, 1))
 				goto err1;
 			goto done;
 		} else {
 			/* We have more fields; print field separator. */
-			if (print_sep('\t', print_nulls, 2))
+			if (print_sep("\t", print_nulls, 2))
 				goto err1;
 		}
 	}
@@ -302,7 +302,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 		}
 
 		/* Print field separator. */
-		if (print_sep('\t', print_nulls, 2))
+		if (print_sep("\t", print_nulls, 2))
 			goto err1;
 
 		/* Print date. */
@@ -315,12 +315,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	/* Print command line. */
 	if (verbose > 1) {
 		/* Print field separator. */
-		if (print_sep('\t', print_nulls, 2))
+		if (print_sep("\t", print_nulls, 2))
 			goto err1;
 
 		for (arg = 0; arg < tmd.argc; arg++) {
 			/* Print arg separator. */
-			if ((arg > 0) && print_sep(' ', print_nulls, 3))
+			if ((arg > 0) && print_sep(" ", print_nulls, 3))
 				goto err1;
 
 			/* Print arg. */
@@ -332,7 +332,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	}
 
 	/* Print archive separator. */
-	if (print_sep('\n', print_nulls, 1))
+	if (print_sep("\n", print_nulls, 1))
 		goto err1;
 
 	/* Free parsed metadata. */
