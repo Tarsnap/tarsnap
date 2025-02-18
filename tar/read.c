@@ -74,6 +74,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/read.c,v 1.40 2008/08/21 06:41:14 kientzle E
 #include "bsdtar.h"
 
 #include "archive_multitape.h"
+#include "print_separator.h"
 
 static void	read_archive(struct bsdtar *bsdtar, char mode);
 
@@ -149,6 +150,10 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/* For use in read_archive(). */
+#define print_sep(stream)						\
+	print_separator((stream), "\n", bsdtar->option_null_output, 1)
 
 /*
  * Handle 'x' and 't' modes.
@@ -282,23 +287,23 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			fflush(out);
 			r = archive_read_data_skip(a);
 			if (r == ARCHIVE_WARN) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(out);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 			}
 			if (r == ARCHIVE_RETRY) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(out);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 			}
 			if (r == ARCHIVE_FATAL) {
-				print_sep(bsdtar, out, '\n', 1);
+				print_sep(out);
 				bsdtar_warnc(bsdtar, 0, "%s",
 				    archive_error_string(a));
 				bsdtar->return_value = 1;
 				break;
 			}
-			print_sep(bsdtar, out, '\n', 1);
+			print_sep(out);
 		} else {
 			/* Note: some rewrite failures prevent extraction. */
 			if (edit_pathname(bsdtar, entry))
@@ -363,11 +368,11 @@ read_archive(struct bsdtar *bsdtar, char mode)
 				safe_fprintf(stderr, ": %s",
 				    archive_error_string(a));
 				if (!bsdtar->verbose)
-					print_sep(bsdtar, stderr, '\n', 1);
+					print_sep(stderr);
 				bsdtar->return_value = 1;
 			}
 			if (bsdtar->verbose)
-				print_sep(bsdtar, stderr, '\n', 1);
+				print_sep(stderr);
 			if (r == ARCHIVE_FATAL)
 				break;
 		}
@@ -389,7 +394,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 	if (bsdtar->verbose > 2) {
 		fprintf(stdout, "Archive Format: %s,  Compression: %s",
 		    archive_format_name(a), archive_compression_name(a));
-		print_sep(bsdtar, stdout, '\n', 1);
+		print_sep(stdout);
 	}
 
 	/* Always print a final message for --progress-bytes. */
