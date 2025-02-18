@@ -179,6 +179,8 @@ lib_libtarsnap_a_SOURCES=						\
 	lib/util/hexlink.h						\
 	lib/util/passphrase_entry.c					\
 	lib/util/passphrase_entry.h					\
+	lib/util/print_separator.c					\
+	lib/util/print_separator.h					\
 	lib/util/sigquit.c						\
 	lib/util/sigquit.h						\
 	lib/util/tvmath.c						\
