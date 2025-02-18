@@ -63,6 +63,21 @@ chunks_stats_addstats(struct chunkstats * to, struct chunkstats * from)
 	to->s_zlen += from->s_zlen;
 }
 
+/* For use with chunks_stats_printheader() and chunks_stats_print(). */
+#define print_field(format, value, err) do {				\
+	if (fprintf(stream, (format), (value)) < 0) {			\
+		warnp("fprintf");					\
+		goto err;						\
+	}								\
+} while (0)
+
+#define print_sep(separator, err) do {					\
+	if (fprintf(stream, (separator)) < 0) {				\
+		warnp("fprintf");					\
+		goto err;						\
+	}								\
+} while (0)
+
 /**
  * chunks_stats_printheader(stream, csv):
  * Print a header line for statistics to ${stream}, optionally in ${csv}
@@ -73,28 +88,30 @@ chunks_stats_printheader(FILE * stream, int csv)
 {
 
 	if (csv) {
+		print_field("%s", "Archive name", err0);
+		print_sep(",", err0);
 #ifdef STATS_WITH_CHUNKS
-		if (fprintf(stream, "%s,%s,%s,%s\n",
-		    "Archive name", "# of chunks", "Total size",
-		    "Compressed size") < 0) {
-#else
-		if (fprintf(stream, "%s,%s,%s\n",
-		    "Archive name", "Total size", "Compressed size") < 0) {
+		print_field("%s", "# of chunks", err0);
+		print_sep(",", err0);
 #endif
-			warnp("fprintf");
-			goto err0;
-		}
+		print_field("%s", "Total size", err0);
+		print_sep(",", err0);
+		print_field("%s", "Compressed size", err0);
+		print_sep("\n", err0);
 	} else {
 #ifdef STATS_WITH_CHUNKS
-		if (fprintf(stream, "%-25s  %12s  %15s  %15s\n",
-		    "", "# of chunks", "Total size", "Compressed size") < 0) {
+		print_field("%-25s", "", err0);
+		print_sep("  ", err0);
+		print_field("%12s", "# of chunks", err0);
+		print_sep("  ", err0);
 #else
-		if (fprintf(stream, "%-32s  %15s  %15s\n",
-		    "", "Total size", "Compressed size") < 0) {
+		print_field("%-32s", "", err0);
+		print_sep("  ", err0);
 #endif
-			warnp("fprintf");
-			goto err0;
-		}
+		print_field("%15s", "Total size", err0);
+		print_sep("  ", err0);
+		print_field("%15s", "Compressed size", err0);
+		print_sep("\n", err0);
 	}
 
 	/* Success! */
@@ -149,31 +166,30 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 
 	/* Print output line. */
 	if (csv) {
-		if (fprintf(stream,
+		print_field("%s", name, err2);
+		print_sep(",", err2);
 #ifdef STATS_WITH_CHUNKS
-		    "%s,%" PRIu64 ",%s,%s\n",
-		    name, s.nchunks,
-#else
-		    "%s,%s,%s\n",
-		    name,
+		print_field("%12" PRIu64, s.nchunks, err2);
+		print_sep(",", err2);
 #endif
-		    s_lenstr, s_zlenstr) < 0) {
-			warnp("fprintf");
-			goto err2;
-		}
+		print_field("%s", s_lenstr, err2);
+		print_sep(",", err2);
+		print_field("%s", s_zlenstr, err2);
+		print_sep("\n", err2);
 	} else {
-		if (fprintf(stream,
 #ifdef STATS_WITH_CHUNKS
-		    "%-25s  %12" PRIu64 "  %15s  %15s\n",
-		    name, s.nchunks,
+		print_field("%-25s", name, err2);
+		print_sep("  ", err2);
+		print_field("%12" PRIu64, s.nchunks, err2);
+		print_sep("  ", err2);
 #else
-		    "%-32s  %15s  %15s\n",
-		    name,
+		print_field("%-32s", name, err2);
+		print_sep("  ", err2);
 #endif
-		    s_lenstr, s_zlenstr) < 0) {
-			warnp("fprintf");
-			goto err2;
-		}
+		print_field("%15s", s_lenstr, err2);
+		print_sep("  ", err2);
+		print_field("%15s", s_zlenstr, err2);
+		print_sep("\n", err2);
 	}
 
 	/* Free strings allocated by asprintf or humansize. */
