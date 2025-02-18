@@ -12,6 +12,7 @@
 #include "ctassert.h"
 #include "hexify.h"
 #include "multitape_internal.h"
+#include "print_separator.h"
 #include "storage.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -213,36 +214,6 @@ err0:
 	return (-1);
 }
 
-/* Print ${sep} if ${nulls} is zero; otherwise, print ${num} NULs. */
-static int
-print_sep(char sep, int nulls, int num)
-{
-	int i;
-
-	if (nulls == 0) {
-		/* Print the normal separator. */
-		if (fprintf(stdout, "%c", sep) < 0) {
-			warnp("fprintf");
-			goto err0;
-		}
-	} else {
-		/* Print the specified number of NULs. */
-		for (i = 0; i < num; i++) {
-			if (fprintf(stdout, "%c", '\0') < 0) {
-				warnp("fprintf");
-				goto err0;
-			}
-		}
-	}
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
 /**
  * statstape_printlist_item(d, tapehash, verbose, print_nulls, print_hash):
  * Print the name of the archive with ${tapehash}.  If ${verbose} > 0, print
@@ -270,12 +241,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 
 		if (verbose == 0) {
 			/* We're finished; print archive separator and quit. */
-			if (print_sep('\n', print_nulls, 1))
+			if (print_separator(stdout, "\n", print_nulls, 1))
 				goto err1;
 			goto done;
 		} else {
 			/* We have more fields; print field separator. */
-			if (print_sep('\t', print_nulls, 2))
+			if (print_separator(stdout, "\t", print_nulls, 2))
 				goto err1;
 		}
 	}
@@ -302,7 +273,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 		}
 
 		/* Print field separator. */
-		if (print_sep('\t', print_nulls, 2))
+		if (print_separator(stdout, "\t", print_nulls, 2))
 			goto err1;
 
 		/* Print date. */
@@ -315,12 +286,13 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	/* Print command line. */
 	if (verbose > 1) {
 		/* Print field separator. */
-		if (print_sep('\t', print_nulls, 2))
+		if (print_separator(stdout, "\t", print_nulls, 2))
 			goto err1;
 
 		for (arg = 0; arg < tmd.argc; arg++) {
 			/* Print arg separator. */
-			if ((arg > 0) && print_sep(' ', print_nulls, 3))
+			if ((arg > 0) && print_separator(stdout, " ",
+			    print_nulls, 3))
 				goto err1;
 
 			/* Print arg. */
@@ -332,7 +304,7 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	}
 
 	/* Print archive separator. */
-	if (print_sep('\n', print_nulls, 1))
+	if (print_separator(stdout, "\n", print_nulls, 1))
 		goto err1;
 
 	/* Free parsed metadata. */

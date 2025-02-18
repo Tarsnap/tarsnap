@@ -336,6 +336,5 @@ int	apply_substitution(struct bsdtar *, const char *, char **, int);
 void	cleanup_substitution(struct bsdtar *);
 #endif
 
-void	print_sep(struct bsdtar *, FILE *, char, int);
 void	list_item_verbose(struct bsdtar *, FILE *,
 		    struct archive_entry *);
