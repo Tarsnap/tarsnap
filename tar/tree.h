@@ -53,7 +53,7 @@
 struct tree;
 
 /* Initiate/terminate a tree traversal. */
-struct tree *tree_open(const char * /* pathname */);
+struct tree *tree_open(const char * /* pathname */, int /* noatime */);
 int tree_close(struct tree *);
 
 /*
