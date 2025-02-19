@@ -1042,6 +1042,13 @@ main(int argc, char **argv)
 	    (bsdtar->mode != OPTION_PRINT_STATS))
 		only_mode(bsdtar, "-f", "cxtdr");
 
+#ifndef O_NOATIME
+	if (bsdtar->option_noatime)
+		bsdtar_warnc(bsdtar, 0,
+		    "noatime requested, but not supported by this OS; "
+		    "ignoring option");
+#endif
+
 	/*
 	 * These options don't make sense for the "delete" and "convert to
 	 * tar" modes.

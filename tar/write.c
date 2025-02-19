@@ -1083,7 +1083,8 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	 */
 	if ((archive_entry_size(entry) > 0) && (filecached == 0)) {
 		const char *pathname = archive_entry_sourcepath(entry);
-		fd = open(pathname, O_RDONLY);
+		fd = fileutil_open_noatime(pathname, O_RDONLY,
+		    bsdtar->option_noatime);
 		if (fd == -1) {
 			if (!bsdtar->verbose)
 				bsdtar_warnc(bsdtar, errno,
