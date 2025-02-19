@@ -32,6 +32,9 @@
   regular --dry-run, and is suitable for checking which filesystem entries
   will be archived (with -v) or checking the total archive size (with --totals
   or --progress-bytes).
+- tarsnap now accepts --noatime with -c mode, which requests that the
+  operating system does not update atime when reading files or directories.
+  Not supported by all operating systems or filesystems.
 
 
 Tarsnap Releases
