@@ -96,6 +96,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 
 #include "archive_multitape.h"
 #include "ccache.h"
+#include "fileutil.h"
 #include "sigquit.h"
 #include "ts_getfstype.h"
 #include "tsnetwork.h"

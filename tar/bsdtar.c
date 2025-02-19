@@ -621,6 +621,9 @@ main(int argc, char **argv)
 				    ARCHIVE_STAT_MTIME_NANOS(&st);
 			}
 			break;
+		case OPTION_NOATIME: /* tarsnap */
+			optq_push(bsdtar, "noatime", NULL);
+			break;
 		case OPTION_NODUMP: /* star */
 			optq_push(bsdtar, "nodump", NULL);
 			break;
@@ -665,6 +668,9 @@ main(int argc, char **argv)
 			break;
 		case OPTION_NO_MAXBW_RATE_UP:
 			optq_push(bsdtar, "no-maxbw-rate-up", NULL);
+			break;
+		case OPTION_NO_NOATIME:
+			optq_push(bsdtar, "no-noatime", NULL);
 			break;
 		case OPTION_NO_NODUMP:
 			optq_push(bsdtar, "no-nodump", NULL);
@@ -1797,6 +1803,14 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			bsdtar_errc(bsdtar, 1, 0,
 			    "Invalid bandwidth rate limit: %s", conf_arg);
 		bsdtar->option_maxbw_rate_up_set = 1;
+	} else if (strcmp(conf_opt, "noatime") == 0) {
+		if (bsdtar->mode != 'c')
+			goto badmode;
+		if (bsdtar->option_noatime_set)
+			goto optset;
+
+		bsdtar->option_noatime = 1;
+		bsdtar->option_noatime_set = 1;
 	} else if (strcmp(conf_opt, "nodump") == 0) {
 		if (bsdtar->mode != 'c')
 			goto badmode;
@@ -1867,6 +1881,11 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 			goto optset;
 
 		bsdtar->option_maxbw_rate_up_set = 1;
+	} else if (strcmp(conf_opt, "no-noatime") == 0) {
+		if (bsdtar->option_noatime_set)
+			goto optset;
+
+		bsdtar->option_noatime_set = 1;
 	} else if (strcmp(conf_opt, "no-nodump") == 0) {
 		if (bsdtar->option_nodump_set)
 			goto optset;

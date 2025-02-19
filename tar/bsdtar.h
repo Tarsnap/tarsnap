@@ -81,6 +81,7 @@ struct bsdtar {
 	char		  option_honor_nodump; /* --nodump */
 	char		  option_interactive; /* -w */
 	char		  option_keep_going; /* --keep-going */
+	char		  option_noatime; /* --noatime */
 	char		  option_no_owner; /* -o */
 	char		  option_no_subdirs; /* -n */
 	char		  option_null_input; /* --null-input (and --null) */
@@ -107,6 +108,7 @@ struct bsdtar {
 	int		  option_maxbw_set;
 	int		  option_maxbw_rate_down_set;
 	int		  option_maxbw_rate_up_set;
+	int		  option_noatime_set;
 	int		  option_nodump_set;
 	int		  option_print_stats_set;
 	int		  option_progress_bytes_set;
@@ -236,8 +238,10 @@ enum {
 	OPTION_NEWER_CTIME_THAN,
 	OPTION_NEWER_MTIME,
 	OPTION_NEWER_MTIME_THAN,
+	OPTION_NOATIME,
 	OPTION_NODUMP,
 	OPTION_NO_AGGRESSIVE_NETWORKING,
+	OPTION_NO_NOATIME,
 	OPTION_NO_CONFIG_EXCLUDE,
 	OPTION_NO_CONFIG_INCLUDE,
 	OPTION_NO_DEFAULT_CONFIG,
