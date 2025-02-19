@@ -660,6 +660,11 @@ the download bandwidth used (unless
 \fB\--no-maxbw-rate-down\fP
 is also specified).
 .TP
+\fB\--no-noatime\fP
+Ignore any
+\fBnoatime\fP
+option specified in a configuration file.
+.TP
 \fB\--no-nodump\fP
 Ignore any
 \fBnodump\fP
@@ -699,6 +704,11 @@ option specified in a configuration file.
 Ignore any
 \fBtotals\fP
 option specified in a configuration file.
+.TP
+\fB\--noatime\fP
+(c mode only)
+Ask the operating system to not update the atime when reading files or
+directories.  Not supported by all operating systems and filesystems.
 .TP
 \fB\--nodump\fP
 (c mode only)
