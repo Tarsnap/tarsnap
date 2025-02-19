@@ -601,6 +601,10 @@ not affect the upload bandwidth used, but may affect
 the download bandwidth used (unless
 .Fl -no-maxbw-rate-down
 is also specified).
+.It Fl -no-noatime
+Ignore any
+.Cm noatime
+option specified in a configuration file.
 .It Fl -no-nodump
 Ignore any
 .Cm nodump
@@ -633,6 +637,10 @@ option specified in a configuration file.
 Ignore any
 .Cm totals
 option specified in a configuration file.
+.It Fl -noatime
+(c mode only)
+Ask the operating system to not update the atime when reading files or
+directories.  Not supported by all operating systems and filesystems.
 .It Fl -nodump
 (c mode only)
 Honor the nodump file flag by skipping this file or directory.
