@@ -86,7 +86,7 @@ chunks_stats_printheader(FILE * stream, int csv)
 		}
 	} else {
 #ifdef STATS_WITH_CHUNKS
-		if (fprintf(stream, "%-25s  %12s  %15s  %15s\n",
+		if (fprintf(stream, "%-32s  %12s  %15s  %15s\n",
 		    "", "# of chunks", "Total size", "Compressed size") < 0) {
 #else
 		if (fprintf(stream, "%-32s  %15s  %15s\n",
@@ -116,7 +116,6 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 {
 	struct chunkstats s;
 	char * s_lenstr, * s_zlenstr;
-	const char * format_string;
 
 	/* Compute sum of stats and stats_extra. */
 	s.nchunks = stats->nchunks + stats_extra->nchunks;
@@ -131,16 +130,11 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 		    s.nchunks * STORAGE_FILE_OVERHEAD)) == NULL)
 			goto err1;
 	} else {
-		if (csv)
-			format_string = "%" PRIu64;
-		else
-			format_string = "%15" PRIu64;
-
-		if (asprintf(&s_lenstr, format_string, s.s_len) == -1) {
+		if (asprintf(&s_lenstr, "%" PRIu64, s.s_len) == -1) {
 			warnp("asprintf");
 			goto err0;
 		}
-		if (asprintf(&s_zlenstr, format_string,
+		if (asprintf(&s_zlenstr, "%" PRIu64,
 		    s.s_zlen + s.nchunks * STORAGE_FILE_OVERHEAD) == -1) {
 			warnp("asprintf");
 			goto err1;
@@ -164,7 +158,7 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 	} else {
 		if (fprintf(stream,
 #ifdef STATS_WITH_CHUNKS
-		    "%-25s  %12" PRIu64 "  %15s  %15s\n",
+		    "%-32s  %12" PRIu64 "  %15s  %15s\n",
 		    name, s.nchunks,
 #else
 		    "%-32s  %15s  %15s\n",
