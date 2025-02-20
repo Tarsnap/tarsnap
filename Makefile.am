@@ -120,6 +120,8 @@ lib_libtarsnap_a_SOURCES=						\
 	lib-platform/network/tsnetwork_cork.c				\
 	lib-platform/network/tsnetwork_cork.h				\
 	lib-platform/platform.h						\
+	lib-platform/util/fileutil.c					\
+	lib-platform/util/fileutil.h					\
 	lib-platform/util/memlimit.c					\
 	lib-platform/util/memlimit.h					\
 	lib-platform/util/ts_getfstype.c				\
