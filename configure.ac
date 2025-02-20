@@ -326,7 +326,7 @@ AC_FUNC_STRERROR_R
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS_ONCE([chflags chown chroot])
-AC_CHECK_FUNCS_ONCE([fchdir fchflags fchmod fchown fcntl fork])
+AC_CHECK_FUNCS_ONCE([fchdir fchflags fchmod fchown fcntl fdopendir fork])
 AC_CHECK_FUNCS_ONCE([fstat ftruncate futimes geteuid getpid])
 AC_CHECK_FUNCS_ONCE([lchflags lchmod lchown])
 AC_CHECK_FUNCS_ONCE([lutimes memmove memset mkdir mkfifo mknod])
