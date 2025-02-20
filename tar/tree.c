@@ -137,6 +137,8 @@ struct tree {
 	int	 openCount;
 	int	 maxOpenCount;
 
+	int	 noatime;
+
 	struct stat	lst;
 	struct stat	st;
 };
@@ -266,7 +268,7 @@ tree_append(struct tree *t, const char *name, size_t name_length)
  * Open a directory tree for traversal.
  */
 struct tree *
-tree_open(const char *path)
+tree_open(const char *path, int noatime)
 {
 	struct tree *t;
 
@@ -274,6 +276,7 @@ tree_open(const char *path)
 	if (t == NULL)
 		abort();
 	memset(t, 0, sizeof(*t));
+	t->noatime = noatime;
 	tree_append(t, path, strlen(path));
 #ifdef HAVE_FCHDIR
 	t->initialDirFd = open(".", O_RDONLY);

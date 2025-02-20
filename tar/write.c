@@ -766,7 +766,7 @@ write_hierarchy(struct bsdtar *bsdtar, struct archive *a, const char *path)
 	dev_t last_dev = 0;
 	char * fstype;
 
-	tree = tree_open(path);
+	tree = tree_open(path, bsdtar->option_noatime);
 
 	if (!tree) {
 		bsdtar_warnc(bsdtar, errno, "%s: Cannot open", path);
