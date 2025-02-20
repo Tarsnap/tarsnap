@@ -96,6 +96,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 
 #include "archive_multitape.h"
 #include "ccache.h"
+#include "fileutil.h"
 #include "sigquit.h"
 #include "ts_getfstype.h"
 #include "tsnetwork.h"
@@ -1082,7 +1083,8 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 	 */
 	if ((archive_entry_size(entry) > 0) && (filecached == 0)) {
 		const char *pathname = archive_entry_sourcepath(entry);
-		fd = open(pathname, O_RDONLY);
+		fd = fileutil_open_noatime(pathname, O_RDONLY,
+		    bsdtar->option_noatime);
 		if (fd == -1) {
 			if (!bsdtar->verbose)
 				bsdtar_warnc(bsdtar, errno,
