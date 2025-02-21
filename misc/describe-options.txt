@@ -55,6 +55,7 @@
 --no-maxbw			ignore any maxbw option
 --no-maxbw-rate-down		ignore any maxbw-rate-down option
 --no-maxbw-rate-up		ignore any maxbw-rate-up option
+--no-noatime			ignore any noatime option
 --no-nodump			ignore any nodump option
 --no-print-stats		ignore any print-stats option
 --no-progress-bytes		ignore any progress-bytes option
@@ -63,6 +64,7 @@
 --no-snaptime			ignore any snaptime option
 --no-store-atime		ignore any store-atime option
 --no-totals			ignore any totals option
+--noatime			do not modify atime, if possible
 --nodump			do not read files with the nodump file flag
 --noisy-warnings		verbose when warning about network glitches
 --normalmem			ignore any lowmem or verylowmem option

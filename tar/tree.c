@@ -75,6 +75,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/tree.c,v 1.9 2008/11/27 05:49:52 kientzle Ex
 #include <unistd.h>
 #endif
 
+#include "fileutil.h"
+
 #include "tree.h"
 
 /*
@@ -137,6 +139,8 @@ struct tree {
 	int	 openCount;
 	int	 maxOpenCount;
 
+	int	 noatime;
+
 	struct stat	lst;
 	struct stat	st;
 };
@@ -188,6 +192,46 @@ tree_dump(struct tree *t, FILE *out)
 	}
 }
 #endif
+
+/*
+ * Attempt to opendir() with O_NOATIME if requested.  This is not supported by
+ * all operating systems or filesystems.  If any error occurs, do not print any
+ * message, and opendir() without O_NOATIME.
+ */
+static DIR*
+tree_opendir(const char *path, int noatime)
+{
+#ifndef HAVE_FDOPENDIR
+
+	(void)noatime; /* UNUSED */
+
+	return (opendir(path));
+#else
+	const int flags = O_RDONLY | O_DIRECTORY | O_CLOEXEC;
+	DIR *dir;
+	int fd;
+	int saved_errno;
+
+	/* Open a fd with noatime (if applicable). */
+	if ((fd = fileutil_open_noatime(path, flags, noatime)) < 0)
+		goto err0;
+
+	/* Re-open as a DIR*. */
+	if ((dir = fdopendir(fd)) == NULL)
+		goto err1;
+
+	/* Success! */
+	return (dir);
+
+err1:
+	saved_errno = errno;
+	close(fd);
+	errno = saved_errno;
+err0:
+	/* Failure! */
+	return (NULL);
+#endif
+}
 
 /*
  * Add a directory path to the current stack.
@@ -266,7 +310,7 @@ tree_append(struct tree *t, const char *name, size_t name_length)
  * Open a directory tree for traversal.
  */
 struct tree *
-tree_open(const char *path)
+tree_open(const char *path, int noatime)
 {
 	struct tree *t;
 
@@ -274,6 +318,7 @@ tree_open(const char *path)
 	if (t == NULL)
 		abort();
 	memset(t, 0, sizeof(*t));
+	t->noatime = noatime;
 	tree_append(t, path, strlen(path));
 #ifdef HAVE_FCHDIR
 	t->initialDirFd = open(".", O_RDONLY);
@@ -444,7 +489,7 @@ tree_next(struct tree *t)
 				return (t->visit_type = TREE_ERROR_DIR);
 			}
 			t->depth++;
-			t->d = opendir(".");
+			t->d = tree_opendir(".", t->noatime);
 			if (t->d == NULL) {
 				t->tree_errno = errno;
 				r = tree_ascend(t); /* Undo "chdir" */
