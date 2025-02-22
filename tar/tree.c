@@ -87,7 +87,6 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/tree.c,v 1.9 2008/11/27 05:49:52 kientzle Ex
 
 struct tree_entry {
 	struct tree_entry *next;
-	struct tree_entry *parent;
 	char *name;
 	size_t dirname_length;
 	dev_t dev;
@@ -113,7 +112,6 @@ struct tree_entry {
  */
 struct tree {
 	struct tree_entry	*stack;
-	struct tree_entry	*current;
 	DIR	*d;
 #ifdef HAVE_FCHDIR
 	int	 initialDirFd;
@@ -172,26 +170,6 @@ errmsg(const char *m)
 		s -= written;
 	}
 }
-
-#if 0
-#include <stdio.h>
-void
-tree_dump(struct tree *t, FILE *out)
-{
-	struct tree_entry *te;
-
-	fprintf(out, "\tdepth: %d\n", t->depth);
-	fprintf(out, "\tbuff: %s\n", t->buff);
-	fprintf(out, "\tpwd: "); fflush(stdout); system("pwd");
-	fprintf(out, "\taccess: %s\n", t->basename);
-	fprintf(out, "\tstack:\n");
-	for (te = t->stack; te != NULL; te = te->next) {
-		fprintf(out, "\t\tte->name: %s%s%s\n", te->name,
-		    te->flags & needsPreVisit ? "" : " *",
-		    t->current == te ? " (current)" : "");
-	}
-}
-#endif
 
 /*
  * Attempt to opendir() with O_NOATIME if requested.  This is not supported by
@@ -391,8 +369,6 @@ tree_pop(struct tree *t)
 	struct tree_entry *te;
 
 	t->buff[t->dirname_length] = '\0';
-	if (t->stack == t->current && t->current != NULL)
-		t->current = t->current->parent;
 	te = t->stack;
 	t->stack = te->next;
 	t->dirname_length = te->dirname_length;
@@ -467,7 +443,6 @@ tree_next(struct tree *t)
 
 		/* If the current dir needs to be visited, set it up. */
 		if (t->stack->flags & needsPreVisit) {
-			t->current = t->stack;
 			tree_append(t, t->stack->name, strlen(t->stack->name));
 			t->stack->flags &= ~needsPreVisit;
 			/* If it is a link, set up fd for the ascent. */
