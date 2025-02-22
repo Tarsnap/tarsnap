@@ -65,6 +65,8 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/util.c,v 1.23 2008/12/15 06:00:25 kientzle E
 
 #include <assert.h>
 
+#include "print_separator.h"
+
 #include "bsdtar.h"
 
 static void	bsdtar_vwarnc(struct bsdtar *, int code,
@@ -686,22 +688,6 @@ pathcmp(const char *a, const char *b)
 	return (*(const unsigned char *)a - *(const unsigned char *)b);
 }
 
-/* Print ${sep} if appropriate; otherwise, print ${num} NULs. */
-void
-print_sep(struct bsdtar *bsdtar, FILE * out, char sep, int num)
-{
-	int i;
-
-	if (bsdtar->option_null_output) {
-		/* Print the specified number of NULs. */
-		for (i = 0; i < num; i++)
-			fprintf(out, "%c", '\0');
-	} else {
-		/* Print the normal separator. */
-		fprintf(out, "%c", sep);
-	}
-}
-
 /*
  * Display information about the current file.
  *
@@ -737,9 +723,9 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	if (!now)
 		time(&now);
 	fprintf(out, "%s", archive_entry_strmode(entry));
-	print_sep(bsdtar, out, ' ', 2);
+	print_separator(out, " ", bsdtar->option_null_output, 2);
 	fprintf(out, "%d", (int)(st->st_nlink));
-	print_sep(bsdtar, out, ' ', 2);
+	print_separator(out, " ", bsdtar->option_null_output, 2);
 
 	/* Use uname if it's present, else uid. */
 	p = archive_entry_uname(entry);
@@ -754,7 +740,7 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 		fprintf(out, "%s", p);
 	else
 		fprintf(out, "%-*s", (int)bsdtar->u_width, p);
-	print_sep(bsdtar, out, ' ', 2);
+	print_separator(out, " ", bsdtar->option_null_output, 2);
 
 	/* Use gname if it's present, else gid. */
 	p = archive_entry_gname(entry);
@@ -812,21 +798,21 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 #endif
 	}
 	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
-	print_sep(bsdtar, out, ' ', 2);
+	print_separator(out, " ", bsdtar->option_null_output, 2);
 	fprintf(out, "%s", tmp);
-	print_sep(bsdtar, out, ' ', 2);
+	print_separator(out, " ", bsdtar->option_null_output, 2);
 	safe_fprintf(out, "%s", archive_entry_pathname(entry));
 
 	/* Extra information for links. */
 	if (archive_entry_hardlink(entry)) { /* Hard link */
-		print_sep(bsdtar, out, ' ', 2);
+		print_separator(out, " ", bsdtar->option_null_output, 2);
 		fprintf(out, "link to");
-		print_sep(bsdtar, out, ' ', 2);
+		print_separator(out, " ", bsdtar->option_null_output, 2);
 		safe_fprintf(out, "%s", archive_entry_hardlink(entry));
 	} else if (S_ISLNK(st->st_mode)) { /* Symbolic link */
-		print_sep(bsdtar, out, ' ', 2);
+		print_separator(out, " ", bsdtar->option_null_output, 2);
 		fprintf(out, "->");
-		print_sep(bsdtar, out, ' ', 2);
+		print_separator(out, " ", bsdtar->option_null_output, 2);
 		safe_fprintf(out, "%s", archive_entry_symlink(entry));
 	}
 }
