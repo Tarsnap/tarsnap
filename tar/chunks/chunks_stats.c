@@ -277,24 +277,24 @@ chunks_stats_getdirsz(CHUNKS_S * C)
 }
 
 /**
- * chunks_stats_printglobal(stream, C, csv):
+ * chunks_stats_printglobal(stream, C, csv, print_nulls):
  * Print global statistics relating to a set of archives, optionally in ${csv}
- * format.
+ * format.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
 int
-chunks_stats_printglobal(FILE * stream, CHUNKS_S * C, int csv)
+chunks_stats_printglobal(FILE * stream, CHUNKS_S * C, int csv, int print_nulls)
 {
 
 	/* Print header. */
-	if (chunks_stats_printheader(stream, csv))
+	if (chunks_stats_printheader(stream, csv, print_nulls))
 		goto err0;
 
 	/* Print the global statistics. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra, csv))
+	    &C->stats_extra, csv, print_nulls))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra, csv))
+	    &C->stats_extra, csv, print_nulls))
 		goto err0;
 
 	/* Success! */
@@ -375,21 +375,21 @@ chunks_stats_extrastats(CHUNKS_S * C, size_t len)
 }
 
 /**
- * chunks_stats_printarchive(stream, C, name, csv):
+ * chunks_stats_printarchive(stream, C, name, csv, print_nulls):
  * Print accumulated statistics for an archive with the given name, optionally
- * in ${csv} format.
+ * in ${csv} format.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
 int
 chunks_stats_printarchive(FILE * stream, CHUNKS_S * C, const char * name,
-    int csv)
+    int csv, int print_nulls)
 {
 
 	/* Print statistics for this archive. */
 	if (chunks_stats_print(stream, &C->stats_tape, name,
-	    &C->stats_tapee, csv))
+	    &C->stats_tapee, csv, print_nulls))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tapeu, "  (unique data)",
-	    &C->stats_tapee, csv))
+	    &C->stats_tapee, csv, print_nulls))
 		goto err0;
 
 	/* Success! */

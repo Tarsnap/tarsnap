@@ -344,6 +344,7 @@ _shtab_tarsnap__print_stats_options=(
   "--cachedir[specify cache directory]:cache-dir:{_files -/}"
   "-f[specify name of archive to operate on]:archive-name:(${archive_list}):"
   "--keep-going[keep going after missing an archive]"
+  "--null-output[output split by NULs instead of newlines]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
   "--configfile[add to the list of config files to be read]:filename:{_files}"
   "--csv-file[write statistics in CSV format to a file]:filename:{_files}"

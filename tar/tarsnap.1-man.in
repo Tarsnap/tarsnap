@@ -749,9 +749,9 @@ option to
 \fBfind\fP(1).
 .TP
 \fB\--null-output\fP
-(x, t, and list-archives modes only)
-Archive names and filenames in output are separated by null characters, not by
-newlines.
+(x, t, list-archives, and print-stats modes only)
+Archive names, filenames, and lines in output are separated by null
+characters, not by newlines.
 .PP
 If there are multiple fields on a line, they will be separated by two null
 characters.

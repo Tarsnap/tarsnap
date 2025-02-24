@@ -10,7 +10,8 @@
  * print ${num_nulls} '\0'.
  */
 int
-print_separator(FILE * stream, char * separator, int print_nulls, int num_nulls)
+print_separator(FILE * stream, const char * separator, int print_nulls,
+    int num_nulls)
 {
 	int i;
 
