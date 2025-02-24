@@ -73,17 +73,32 @@ chunks_stats_printheader(FILE * stream, int csv, int print_nulls)
 {
 
 	if (csv) {
-#ifdef STATS_WITH_CHUNKS
-		if (fprintf(stream, "%s,%s,%s,%s\n",
-		    "Archive name", "# of chunks", "Total size",
-		    "Compressed size") < 0) {
-#else
-		if (fprintf(stream, "%s,%s,%s\n",
-		    "Archive name", "Total size", "Compressed size") < 0) {
-#endif
+		if (fprintf(stream, "%s", "Archive name") < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
+		if (fprintf(stream, ",") < 0)
+			goto err0;
+#ifdef STATS_WITH_CHUNKS
+		if (fprintf(stream, "%s", "# of chunks") < 0) {
+			warnp("fprintf");
+			goto err0;
+		}
+		if (fprintf(stream, ",") < 0)
+			goto err0;
+#endif
+		if (fprintf(stream, "%s", "Total size") < 0) {
+			warnp("fprintf");
+			goto err0;
+		}
+		if (fprintf(stream, ",") < 0)
+			goto err0;
+		if (fprintf(stream, "%s", "Compressed size") < 0) {
+			warnp("fprintf");
+			goto err0;
+		}
+		if (fprintf(stream, "\n") < 0)
+			goto err0;
 	} else {
 #ifdef STATS_WITH_CHUNKS
 		if (fprintf(stream, "%-32s  %12s  %15s  %15s\n",
@@ -145,18 +160,32 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 
 	/* Print output line. */
 	if (csv) {
-		if (fprintf(stream,
-#ifdef STATS_WITH_CHUNKS
-		    "%s,%" PRIu64 ",%s,%s\n",
-		    name, s.nchunks,
-#else
-		    "%s,%s,%s\n",
-		    name,
-#endif
-		    s_lenstr, s_zlenstr) < 0) {
+		if (fprintf(stream, "%s", name) < 0) {
 			warnp("fprintf");
 			goto err2;
 		}
+		if (fprintf(stream, ",") <0)
+			goto err2;
+#ifdef STATS_WITH_CHUNKS
+		if (fprintf(stream, "%" PRIu64, s.nchunks) < 0) {
+			warnp("fprintf");
+			goto err2;
+		}
+		if (fprintf(stream, ",") <0)
+			goto err2;
+#endif
+		if (fprintf(stream, "%s", s_lenstr) < 0) {
+			warnp("fprintf");
+			goto err2;
+		}
+		if (fprintf(stream, ",") <0)
+			goto err2;
+		if (fprintf(stream, "%s", s_zlenstr) < 0) {
+			warnp("fprintf");
+			goto err2;
+		}
+		if (fprintf(stream, "\n") < 0)
+			goto err2;
 	} else {
 		if (fprintf(stream,
 #ifdef STATS_WITH_CHUNKS
