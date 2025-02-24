@@ -1,6 +1,10 @@
 #include "platform.h"
 
 #include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#include "warnp.h"
 
 #include "fileutil.h"
 
@@ -34,4 +38,36 @@ fileutil_open_noatime(const char * path, int flags, int noatime)
 err0:
 	/* Failure! */
 	return (fd);
+}
+
+/**
+ * fileutil_fsync(fp, name):
+ * Attempt to write the contents of ${fp} to disk.  Do not close ${fp}.
+ *
+ * Caveat: "Disks lie" - Kirk McKusick.
+ */
+int
+fileutil_fsync(FILE * fp, const char * name)
+{
+	int fd;
+
+	if (fflush(fp)) {
+		warnp("fflush(%s)", name);
+		goto err0;
+	}
+	if ((fd = fileno(fp)) == -1) {
+		warnp("fileno(%s)", name);
+		goto err0;
+	}
+	if (fsync(fd)) {
+		warnp("fsync(%s)", name);
+		goto err0;
+	}
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
