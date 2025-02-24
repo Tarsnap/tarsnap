@@ -204,18 +204,18 @@ CHUNKS_S * chunks_stats_init(const char *);
 size_t chunks_stats_getdirsz(CHUNKS_S *);
 
 /**
- * chunks_stats_printglobal(stream, C, csv):
+ * chunks_stats_printglobal(stream, C, csv, print_nulls):
  * Print global statistics relating to a set of archives, optionally in ${csv}
- * format.
+ * format.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
-int chunks_stats_printglobal(FILE *, CHUNKS_S *, int);
+int chunks_stats_printglobal(FILE *, CHUNKS_S *, int, int);
 
 /**
- * chunks_stats_printarchive(stream, C, name, csv):
+ * chunks_stats_printarchive(stream, C, name, csv, print_nulls):
  * Print accumulated statistics for an archive with the given name, optionally
- * in ${csv} format.
+ * in ${csv} format.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
-int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *, int);
+int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *, int, int);
 
 /**
  * chunks_stats_free(C):

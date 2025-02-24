@@ -96,18 +96,19 @@ void chunks_stats_add(struct chunkstats *, size_t, size_t, ssize_t);
 void chunks_stats_addstats(struct chunkstats *, struct chunkstats *);
 
 /**
- * chunks_stats_printheader(stream, csv):
+ * chunks_stats_printheader(stream, csv, print_nulls):
  * Print a header line for statistics to ${stream}, optionally in ${csv}
- * format.
+ * format.  If ${print_nulls} is non-zero, use '\0' for separators.
  */
-int chunks_stats_printheader(FILE *, int);
+int chunks_stats_printheader(FILE *, int, int);
 
 /**
- * chunks_stats_print(stream, stats, name, stats_extra, csv):
+ * chunks_stats_print(stream, stats, name, stats_extra, csv, print_nulls):
  * Print a line with ${name} and combined statistics from ${stats} and
- * ${stats_extra} to ${stream}, optionally in ${csv} format.
+ * ${stats_extra} to ${stream}, optionally in ${csv} format.  If ${print_nulls}
+ * is non-zero, use '\0' as separators.
  */
 int chunks_stats_print(FILE *, struct chunkstats *, const char *,
-    struct chunkstats *, int);
+    struct chunkstats *, int, int);
 
 #endif /* !CHUNKS_INTERNAL_H_ */

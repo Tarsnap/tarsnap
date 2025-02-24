@@ -284,21 +284,21 @@ chunks_write_printstats(FILE * stream, CHUNKS_W * C, int csv)
 {
 
 	/* Print header. */
-	if (chunks_stats_printheader(stream, csv))
+	if (chunks_stats_printheader(stream, csv, 0))
 		goto err0;
 
 	/* Print the statistics we have. */
 	if (chunks_stats_print(stream, &C->stats_total, "All archives",
-	    &C->stats_extra, csv))
+	    &C->stats_extra, csv, 0))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_unique, "  (unique data)",
-	    &C->stats_extra, csv))
+	    &C->stats_extra, csv, 0))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_tape, "This archive",
-	    &C->stats_tapee, csv))
+	    &C->stats_tapee, csv, 0))
 		goto err0;
 	if (chunks_stats_print(stream, &C->stats_new, "New data",
-	    &C->stats_tapee, csv))
+	    &C->stats_tapee, csv, 0))
 		goto err0;
 
 	/* Success! */
