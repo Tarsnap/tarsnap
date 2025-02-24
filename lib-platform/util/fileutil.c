@@ -64,6 +64,18 @@ fileutil_fsync(FILE * fp, const char * name)
 		goto err0;
 	}
 
+#ifdef F_FULLFSYNC
+	/*
+	 * MacOS-specific "ask the drive to flush all buffered data".
+	 * Not supported on all filesystems.  Even on supported filesystems,
+	 * some FireWire drives are known to ignore this request.
+	 */
+	if (fcntl(fd, F_FULLFSYNC)) {
+		warnp("fcntl");
+		goto err0;
+	}
+#endif
+
 	/* Success! */
 	return (0);
 
