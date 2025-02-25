@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -241,6 +242,8 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		if ((cce->ccr = malloc(sizeof(struct ccache_record))) == NULL)
 			goto err1;
 		memset(cce->ccr, 0, sizeof(struct ccache_record));
+		cce->ccr->chp = NULL;
+		cce->ccr->ztrailer = NULL;
 
 		/* No decompressed trailer. */
 		cce->trailer = NULL;
@@ -380,6 +383,9 @@ ccache_entry_write(CCACHE_ENTRY * cce, TAPE_W * cookie)
 	off_t skiplen = 0;
 	size_t cnum;
 	ssize_t lenwrit;
+
+	/* Sanity check: if we have chunks, we need chunk records. */
+	assert((cce->ccr->nch > 0) ^ (cce->ccr->chp == NULL));
 
 	/* Make sure the cache entry isn't stale. */
 	if ((cce->ino_new != cce->ccr->ino) ||
