@@ -134,6 +134,3 @@ int tree_current_is_physical_dir(struct tree *);
 int tree_current_is_physical_link(struct tree *);
 /* "is_dir" is equivalent to S_ISDIR(tree_current_stat()->st_mode) */
 int tree_current_is_dir(struct tree *);
-
-/* For testing/debugging: Dump the internal status to the given filehandle. */
-void tree_dump(struct tree *, FILE *);
