@@ -242,6 +242,7 @@ cleanup_exclusions(struct bsdtar *bsdtar)
 			free(q);
 		}
 		free(bsdtar->matching);
+		bsdtar->matching = NULL;
 	}
 }
 

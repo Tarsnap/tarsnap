@@ -260,6 +260,7 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err2;
 	}
 	free(W.sbuf);
+	W.sbuf = NULL;
 
 	/* Write the chunk headers and compressed entry trailers. */
 	if (patricia_foreach(C->tree, callback_write_data, &W)) {
