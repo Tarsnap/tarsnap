@@ -35,7 +35,8 @@ revision number (i.e. `-1`).
 
    For example,
 
-        sh release-tools/mkdebsource.sh tarsnap-autoconf-1.0.39.99 pkg/debian 1
+        sh release-tools/mkdebsource.sh tarsnap-autoconf-1.0.39.99 \
+            pkg/debian/compat-9/debian/ 2
 
    :warning: the revision number `R` is required by the Debian packaging
    tools.
@@ -45,7 +46,7 @@ revision number (i.e. `-1`).
 
        tarsnap_X.Y.Z[.A].orig.tar.gz
        tarsnap_X.Y.Z[.A]-R.debian.tar.gz
-       tarsnap_Z.Y.Z[.A]-R.dsc
+       tarsnap_X.Y.Z[.A]-R.dsc
 
 3. Copy the 3 relevant files, and check them:
 
@@ -55,13 +56,13 @@ revision number (i.e. `-1`).
        the tarballs are identical with `sha256sum`.
 
      - `tarsnap_X.Y.Z-R.debian.tar.gz`: this should have exactly the same
-       contents as the `pkg/debian/` directory in the normal release tarball,
-       albeit with uid and gid set to 0.  Unfortunately, `tar` does not sort
-       files (by default), so we cannot use `sha256sum` or even the filesize
-       to compare them (since the file order can change the compression).  The
-       most convenient methods are tools like `tardiff` or GNU tar's `--diff`
-       or `--compare` options.  However, we can use POSIX-compatible tar and
-       cmp:
+       contents as the `pkg/debian/compat-X/debian` directory in the normal
+       release tarball, albeit with uid and gid set to 0.  Unfortunately, `tar`
+       does not sort files (by default), so we cannot use `sha256sum` or even
+       the filesize to compare them (since the file order can change the
+       compression).  The most convenient methods are tools like `tardiff` or
+       GNU tar's `--diff` or `--compare` options.  However, we can use
+       POSIX-compatible tar and cmp:
 
            T=tarsnap_X.Y.Z-R.debian.tar.gz
            for F in `tar -tzf $T`; do tar -xzOf $T $F | cmp - pkg/$F; done
