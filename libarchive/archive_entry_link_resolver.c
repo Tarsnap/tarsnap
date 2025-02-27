@@ -101,6 +101,7 @@ archive_entry_linkresolver_new(void)
 	if (res == NULL)
 		return (NULL);
 	memset(res, 0, sizeof(struct archive_entry_linkresolver));
+	res->spare = NULL;
 	res->number_buckets = links_cache_initial_size;
 	res->buckets = malloc(res->number_buckets *
 	    sizeof(res->buckets[0]));
