@@ -97,12 +97,13 @@ err0:
 }
 
 /**
- * statstape_printglobal(d, csv_filename):
+ * statstape_printglobal(d, csv_filename, print_nulls):
  * Print global statistics relating to a set of archives.  If ${csv_filename}
- * is not NULL, output will be written in CSV format to that filename.
+ * is not NULL, output will be written in CSV format to that filename.  If
+ * ${print_nulls} is non-zero, use '\0' as separators.
  */
 int
-statstape_printglobal(TAPE_S * d, const char * csv_filename)
+statstape_printglobal(TAPE_S * d, const char * csv_filename, int print_nulls)
 {
 	FILE * output = stdout;
 	int csv = 0;
@@ -116,7 +117,7 @@ statstape_printglobal(TAPE_S * d, const char * csv_filename)
 		goto err0;
 
 	/* Ask the chunk storage layer to do this. */
-	if (chunks_stats_printglobal(output, d->C, csv))
+	if (chunks_stats_printglobal(output, d->C, csv, print_nulls))
 		goto err1;
 
 	/* Close CSV output file, if requested. */
@@ -137,13 +138,13 @@ err0:
 }
 
 /**
- * statstape_printall(d, csv_filename):
+ * statstape_printall(d, csv_filename, print_nulls):
  * Print statistics relating to each of the archives in a set.  If
  * ${csv_filename} is not NULL, output will be written in CSV format to that
- * filename.
+ * filename.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
 int
-statstape_printall(TAPE_S * d, const char * csv_filename)
+statstape_printall(TAPE_S * d, const char * csv_filename, int print_nulls)
 {
 	struct tapemetadata tmd;
 	uint8_t * flist;
@@ -183,7 +184,8 @@ statstape_printall(TAPE_S * d, const char * csv_filename)
 			goto err3;
 
 		/* Print the statistics. */
-		if (chunks_stats_printarchive(output, d->C, tmd.name, csv))
+		if (chunks_stats_printarchive(output, d->C, tmd.name, csv,
+		    print_nulls))
 			goto err3;
 
 		/* Free parsed metadata. */
@@ -363,14 +365,15 @@ err0:
 }
 
 /**
- * statstape_print(d, tapename, csv_filename):
+ * statstape_print(d, tapename, csv_filename, print_nulls):
  * Print statistics relating to a specific archive in a set.  Return 0 on
  * success, 1 if the tape does not exist, or -1 on other errors.  If
  * ${csv_filename} is not NULL, output will be written in CSV format to that
- * filename.
+ * filename.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
 int
-statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename)
+statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename,
+    int print_nulls)
 {
 	struct tapemetadata tmd;
 	int rc = -1;	/* Presume error was not !found. */
@@ -410,7 +413,7 @@ statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename)
 		goto err0;
 
 	/* Print the statistics. */
-	if (chunks_stats_printarchive(output, d->C, tapename, csv))
+	if (chunks_stats_printarchive(output, d->C, tapename, csv, print_nulls))
 		goto err1;
 
 	/* Close CSV output file. */

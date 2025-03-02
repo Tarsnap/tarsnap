@@ -160,19 +160,20 @@ void deletetape_free(TAPE_D *);
 TAPE_S * statstape_open(uint64_t, const char *);
 
 /**
- * statstape_printglobal(d, csv_filename):
+ * statstape_printglobal(d, csv_filename, print_nulls):
  * Print global statistics relating to a set of archives.  If ${csv_filename}
- * is not NULL, output will be written in CSV format to that filename.
+ * is not NULL, output will be written in CSV format to that filename.  If
+ * ${print_nulls} is non-zero, use '\0' as separators.
  */
-int statstape_printglobal(TAPE_S *, const char *);
+int statstape_printglobal(TAPE_S *, const char *, int);
 
 /**
- * statstape_printall(d, csv_filename):
+ * statstape_printall(d, csv_filename, print_nulls):
  * Print statistics relating to each of the archives in a set.  If
  * ${csv_filename} is not NULL, output will be written in CSV format to that
- * filename.
+ * filename.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
-int statstape_printall(TAPE_S *, const char *);
+int statstape_printall(TAPE_S *, const char *, int);
 
 /**
  * statstape_printlist_item(d, tapehash, verbose, print_nulls, print_hash):
@@ -199,13 +200,13 @@ int statstape_printlist_item(TAPE_S *, const uint8_t[32], int, int, int);
 int statstape_printlist(TAPE_S *, int, int, int);
 
 /**
- * statstape_print(d, tapename, csv_filename):
+ * statstape_print(d, tapename, csv_filename, print_nulls):
  * Print statistics relating to a specific archive in a set.  Return 0 on
  * success, 1 if the tape does not exist, or -1 on other errors.  If
  * ${csv_filename} is not NULL, output will be written in CSV format to that
- * filename.
+ * filename.  If ${print_nulls} is non-zero, use '\0' as separators.
  */
-int statstape_print(TAPE_S *, const char *, const char *);
+int statstape_print(TAPE_S *, const char *, const char *, int);
 
 /**
  * statstape_close(d):
