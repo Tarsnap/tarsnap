@@ -1066,7 +1066,9 @@ main(int argc, char **argv)
 	if (bsdtar->option_null_input)
 		only_mode(bsdtar, "--null-input", "cxt");
 	if (bsdtar->option_null_output) {
-		if (bsdtar->mode != OPTION_LIST_ARCHIVES)
+		/* Allow in --list-archives, --print-stats, and xt modes. */
+		if ((bsdtar->mode != OPTION_LIST_ARCHIVES) &&
+		    (bsdtar->mode != OPTION_PRINT_STATS))
 			only_mode(bsdtar, "--null-output", "xt");
 	}
 

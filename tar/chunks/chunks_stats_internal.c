@@ -9,6 +9,7 @@
 
 #include "asprintf.h"
 #include "humansize.h"
+#include "print_separator.h"
 #include "storage.h"
 #include "tarsnap_opt.h"
 #include "warnp.h"
@@ -71,33 +72,35 @@ chunks_stats_addstats(struct chunkstats * to, struct chunkstats * from)
 int
 chunks_stats_printheader(FILE * stream, int csv, int print_nulls)
 {
+	const char * first_field;
 
-	if (csv) {
-		if (fprintf(stream, "%s", "Archive name") < 0) {
+	if (csv || print_nulls) {
+		first_field = csv ? "Archive name" : "";
+		if (fprintf(stream, "%s", first_field) < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
-		if (fprintf(stream, ",") < 0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err0;
 #ifdef STATS_WITH_CHUNKS
 		if (fprintf(stream, "%s", "# of chunks") < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
-		if (fprintf(stream, ",") < 0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err0;
 #endif
 		if (fprintf(stream, "%s", "Total size") < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
-		if (fprintf(stream, ",") < 0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err0;
 		if (fprintf(stream, "%s", "Compressed size") < 0) {
 			warnp("fprintf");
 			goto err0;
 		}
-		if (fprintf(stream, "\n") < 0)
+		if (print_separator(stream, "\n", print_nulls, 1))
 			goto err0;
 	} else {
 #ifdef STATS_WITH_CHUNKS
@@ -159,32 +162,32 @@ chunks_stats_print(FILE * stream, struct chunkstats * stats,
 	}
 
 	/* Print output line. */
-	if (csv) {
+	if (csv || print_nulls) {
 		if (fprintf(stream, "%s", name) < 0) {
 			warnp("fprintf");
 			goto err2;
 		}
-		if (fprintf(stream, ",") <0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err2;
 #ifdef STATS_WITH_CHUNKS
 		if (fprintf(stream, "%" PRIu64, s.nchunks) < 0) {
 			warnp("fprintf");
 			goto err2;
 		}
-		if (fprintf(stream, ",") <0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err2;
 #endif
 		if (fprintf(stream, "%s", s_lenstr) < 0) {
 			warnp("fprintf");
 			goto err2;
 		}
-		if (fprintf(stream, ",") <0)
+		if (print_separator(stream, ",", print_nulls, 2))
 			goto err2;
 		if (fprintf(stream, "%s", s_zlenstr) < 0) {
 			warnp("fprintf");
 			goto err2;
 		}
-		if (fprintf(stream, "\n") < 0)
+		if (print_separator(stream, "\n", print_nulls, 1))
 			goto err2;
 	} else {
 		if (fprintf(stream,

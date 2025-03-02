@@ -675,9 +675,9 @@ This is often used to read filenames output by the
 option to
 .Xr find 1 .
 .It Fl -null-output
-(x, t, and list-archives modes only)
-Archive names and filenames in output are separated by null characters, not by
-newlines.
+(x, t, list-archives, and print-stats modes only)
+Archive names, filenames, and lines in output are separated by null
+characters, not by newlines.
 .Pp
 If there are multiple fields on a line, they will be separated by two null
 characters.
