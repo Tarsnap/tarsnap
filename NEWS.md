@@ -1,12 +1,21 @@
 ### Tarsnap 1.0.41 (unreleased)
 
-- Fixed a problem with strict aliasing if somebody compiled with gcc11 or
-  higher using -O3, does not have SSE2, and is using a passphrase-protected
-  keyfile.
+- tarsnap -c now accepts --dry-run-metadata, which simulates creating an
+  archive without reading any file data.  This is significantly faster than a
+  regular --dry-run, and is suitable for checking which filesystem entries
+  will be archived (with -v) or checking the total archive size (with --totals
+  or --progress-bytes).
+- tarsnap now accepts --noatime with -c mode, which requests that the
+  operating system does not update atime when reading files or directories.
+  Not supported by all operating systems or filesystems.
+- If the server-side state was modified and tarsnap exits with an error, it
+  will now have an exit code of 2.
 - tarsnap will read a config file in $XDG_CONFIG_HOME/tarsnap/tarsnap.conf;
   or ~/.config/tarsnap/tarsnap.conf if $XDG_CONFIG_HOME is not set.  The
   previous config file ~/.tarsnaprc is still supported, and will not be
   deprecated.
+- tarsnap now accepts --null-input as a synonym for --null.  For compatibility
+  reasons, --null is still supported, and will not be deprecated.
 - tarsnap now accepts --null-output, which causes --list-archives to separate
   each archive name with a null character (like `find -print0`).  If one or
   more -v arguments are specified, multiple null characters are used to
@@ -18,8 +27,6 @@
 - tarsnap now accepts --null-output with --print-stats, which causes it to
   separate fields and lines with null character(s); see the man page for
   details.
-- tarsnap now accepts --null-input as a synonym for --null.  For compatibility
-  reasons, --null is still supported, and will not be deprecated.
 - tarsnap now accepts --hashes, which causes --list-archives to print hashes
   of archive names.  If one or more -v arguments are specified, it will print
   other metadata (as per --list-archives).  This option is intended for the
@@ -28,16 +35,9 @@
   metadata about the specified archive(s).  Multiple -f options may be
   specified.  This option is intended for the GUI and is not needed for
   command-line usage.
-- If the server-side state was modified and tarsnap exits with an error, it
-  will now have an exit code of 2.
-- tarsnap -c now accepts --dry-run-metadata, which simulates creating an
-  archive without reading any file data.  This is significantly faster than a
-  regular --dry-run, and is suitable for checking which filesystem entries
-  will be archived (with -v) or checking the total archive size (with --totals
-  or --progress-bytes).
-- tarsnap now accepts --noatime with -c mode, which requests that the
-  operating system does not update atime when reading files or directories.
-  Not supported by all operating systems or filesystems.
+- Fixed a problem with strict aliasing if somebody compiled with gcc11 or
+  higher using -O3, does not have SSE2, and is using a passphrase-protected
+  keyfile.
 
 
 Tarsnap Releases
