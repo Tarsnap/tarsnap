@@ -8,6 +8,6 @@
  * Print ${separator} to ${stream} if ${print_nulls} is zero; otherwise,
  * print ${num_nulls} '\0'.
  */
-int print_separator(FILE *, char *, int, int);
+int print_separator(FILE *, const char *, int, int);
 
 #endif /* !PRINT_SEPARATOR_H_ */

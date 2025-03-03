@@ -125,7 +125,8 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 		goto err1;
 
 	/* Print statistics about the archive set. */
-	if (statstape_printglobal(d, bsdtar->option_csv_filename))
+	if (statstape_printglobal(d, bsdtar->option_csv_filename,
+	    bsdtar->option_null_output))
 		goto err2;
 
 	if (bsdtar->ntapes == 0) {
@@ -133,13 +134,15 @@ tarsnap_mode_print_stats(struct bsdtar *bsdtar)
 	} else if ((bsdtar->tapenames[0][0] == '*') &&
 	    (bsdtar->tapenames[0][1] == '\0')) {
 		/* User wants statistics on all archives. */
-		if (statstape_printall(d, bsdtar->option_csv_filename))
+		if (statstape_printall(d, bsdtar->option_csv_filename,
+		    bsdtar->option_null_output))
 			goto err2;
 	} else {
 		/* User wants statistics about specific archive(s). */
 		for (i = 0; i < bsdtar->ntapes; i++) {
 			switch (statstape_print(d, bsdtar->tapenames[i],
-			    bsdtar->option_csv_filename)) {
+			    bsdtar->option_csv_filename,
+			    bsdtar->option_null_output)) {
 			case 0:
 				break;
 			case 1:
