@@ -336,14 +336,17 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	}
 
 	/* Free the chunkification cache. */
-	if (bsdtar->cachecrunch < 2)
+	if (bsdtar->cachecrunch < 2) {
 		ccache_free(bsdtar->chunk_cache);
+		bsdtar->chunk_cache = NULL;
+	}
 
 	/* Success! */
 	return;
 
 err2:
 	ccache_free(bsdtar->chunk_cache);
+	bsdtar->chunk_cache = NULL;
 err1:
 	archive_write_finish(a);
 err0:
@@ -485,6 +488,7 @@ write_archive(struct archive *a, struct bsdtar *bsdtar)
 cleanup:
 	/* Free file data buffer. */
 	free(bsdtar->buff);
+	bsdtar->buff = NULL;
 	archive_entry_linkresolver_free(bsdtar->resolver);
 	bsdtar->resolver = NULL;
 	archive_read_finish(bsdtar->diskreader);

@@ -328,6 +328,7 @@ copyblocks(struct block * blist, size_t bnum, uint64_t omnum,
 			/* We don't have a block any more. */
 			R[i].b = NULL;
 			free(R[i].buf);
+			R[i].buf = NULL;
 		}
 
 		/* If we have blocks to read, read one. */
