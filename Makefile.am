@@ -630,6 +630,7 @@ tarsnap_recrypt_LDADD= $(LIBTARSNAP_A)
 tarsnap_recrypt_CPPFLAGS=						\
 	-I$(top_srcdir)/lib						\
 	-I$(top_srcdir)/lib-platform					\
+	-I$(top_srcdir)/lib-platform/util				\
 	-I$(top_srcdir)/lib/crypto					\
 	-I$(top_srcdir)/lib/datastruct					\
 	-I$(top_srcdir)/lib/keyfile					\
