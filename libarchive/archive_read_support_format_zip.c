@@ -150,6 +150,8 @@ archive_read_support_format_zip(struct archive *_a)
 		return (ARCHIVE_FATAL);
 	}
 	memset(zip, 0, sizeof(*zip));
+	zip->compression_name = NULL;
+	zip->uncompressed_buffer = NULL;
 
 	r = __archive_read_register_format(a,
 	    zip,

@@ -302,6 +302,7 @@ archive_read_support_format_iso9660(struct archive *_a)
 	}
 	memset(iso9660, 0, sizeof(*iso9660));
 	iso9660->magic = ISO9660_MAGIC;
+	iso9660->pending_files = NULL;
 
 	r = __archive_read_register_format(a,
 	    iso9660,

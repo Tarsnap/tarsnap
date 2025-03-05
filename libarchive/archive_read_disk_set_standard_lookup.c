@@ -78,6 +78,18 @@ static void	cleanup(void *);
 static const char *	lookup_gname_helper(struct name_cache *, id_t gid);
 static const char *	lookup_uname_helper(struct name_cache *, id_t uid);
 
+static void
+name_cache_zero(struct name_cache * c)
+{
+	int i;
+
+	memset(c, 0, sizeof(struct name_cache));
+	c->archive = NULL;
+	c->buff = NULL;
+	for (i = 0; i < name_cache_size; i++)
+		c->cache[i].name = NULL;
+}
+
 /*
  * Installs functions that use getpwuid()/getgrgid()---along with
  * a simple cache to accelerate such lookups---into the archive_read_disk
@@ -105,10 +117,10 @@ archive_read_disk_set_standard_lookup(struct archive *a)
 		return (ARCHIVE_FATAL);
 	}
 
-	memset(ucache, 0, sizeof(*ucache));
+	name_cache_zero(ucache);
 	ucache->archive = a;
 	ucache->size = name_cache_size;
-	memset(gcache, 0, sizeof(*gcache));
+	name_cache_zero(gcache);
 	gcache->archive = a;
 	gcache->size = name_cache_size;
 

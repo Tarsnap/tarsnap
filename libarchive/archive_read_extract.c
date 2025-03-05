@@ -69,6 +69,8 @@ get_extract(struct archive_read *a)
 			return (NULL);
 		}
 		memset(a->extract, 0, sizeof(*a->extract));
+		a->extract->extract_progress = NULL;
+		a->extract->extract_progress_user_data = NULL;
 		a->extract->ad = archive_write_disk_new();
 		if (a->extract->ad == NULL) {
 			archive_set_error(&a->archive, ENOMEM, "Can't extract");

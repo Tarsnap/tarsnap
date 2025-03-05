@@ -241,6 +241,8 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		if ((cce->ccr = malloc(sizeof(struct ccache_record))) == NULL)
 			goto err1;
 		memset(cce->ccr, 0, sizeof(struct ccache_record));
+		cce->ccr->chp = NULL;
+		cce->ccr->ztrailer = NULL;
 
 		/* No decompressed trailer. */
 		cce->trailer = NULL;

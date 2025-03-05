@@ -98,6 +98,26 @@ archive_write_new(void)
 	if (a == NULL)
 		return (NULL);
 	memset(a, 0, sizeof(*a));
+	a->client_opener = NULL;
+	a->client_writer = NULL;
+	a->client_closer = NULL;
+	a->client_data = NULL;
+	a->compressor.data = NULL;
+	a->compressor.config = NULL;
+	a->compressor.init = NULL;
+	a->compressor.options = NULL;
+	a->compressor.finish = NULL;
+	a->compressor.write = NULL;
+	a->format_data = NULL;
+	a->format_name = NULL;
+	a->format_init = NULL;
+	a->format_options = NULL;
+	a->format_finish = NULL;
+	a->format_destroy = NULL;
+	a->format_finish_entry = NULL;
+	a->format_write_header = NULL;
+	a->format_write_data = NULL;
+	a->format_skip_data = NULL;
 	a->archive.magic = ARCHIVE_WRITE_MAGIC;
 	a->archive.state = ARCHIVE_STATE_NEW;
 	a->archive.vtable = archive_write_vtable();
