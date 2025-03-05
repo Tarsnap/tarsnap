@@ -112,7 +112,6 @@ struct tree_entry {
  */
 struct tree {
 	struct tree_entry	*stack;
-	DIR	*d;
 #ifdef HAVE_FCHDIR
 	int	 initialDirFd;
 #elif defined(_WIN32) && !defined(__CYGWIN__)
@@ -387,6 +386,7 @@ int
 tree_next(struct tree *t)
 {
 	struct dirent *de = NULL;
+	DIR * d = NULL;
 	int r;
 
 	/* If we're called again after a fatal error, that's an API
@@ -407,21 +407,21 @@ tree_next(struct tree *t)
 
 	while (t->stack != NULL) {
 		/* If there's an open dir, get the next entry from there. */
-		while (t->d != NULL) {
+		while (d != NULL) {
 			errno = 0;
-			de = readdir(t->d);
+			de = readdir(d);
 			if (de == NULL) {
 				if (errno) {
 					/* If readdir fails, we're screwed. */
 					t->tree_errno = errno;
-					closedir(t->d);
-					t->d = NULL;
+					closedir(d);
+					d = NULL;
 					t->visit_type = TREE_ERROR_FATAL;
 					return (t->visit_type);
 				}
 				/* Reached end of directory. */
-				closedir(t->d);
-				t->d = NULL;
+				closedir(d);
+				d = NULL;
 			} else if (de->d_name[0] == '.'
 			    && de->d_name[1] == '\0') {
 				/* Skip '.' */
@@ -464,8 +464,8 @@ tree_next(struct tree *t)
 				return (t->visit_type = TREE_ERROR_DIR);
 			}
 			t->depth++;
-			t->d = tree_opendir(".", t->noatime);
-			if (t->d == NULL) {
+			d = tree_opendir(".", t->noatime);
+			if (d == NULL) {
 				t->tree_errno = errno;
 				r = tree_ascend(t); /* Undo "chdir" */
 				tree_pop(t);
