@@ -355,6 +355,19 @@ aes_copy_wcs_len(struct aes *aes, const wchar_t *wcs, size_t len)
 	return (0);
 }
 
+static void
+archive_entry_zero(struct archive_entry *entry)
+{
+
+	memset(entry, 0, sizeof(*entry));
+	entry->stat = NULL;
+	entry->acl_head = NULL;
+	entry->acl_p = NULL;
+	entry->acl_text_w = NULL;
+	entry->xattr_head = NULL;
+	entry->xattr_p = NULL;
+}
+
 /****************************************************************************
  *
  * Public Interface
@@ -376,7 +389,7 @@ archive_entry_clear(struct archive_entry *entry)
 	archive_entry_acl_clear(entry);
 	archive_entry_xattr_clear(entry);
 	free(entry->stat);
-	memset(entry, 0, sizeof(*entry));
+	archive_entry_zero(entry);
 	return entry;
 }
 
@@ -391,7 +404,7 @@ archive_entry_clone(struct archive_entry *entry)
 	entry2 = (struct archive_entry *)malloc(sizeof(*entry2));
 	if (entry2 == NULL)
 		return (NULL);
-	memset(entry2, 0, sizeof(*entry2));
+	archive_entry_zero(entry2);
 	entry2->ae_stat = entry->ae_stat;
 	entry2->ae_fflags_set = entry->ae_fflags_set;
 	entry2->ae_fflags_clear = entry->ae_fflags_clear;
@@ -441,7 +454,7 @@ archive_entry_new(void)
 	entry = (struct archive_entry *)malloc(sizeof(*entry));
 	if (entry == NULL)
 		return (NULL);
-	memset(entry, 0, sizeof(*entry));
+	archive_entry_zero(entry);
 	return (entry);
 }
 

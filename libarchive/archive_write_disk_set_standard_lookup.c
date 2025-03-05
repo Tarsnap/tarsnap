@@ -84,6 +84,8 @@ static void	cleanup(void *);
 int
 archive_write_disk_set_standard_lookup(struct archive *a)
 {
+	size_t i;
+
 	struct bucket *ucache = malloc(cache_size * sizeof(struct bucket));
 	struct bucket *gcache = malloc(cache_size * sizeof(struct bucket));
 	if (ucache == NULL || gcache == NULL) {
@@ -93,6 +95,10 @@ archive_write_disk_set_standard_lookup(struct archive *a)
 	}
 	memset(ucache, 0, cache_size * sizeof(struct bucket));
 	memset(gcache, 0, cache_size * sizeof(struct bucket));
+	for (i = 0; i < cache_size; i++) {
+		ucache[i].name = NULL;
+		gcache[i].name = NULL;
+	}
 	archive_write_disk_set_group_lookup(a, gcache, lookup_gid, cleanup);
 	archive_write_disk_set_user_lookup(a, ucache, lookup_uid, cleanup);
 	return (ARCHIVE_OK);

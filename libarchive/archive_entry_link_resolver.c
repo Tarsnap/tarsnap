@@ -345,7 +345,10 @@ insert_entry(struct archive_entry_linkresolver *res,
 	if (le == NULL)
 		return (NULL);
 	memset(le, 0, sizeof(*le));
+	le->next = NULL;
+	le->previous = NULL;
 	le->canonical = archive_entry_clone(entry);
+	le->entry = NULL;
 
 	/* If the links cache is getting too full, enlarge the hash table. */
 	if (res->number_entries > res->number_buckets * 2)
@@ -380,6 +383,8 @@ grow_hash(struct archive_entry_linkresolver *res)
 	if (new_buckets != NULL) {
 		memset(new_buckets, 0,
 		    new_size * sizeof(struct links_entry *));
+		for (i = 0; i < new_size; i++)
+			new_buckets[i] = NULL;
 		for (i = 0; i < res->number_buckets; i++) {
 			while (res->buckets[i] != NULL) {
 				/* Remove entry from old bucket. */

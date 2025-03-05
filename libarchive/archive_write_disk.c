@@ -828,6 +828,16 @@ archive_write_disk_new(void)
 	if (a == NULL)
 		return (NULL);
 	memset(a, 0, sizeof(*a));
+	a->fixup_list = NULL;
+	a->current_fixup = NULL;
+	a->lookup_gid = NULL;
+	a->cleanup_gid = NULL;
+	a->lookup_uid = NULL;
+	a->cleanup_uid = NULL;
+	a->lookup_uid_data = NULL;
+	a->pst = NULL;
+	a->entry = NULL;
+	a->name = NULL;
 	a->archive.magic = ARCHIVE_WRITE_DISK_MAGIC;
 	/* We're ready to write a header immediately. */
 	a->archive.state = ARCHIVE_STATE_HEADER;

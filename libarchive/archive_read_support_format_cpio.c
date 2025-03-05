@@ -146,6 +146,8 @@ archive_read_support_format_cpio(struct archive *_a)
 		return (ARCHIVE_FATAL);
 	}
 	memset(cpio, 0, sizeof(*cpio));
+	cpio->read_header = NULL;
+	cpio->links_head = NULL;
 	cpio->magic = CPIO_MAGIC;
 
 	r = __archive_read_register_format(a,

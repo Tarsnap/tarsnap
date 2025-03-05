@@ -87,6 +87,7 @@ archive_compressor_none_init(struct archive_write *a)
 		return (ARCHIVE_FATAL);
 	}
 	memset(state, 0, sizeof(*state));
+	state->buffer = NULL;
 
 	state->buffer_size = a->bytes_per_block;
 	if (state->buffer_size != 0) {

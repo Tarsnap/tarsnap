@@ -255,6 +255,9 @@ archive_read_support_format_tar(struct archive *_a)
 		return (ARCHIVE_FATAL);
 	}
 	memset(tar, 0, sizeof(*tar));
+	tar->pax_entry = NULL;
+	tar->sparse_list = NULL;
+	tar->sparse_last = NULL;
 
 	r = __archive_read_register_format(a, tar, "tar",
 	    archive_read_format_tar_bid,
@@ -1740,6 +1743,7 @@ gnu_add_sparse_entry(struct tar *tar, off_t offset, off_t remaining)
 	if (p == NULL)
 		__archive_errx(1, "Out of memory");
 	memset(p, 0, sizeof(*p));
+	p->next = NULL;
 	if (tar->sparse_last != NULL)
 		tar->sparse_last->next = p;
 	else

@@ -82,11 +82,30 @@ struct archive *
 archive_read_new(void)
 {
 	struct archive_read *a;
+	int i;
 
 	a = (struct archive_read *)malloc(sizeof(*a));
 	if (a == NULL)
 		return (NULL);
 	memset(a, 0, sizeof(*a));
+	a->read_data_block = NULL;
+	a->filter = NULL;
+	a->format = NULL;
+	a->extract = NULL;
+	a->cleanup_archive_extract = NULL;
+	for (i = 0; i < 8; i++) {
+		a->formats->data = NULL;
+		a->formats->name = NULL;
+		a->formats->bid = NULL;
+		a->formats->options = NULL;
+		a->formats->read_header = NULL;
+		a->formats->read_data = NULL;
+		a->formats->read_get_entryleft = NULL;
+		a->formats->read_advance = NULL;
+		a->formats->read_data_skip = NULL;
+		a->formats->cleanup = NULL;
+	}
+
 	a->archive.magic = ARCHIVE_READ_MAGIC;
 
 	a->archive.state = ARCHIVE_STATE_NEW;

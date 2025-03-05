@@ -146,6 +146,11 @@ archive_read_support_format_mtree(struct archive *_a)
 		return (ARCHIVE_FATAL);
 	}
 	memset(mtree, 0, sizeof(*mtree));
+	mtree->buff = NULL;
+	mtree->archive_format_name = NULL;
+	mtree->entries = NULL;
+	mtree->this_entry = NULL;
+	mtree->resolver = NULL;
 	mtree->fd = -1;
 
 	r = __archive_read_register_format(a, mtree, "mtree",
