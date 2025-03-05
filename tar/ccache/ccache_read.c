@@ -218,6 +218,7 @@ ccache_read(const char * path)
 	if ((C = malloc(sizeof(struct ccache_internal))) == NULL)
 		goto err0;
 	memset(C, 0, sizeof(struct ccache_internal));
+	C->data = NULL;
 
 	/* Create a Patricia tree to store cache entries. */
 	if ((C->tree = patricia_init()) == NULL)
