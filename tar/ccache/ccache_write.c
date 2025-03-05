@@ -12,7 +12,7 @@
 
 #include "asprintf.h"
 #include "ccache_internal.h"
-#include "dirutil.h"
+#include "fileutil.h"
 #include "multitape_internal.h"
 #include "patricia.h"
 #include "sysendian.h"
@@ -268,7 +268,7 @@ ccache_write(CCACHE * cache, const char * path)
 	}
 
 	/* Finish writing the file. */
-	if (dirutil_fsync(W.f, W.s))
+	if (fileutil_fsync(W.f, W.s))
 		goto err2;
 
 	/* Close the file. */

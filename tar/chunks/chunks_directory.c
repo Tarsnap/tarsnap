@@ -17,6 +17,7 @@
 #include "asprintf.h"
 #include "ctassert.h"
 #include "dirutil.h"
+#include "fileutil.h"
 #include "rwhashtab.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -350,7 +351,7 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 		goto err2;
 
 	/* Call fsync on the new chunk directory and close it. */
-	if (dirutil_fsync(f, s))
+	if (fileutil_fsync(f, s))
 		goto err2;
 	if (fclose(f)) {
 		warnp("fclose(%s)", s);
