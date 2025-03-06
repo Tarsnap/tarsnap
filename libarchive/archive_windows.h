@@ -295,7 +295,7 @@ typedef struct {
 #define HAVE_SHA512 1
 #define SHA512_CTX Digest_CTX
 #endif
-#endif /* HAVE_OPENSSL_SHA_H */
+#endif /* !HAVE_OPENSSL_SHA_H */
 
 /* End of Win32 definitions. */
 
@@ -380,4 +380,4 @@ extern void	 SHA512_Final(unsigned char buf[SHA512_DIGEST_LENGTH],
 }
 #endif
 
-#endif /* LIBARCHIVE_NONPOSIX_H_INCLUDED  */
+#endif /* !LIBARCHIVE_NONPOSIX_H_INCLUDED  */
