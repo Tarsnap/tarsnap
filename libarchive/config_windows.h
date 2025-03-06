@@ -579,4 +579,4 @@
 
 #include "archive_windows.h"
 
-#endif /* CONFIG_H_INCLUDED */
+#endif /* !CONFIG_H_INCLUDED */

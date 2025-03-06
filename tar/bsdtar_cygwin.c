@@ -136,6 +136,6 @@ bsdtar_is_privileged(struct bsdtar *bsdtar)
 }
 
 
-#endif /* LIST_H */
+#endif /* !LIST_H */
 
 #endif
