@@ -56,4 +56,4 @@ extern void	write_hierarchy_win(struct bsdtar *bsdtar, struct archive *a,
 }
 #endif
 
-#endif /* BSDTAR_WINDOWS_H */
+#endif /* !BSDTAR_WINDOWS_H */

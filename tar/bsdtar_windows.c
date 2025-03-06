@@ -1208,6 +1208,6 @@ try_plain:
 	write_hierarchy(bsdtar, a, path);
 }
 
-#endif /* LIST_H */
+#endif /* !LIST_H */
 
 #endif

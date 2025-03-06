@@ -182,4 +182,4 @@ struct archive_entry {
 };
 
 
-#endif /* ARCHIVE_ENTRY_PRIVATE_H_INCLUDED */
+#endif /* !ARCHIVE_ENTRY_PRIVATE_H_INCLUDED */
