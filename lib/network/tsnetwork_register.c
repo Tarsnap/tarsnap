@@ -139,7 +139,7 @@ network_register(int fd, int op, struct timeval * timeo,
 	/* Enlarge array if necessary. */
 	if ((osize = (int)callbacks_getsize(cs)) <= fd) {
 		/* Resize. */
-		if (callbacks_resize(cs, (size_t)(fd + 1)))
+		if (callbacks_resize(cs, (size_t)fd + 1))
 			goto err0;
 
 		/* Initialize empty. */
