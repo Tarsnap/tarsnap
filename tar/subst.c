@@ -224,7 +224,7 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 				continue;
 
 			++i;
-			c = rule->result[i];
+			c = (unsigned char)rule->result[i];
 			switch (c) {
 			case '~':
 			case '\\':
