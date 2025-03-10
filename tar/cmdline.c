@@ -263,7 +263,7 @@ bsdtar_getopt(struct bsdtar *bsdtar)
 	 */
 	if (state == state_old_tar) {
 		/* Get the next option character. */
-		opt = *opt_word++;
+		opt = (unsigned char)*opt_word++;
 		if (opt == '\0') {
 			/* New-style args can follow old-style. */
 			state = state_next_word;
@@ -321,7 +321,7 @@ bsdtar_getopt(struct bsdtar *bsdtar)
 	 */
 	if (state == state_short) {
 		/* Peel next option off of a group of short options. */
-		opt = *opt_word++;
+		opt = (unsigned char)*opt_word++;
 		if (opt == '\0') {
 			/* End of this group; recurse to get next option. */
 			state = state_next_word;
