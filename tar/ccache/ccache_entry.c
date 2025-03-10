@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -380,6 +381,9 @@ ccache_entry_write(CCACHE_ENTRY * cce, TAPE_W * cookie)
 	off_t skiplen = 0;
 	size_t cnum;
 	ssize_t lenwrit;
+
+	/* Sanity check: if we have chunks, we need chunk records. */
+	assert((cce->ccr->nch > 0) ^ (cce->ccr->chp == NULL));
 
 	/* Make sure the cache entry isn't stale. */
 	if ((cce->ino_new != cce->ccr->ino) ||
