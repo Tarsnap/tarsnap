@@ -113,7 +113,7 @@ callback_write_rec(void * cookie, uint8_t * s, size_t slen, void * rec)
 
 	/* Figure out how much prefix is shared. */
 	for (plen = 0; plen < slen && plen < W->sbuflen; plen++) {
-		if (s[plen] != W->sbuf[plen])
+		if (s[plen] != (uint8_t)W->sbuf[plen])
 			break;
 	}
 
