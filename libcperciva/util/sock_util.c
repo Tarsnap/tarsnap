@@ -355,8 +355,12 @@ sock_addr_validate(const char * addr)
 		goto err0;
 	}
 
-	/* If this isn't a UNIX socket address, check for a missing hostname. */
-	if ((addr[0] != '/') && (addr[0] == ':')) {
+	/*
+	 * If this isn't a UNIX socket address, check for a missing hostname.
+	 * Since UNIX socket addresses start with a '/', they won't begin with
+	 * a ':' and thus there's no need to check for '/' explicitly.
+	 */
+	if (addr[0] == ':') {
 		warn0("No host in \"%s\"", addr);
 		goto err0;
 	}
