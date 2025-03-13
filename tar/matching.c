@@ -252,6 +252,8 @@ initialize_matching(struct bsdtar *bsdtar)
 	if (bsdtar->matching == NULL)
 		bsdtar_errc(bsdtar, 1, errno, "No memory");
 	memset(bsdtar->matching, 0, sizeof(*bsdtar->matching));
+	bsdtar->matching->exclusions = NULL;
+	bsdtar->matching->inclusions = NULL;
 }
 
 int
