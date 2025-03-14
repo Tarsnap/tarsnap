@@ -153,10 +153,17 @@ bsdtar_init(void)
 	bsdtar->modestr = NULL;
 	bsdtar->option_csv_filename = NULL;
 	bsdtar->configfiles = NULL;
+	bsdtar->keyfile = NULL;
+	bsdtar->option_passphrase_arg = NULL;
 	bsdtar->archive = NULL;
 	bsdtar->progname = NULL;
 	bsdtar->argv = NULL;
 	bsdtar->optarg = NULL;
+	bsdtar->conffile = NULL;
+	bsdtar->conf_opt = NULL;
+	bsdtar->conf_arg = NULL;
+	bsdtar->conffile_actual = NULL;
+	bsdtar->conffile_buffer = NULL;
 	bsdtar->write_cookie = NULL;
 	bsdtar->chunk_cache = NULL;
 	bsdtar->argv_orig = NULL;
@@ -171,13 +178,6 @@ bsdtar_init(void)
 	bsdtar->uname_cache = NULL;
 	bsdtar->siginfo = NULL;
 	bsdtar->substitution = NULL;
-	bsdtar->keyfile = NULL;
-	bsdtar->conffile = NULL;
-	bsdtar->conf_opt = NULL;
-	bsdtar->conf_arg = NULL;
-	bsdtar->conffile_actual = NULL;
-	bsdtar->conffile_buffer = NULL;
-	bsdtar->option_passphrase_arg = NULL;
 
 	/* Initialize temporary tapenames array. */
 	bsdtar->tapenames_setup = strlist_init(0);

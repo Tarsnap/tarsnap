@@ -297,6 +297,9 @@ tree_open(const char *path, int noatime)
 		abort();
 	memset(t, 0, sizeof(*t));
 	t->noatime = noatime;
+	t->stack = NULL;
+	t->d = NULL;
+	t->buff = NULL;
 	tree_append(t, path, strlen(path));
 #ifdef HAVE_FCHDIR
 	t->initialDirFd = open(".", O_RDONLY);
