@@ -1,3 +1,31 @@
+tarsnap (1.0.40.99-1) unstable; urgency=medium
+
+  * tarsnap now accepts --dry-run-metadata, which allows -c to simulate
+    creating an archive without reading any file data. This is significantly
+    faster than a regular --dry-run, and it suitable for checking which
+    filesystem entries will be archives (with -v) or checking the total
+    archive size (with --totals or --progress-bytes).
+  * tarsnap now accepts --noatime with -c, which requests that the operating
+    system does not update atime when reading files or directories. Not
+    supported by all operating systems or filesystems.
+  * if the server-side state was modified and tarsnap exits with an error, it
+    will now have an exit code of 2.
+  * read config from $XDG_CONFIG_HOME/tarsnap/tarsnap.conf; or
+    ~/.config/tarsnap/tarsnap.conf if $XDG_CONFIG_HOME is unset. The previous
+    config file ~/.tarsnaprc is still supported, and will not be deprecated.
+  * add --null-input as a synonym for --null. --null is still supported, and
+    will not be deprecated.
+  * add --null-output which can be used with --list-archives, --print-stats,
+    -x, and -t modes; this causes archive names to be separated with a null
+    character (like find -print0).
+  * tarsnap now accepts --hashes and -f TAPEHASH with --list-archives, which
+    prints hashes of archive names or metadata about the specified archive.
+    These options are intended for the GUI and is not needed for command-line
+    usage.
+  * fix a strict aliasing violation with non-sse2 code, which resulted in a
+    self-test failure when compiled with gcc11+ -O3.
+
+ -- Graham Percival <pkg-deb@tarsnap.com>  Thu, 13 Mar 2025 20:54:50 -0800
 tarsnap (1.0.40-1) unstable; urgency=medium
 
   * tarsnap now accepts a --resume-extract option to skip extracting files whose
