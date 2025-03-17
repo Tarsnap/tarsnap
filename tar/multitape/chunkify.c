@@ -308,6 +308,32 @@ err:
 }
 
 /**
+ * validcycle(buf, start, end):
+ * Check if the cycle in ${buf} from ${start} to ${end} contains enough
+ * distinct byte values; a chosen-plaintext attack may be feasible under some
+ * circumstances if only two distinct byte values are used, so we require
+ * eight.
+ */
+static int
+validcycle(uint8_t * buf, size_t start, size_t end)
+{
+	uint8_t seen[256];
+	size_t nzcount = 0;
+	size_t i;
+
+	/* Count how many byte values occur a nonzero number of times. */
+	for (i = 0; i < 256; i++)
+		seen[i] = 0;
+	for (i = start; i < end; i++) {
+		nzcount += 1 - seen[buf[i]];
+		seen[buf[i]] = 1;
+	}
+
+	/* A valid cycle uses at least 8 distinct byte values. */
+	return (nzcount >= 8);
+}
+
+/**
  * chunkify_write(c, buf, buflen):
  * Feed the provided buffer into the CHUNKIFIER; callback(s) are made if
  * chunk(s) end during this process.
@@ -379,8 +405,12 @@ chunkify_write(CHUNKIFIER * c, const uint8_t * buf, size_t buflen)
 			/* Have we found yka? */
 			if (c->ht[2 * htpos + 1] == c->yka) {
 				/* Recent enough to be a valid entry? */
-				if (c->k - c->ht[2 * htpos] - 1 < c->r)
-					goto endofchunk;
+				if (c->k - c->ht[2 * htpos] - 1 < c->r) {
+					/* Has enough unique characters? */
+					if (validcycle(c->buf,
+					    c->ht[2 * htpos] - c->w, c->k))
+						goto endofchunk;
+				}
 			}
 
 			/* Have we found an empty space? */
