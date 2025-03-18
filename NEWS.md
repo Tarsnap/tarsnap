@@ -1,5 +1,8 @@
 ### Tarsnap 1.0.41 (unreleased)
 
+- tarsnap now has mitigations to defend against information leakage via
+  chunking: Chunks are padded using the PADME scheme, and small-alphabet
+  cycles are prohibited in chunking to block a chosen-plaintext attack.
 - tarsnap -c now accepts --dry-run-metadata, which simulates creating an
   archive without reading any file data.  This is significantly faster than a
   regular --dry-run, and is suitable for checking which filesystem entries
