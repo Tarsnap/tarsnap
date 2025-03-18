@@ -102,6 +102,54 @@ err0:
 }
 
 /**
+ * padme(len, maxlen):
+ * Return the amount of padding needed to expand ${len} to a padme-compliant
+ * size or to ${maxlen} (whichever is less).
+ *
+ * See: Kirill Nikitin, Ludovic Barman, Wouter Lueks, Matthew Underwood,
+ * Jean-Pierre Hubaux, and Bryan Ford (2019).  Reducing Metadata Leakage from
+ * Encrypted Files and Communication with PURBs.  Proceedings on Privacy
+ * Enhancing Technologies.  2019.  6-33.  DOI: 10.2478/popets-2019-0056.
+ */
+static size_t
+padme(size_t len, size_t maxlen)
+{
+	size_t e, s, bitmask, plen;
+
+	assert(len > 0);
+	assert(len <= maxlen);
+
+	/* No padding for up to 8 bytes. */
+	if (len <= 8)
+		return (0);
+
+	/* E = floor(log_2(L)). */
+	for (e = 0; ; e++) {
+		if ((len >> e) < 2)
+			break;
+	}
+
+	/* S = floor(log_2(E)) + 1. */
+	for (s = 1; ; s++) {
+		if ((e >> s) == 0)
+			break;
+	}
+
+	/* bitMask = 2^(E - S) - 1. */
+	bitmask = (1 << (e - s)) - 1;
+
+	/* Padded length = (L + bitMask) & ~bitMask. */
+	plen = (len + bitmask) & (~bitmask);
+
+	/* Don't pad past maxlen. */
+	if (plen > maxlen)
+		plen = maxlen;
+
+	/* Return padding length. */
+	return (plen - len);
+}
+
+/**
  * chunks_write_chunk(C, hash, buf, buflen):
  * Write the chunk ${buf} of length ${buflen}, which has HMAC ${hash},
  * as part of the write transaction associated with the cookie ${C}.
@@ -113,6 +161,7 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 {
 	struct chunkdata * ch;
 	uLongf zlen;
+	size_t padlen;
 	char hashbuf[65];
 	int rc;
 
@@ -159,6 +208,11 @@ chunks_write_chunk(CHUNKS_W * C, const uint8_t * hash,
 		warnp("Error compressing chunk");
 		goto err0;
 	}
+
+	/* Add padding. */
+	padlen = padme((size_t)zlen, C->zbuflen);
+	memset(&C->zbuf[zlen], 0, padlen);
+	zlen += padlen;
 
 	/* Ask the storage layer to write the file for us. */
 	if (storage_write_file(C->S, C->zbuf, zlen, 'c', hash)) {
