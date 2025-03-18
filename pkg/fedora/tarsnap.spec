@@ -1,5 +1,5 @@
 Name:           tarsnap
-Version:        1.0.40.99
+Version:        1.0.41
 Release:        1%{?dist}
 Summary:        Secure, efficient online backup service
 
@@ -52,8 +52,8 @@ mv $RPM_BUILD_ROOT/%{_sysconfdir}/tarsnap.conf.sample \
 
 
 %changelog
-* Thu Mar 13 2025 Graham Percival <gperciva@tarsnap.com> 1.0.40.99-1
-- Upstream version 1.0.40.99
+* Thu Mar 18 2025 Graham Percival <gperciva@tarsnap.com> 1.0.41-1
+- Upstream version 1.0.41
 
 * Fri Feb 11 2022 Graham Percival <gperciva@tarsnap.com> 1.0.40-1
 - Upstream version 1.0.40

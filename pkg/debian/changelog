@@ -1,4 +1,4 @@
-tarsnap (1.0.40.99-1) unstable; urgency=medium
+tarsnap (1.0.41-1) unstable; urgency=high
 
   * tarsnap now has mitigations to defend against information leakage via
     chunking of chosen plaintext.
@@ -27,7 +27,7 @@ tarsnap (1.0.40.99-1) unstable; urgency=medium
   * fix a strict aliasing violation with non-sse2 code, which resulted in a
     self-test failure when compiled with gcc11+ -O3.
 
- -- Graham Percival <pkg-deb@tarsnap.com>  Thu, 13 Mar 2025 20:54:50 -0800
+ -- Graham Percival <pkg-deb@tarsnap.com>  Thu, 20 Mar 2025 10:57:18 -0800
 tarsnap (1.0.40-1) unstable; urgency=medium
 
   * tarsnap now accepts a --resume-extract option to skip extracting files whose

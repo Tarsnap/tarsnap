@@ -1,4 +1,7 @@
-### Tarsnap 1.0.41 (unreleased)
+Tarsnap Releases
+================
+
+### Tarsnap 1.0.41 (March 21, 2025)
 
 - tarsnap now has mitigations to defend against information leakage via
   chunking: Chunks are padded using the PADME scheme, and small-alphabet
@@ -42,9 +45,6 @@
   higher using -O3, does not have SSE2, and is using a passphrase-protected
   keyfile.
 
-
-Tarsnap Releases
-================
 
 ### Tarsnap 1.0.40 (February 10, 2022)
 
