@@ -1,5 +1,7 @@
 tarsnap (1.0.40.99-1) unstable; urgency=medium
 
+  * tarsnap now has mitigations to defend against information leakage via
+    chunking of chosen plaintext.
   * tarsnap now accepts --dry-run-metadata, which allows -c to simulate
     creating an archive without reading any file data. This is significantly
     faster than a regular --dry-run, and it suitable for checking which
