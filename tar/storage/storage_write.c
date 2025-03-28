@@ -40,7 +40,7 @@ struct storage_write_internal {
 	size_t lastcnum;
 
 	/* Number of bytes of pending writes. */
-	size_t nbytespending;
+	size_t nbytespending[AGGRESSIVE_CNUM];
 
 	/* Last time we wrote a checkpoint. */
 	uint64_t lastcheckpoint;
@@ -147,7 +147,8 @@ storage_write_start(uint64_t machinenum, const uint8_t lastseq[32],
 	S->lastcnum = 0;
 
 	/* No pending writes so far. */
-	S->nbytespending = 0;
+	for (i = 0; i < S->numconns; i++)
+		S->nbytespending[i] = 0;
 
 	/* No checkpoint yet. */
 	S->lastcheckpoint = 0;
@@ -341,13 +342,13 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	C->conn = S->lastcnum = (S->lastcnum + 1) % S->numconns;
 
 	/* We're issuing a write operation. */
-	S->nbytespending += C->flen;
+	S->nbytespending[C->conn] += C->flen;
 
 	/*
 	 * Make sure the pending operation queue isn't too large before we
 	 * add yet another operation to it.
 	 */
-	while (S->nbytespending > MAXPENDING_WRITEBYTES) {
+	while (S->nbytespending[C->conn] > MAXPENDING_WRITEBYTES) {
 		if (network_select(1))
 			goto err2;
 	}
@@ -419,7 +420,7 @@ callback_write_file_response(void * cookie,
 	switch (packetbuf[0]) {
 	case 0:
 		/* This write operation is no longer pending. */
-		C->S->nbytespending -= C->flen;
+		C->S->nbytespending[C->conn] -= C->flen;
 		break;
 	case 1:
 		warn0("Cannot store file: File already exists");
@@ -467,15 +468,18 @@ err1:
 int
 storage_write_flush(STORAGE_W * S)
 {
+	size_t i;
 
 	/* No-op on NULL. */
 	if (S == NULL)
 		return (0);
 
 	/* Wait until all pending writes have been completed. */
-	while (S->nbytespending > 0) {
-		if (network_select(1))
-			goto err0;
+	for (i = 0; i < S->numconns; i++) {
+		while (S->nbytespending[i] > 0) {
+			if (network_select(1))
+				goto err0;
+		}
 	}
 
 	/* Success! */
