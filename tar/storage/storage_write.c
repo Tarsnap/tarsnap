@@ -66,6 +66,9 @@ struct write_file_internal {
 	uint64_t machinenum;
 	int done;
 
+	/* Connection we're using. */
+	size_t conn;
+
 	/* Parameters used in write_file. */
 	uint8_t class;
 	uint8_t name[32];
@@ -334,6 +337,9 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	if (crypto_file_enc(buf, len, C->filebuf))
 		goto err2;
 
+	/* Select connection to use. */
+	C->conn = S->lastcnum = (S->lastcnum + 1) % S->numconns;
+
 	/* We're issuing a write operation. */
 	S->nbytespending += C->flen;
 
@@ -347,8 +353,7 @@ storage_write_file(STORAGE_W * S, uint8_t * buf, size_t len,
 	}
 
 	/* Ask the netpacket layer to send a request and get a response. */
-	S->lastcnum = (S->lastcnum + 1) % S->numconns;
-	if (netpacket_op(S->NPC[S->lastcnum], callback_write_file_send, C))
+	if (netpacket_op(S->NPC[C->conn], callback_write_file_send, C))
 		goto err0;
 
 	/* Send ourself SIGQUIT or SIGUSR2 if necessary. */
