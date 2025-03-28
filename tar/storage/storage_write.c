@@ -420,6 +420,10 @@ callback_write_file_response(void * cookie,
 	switch (packetbuf[0]) {
 	case 0:
 		/* This write operation is no longer pending. */
+		if (C->S->nbytespending[C->conn] < C->flen) {
+			warn0("Invalid connection number and/or length");
+			goto err1;
+		}
 		C->S->nbytespending[C->conn] -= C->flen;
 		break;
 	case 1:
