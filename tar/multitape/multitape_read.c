@@ -127,10 +127,12 @@ stream_get_chunk(struct stream * S, const uint8_t ** buf, size_t * clen,
 
 	/* Skip part of the current chunk if appropriate. */
 	if (S->skiplen) {
+		/* How many bytes should we skip? */
 		skip = (off_t)(S->chunklen - S->chunkpos);
 		if (skip > S->skiplen)
 			skip = S->skiplen;
 
+		/* Skip bytes. */
 		S->skiplen -= skip;
 		S->chunkpos += (size_t)skip;
 	}
@@ -377,11 +379,13 @@ readtape_read(TAPE_R * d, const void ** buffer)
 			continue;
 		}
 
+		/* Read data. */
 		if (stream_get_chunk(readstream, buf, &clen, d->C))
 			goto err0;
 		if ((off_t)clen > *readmaxlen)
 			clen = (size_t)(*readmaxlen);
 
+		/* Update position and length. */
 		readstream->chunkpos += clen;
 		*readmaxlen -= clen;
 

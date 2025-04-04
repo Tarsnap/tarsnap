@@ -401,6 +401,7 @@ statstape_print(TAPE_S * d, const char * tapename, const char * csv_filename,
 		goto err0;
 	}
 
+	/* Compute statistics. */
 	if (multitape_chunkiter_tmd(d->SR, d->C, &tmd,
 	    callback_print, d->C, 0))
 		goto err2;
