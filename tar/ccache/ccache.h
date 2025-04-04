@@ -22,7 +22,7 @@ CCACHE * ccache_read(const char *);
  * the chunkification cache ${cache}, and set ${fullentry} to a non-zero
  * value iff the cache can provide at least sb->st_size bytes of the archive
  * entry.  Return a cookie which can be passed to either ccache_entry_write
- * or ccache_entry_start depending upon whether ${fullentry} is zero or not.
+ * or ccache_entry_writefile depending upon whether ${fullentry} is zero or not.
  */
 CCACHE_ENTRY * ccache_entry_lookup(CCACHE *, const char *,
     const struct stat *, TAPE_W *, int *);
