@@ -701,6 +701,13 @@ EXTRA_DIST+=								\
 	tests/06-progress-output-vpb-1k.good				\
 	tests/06-progress-output-vpb-20k.good				\
 	tests/06-progress-output.sh					\
+	tests/07-selecting-files-baseline.good				\
+	tests/07-selecting-files-exclude.good				\
+	tests/07-selecting-files-include-exclude.good			\
+	tests/07-selecting-files-include.good				\
+	tests/07-selecting-files-nT-full.good				\
+	tests/07-selecting-files-nT-partial.good			\
+	tests/07-selecting-files.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\

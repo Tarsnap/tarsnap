@@ -1,0 +1,7 @@
+a .
+a ./a
+a ./dir1
+a ./dir1/b
+a ./dir1/c
+a ./dir2
+a ./dir2/d
