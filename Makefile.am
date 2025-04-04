@@ -325,6 +325,9 @@ EXTRA_DIST=								\
 	libcperciva/POSIX/posix-restrict.c				\
 	libcperciva/POSIX/posix-stat-st_mtim.c				\
 	libcperciva/POSIX/posix-trivial.c				\
+	libcperciva/apisupport/Build/apisupport-LIBCRYPTO-LOW_LEVEL_AES.c \
+	libcperciva/apisupport/Build/apisupport-LIBCRYPTO-LOW_LEVEL_RSA.c \
+	libcperciva/apisupport/Build/apisupport.sh			\
 	libcperciva/cpusupport/Build/cpusupport-ARM-AES.c		\
 	libcperciva/cpusupport/Build/cpusupport-ARM-SHA256.c		\
 	libcperciva/cpusupport/Build/cpusupport-HWCAP-ELF_AUX_INFO.c	\
