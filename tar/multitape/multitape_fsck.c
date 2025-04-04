@@ -176,6 +176,7 @@ phase1(uint64_t machinenum, STORAGE_D * SD, STORAGE_R * SR,
 		if ((mdat = malloc(sizeof(struct tapemetadata))) == NULL)
 			goto err2;
 
+		/* Get the next metadata file. */
 		switch (multitape_metadata_get_byhash(SR, NULL, mdat,
 		    &flist[file * 32], 1)) {
 		case -1:

@@ -38,7 +38,10 @@ multitape_metaindex_fragname(const uint8_t namehash[32], uint32_t fragnum,
 {
 	uint8_t fragnum_le[4];
 
+	/* Use a platform-agnostic format for fragnum. */
 	le32enc(fragnum_le, fragnum);
+
+	/* SHA256(namehash || fragnum). */
 	if (crypto_hash_data_2(CRYPTO_KEY_HMAC_SHA256, namehash, 32,
 	    fragnum_le, 4, fraghash)) {
 		warn0("Programmer error: "
@@ -90,19 +93,21 @@ multitape_metaindex_put(STORAGE_W * S, CHUNKS_W * C,
 	if ((p = buf = malloc(buflen)) == NULL)
 		goto err0;
 
-	/* Copy values into buffer. */
+	/* Copy the header index into the buffer. */
 	le32enc(p, (uint32_t)mind->hindexlen);
 	p += 4;
 	if (mind->hindexlen > 0)
 		memcpy(p, mind->hindex, mind->hindexlen);
 	p += mind->hindexlen;
 
+	/* Copy the chunk index into the buffer. */
 	le32enc(p, (uint32_t)mind->cindexlen);
 	p += 4;
 	if (mind->cindexlen > 0)
 		memcpy(p, mind->cindex, mind->cindexlen);
 	p += mind->cindexlen;
 
+	/* Copy the trailer index into the buffer. */
 	le32enc(p, (uint32_t)mind->tindexlen);
 	p += 4;
 	if (mind->tindexlen > 0)
@@ -231,8 +236,11 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 	buf += 4;
 	buflen -= 4;
 
+	/* Sanity check. */
 	if (buflen < mind->hindexlen)
 		goto corrupt0;
+
+	/* Copy the header index into a new buffer. */
 	if (((mind->hindex = malloc(mind->hindexlen)) == NULL) &&
 	    (mind->hindexlen > 0))
 		goto err1;
@@ -248,8 +256,11 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 	buf += 4;
 	buflen -= 4;
 
+	/* Sanity check. */
 	if (buflen < mind->cindexlen)
 		goto corrupt1;
+
+	/* Copy the chunk index into a new buffer. */
 	if (((mind->cindex = malloc(mind->cindexlen)) == NULL) &&
 	    (mind->cindexlen > 0))
 		goto err2;
@@ -265,8 +276,11 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 	buf += 4;
 	buflen -= 4;
 
+	/* Sanity check. */
 	if (buflen < mind->tindexlen)
 		goto corrupt2;
+
+	/* Copy the trailer index into a new buffer. */
 	if (((mind->tindex = malloc(mind->tindexlen)) == NULL) &&
 	    (mind->tindexlen > 0))
 		goto err3;
@@ -275,6 +289,7 @@ multitape_metaindex_get(STORAGE_R * S, CHUNKS_S * C,
 	buf += mind->tindexlen;
 	buflen -= mind->tindexlen;
 
+	/* Sanity check. */
 	if (buflen != 0)
 		goto corrupt3;
 
@@ -331,6 +346,7 @@ multitape_metaindex_free(struct tapemetaindex * mind)
 	if (mind == NULL)
 		return;
 
+	/* Clean up. */
 	free(mind->tindex);
 	free(mind->cindex);
 	free(mind->hindex);
@@ -351,6 +367,7 @@ multitape_metaindex_delete(STORAGE_D * S, CHUNKS_D * C,
 	size_t fraglen;
 	uint8_t fraghash[32];
 
+	/* Compute the hash of the tape name. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_NAME,
 	    (uint8_t *)mdat->name, strlen(mdat->name), hbuf))
 		goto err0;
