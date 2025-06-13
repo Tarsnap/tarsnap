@@ -1333,7 +1333,7 @@ main(int argc, char **argv)
 			bsdtar->return_value = 2;
 			bsdtar_warnc(bsdtar, 0,
 			    "Data on server was modified, but it might not"
-			    "be exactly what you requested");
+			    " be exactly what you requested");
 		}
 	}
 	return (bsdtar->return_value);
@@ -1942,7 +1942,7 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (passphrase_entry_parse(conf_arg,
 		    &bsdtar->option_passphrase_entry, &str))
 			bsdtar_errc(bsdtar, 1, 0, "Cannot parse passphrase"
-			    "entry method: %s", conf_arg);
+			    " entry method: %s", conf_arg);
 		if ((bsdtar->option_passphrase_arg = strdup(str)) == NULL)
 			bsdtar_errc(bsdtar, 1, ENOMEM,
 			    "Cannot allocate memory");
