@@ -506,9 +506,12 @@ multitape_metadata_delete(STORAGE_D * S, CHUNKS_D * C,
 {
 	uint8_t hbuf[32];
 
+	/* Compute the hash of the tape name. */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_NAME,
 	    (uint8_t *)mdat->name, strlen(mdat->name), hbuf))
 		goto err0;
+
+	/* Delete the file and update the stats. */
 	if (storage_delete_file(S, 'm', hbuf))
 		goto err0;
 	chunks_delete_extrastats(C, mdat->metadatalen);

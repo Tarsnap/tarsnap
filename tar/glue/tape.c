@@ -12,7 +12,8 @@
 
 #include "bsdtar.h"
 
-/*
+/**
+ * tarsnap_mode_d(bsdtar):
  * Delete a tape.
  */
 void
@@ -60,7 +61,8 @@ err1:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_r(bsdtar):
  * Read the tape and write to stdout.
  */
 void
@@ -110,7 +112,8 @@ err1:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_print_stats(bsdtar):
  * Print statistics relating to an archive or set of archives.
  */
 void
@@ -171,7 +174,8 @@ err1:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_list_archives(bsdtar, print_hashes):
  * Print the names of all the archives.
  */
 void
@@ -231,7 +235,8 @@ err1:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_fsck(bsdtar, prune, whichkey):
  * Archive set consistency check and repair.
  */
 void
@@ -265,7 +270,8 @@ err0:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_initialize_cachedir(bsdtar):
  * Initialize cache directory.
  */
 void
@@ -291,7 +297,8 @@ err0:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_nuke(bsdtar):
  * Nuke all the files belonging to an archive set.
  */
 void
@@ -325,7 +332,8 @@ err0:
 	return;
 }
 
-/*
+/**
+ * tarsnap_mode_recover(bsdtar):
  * Recover an interrupted archive if one exists.
  */
 void

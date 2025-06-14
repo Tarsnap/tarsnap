@@ -1054,6 +1054,7 @@ writetape_free(TAPE_W * d)
 	if (d == NULL)
 		return;
 
+	/* Clean up. */
 	chunks_write_free(d->C);
 	storage_write_free(d->S);
 	if ((d->lockfd != -1) && close(d->lockfd))
