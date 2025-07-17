@@ -552,11 +552,19 @@ ccache_entry_writefile(CCACHE_ENTRY * cce, TAPE_W * cookie,
 	cce->ccr->size = cce->size_new;
 	cce->ccr->mtime = cce->mtime_new;
 
+	/*
+	 * Decide if we want to keep a trailer: We follow the policy provided
+	 * by the caller (record a trailer unless notrailer != 0) unless we're
+	 * spending too much memory keeping track of trailers *and* this file
+	 * is under 10 MB.
+	 */
+	if ((cce->cci->trailerusage > cce->cci->chunksusage * 2) &&
+	    (cce->ccr->size < 10 * 1024 * 1024))
+		notrailer = 1;
+
 	/* Ask the multitape layer to inform us about later chunks. */
 	writetape_setcallback(cookie, callback_addchunk,
-	    ((cce->cci->trailerusage > cce->cci->chunksusage * 2) ||
-	    (notrailer != 0)) ? callback_faketrailer : callback_addtrailer,
-	    cce);
+	    notrailer ? callback_faketrailer : callback_addtrailer, cce);
 
 	/* Success! */
 	return (skiplen);
