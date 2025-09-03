@@ -1,4 +1,4 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Tarsnap
 Upstream-Contact: Colin Percival <cperciva@tarsnap.com>
 Source: https://tarsnap.com/download.html
