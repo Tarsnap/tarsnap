@@ -13,7 +13,7 @@ extern int tarsnap_opt_humanize_numbers;
 /* Be verbose when warning about network glitches. */
 extern int tarsnap_opt_noisy_warnings;
 
-/* Maximum number of bytes to send over the network before QUITing. */
+/* Maximum number of bytes to send over the network before quitting. */
 extern uint64_t tarsnap_opt_maxbytesout;
 
 /* Number of bytes to send between checkpoints. */

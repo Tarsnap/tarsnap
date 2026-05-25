@@ -77,7 +77,7 @@
 --passphrase			read passphrase from ARG, not /dev/tty
 --print-stats			print global statistics concerning archives	MODE
 --print-stats			print statistics for the archive
---progress-bytes		print a progress messsage each X bytes
+--progress-bytes		print a progress message each X bytes
 --quiet				avoid printing some warnings
 --recover			recover a partial archive from a checkpoint	MODE
 --resume-extract		don't extract files that are on disk
