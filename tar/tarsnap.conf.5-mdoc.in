@@ -17,12 +17,24 @@ file is read by the
 utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
-Options may be specified in
+By default, options may be specified in the following files, listed
+from highest to lowest precedence:
+.Bl -enum -compact
+.It
+.Pa ~/.tarsnaprc
+.It
+.Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf ,
+or
+.Pa ~/.config/tarsnap/tarsnap.conf
+if
+.Ev XDG_CONFIG_HOME
+is not set
+.It
 .Pa @sysconfdir@/tarsnap.conf
-and/or
-.Pa ~/.tarsnaprc ;
-if the two files conflict, the user's local configuration
-takes precedence.
+.El
+If the files conflict, options from earlier files in this list take
+precedence.
+Command-line options override all default configuration files.
 .Pp
 The
 .Nm
@@ -94,12 +106,30 @@ and
 .Cm no-*
 options are only useful in the user-specific
 .Pa ~/.tarsnaprc
-configuration file, at which point they act to override options set in the
-global
+or XDG configuration file, at which point they act to override options set
+in the global
 .Pa @sysconfdir@/tarsnap.conf
 configuration file.
 .Sh FILES
 .Bl -tag -width indent
+.It Pa ~/.tarsnaprc
+The highest-precedence default
+.Nm
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.It Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+A
+.Nm
+configuration file for the current user.
+If the environment variable
+.Ev XDG_CONFIG_HOME
+is not set, the default value of
+.Pa ~/.config/tarsnap/tarsnap.conf
+will be used.
+Parameters specified here take effect unless they are specified via
+.Pa ~/.tarsnaprc
+or the command line.
 .It Pa @sysconfdir@/tarsnap.conf
 The system global
 .Nm
@@ -107,12 +137,6 @@ configuration file.
 Parameters specified here only take effect if they are not
 specified via the current user's local configuration file
 or via the command line.
-.It Pa ~/.tarsnaprc
-The
-.Nm
-configuration file for the current user.
-Parameters specified here take effect unless they are
-specified via the command line.
 .El
 .Sh SEE ALSO
 .Xr tarsnap 1
