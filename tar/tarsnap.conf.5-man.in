@@ -13,12 +13,24 @@ file is read by the
 utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
-Options may be specified in
+By default, options may be specified in the following files, listed
+from highest to lowest precedence:
+.RS 5
+.IP 1.
+\fI~/.tarsnaprc\fP
+.IP 2.
+\fI$XDG_CONFIG_HOME/tarsnap/tarsnap.conf\fP,
+or
+\fI~/.config/tarsnap/tarsnap.conf\fP
+if
+\fBXDG_CONFIG_HOME\fP
+is not set
+.IP 3.
 \fI@sysconfdir@/tarsnap.conf\fP
-and/or
-\fI~/.tarsnaprc\fP;
-if the two files conflict, the user's local configuration
-takes precedence.
+.RE
+If the files conflict, options from earlier files in this list take
+precedence.
+Command-line options override all default configuration files.
 .PP
 The
 \fB\%tarsnap.conf\fP
@@ -133,13 +145,33 @@ and
 \fBno-*\fP
 options are only useful in the user-specific
 \fI~/.tarsnaprc\fP
-configuration file, at which point they act to override options set in the
-global
+or XDG configuration file, at which point they act to override options set
+in the global
 \fI@sysconfdir@/tarsnap.conf\fP
 configuration file.
 .SH FILES
 .ad l
 .RS 5
+.TP
+.B ~/.tarsnaprc
+The highest-precedence default
+\fB\%tarsnap.conf\fP
+configuration file for the current user.
+Parameters specified here take effect unless they are
+specified via the command line.
+.TP
+.B $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+A
+\fB\%tarsnap.conf\fP
+configuration file for the current user.
+If the environment variable
+\fBXDG_CONFIG_HOME\fP
+is not set, the default value of
+\fI~/.config/tarsnap/tarsnap.conf\fP
+will be used.
+Parameters specified here take effect unless they are specified via
+\fI~/.tarsnaprc\fP
+or the command line.
 .TP
 .B @sysconfdir@/tarsnap.conf
 The system global
@@ -148,13 +180,6 @@ configuration file.
 Parameters specified here only take effect if they are not
 specified via the current user's local configuration file
 or via the command line.
-.TP
-.B ~/.tarsnaprc
-The
-\fB\%tarsnap.conf\fP
-configuration file for the current user.
-Parameters specified here take effect unless they are
-specified via the command line.
 .RE
 .SH SEE ALSO
 .ad l
