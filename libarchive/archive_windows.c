@@ -536,7 +536,7 @@ la_chmod(const char *path, mode_t mode)
 }
 
 /*
- * This fcntl is limited implemention.
+ * This fcntl is limited implementation.
  */
 int
 la_fcntl(int fd, int cmd, int val)
@@ -619,7 +619,7 @@ la_mkdir(const char *path, mode_t mode)
 	return (0);
 }
 
-/* Windows' mbstowcs is differrent error handling from other unix mbstowcs.
+/* Windows' mbstowcs has different error handling from other Unix mbstowcs.
  * That one is using MultiByteToWideChar function with MB_PRECOMPOSED and
  * MB_ERR_INVALID_CHARS flags.
  * This implements for only to pass libarchive_test.
@@ -691,7 +691,7 @@ la_open(const char *path, int flags, ...)
 	if (ws == NULL) {
 		r = _open(path, flags, pmode);
 		if (r < 0 && errno == EACCES && (flags & O_CREAT) != 0) {
-			/* simular other POSIX system action to pass a test */
+			/* Match other POSIX systems' behavior to pass a test. */
 			attr = GetFileAttributesA(path);
 			if (attr == -1)
 				_dosmaperr(GetLastError());
@@ -711,7 +711,7 @@ la_open(const char *path, int flags, ...)
 	}
 	r = _wopen(ws, flags, pmode);
 	if (r < 0 && errno == EACCES && (flags & O_CREAT) != 0) {
-		/* simular other POSIX system action to pass a test */
+		/* Match other POSIX systems' behavior to pass a test. */
 		attr = GetFileAttributesW(ws);
 		if (attr == -1)
 			_dosmaperr(GetLastError());
@@ -817,7 +817,7 @@ fileTimeToUTC(const FILETIME *filetime, time_t *time, long *ns)
  * Windows' stat() does not accept path which is added "\\?\" especially "?"
  * character.
  * It means we cannot access a long name path(which is longer than MAX_PATH).
- * So I've implemented simular Windows' stat() to access the long name path.
+ * So I've implemented a similar Windows stat() to access the long name path.
  * And I've added some feature.
  * 1. set st_ino by nFileIndexHigh and nFileIndexLow of
  *    BY_HANDLE_FILE_INFORMATION.
@@ -1015,7 +1015,7 @@ la_unlink(const char *path)
 }
 
 /*
- * This waitpid is limited implemention.
+ * This waitpid is limited implementation.
  */
 pid_t
 la_waitpid(pid_t wpid, int *status, int option)
