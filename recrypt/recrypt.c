@@ -455,9 +455,9 @@ main(int argc, char **argv)
 		usage();
 
 	/* Make sure the cache directories exist. */
-	if (build_dir(ncachedir, "--newcachdir"))
+	if (build_dir(ncachedir, "--newcachedir"))
 		exit(1);
-	if (build_dir(ocachedir, "--oldcachdir"))
+	if (build_dir(ocachedir, "--oldcachedir"))
 		exit(1);
 
 	/* Lock the cache directories. */
