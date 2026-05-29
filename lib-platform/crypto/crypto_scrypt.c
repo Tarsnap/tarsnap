@@ -214,7 +214,7 @@ selectsmix(void)
 #ifdef CPUSUPPORT_X86_SSE2
 	/* If we're running on an SSE2-capable CPU, try that code. */
 	if (cpusupport_x86_sse2()) {
-		/* If SSE2ized smix works, use it. */
+		/* If SSE2-optimized smix works, use it. */
 		if (!testsmix(crypto_scrypt_smix_sse2)) {
 			smix_func = crypto_scrypt_smix_sse2;
 			return;
