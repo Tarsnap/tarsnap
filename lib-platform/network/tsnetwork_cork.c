@@ -18,7 +18,8 @@
  * XXX 1. To avoid wasting bandwidth, by ensuring that multiple small writes
  * XXX over a socket are aggregated into a single TCP/IP packet.
  * XXX 2. To avoid severe performance issues which would otherwise result
- * XXX from nagling, by allowing data to be "pushed" out once there are no
+ * XXX from Nagle's algorithm, by allowing data to be "pushed" out once there
+ * XXX are no
  * XXX more writes queued.
  * XXX
  * XXX POSIX defines TCP_NODELAY for purpose #2, although it does not require

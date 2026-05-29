@@ -227,7 +227,7 @@ __archive_errx(int retvalue, const char *msg)
  *        (This "compression=9" option entry is for "zip" format only)
  *
  *      If another entries follow it, those are not for
- *      the specfic format/filter.
+ *      the specific format/filter.
  *        e.g  handle "zip:compression=9,opt=XXX,opt-b=ZZZ"
  *          "zip" format/filter handler will get "compression=9"
  *          all format/filter handler will get "opt=XXX"

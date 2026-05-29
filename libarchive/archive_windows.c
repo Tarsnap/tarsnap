@@ -536,7 +536,7 @@ la_chmod(const char *path, mode_t mode)
 }
 
 /*
- * This fcntl is limited implemention.
+ * This fcntl is a limited implementation.
  */
 int
 la_fcntl(int fd, int cmd, int val)
@@ -1015,7 +1015,7 @@ la_unlink(const char *path)
 }
 
 /*
- * This waitpid is limited implemention.
+ * This waitpid is a limited implementation.
  */
 pid_t
 la_waitpid(pid_t wpid, int *status, int option)
