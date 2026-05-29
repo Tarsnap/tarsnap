@@ -1124,7 +1124,7 @@ bsdtar_is_privileged(struct bsdtar *bsdtar)
 }
 
 /*
- * Note: We should use wide-character for findng '\' character,
+ * Note: We should use wide-character for finding '\' character,
  * a directory separator on Windows, because some character-set have
  * been using the '\' character for a part of its multibyte character
  * code.
