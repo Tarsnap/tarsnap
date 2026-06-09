@@ -213,7 +213,7 @@ the ckptnonce value must be identical.
 
 The value nonce is the transaction nonce of the current write transaction.
 
-The value hmac is HMAC(0x13 || [packet minute final hmac]).
+The value hmac is HMAC(0x13 || [packet minus final hmac]).
 
 NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE (0x93)
 ------------------------------------------------
