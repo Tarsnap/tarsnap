@@ -1938,6 +1938,8 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 	} else if (strcmp(conf_opt, "passphrase") == 0) {
 		if (bsdtar->option_passphrase_entry != PASSPHRASE_UNSET)
 			goto optset;
+		if (conf_arg == NULL)
+			goto needarg;
 
 		if (passphrase_entry_parse(conf_arg,
 		    &bsdtar->option_passphrase_entry, &str))
