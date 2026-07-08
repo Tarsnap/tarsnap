@@ -32,7 +32,7 @@ readpass_file(char ** passwd, const char * filename)
 	/* Get a line from the file. */
 	if ((fgets(passbuf, MAXPASSLEN, f)) == NULL) {
 		if (ferror(f)) {
-			warnp("fread(%s)", filename);
+			warnp("fgets(%s)", filename);
 			goto err2;
 		} else {
 			/* We have a 0-byte password. */
