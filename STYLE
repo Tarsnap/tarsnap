@@ -49,6 +49,9 @@ The first statement in main(), after variable declarations, should be
 
 We use %d rather than %i in printf and warn0/warnp strings.
 
+In warn0/warnp strings, write function names as "foo" rather than "foo()",
+and do not add any terminating punctuation or line break.
+
 In general, functions should be structured with one return statement per
 status, e.g., one return() for success and one return() for failure.  Errors
 should be handled by using goto to enter the error return path, e.g.,

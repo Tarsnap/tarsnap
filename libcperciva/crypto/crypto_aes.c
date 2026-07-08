@@ -192,7 +192,7 @@ hwaccel_init(void)
 	 * there's an error, print a warning and abort.
 	 */
 	if (functest(openssl_oneshot)) {
-		warn0("OpenSSL gives incorrect AES values.");
+		warn0("OpenSSL gives incorrect AES values");
 		abort();
 	}
 }

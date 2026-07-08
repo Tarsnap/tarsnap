@@ -392,7 +392,7 @@ events_network_select(const struct timeval * tv,
 		}
 
 		/* Anything else is an error. */
-		warnp("poll()");
+		warnp("poll");
 		goto err0;
 	}
 

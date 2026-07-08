@@ -268,7 +268,7 @@ netproto_close(NETPROTO_CONNECTION * C)
 		}
 
 		if (errno != EINTR) {
-			warnp("close()");
+			warnp("close");
 			goto err1;
 		}
 	}
