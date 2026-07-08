@@ -1,12 +1,9 @@
 name: Compile & test
 
-# Run whenever we push to any branch other than [coverity-scan], or if we
-# manually trigger a workflow.
+# Run whenever there's a new commit in a PR, or if we manually trigger one.
 on:
-  push:
-    branches:
-    - '**'
-    - '!coverity-scan'
+  pull_request:
+
   workflow_dispatch:
 
 env:
@@ -105,7 +102,7 @@ jobs:
       run: test -z "$(git status --porcelain=v1)"
   macOS:
     name: macOS
-    runs-on: macOS-14
+    runs-on: macos-14
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
