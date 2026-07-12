@@ -40,6 +40,8 @@
 #include "sha256.h"
 #include "warnp.h"
 
+#include "insecure_memzero.h"
+
 #include "crypto_scrypt_smix.h"
 #include "crypto_scrypt_smix_sse2.h"
 
@@ -145,20 +147,26 @@ crypto_scrypt_internal(const uint8_t * passwd, size_t passwdlen,
 
 	/* Free memory. */
 #if defined(MAP_ANON) && defined(HAVE_MMAP)
+	insecure_memzero(V, (size_t)(128 * r * N));
 	if (munmap(V0, (size_t)(128 * r * N)))
 		goto err2;
 #else
+	insecure_memzero(V, (size_t)(128 * r * N));
 	free(V0);
 #endif
+	insecure_memzero(XY, 256 * r + 64);
 	free(XY0);
+	insecure_memzero(B, 128 * r * p);
 	free(B0);
 
 	/* Success! */
 	return (0);
 
 err2:
+	insecure_memzero(XY, 256 * r + 64);
 	free(XY0);
 err1:
+	insecure_memzero(B, 128 * r * p);
 	free(B0);
 err0:
 	/* Failure! */
