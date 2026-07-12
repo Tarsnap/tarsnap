@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "cpusupport.h"
@@ -38,6 +39,7 @@ static int instantiate(void);
 static void update(const uint8_t *, size_t);
 static int reseed(void);
 static void generate(uint8_t *, size_t);
+static void crypto_entropy_atexit(void);
 
 #ifdef CPUSUPPORT_X86_RDRAND
 static void
@@ -199,6 +201,13 @@ generate(uint8_t * buf, size_t buflen)
 	drbg.reseed_counter += 1;
 }
 
+static void
+crypto_entropy_atexit(void)
+{
+
+	insecure_memzero(&drbg, sizeof(drbg));
+}
+
 /**
  * crypto_entropy_read(buf, buflen):
  * Fill the buffer with unpredictable bits.
@@ -212,6 +221,10 @@ crypto_entropy_read(uint8_t * buf, size_t buflen)
 	if (instantiated == 0) {
 		/* Try to instantiate the PRNG. */
 		if (instantiate())
+			return (-1);
+
+		/* Register our atexit handler. */
+		if (atexit(crypto_entropy_atexit))
 			return (-1);
 
 		/* We have instantiated the PRNG. */
