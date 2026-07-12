@@ -43,3 +43,8 @@
 - Most PRs require multiple rounds of review and revision in response to
   feedback, so do not submit PRs if you are unable to communicate with
   reviewers.
+- We pay bug bounties for reporting bugs, not for providing patches.
+  Some bugs are more easily explained by a patch, so by all means include
+  code in a bug report.
+- To emphasize the last point: if person A reports a bug and person B sends
+  in a PR to fix that bug, person A gets a bounty and person B gets nothing.
