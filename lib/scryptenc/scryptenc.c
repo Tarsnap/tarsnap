@@ -526,6 +526,15 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	    P, verbose, force)) != 0)
 		goto err1;
 
+	/* Verify signature. */
+	HMAC_SHA256_Init(&hctx, key_hmac, 32);
+	HMAC_SHA256_Update(&hctx, inbuf, inbuflen - 32);
+	HMAC_SHA256_Final(hbuf, &hctx);
+	if (crypto_verify_bytes(hbuf, &inbuf[inbuflen - 32], 32)) {
+		rc = SCRYPT_EINVAL;
+		goto err1;
+	}
+
 	/* Decrypt data. */
 	if ((key_enc_exp = crypto_aes_key_expand(key_enc, 32)) == NULL) {
 		rc = SCRYPT_EOPENSSL;
@@ -540,15 +549,6 @@ scryptdec_buf(const uint8_t * inbuf, size_t inbuflen, uint8_t * outbuf,
 	crypto_aesctr_free(AES);
 	crypto_aes_key_free(key_enc_exp);
 	*outlen = inbuflen - 128;
-
-	/* Verify signature. */
-	HMAC_SHA256_Init(&hctx, key_hmac, 32);
-	HMAC_SHA256_Update(&hctx, inbuf, inbuflen - 32);
-	HMAC_SHA256_Final(hbuf, &hctx);
-	if (crypto_verify_bytes(hbuf, &inbuf[inbuflen - 32], 32)) {
-		rc = SCRYPT_EINVAL;
-		goto err1;
-	}
 
 	/* Zero sensitive data. */
 	insecure_memzero(dk, 64);
