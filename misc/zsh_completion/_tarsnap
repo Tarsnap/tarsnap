@@ -89,6 +89,9 @@ _shtab_tarsnap_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_defaults_added=0
+
 _shtab_tarsnap__fsck_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--cachedir[specify cache directory]:cache-dir:{_files -/}"
@@ -139,6 +142,9 @@ _shtab_tarsnap__fsck_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__fsck_defaults_added=0
+
 _shtab_tarsnap__fsck_prune_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
@@ -188,6 +194,9 @@ _shtab_tarsnap__fsck_prune_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__fsck_prune_defaults_added=0
+
 _shtab_tarsnap__initialize_cachedir_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
@@ -236,6 +245,9 @@ _shtab_tarsnap__initialize_cachedir_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__initialize_cachedir_defaults_added=0
 
 _shtab_tarsnap__list_archives_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -290,6 +302,9 @@ _shtab_tarsnap__list_archives_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__list_archives_defaults_added=0
+
 _shtab_tarsnap__nuke_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
@@ -338,6 +353,9 @@ _shtab_tarsnap__nuke_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__nuke_defaults_added=0
 
 _shtab_tarsnap__print_stats_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -392,6 +410,9 @@ _shtab_tarsnap__print_stats_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__print_stats_defaults_added=0
+
 _shtab_tarsnap__recover_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
@@ -440,6 +461,9 @@ _shtab_tarsnap__recover_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__recover_defaults_added=0
 
 _shtab_tarsnap__verify_config_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -490,6 +514,9 @@ _shtab_tarsnap__verify_config_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__verify_config_defaults_added=0
+
 _shtab_tarsnap__version_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--archive-names[read a list of archive names from a file]:filename:{_files}"
@@ -538,6 +565,9 @@ _shtab_tarsnap__version_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap__version_defaults_added=0
 
 _shtab_tarsnap_c_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -623,6 +653,9 @@ _shtab_tarsnap_c_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_c_defaults_added=0
+
 _shtab_tarsnap_d_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "--cachedir[specify cache directory]:cache-dir:{_files -/}"
@@ -677,6 +710,9 @@ _shtab_tarsnap_d_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_d_defaults_added=0
+
 _shtab_tarsnap_r_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
   "-f[specify name of archive to operate on]:archive-name:(${archive_list}):"
@@ -726,6 +762,9 @@ _shtab_tarsnap_r_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_r_defaults_added=0
 
 _shtab_tarsnap_t_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -787,6 +826,9 @@ _shtab_tarsnap_t_options=(
   "--verify-config[check config file(s) for syntactic errors]"
   "--version[print version number of tarsnap and exit]"
 )
+
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_t_defaults_added=0
 
 _shtab_tarsnap_x_options=(
   "(- : *)"{-h,--help}"[show this help message and exit]"
@@ -861,14 +903,21 @@ _shtab_tarsnap_x_options=(
   "--version[print version number of tarsnap and exit]"
 )
 
+# guard to ensure default positional specs are added only once per session
+_shtab_tarsnap_x_defaults_added=0
+
 
 _shtab_tarsnap() {
-  local context state line curcontext="$curcontext" one_or_more='(-)*' remainder='(*)'
+  local context state line curcontext="$curcontext" one_or_more='(*)' remainder='(-)*' default='*::: :->tarsnap'
 
-  if ((${_shtab_tarsnap_options[(I)${(q)one_or_more}*]} + ${_shtab_tarsnap_options[(I)${(q)remainder}*]} == 0)); then  # noqa: E501
-    _shtab_tarsnap_options+=(': :_shtab_tarsnap_commands' '*::: :->tarsnap')
+  # Add default positional/remainder specs only if none exist, and only once per session
+  if (( ! _shtab_tarsnap_defaults_added )); then
+    if (( ${_shtab_tarsnap_options[(I)${(q)one_or_more}*]} +          ${_shtab_tarsnap_options[(I)${(q)remainder}*]} +          ${_shtab_tarsnap_options[(I)${(q)default}]} == 0 )); then
+      _shtab_tarsnap_options+=(': :_shtab_tarsnap_commands' '*::: :->tarsnap')
+    fi
+    _shtab_tarsnap_defaults_added=1
   fi
-  _arguments -C $_shtab_tarsnap_options
+  _arguments -C -s $_shtab_tarsnap_options
 
   case $state in
     tarsnap)
@@ -876,20 +925,20 @@ _shtab_tarsnap() {
       (( CURRENT += 1 ))
       curcontext="${curcontext%:*:*}:_shtab_tarsnap-$line[1]:"
       case $line[1] in
-        --fsck) _arguments -C $_shtab_tarsnap__fsck_options ;;
-        --fsck-prune) _arguments -C $_shtab_tarsnap__fsck_prune_options ;;
-        --initialize-cachedir) _arguments -C $_shtab_tarsnap__initialize_cachedir_options ;;
-        --list-archives) _arguments -C $_shtab_tarsnap__list_archives_options ;;
-        --nuke) _arguments -C $_shtab_tarsnap__nuke_options ;;
-        --print-stats) _arguments -C $_shtab_tarsnap__print_stats_options ;;
-        --recover) _arguments -C $_shtab_tarsnap__recover_options ;;
-        --verify-config) _arguments -C $_shtab_tarsnap__verify_config_options ;;
-        --version) _arguments -C $_shtab_tarsnap__version_options ;;
-        -c) _arguments -C $_shtab_tarsnap_c_options ;;
-        -d) _arguments -C $_shtab_tarsnap_d_options ;;
-        -r) _arguments -C $_shtab_tarsnap_r_options ;;
-        -t) _arguments -C $_shtab_tarsnap_t_options ;;
-        -x) _arguments -C $_shtab_tarsnap_x_options ;;
+        --fsck) _arguments -C -s $_shtab_tarsnap__fsck_options ;;
+        --fsck-prune) _arguments -C -s $_shtab_tarsnap__fsck_prune_options ;;
+        --initialize-cachedir) _arguments -C -s $_shtab_tarsnap__initialize_cachedir_options ;;
+        --list-archives) _arguments -C -s $_shtab_tarsnap__list_archives_options ;;
+        --nuke) _arguments -C -s $_shtab_tarsnap__nuke_options ;;
+        --print-stats) _arguments -C -s $_shtab_tarsnap__print_stats_options ;;
+        --recover) _arguments -C -s $_shtab_tarsnap__recover_options ;;
+        --verify-config) _arguments -C -s $_shtab_tarsnap__verify_config_options ;;
+        --version) _arguments -C -s $_shtab_tarsnap__version_options ;;
+        -c) _arguments -C -s $_shtab_tarsnap_c_options ;;
+        -d) _arguments -C -s $_shtab_tarsnap_d_options ;;
+        -r) _arguments -C -s $_shtab_tarsnap_r_options ;;
+        -t) _arguments -C -s $_shtab_tarsnap_t_options ;;
+        -x) _arguments -C -s $_shtab_tarsnap_x_options ;;
       esac
   esac
 }
@@ -897,4 +946,12 @@ _shtab_tarsnap() {
 
 
 typeset -A opt_args
-_shtab_tarsnap "$@"
+
+if [[ $zsh_eval_context[-1] == eval ]]; then
+  # eval/source/. command, register function for later
+  compdef _shtab_tarsnap -N tarsnap
+else
+  # autoload from fpath, call function directly
+  _shtab_tarsnap "$@"
+fi
+

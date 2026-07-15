@@ -11,7 +11,7 @@ import man_to_argparse
 
 # The zsh generation in shtab can change from version to version, so this
 # script is not guaranteed to work with a later (or earlier) shtab.
-_HANDLES_SHTAB_VERSION = "1.5.8"
+_HANDLES_SHTAB_VERSION = "1.8.1"
 
 _ZSH_PREAMBLE = r"""# Custom header for the zsh completion file for tarsnap
 #
