@@ -180,7 +180,10 @@ bsdtar_init(void)
 	bsdtar->substitution = NULL;
 
 	/* Initialize temporary tapenames array. */
-	bsdtar->tapenames_setup = strlist_init(0);
+	if ((bsdtar->tapenames_setup = strlist_init(0)) == NULL) {
+		fprintf(stderr, "tarsnap: Out of memory.\n");
+		exit(1);
+	}
 
 	/* We don't have bsdtar->progname yet, so we can't use bsdtar_errc. */
 	if (atexit(bsdtar_atexit)) {
