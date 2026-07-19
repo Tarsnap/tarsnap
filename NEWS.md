@@ -80,7 +80,7 @@ Tarsnap Releases
 - Fix a bug in the handling of corrupt "ar" format archives included via the
   tarsnap @archive directive.
 - Fix an abort trap which complained about files with a negative modification
-  time.  (This assertion occured after the archive is stored, so no user data
+  time.  (This assertion occurred after the archive is stored, so no user data
   was at risk.)
 
 
