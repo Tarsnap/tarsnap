@@ -117,7 +117,7 @@ multitape_docheckpoint(const char * cachedir, uint64_t machinenum,
 		}
 	}
 
-	/* This checkpoint is commitable -- create a new commit marker. */
+	/* This checkpoint is committable -- create a new commit marker. */
 	if (hexlink_write(t, seqnum, 32))
 		goto err2;
 	free(t);
