@@ -43,7 +43,7 @@ jobs:
       run: sudo apt-get install --no-install-recommends valgrind e2fslibs-dev
            autoconf-archive
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: autoreconf
       run:
         autoreconf -i
@@ -99,13 +99,18 @@ jobs:
         USE_VALGRIND: 1
       run: make test VERBOSE=1
     - name: Check for untracked files
-      run: test -z "$(git status --porcelain=v1)"
+      run: |
+        status="$(git status --porcelain=v1)"
+        if [ -n "${status}" ]; then
+          echo "${status}"
+          exit 1
+        fi
   macOS:
     name: macOS
     runs-on: macos-14
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Install software
       run: brew install automake
     - name: autoreconf
@@ -136,3 +141,10 @@ jobs:
       run: make CFLAGS="${{ env.CFLAGS }}"
     - name: Tests clang binaries
       run: make test VERBOSE=1
+    - name: Check for untracked files
+      run: |
+        status="$(git status --porcelain=v1)"
+        if [ -n "${status}" ]; then
+          echo "${status}"
+          exit 1
+        fi
