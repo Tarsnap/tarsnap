@@ -231,6 +231,8 @@ tree_push(struct tree *t, const char *path)
 	te->fullpath = NULL;
 #endif
 	te->name = strdup(path);
+	if (te->name == NULL)
+		abort();
 	te->flags = needsPreVisit | needsPostVisit;
 	te->dirname_length = t->dirname_length;
 }
