@@ -1,35 +1,34 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "insecure_memzero.h"
 #include "warnp.h"
 
-#include "readpass.h"
+#include "readpass_file.h"
 
-/* Maximum file length. */
 #define MAXPASSLEN 2048
 
 /**
  * readpass_file(passwd, filename):
- * Read a passphrase from ${filename} and return it as a malloced
- * NUL-terminated string via ${passwd}.  Print an error and fail if the file
- * is 2048 characters or more, or if it contains any newline \n or \r\n
- * characters other than at the end of the file.  Do not include the \n or
- * \r\n characters in the passphrase.
+ * Read a password from ${filename}, returning it as a malloced NUL-terminated
+ * string via ${passwd}.  Ignore any data after a newline character, if one
+ * is present.  Fail if the file contains more than one line, or if the line
+ * is longer than MAXPASSLEN.
  */
 int
 readpass_file(char ** passwd, const char * filename)
 {
 	FILE * f;
 	char passbuf[MAXPASSLEN];
+	size_t endpos;
+	int ch;
 
 	/* Open the file. */
 	if ((f = fopen(filename, "r")) == NULL) {
 		warnp("fopen(%s)", filename);
-		goto err1;
+		goto err0;
 	}
 
-	/* Get a line from the file. */
+	/* Read the password. */
 	if ((fgets(passbuf, MAXPASSLEN, f)) == NULL) {
 		if (ferror(f)) {
 			warnp("fgets(%s)", filename);
@@ -40,9 +39,17 @@ readpass_file(char ** passwd, const char * filename)
 		}
 	}
 
-	/* Bail if there's the line is too long, or if there's a second line. */
-	if (fgetc(f) != EOF) {
+	/* Truncate at the first "\r" or "\n" (if any). */
+	endpos = strcspn(passbuf, "\r\n");
+	passbuf[endpos] = '\0';
+
+	/* Check for more than 1 line, or line too long. */
+	ch = fgetc(f);
+	if (ch != EOF) {
 		warn0("line too long, or more than 1 line in %s", filename);
+		goto err2;
+	} else if (ferror(f)) {
+		warnp("fgetc(%s)", filename);
 		goto err2;
 	}
 
@@ -51,29 +58,23 @@ readpass_file(char ** passwd, const char * filename)
 		warnp("fclose(%s)", filename);
 		goto err1;
 	}
-
-	/* Truncate at any newline character. */
-	passbuf[strcspn(passbuf, "\r\n")] = '\0';
+	f = NULL;
 
 	/* Copy the password out. */
 	if ((*passwd = strdup(passbuf)) == NULL) {
-		warnp("Cannot allocate memory");
+		warnp("strdup");
 		goto err1;
 	}
-
-	/* Clean up. */
-	insecure_memzero(passbuf, MAXPASSLEN);
 
 	/* Success! */
 	return (0);
 
 err2:
 	if (fclose(f))
-		warnp("fclose");
+		warnp("fclose(%s)", filename);
 err1:
-	/* No harm in running this for all error paths. */
-	insecure_memzero(passbuf, MAXPASSLEN);
-
+	f = NULL;
+err0:
 	/* Failure! */
 	return (-1);
 }
