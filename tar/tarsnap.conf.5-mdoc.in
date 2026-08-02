@@ -106,6 +106,19 @@ The system global
 configuration file.
 Parameters specified here only take effect if they are not
 specified via the current user's local configuration file
+or via the per-user XDG configuration file
+or via the command line.
+.It Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+The XDG per-user
+.Nm
+configuration file.
+If
+.Ev XDG_CONFIG_HOME
+is unset,
+.Pa ~/.config/tarsnap/tarsnap.conf
+is used instead.
+Parameters specified here take effect unless they are
+specified via the current user's local configuration file
 or via the command line.
 .It Pa ~/.tarsnaprc
 The
