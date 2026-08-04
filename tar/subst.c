@@ -191,7 +191,7 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 	size_t i, j;
 	struct subst_rule *rule;
 	struct substitution *subst;
-	int c, got_match, print_match;
+	int c, got_match, is_end, print_match;
 
 	*result = NULL;
 
@@ -204,6 +204,8 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 	for (rule = subst->first_rule; rule != NULL; rule = rule->next) {
 		if (symlink_only && !rule->symlink)
 			continue;
+next_match:
+		is_end = (*name == '\0');
 		if (regexec(&rule->re, name, 10, matches, 0))
 			continue;
 
@@ -258,7 +260,15 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 
 		realloc_strcat(bsdtar, result, rule->result + j);
 
-		name += matches[0].rm_eo;
+		if (matches[0].rm_eo > 0) {
+			name += matches[0].rm_eo;
+		} else if (!is_end) {
+			realloc_strncat(bsdtar, result, name, 1);
+			name++;
+		}
+
+		if (rule->global && !is_end)
+			goto next_match;
 
 		if (!rule->global)
 			break;
