@@ -38,7 +38,7 @@ feature() {
 	for API_CFLAGS in "$@"; do
 		if ${CC} ${CPPFLAGS} ${CFLAGS} ${CFLAGS_HARDCODED}	\
 		    ${API_CFLAGS} "${feature_filename}" ${LDADD_EXTRA}	\
-		    ${EXTRALIB}	2>>"${outcc}"; then
+		    ${EXTRALIB}	${LDFLAGS} 2>>"${outcc}"; then
 			rm -f a.out
 			break;
 		fi
