@@ -65,24 +65,26 @@ Platform-specific notes
 
   Homebrew:
 
-      brew install openssl
+      brew install openssl@3
+      OPENSSL_PREFIX="$(brew --prefix openssl@3)"
 
   MacPorts:
 
       sudo port install openssl
+      OPENSSL_PREFIX="/opt/local"
 
   If you installed OpenSSL via homebrew, ./configure should find the right
   directories.  If it doesn't, or if you installed it another way, you might
   need to specify the directory with:
-      ./configure CPPFLAGS="-I/PATH_TO/openssl/include" LDFLAGS="-L/PATH_TO/opt/openssl/lib"
+      ./configure CPPFLAGS="-I${OPENSSL_PREFIX}/include" LDFLAGS="-L${OPENSSL_PREFIX}/lib"
 
   Alternatively, you may wish to add these lines to your $HOME/.profile:
-      export CPPFLAGS="-I/PATH_TO/openssl/include $CPPFLAGS"
-      export LDFLAGS="-I/PATH_TO/openssl/lib $LDFLAGS"
+      export CPPFLAGS="-I${OPENSSL_PREFIX}/include $CPPFLAGS"
+      export LDFLAGS="-L${OPENSSL_PREFIX}/lib $LDFLAGS"
   (And then open a new terminal window.)
 
-  Whichever method you choose, replace "/PATH_TO/" with the actual path to
-  your OpenSSL installation.
+  Whichever method you choose, make sure OPENSSL_PREFIX points to the prefix
+  containing OpenSSL's include and lib directories.
 
 - on Solaris: there are no problems compiling with cc, c99, or gcc.
   To compile with clang, please use:
