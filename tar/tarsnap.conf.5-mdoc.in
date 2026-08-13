@@ -18,11 +18,11 @@ utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
 Options may be specified in
-.Pa @sysconfdir@/tarsnap.conf
+.Pa @sysconfdir@/tarsnap.conf ,
+.Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf ,
 and/or
 .Pa ~/.tarsnaprc ;
-if the two files conflict, the user's local configuration
-takes precedence.
+if those files conflict, the file listed last takes precedence.
 .Pp
 The
 .Nm

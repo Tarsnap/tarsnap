@@ -14,11 +14,11 @@ utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
 Options may be specified in
-\fI@sysconfdir@/tarsnap.conf\fP
+\fI@sysconfdir@/tarsnap.conf\fP,
+\fI$XDG_CONFIG_HOME/tarsnap/tarsnap.conf\fP,
 and/or
 \fI~/.tarsnaprc\fP;
-if the two files conflict, the user's local configuration
-takes precedence.
+if those files conflict, the file listed last takes precedence.
 .PP
 The
 \fB\%tarsnap.conf\fP
@@ -146,6 +146,19 @@ The system global
 \fB\%tarsnap.conf\fP
 configuration file.
 Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the per-user XDG configuration file or via the command line.
+.TP
+.B $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+The XDG per-user
+\fB\%tarsnap.conf\fP
+configuration file.
+If
+.IR XDG_CONFIG_HOME
+is unset,
+\fI~/.config/tarsnap/tarsnap.conf\fP
+is used instead.
+Parameters specified here take effect unless they are
 specified via the current user's local configuration file
 or via the command line.
 .TP
