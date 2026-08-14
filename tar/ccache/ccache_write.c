@@ -12,6 +12,7 @@
 
 #include "asprintf.h"
 #include "ccache_internal.h"
+#include "dirutil.h"
 #include "fileutil.h"
 #include "multitape_internal.h"
 #include "patricia.h"
@@ -272,8 +273,10 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err2;
 
 	/* Close the file. */
-	if (fclose(W.f))
+	if (fclose(W.f)) {
 		warnp("fclose");
+		goto err1;
+	}
 
 	/* Construct the name of the old cache file. */
 	if (asprintf(&s_old, "%s/cache", path) == -1) {
@@ -289,9 +292,16 @@ ccache_write(CCACHE * cache, const char * path)
 			goto err1;
 		}
 	}
+
 	/* Move the new cache file into place. */
 	if (rename(W.s, s_old)) {
 		warnp("rename(%s, %s)", W.s, s_old);
+		free(s_old);
+		goto err1;
+	}
+
+	/* Make sure the rename is durable. */
+	if (dirutil_fsyncdir(path)) {
 		free(s_old);
 		goto err1;
 	}
