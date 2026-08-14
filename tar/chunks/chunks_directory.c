@@ -358,6 +358,10 @@ chunks_directory_write(const char * cachepath, RWHASHTAB * HT,
 		goto err1;
 	}
 
+	/* Make sure that the new directory entry is durable. */
+	if (dirutil_fsyncdir(cachepath))
+		goto err1;
+
 	/* Free string allocated by asprintf. */
 	free(s);
 
