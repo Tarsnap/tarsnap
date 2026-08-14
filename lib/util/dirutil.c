@@ -37,7 +37,7 @@ dirutil_fsyncdir(const char * path)
 	int fd;
 
 	/* Open the directory read-only. */
-	if ((fd = open(path, O_RDONLY)) == -1) {
+	if ((fd = open(path, O_RDONLY | O_DIRECTORY)) == -1) {
 		warnp("open(%s)", path);
 		return (-1);
 	}
