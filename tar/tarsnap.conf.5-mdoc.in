@@ -18,11 +18,11 @@ utility and specifies default options which will be
 ignored if the options in question are specified at
 the command line.
 Options may be specified in
-.Pa @sysconfdir@/tarsnap.conf
+.Pa @sysconfdir@/tarsnap.conf ,
+.Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf ,
 and/or
 .Pa ~/.tarsnaprc ;
-if the two files conflict, the user's local configuration
-takes precedence.
+if those files conflict, the file listed last takes precedence.
 .Pp
 The
 .Nm
@@ -105,6 +105,18 @@ The system global
 .Nm
 configuration file.
 Parameters specified here only take effect if they are not
+specified via the current user's local configuration file
+or via the per-user XDG configuration file or via the command line.
+.It Pa $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
+The XDG per-user
+.Nm
+configuration file.
+If
+.Ev XDG_CONFIG_HOME
+is unset,
+.Pa ~/.config/tarsnap/tarsnap.conf
+is used instead.
+Parameters specified here take effect unless they are
 specified via the current user's local configuration file
 or via the command line.
 .It Pa ~/.tarsnaprc
