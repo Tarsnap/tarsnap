@@ -267,7 +267,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 	if ((entrylen = archive_read_get_entryleft(ina)) < 0) {
 		archive_set_error(ina, ENOSYS,
 		    "read_get_entryleft not supported");
-		return (-2);
+		return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 	}
 
 	/* Copy data. */
@@ -275,7 +275,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 		/* Is there data buffered by libarchive? */
 		if ((backloglen = archive_read_get_backlog(ina)) < 0) {
 			warn0("Error reading libarchive data backlog");
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 		}
 		if (backloglen > 0) {
 			/* Drain some data from libarchive. */
@@ -287,10 +287,10 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 			if (lenread == 0) {
 				warn0("libarchive claims data backlog,"
 				    " but no data can be read?");
-				return (-2);
+				return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 			}
 			if (lenread < 0)
-				return (-2);
+				return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 
 			/* Write it out to the new archive. */
 			writelen = archive_write_data(a, buff, (size_t)lenread);
@@ -305,11 +305,11 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 		/* Attempt to read a chunk for fast-pathing. */
 		lenread = readtape_readchunk(read_cookie, &ch);
 		if (lenread < 0)
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 		if (lenread > entrylen) {
 			warn0("readchunk returned chunk beyond end"
 			    " of archive entry?");
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 		}
 		if (lenread == 0)
 			goto nochunk;
@@ -332,12 +332,12 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 		if (archive_write_skip(a, writelen))
 			return (ARCHIVE_MULTITAPE_COPY_FATAL);
 		if (archive_read_advance(ina, lenread))
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 
 		/* We don't need to see this chunk again. */
 		if (readtape_skip(read_cookie, lenread) != lenread) {
 			warn0("could not skip read data?");
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 		}
 
 		/* We've done part of the entry. */
@@ -364,7 +364,7 @@ nochunk:
 		if (lenread == 0)
 			break;
 		if (lenread < 0)
-			return (-2);
+			return (ARCHIVE_MULTITAPE_COPY_READ_ERROR);
 		writelen = archive_write_data(a, buff, 1);
 		if (writelen < 1)
 			return (ARCHIVE_MULTITAPE_COPY_FATAL);

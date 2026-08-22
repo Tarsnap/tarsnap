@@ -681,7 +681,7 @@ append_archive(struct bsdtar *bsdtar, struct archive *a, struct archive *ina,
 			    bsdtar->write_cookie)) {
 			case ARCHIVE_MULTITAPE_COPY_FATAL:
 				goto err_fatal;
-			case -2:
+			case ARCHIVE_MULTITAPE_COPY_READ_ERROR:
 				goto err_read;
 			}
 		}
