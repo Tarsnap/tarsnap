@@ -28,9 +28,15 @@ read_read(struct archive * a, void * cookie, const void ** buffer)
 	lenread = readtape_read(d, buffer);
 	if (lenread < 0) {
 		archive_set_error(a, errno, "Error reading archive");
-		return (ARCHIVE_FATAL);
-	} else
-		return (lenread);
+		goto err0;
+	}
+
+	/* Success! */
+	return (lenread);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 static off_t
@@ -42,9 +48,15 @@ read_skip(struct archive * a, void * cookie, off_t request)
 	skiplen = readtape_skip(d, request);
 	if (skiplen < 0) {
 		archive_set_error(a, errno, "Error reading archive");
-		return (ARCHIVE_FATAL);
-	} else
-		return (skiplen);
+		goto err0;
+	}
+
+	/* Success! */
+	return (skiplen);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 static int
@@ -54,9 +66,15 @@ read_close(struct archive * a, void * cookie)
 
 	if (readtape_close(d)) {
 		archive_set_error(a, errno, "Error closing archive");
-		return (ARCHIVE_FATAL);
-	} else
-		return (ARCHIVE_OK);
+		goto err0;
+	}
+
+	/* Success! */
+	return (ARCHIVE_OK);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 static ssize_t
@@ -72,13 +90,23 @@ write_write(struct archive * a, void * cookie, const void * buffer,
 	writelen = writetape_write(d, buffer, nbytes);
 	if (writelen < 0) {
 		archive_set_error(a, errno, "Error writing archive");
-		return (ARCHIVE_FATAL);
+		goto err0;
 	} else if (writelen == 0) {
 		archive_clear_error(a);
 		archive_set_error(a, 0, "Archive truncated");
-		return (ARCHIVE_WARN);
-	} else
-		return ((ssize_t)nbytes);
+		goto err_warn;
+	}
+
+	/* Success! */
+	return ((ssize_t)nbytes);
+
+err_warn:
+	/* Partial failure! */
+	return (ARCHIVE_WARN);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 static int
@@ -88,9 +116,15 @@ write_close(struct archive * a, void * cookie)
 
 	if (writetape_close(d)) {
 		archive_set_error(a, errno, "Error closing archive");
-		return (ARCHIVE_FATAL);
-	} else
-		return (ARCHIVE_OK);
+		goto err0;
+	}
+
+	/* Success! */
+	return (ARCHIVE_OK);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 /**
@@ -110,13 +144,18 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 
 	if ((d = readtape_open(machinenum, tapename)) == NULL) {
 		archive_set_error(a, errno, "Error opening archive");
-		return (NULL);
+		goto err0;
 	}
 
 	if (archive_read_open2(a, d, NULL, read_read, read_skip, read_close))
-		return (NULL);
-	else
-		return (d);
+		goto err0;
+
+	/* Success! */
+	return (d);
+
+err0:
+	/* Failure! */
+	return (NULL);
 }
 
 /**
@@ -145,14 +184,20 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 	    argc, argv, printstats, dryrun, creationtime,
 	    csv_filename, storage_modified)) == NULL) {
 		archive_set_error(a, errno, "Error creating new archive");
-		return (NULL);
+		goto err0;
 	}
 
 	if (archive_write_open(a, d, NULL, write_write, write_close)) {
 		writetape_free(d);
-		return (NULL);
-	} else
-		return (d);
+		goto err0;
+	}
+
+	/* Success! */
+	return (d);
+
+err0:
+	/* Failure! */
+	return (NULL);
 }
 
 /**
@@ -166,9 +211,15 @@ archive_write_multitape_setmode(struct archive * a, void * cookie, int mode)
 
 	if (writetape_setmode(d, mode)) {
 		archive_set_error(a, errno, "Error writing archive");
-		return (ARCHIVE_FATAL);
-	} else
-		return (ARCHIVE_OK);
+		goto err0;
+	}
+
+	/* Success! */
+	return (ARCHIVE_OK);
+
+err0:
+	/* Failure! */
+	return (ARCHIVE_FATAL);
 }
 
 /**
