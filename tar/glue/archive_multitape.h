@@ -6,6 +6,8 @@
 
 #include "archive.h"
 
+#define ARCHIVE_MULTITAPE_COPY_FATAL (-1)
+
 /**
  * archive_read_open_multitape(a, machinenum, tapename):
  * Open the multitape tape ${tapename} for reading (and skipping) and

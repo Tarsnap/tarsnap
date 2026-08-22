@@ -295,7 +295,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 			/* Write it out to the new archive. */
 			writelen = archive_write_data(a, buff, (size_t)lenread);
 			if (writelen < lenread)
-				return (-1);
+				return (ARCHIVE_MULTITAPE_COPY_FATAL);
 
 			/* Adjust the remaining entry length and continue. */
 			entrylen -= lenread;
@@ -317,12 +317,12 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 		/* Attempt to write the chunk via the fast path. */
 		writelen = writetape_writechunk(write_cookie, ch);
 		if (writelen < 0)
-			return (-1);
+			return (ARCHIVE_MULTITAPE_COPY_FATAL);
 		if (writelen == 0)
 			goto nochunk;
 		if (writelen != lenread) {
 			warn0("chunk write size != chunk read size?");
-			return (-1);
+			return (ARCHIVE_MULTITAPE_COPY_FATAL);
 		}
 
 		/*
@@ -330,7 +330,7 @@ archive_multitape_copy(struct archive * ina, void * read_cookie,
 		 * first since a failure there is fatal.
 		 */
 		if (archive_write_skip(a, writelen))
-			return (-1);
+			return (ARCHIVE_MULTITAPE_COPY_FATAL);
 		if (archive_read_advance(ina, lenread))
 			return (-2);
 
@@ -367,7 +367,7 @@ nochunk:
 			return (-2);
 		writelen = archive_write_data(a, buff, 1);
 		if (writelen < 1)
-			return (-1);
+			return (ARCHIVE_MULTITAPE_COPY_FATAL);
 	}
 
 	/* Success! */
