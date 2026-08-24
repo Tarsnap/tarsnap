@@ -244,12 +244,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 		if (verbose == 0) {
 			/* We're finished; print archive separator and quit. */
 			if (print_separator(stdout, "\n", print_nulls, 1))
-				goto err1;
+				goto err0;
 			goto done;
 		} else {
 			/* We have more fields; print field separator. */
 			if (print_separator(stdout, "\t", print_nulls, 2))
-				goto err1;
+				goto err0;
 		}
 	}
 
