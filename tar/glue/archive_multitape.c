@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #include "archive.h"
 #include "multitape.h"
@@ -18,6 +19,11 @@ static off_t	read_skip(struct archive *, void *, off_t);
 static int	read_close(struct archive *, void *);
 static ssize_t	write_write(struct archive *, void *, const void *, size_t);
 static int	write_close(struct archive *, void *);
+
+/* This wrapper is used for write_* callback functions. */
+struct multitape_write_internal_wrapped {
+	struct multitape_write_internal * d;
+};
 
 static ssize_t
 read_read(struct archive * a, void * cookie, const void ** buffer)
@@ -81,13 +87,13 @@ static ssize_t
 write_write(struct archive * a, void * cookie, const void * buffer,
     size_t nbytes)
 {
-	struct multitape_write_internal * d = cookie;
+	struct multitape_write_internal_wrapped * w = cookie;
 	ssize_t writelen;
 
 	/* Sanity check. */
 	assert(nbytes <= SSIZE_MAX);
 
-	writelen = writetape_write(d, buffer, nbytes);
+	writelen = writetape_write(w->d, buffer, nbytes);
 	if (writelen < 0) {
 		archive_set_error(a, errno, "Error writing archive");
 		goto err0;
@@ -112,17 +118,22 @@ err0:
 static int
 write_close(struct archive * a, void * cookie)
 {
-	struct multitape_write_internal * d = cookie;
+	struct multitape_write_internal_wrapped * w = cookie;
 
-	if (writetape_close(d)) {
+	if (writetape_close(w->d)) {
 		archive_set_error(a, errno, "Error closing archive");
-		goto err0;
+		goto err1;
 	}
+
+	/* Clean up wrapper. */
+	free(w);
 
 	/* Success! */
 	return (ARCHIVE_OK);
 
-err0:
+err1:
+	free(w);
+
 	/* Failure! */
 	return (ARCHIVE_FATAL);
 }
@@ -184,26 +195,36 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
     char ** argv, int printstats, int dryrun, time_t creationtime,
     const char * csv_filename, int * storage_modified)
 {
-	struct multitape_write_internal * d;
+	struct multitape_write_internal_wrapped * w;
 
 	/* Clear any error messages from the archive. */
 	archive_clear_error(a);
 
-	if ((d = writetape_open(machinenum, cachedir, tapename,
-	    argc, argv, printstats, dryrun, creationtime,
-	    csv_filename, storage_modified)) == NULL) {
-		archive_set_error(a, errno, "Error creating new archive");
+	/* Bake a cookie. */
+	if ((w = malloc(sizeof(struct multitape_write_internal_wrapped)))
+	    == NULL) {
+		archive_set_error(a, errno, "Cannot allocate memory");
 		goto err0;
 	}
 
-	if (archive_write_open(a, d, NULL, write_write, write_close)) {
-		writetape_free(d);
+	if ((w->d = writetape_open(machinenum, cachedir, tapename,
+	    argc, argv, printstats, dryrun, creationtime,
+	    csv_filename, storage_modified)) == NULL) {
+		archive_set_error(a, errno, "Error creating new archive");
+		goto err1;
+	}
+
+	if (archive_write_open(a, w, NULL, write_write, write_close)) {
+		writetape_free(w->d);
+		/* w is now owned by a, even if archive_write_open failed. */
 		goto err0;
 	}
 
 	/* Success! */
-	return (d);
+	return (w->d);
 
+err1:
+	free(w);
 err0:
 	/* Failure! */
 	return (NULL);
