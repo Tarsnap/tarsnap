@@ -1086,6 +1086,7 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 		fd = fileutil_open_noatime(pathname, O_RDONLY,
 		    bsdtar->option_noatime);
 		if (fd == -1) {
+			bsdtar->return_value = 1;
 			if (!bsdtar->verbose)
 				bsdtar_warnc(bsdtar, errno,
 				    "%s: could not open file", pathname);
