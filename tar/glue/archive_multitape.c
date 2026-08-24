@@ -23,6 +23,7 @@ static int	write_close(struct archive *, void *);
 /* This wrapper is used for write_* callback functions. */
 struct multitape_write_internal_wrapped {
 	struct multitape_write_internal * d;
+	int valid;
 };
 
 static ssize_t
@@ -120,9 +121,15 @@ write_close(struct archive * a, void * cookie)
 {
 	struct multitape_write_internal_wrapped * w = cookie;
 
-	if (writetape_close(w->d)) {
-		archive_set_error(a, errno, "Error closing archive");
-		goto err1;
+	if (w->valid) {
+		/* Normal operation: finish tape, uploading, and free it. */
+		if (writetape_close(w->d)) {
+			archive_set_error(a, errno, "Error closing archive");
+			goto err1;
+		}
+	} else {
+		/* If there was an error during initalization, just free it. */
+		writetape_free(w->d);
 	}
 
 	/* Clean up wrapper. */
@@ -206,6 +213,7 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 		archive_set_error(a, errno, "Cannot allocate memory");
 		goto err0;
 	}
+	w->valid = 0;
 
 	if ((w->d = writetape_open(machinenum, cachedir, tapename,
 	    argc, argv, printstats, dryrun, creationtime,
@@ -215,10 +223,19 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 	}
 
 	if (archive_write_open(a, w, NULL, write_write, write_close)) {
-		writetape_free(w->d);
-		/* w is now owned by a, even if archive_write_open failed. */
+		archive_set_error(a, errno,
+		    "Error creating new libarchive archive");
+		/*
+		 * We cannot call writetape_free(d) right now, because even if
+		 * archive_write_open() fails, it still sets the callbacks.
+		 * Later in the error path, libarchive code will call
+		 * write_close(), so that function needs to know that we did
+		 * not properly initialize the archive.
+		 */
 		goto err0;
 	}
+
+	w->valid = 1;
 
 	/* Success! */
 	return (w->d);
