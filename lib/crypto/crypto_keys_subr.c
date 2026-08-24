@@ -518,6 +518,12 @@ err2:
 	free((*key)->key);
 err1:
 	free(*key);
+	/*
+	 * The caller's pointer is a slot in the static key cache, and
+	 * crypto_keys_atexit() will pass it to crypto_keys_subr_free_HMAC()
+	 * whatever we return, so it must not be left dangling.
+	 */
+	*key = NULL;
 err0:
 	/* Failure! */
 	return (-1);
