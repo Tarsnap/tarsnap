@@ -326,10 +326,10 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		if (rc != Z_OK) {
 			free(cce->trailer);
 			cce->trailer = NULL;
+		} else {
+			/* We can supply the trailer data from the cache. */
+			skiplen += cce->ccr->tlen;
 		}
-
-		/* We can supply the trailer data from the cache. */
-		skiplen += cce->ccr->tlen;
 	} else {
 		cce->trailer = NULL;
 	}
