@@ -71,7 +71,7 @@ crypto_aesctr_stream_pre_wholeblock(struct crypto_aesctr * stream,
 	bytemod = stream->bytectr % 16;
 	if (bytemod != 0) {
 		/* Do we have enough to complete the request? */
-		if (bytemod + *buflen_p <= 16) {
+		if (*buflen_p <= 16 - bytemod) {
 			/* Process only buflen bytes, then return. */
 			crypto_aesctr_stream_cipherblock_use(stream, inbuf,
 			    outbuf, buflen_p, *buflen_p, bytemod);
