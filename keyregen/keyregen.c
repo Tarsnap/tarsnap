@@ -143,7 +143,8 @@ main(int argc, char **argv)
 	 * file specified.
 	 */
 	if ((C.user == NULL) || (C.name == NULL) ||
-	    (keyfilename == NULL) || (oldkeyfilename == NULL))
+	    (keyfilename == NULL) || (keyfilename[0] == '\0') ||
+	    (oldkeyfilename == NULL) || (oldkeyfilename[0] == '\0'))
 		usage();
 
 	/*

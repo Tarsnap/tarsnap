@@ -249,7 +249,7 @@ chunks_directory_read(const char * cachepath, void ** dir,
 		/* ... creating struct chunkdata records... */
 		memcpy(p->hash, che.hash, 32);
 		p->len = le32dec(che.len);
-		p->zlen_flags = le32dec(che.zlen);
+		p->zlen_flags = le32dec(che.zlen) & CHDATA_ZLEN;
 		p->nrefs = le32dec(che.nrefs);
 		p->ncopies = le32dec(che.ncopies);
 

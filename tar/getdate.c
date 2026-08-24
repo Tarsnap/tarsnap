@@ -368,8 +368,8 @@ relunitphrase(struct gdstate *gds)
 	    && gds->tokenp[1].token == tSEC_UNIT) {
 		/* "1 day" */
 		gds->HaveRel++;
-		gds->RelSeconds += gds->tokenp[1].value * gds->tokenp[2].value;
-		gds->tokenp += 3;
+		gds->RelSeconds += gds->tokenp[0].value * gds->tokenp[1].value;
+		gds->tokenp += 2;
 		return 1;
 	}
 	if (gds->tokenp[0].token == '-'
@@ -754,26 +754,30 @@ DSTcorrect(time_t Start, time_t Future)
 }
 
 
-static time_t
-RelativeDate(time_t Start, time_t zone, int dstmode,
+static int
+RelativeDate(time_t *Start, time_t zone, int dstmode,
     time_t DayOrdinal, time_t DayNumber)
 {
 	struct tm	*tm;
 	time_t	t, now;
 
-	t = Start - zone;
+	t = *Start - zone;
 	tm = gmtime(&t);
-	now = Start;
+	if (tm == NULL)
+		return -1;
+	now = *Start;
 	now += DAY * ((DayNumber - tm->tm_wday + 7) % 7);
 	now += 7 * DAY * (DayOrdinal <= 0 ? DayOrdinal : DayOrdinal - 1);
 	if (dstmode == DSTmaybe)
-		return DSTcorrect(Start, now);
-	return now - Start;
+		*Start += DSTcorrect(*Start, now);
+	else
+		*Start += now - *Start;
+	return 0;
 }
 
 
-static time_t
-RelativeMonth(time_t Start, time_t Timezone, time_t RelMonth)
+static int
+RelativeMonth(time_t *Start, time_t Timezone, time_t RelMonth)
 {
 	struct tm	*tm;
 	time_t	Month;
@@ -781,14 +785,17 @@ RelativeMonth(time_t Start, time_t Timezone, time_t RelMonth)
 
 	if (RelMonth == 0)
 		return 0;
-	tm = localtime(&Start);
+	tm = localtime(Start);
+	if (tm == NULL)
+		return -1;
 	Month = 12 * (tm->tm_year + 1900) + tm->tm_mon + RelMonth;
 	Year = Month / 12;
 	Month = Month % 12 + 1;
-	return DSTcorrect(Start,
+	*Start += DSTcorrect(*Start,
 	    Convert(Month, (time_t)tm->tm_mday, Year,
 		(time_t)tm->tm_hour, (time_t)tm->tm_min, (time_t)tm->tm_sec,
 		Timezone, DSTmaybe));
+	return 0;
 }
 
 /*
@@ -1027,14 +1034,15 @@ get_date(time_t now, char *p)
 
 	/* Add the relative offset. */
 	Start += gds->RelSeconds;
-	Start += RelativeMonth(Start, gds->Timezone, gds->RelMonth);
+	if (RelativeMonth(&Start, gds->Timezone, gds->RelMonth) != 0)
+		return -1;
 
 	/* Adjust for day-of-week offsets. */
 	if (gds->HaveWeekDay
 	    && !(gds->HaveYear || gds->HaveMonth || gds->HaveDay)) {
-		tod = RelativeDate(Start, gds->Timezone,
-		    gds->DSTmode, gds->DayOrdinal, gds->DayNumber);
-		Start += tod;
+		if (RelativeDate(&Start, gds->Timezone,
+		    gds->DSTmode, gds->DayOrdinal, gds->DayNumber) != 0)
+			return -1;
 	}
 
 	/* -1 is an error indicator, so return 0 instead of -1 if

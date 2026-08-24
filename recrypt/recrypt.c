@@ -683,6 +683,12 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	/* Stage an empty directory before we commit the deletion. */
+	if (chunks_transaction_empty(ocachedir)) {
+		warnp("Cannot stage empty chunk directory");
+		exit(1);
+	}
+
 	/* Commit the delete transaction and delete the old chunk dir. */
 	printf("Committing block deletes...");
 	if (multitape_commit(ocachedir, omachinenum, oseqnum, 1,

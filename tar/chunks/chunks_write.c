@@ -267,13 +267,13 @@ chunks_write_ispresent(CHUNKS_W * C, const uint8_t * hash)
 }
 
 /**
- * chunks_write_chunkref(C, hash):
- * If a chunk with hash ${hash} exists, mark it as being part of the write
- * transaction associated with the cookie ${C} and return 0.  If it
- * does not exist, return 1.
+ * chunks_write_chunkref(C, hash, len, zlen):
+ * If a chunk with hash ${hash}, length ${len}, and compressed length ${zlen}
+ * exists, mark it as being part of the write transaction associated with
+ * the cookie ${C} and return 0.  If it does not exist, return 1.
  */
 int
-chunks_write_chunkref(CHUNKS_W * C, const uint8_t * hash)
+chunks_write_chunkref(CHUNKS_W * C, const uint8_t * hash, size_t len, size_t zlen)
 {
 	struct chunkdata * ch;
 
@@ -282,6 +282,8 @@ chunks_write_chunkref(CHUNKS_W * C, const uint8_t * hash)
 	 * transaction and return 0.
 	 */
 	if ((ch = rwhashtab_read(C->HT, hash)) != NULL) {
+		if (ch->len != len || (ch->zlen_flags & CHDATA_ZLEN) != zlen)
+			return (1);
 		chunks_stats_add(&C->stats_total, ch->len,
 		    ch->zlen_flags & CHDATA_ZLEN, 1);
 		chunks_stats_add(&C->stats_tape, ch->len,

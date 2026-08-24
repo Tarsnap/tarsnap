@@ -55,7 +55,7 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 	*buflen -= sizeof(uint32_t);
 
 	/* Sanity check. */
-	if (len > INT_MAX) {
+	if ((len == 0) || (len > INT_MAX)) {
 		warn0("Unexpected key length");
 		goto err0;
 	}
@@ -143,7 +143,7 @@ export_BN(const BIGNUM * bn, uint8_t ** buf, size_t * buflen,
 	BN_bn2bin(bn, *buf);
 
 	/* Convert to little-endian format. */
-	for (i = 0; i < bnlen - 1 - i; i++) {
+	for (i = 0; i < bnlen / 2; i++) {
 		(*buf)[i] ^= (*buf)[bnlen - 1 - i];
 		(*buf)[bnlen - 1 - i] ^= (*buf)[i];
 		(*buf)[i] ^= (*buf)[bnlen - 1 - i];

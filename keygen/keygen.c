@@ -129,7 +129,8 @@ main(int argc, char **argv)
 	(void)argv; /* argv is not used beyond this point. */
 
 	/* We must have a user name, machine name, and key file specified. */
-	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL))
+	if ((C.user == NULL) || (C.name == NULL) || (keyfilename == NULL) ||
+	    (keyfilename[0] == '\0'))
 		usage();
 
 	/*

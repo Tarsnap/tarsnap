@@ -678,7 +678,8 @@ writetape_writechunk(TAPE_W * d, struct chunkheader * ch)
 		goto notpresent;
 
 	/* Attempt to reference the chunk. */
-	switch (chunks_write_chunkref(d->C, ch->hash)) {
+	switch (chunks_write_chunkref(d->C, ch->hash,
+	    le32dec(ch->len), le32dec(ch->zlen))) {
 	case -1:
 		goto err0;
 	case 1:

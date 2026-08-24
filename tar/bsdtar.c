@@ -1152,6 +1152,23 @@ main(int argc, char **argv)
 	}
 
 	/*
+	 * Make the CSV filename absolute if necessary, since the tar code
+	 * can change directories.
+	 */
+	if (bsdtar->option_csv_filename != NULL &&
+	    bsdtar->option_csv_filename[0] != '/') {
+		char cwd[PATH_MAX];
+		if (getcwd(cwd, PATH_MAX) == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "getcwd");
+		char *newpath = malloc(strlen(cwd) + strlen(bsdtar->option_csv_filename) + 2);
+		if (newpath == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
+		sprintf(newpath, "%s/%s", cwd, bsdtar->option_csv_filename);
+		free(bsdtar->option_csv_filename);
+		bsdtar->option_csv_filename = newpath;
+	}
+
+	/*
 	 * Canonicalize the path to the cache directories.  This is
 	 * necessary since the tar code can change directories.
 	 */

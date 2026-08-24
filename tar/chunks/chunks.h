@@ -65,12 +65,12 @@ ssize_t chunks_write_chunk(CHUNKS_W *, const uint8_t *, const uint8_t *,
 int chunks_write_ispresent(CHUNKS_W *, const uint8_t *);
 
 /**
- * chunks_write_chunkref(C, hash):
- * If a chunk with hash ${hash} exists, mark it as being part of the write
- * transaction associated with the cookie ${C} and return 0.  If it
- * does not exist, return 1.
+ * chunks_write_chunkref(C, hash, len, zlen):
+ * If a chunk with hash ${hash}, length ${len}, and compressed length ${zlen}
+ * exists, mark it as being part of the write transaction associated with
+ * the cookie ${C} and return 0.  If it does not exist, return 1.
  */
-int chunks_write_chunkref(CHUNKS_W *, const uint8_t *);
+int chunks_write_chunkref(CHUNKS_W *, const uint8_t *, size_t, size_t);
 
 /**
  * chunks_write_extrastats(C, len):
@@ -222,6 +222,12 @@ int chunks_stats_printarchive(FILE *, CHUNKS_S *, const char *, int, int);
  * No more calls will be made to chunks_stats* functions.
  */
 void chunks_stats_free(CHUNKS_S *);
+
+/**
+ * chunks_transaction_empty(cachepath):
+ * Stage an empty chunk directory transaction.
+ */
+int chunks_transaction_empty(const char *);
 
 /**
  * chunks_transaction_checkpoint(cachepath):
