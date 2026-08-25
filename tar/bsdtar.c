@@ -925,7 +925,7 @@ main(int argc, char **argv)
 		}
 
 		/* Check if ${XDG_CONFIG_HOME} is set. */
-		if ((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL) {
+		if ((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL && xdg_configdir[0] != '\0') {
 			/*
 			 * If it exists, use
 			 * ${XDG_CONFIG_HOME}/tarsnap/tarsnap.conf
