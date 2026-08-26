@@ -84,6 +84,12 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err0;
 	}
 
+	/* Sanity-check the key file name before asking for a password. */
+	if ((keyfilename == NULL) || (keyfilename[0] == '\0')) {
+		fprintf(stderr, "Key file name must be non-empty\n");
+		goto err0;
+	}
+
 	/* Get a password. */
 	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
 		warnp("Error reading password");
