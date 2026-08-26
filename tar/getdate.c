@@ -302,6 +302,21 @@ datephrase(struct gdstate *gds)
 	}
 
 	if (gds->tokenp[0].token == tMONTH
+	    && gds->tokenp[1].token == tUNUMBER
+	    && gds->tokenp[2].token == tUNUMBER
+	    && gds->tokenp[2].value >= 100) {
+		/* "Jun 15 2020" */
+		gds->HaveYear++;
+		gds->HaveMonth++;
+		gds->HaveDay++;
+		gds->Month = gds->tokenp[0].value;
+		gds->Day = gds->tokenp[1].value;
+		gds->Year = gds->tokenp[2].value;
+		gds->tokenp += 3;
+		return 1;
+	}
+
+	if (gds->tokenp[0].token == tMONTH
 	    && gds->tokenp[1].token == tUNUMBER) {
 		/* "May 3" */
 		gds->HaveMonth++;
