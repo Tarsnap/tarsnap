@@ -329,7 +329,8 @@ ccache_entry_lookup(CCACHE * cache, const char * path, const struct stat * sb,
 		}
 
 		/* We can supply the trailer data from the cache. */
-		skiplen += cce->ccr->tlen;
+		if (cce->trailer != NULL)
+			skiplen += cce->ccr->tlen;
 	} else {
 		cce->trailer = NULL;
 	}
