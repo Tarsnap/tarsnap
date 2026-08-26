@@ -231,6 +231,13 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
     int print_nulls, int print_hash)
 {
 	struct tapemetadata tmd;
+
+	/*
+	 * Zero the metadata: several early error paths (stdout write
+	 * failures) reach err1 and call multitape_metadata_free() before
+	 * multitape_metadata_get_byhash() has populated the structure.
+	 */
+	memset(&tmd, 0, sizeof(tmd));
 	char hexstr[65];
 	struct tm * ltime;
 	char datebuf[DATEBUFLEN];
