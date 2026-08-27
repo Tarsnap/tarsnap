@@ -78,6 +78,18 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
 		goto err1;
 	}
+
+	/*
+	 * A valid-length modulus composed entirely of zero bytes imports as a
+	 * zero-valued BIGNUM; BN_num_bytes() then canonicalises it to length 0,
+	 * so export_BN() would emit a zero-length field which the length check
+	 * above rejects on re-import (breaking round-trips). A zero RSA component
+	 * is never valid, so reject it here at the point of import.
+	 */
+	if (BN_is_zero(*bn)) {
+		warn0("Unexpected zero key integer");
+		goto err1;
+	}
 	free(bnbuf);
 
 	/* Advance buffer pointer, adjust remaining buffer length. */
