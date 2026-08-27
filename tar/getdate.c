@@ -747,14 +747,21 @@ DSTcorrect(time_t Start, time_t Future)
 {
 	time_t	StartDay;
 	time_t	FutureDay;
-	struct tm *ltm_start;
-	struct tm *ltm_future;
+	struct tm *ltm;
 
-	if (((ltm_start = localtime(&Start)) == NULL) ||
-	    ((ltm_future = localtime(&Future)) == NULL))
+	/*
+	 * localtime() returns a pointer to a single process-wide static
+	 * struct; calling it twice and only then dereferencing both pointers
+	 * leaves them aliased to the second result (observed on glibc), which
+	 * corrupts the DST delta for weekday math crossing a DST boundary.
+	 * Consume the first result before making the second call.
+	 */
+	if ((ltm = localtime(&Start)) == NULL)
 		return -1;
-	StartDay = (ltm_start->tm_hour + 1) % 24;
-	FutureDay = (ltm_future->tm_hour + 1) % 24;
+	StartDay = (ltm->tm_hour + 1) % 24;
+	if ((ltm = localtime(&Future)) == NULL)
+		return -1;
+	FutureDay = (ltm->tm_hour + 1) % 24;
 	return (Future - Start) + (StartDay - FutureDay) * HOUR;
 }
 
