@@ -747,9 +747,21 @@ DSTcorrect(time_t Start, time_t Future)
 {
 	time_t	StartDay;
 	time_t	FutureDay;
+	struct tm *ltm;
 
-	StartDay = (localtime(&Start)->tm_hour + 1) % 24;
-	FutureDay = (localtime(&Future)->tm_hour + 1) % 24;
+	/*
+	 * localtime() returns a pointer to a single process-wide static
+	 * struct; calling it twice and only then dereferencing both pointers
+	 * leaves them aliased to the second result (observed on glibc), which
+	 * corrupts the DST delta for weekday math crossing a DST boundary.
+	 * Consume the first result before making the second call.
+	 */
+	if ((ltm = localtime(&Start)) == NULL)
+		return -1;
+	StartDay = (ltm->tm_hour + 1) % 24;
+	if ((ltm = localtime(&Future)) == NULL)
+		return -1;
+	FutureDay = (ltm->tm_hour + 1) % 24;
 	return (Future - Start) + (StartDay - FutureDay) * HOUR;
 }
 
@@ -760,14 +772,18 @@ RelativeDate(time_t Start, time_t zone, int dstmode,
 {
 	struct tm	*tm;
 	time_t	t, now;
+	time_t	rc;
 
 	t = Start - zone;
-	tm = gmtime(&t);
+	if ((tm = gmtime(&t)) == NULL)
+		return -1;
 	now = Start;
 	now += DAY * ((DayNumber - tm->tm_wday + 7) % 7);
 	now += 7 * DAY * (DayOrdinal <= 0 ? DayOrdinal : DayOrdinal - 1);
-	if (dstmode == DSTmaybe)
-		return DSTcorrect(Start, now);
+	if (dstmode == DSTmaybe) {
+		rc = DSTcorrect(Start, now);
+		return rc;
+	}
 	return now - Start;
 }
 
@@ -778,17 +794,20 @@ RelativeMonth(time_t Start, time_t Timezone, time_t RelMonth)
 	struct tm	*tm;
 	time_t	Month;
 	time_t	Year;
+	time_t	Future;
 
 	if (RelMonth == 0)
 		return 0;
-	tm = localtime(&Start);
+	if ((tm = localtime(&Start)) == NULL)
+		return -1;
 	Month = 12 * (tm->tm_year + 1900) + tm->tm_mon + RelMonth;
 	Year = Month / 12;
 	Month = Month % 12 + 1;
-	return DSTcorrect(Start,
-	    Convert(Month, (time_t)tm->tm_mday, Year,
-		(time_t)tm->tm_hour, (time_t)tm->tm_min, (time_t)tm->tm_sec,
-		Timezone, DSTmaybe));
+	if ((Future = Convert(Month, (time_t)tm->tm_mday, Year,
+	    (time_t)tm->tm_hour, (time_t)tm->tm_min, (time_t)tm->tm_sec,
+	    Timezone, DSTmaybe)) == -1)
+		return -1;
+	return DSTcorrect(Start, Future);
 }
 
 /*
@@ -1012,13 +1031,17 @@ get_date(time_t now, char *p)
 
 	/* Add the relative offset. */
 	Start += gds->RelSeconds;
-	Start += RelativeMonth(Start, gds->Timezone, gds->RelMonth);
+	if ((tod = RelativeMonth(Start, gds->Timezone, gds->RelMonth)) == -1)
+		return -1;
+	Start += tod;
 
 	/* Adjust for day-of-week offsets. */
 	if (gds->HaveWeekDay
 	    && !(gds->HaveYear || gds->HaveMonth || gds->HaveDay)) {
 		tod = RelativeDate(Start, gds->Timezone,
 		    gds->DSTmode, gds->DayOrdinal, gds->DayNumber);
+		if (tod == -1)
+			return -1;
 		Start += tod;
 	}
 
