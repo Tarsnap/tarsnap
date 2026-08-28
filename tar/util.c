@@ -704,6 +704,7 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 	size_t			 w;
 	const char		*p;
 	const char		*fmt;
+	struct tm		*ltime;
 	time_t			 tim;
 	static time_t		 now;
 
@@ -797,7 +798,10 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 			fmt = bsdtar->day_first ? "%e %b %H:%M" : "%b %e %H:%M";
 #endif
 	}
-	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
+	ltime = localtime(&tim);
+	if ((ltime == NULL) ||
+	    (strftime(tmp, sizeof(tmp), fmt, ltime) == 0))
+		strcpy(tmp, "-- -- ----");
 	print_separator(out, " ", bsdtar->option_null_output, 2);
 	fprintf(out, "%s", tmp);
 	print_separator(out, " ", bsdtar->option_null_output, 2);
