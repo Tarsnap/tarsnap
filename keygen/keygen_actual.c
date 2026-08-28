@@ -53,21 +53,21 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 
 	/* Sanity-check the user name. */
 	if (strlen(C->user) > 255) {
-		fprintf(stderr, "User name too long: %s\n", C->user);
+		warn0("User name too long: %s", C->user);
 		goto err0;
 	}
 	if (strlen(C->user) == 0) {
-		fprintf(stderr, "User name must be non-empty\n");
+		warn0("User name must be non-empty");
 		goto err0;
 	}
 
 	/* Sanity-check the machine name. */
 	if (strlen(C->name) > 255) {
-		fprintf(stderr, "Machine name too long: %s\n", C->name);
+		warn0("Machine name too long: %s", C->name);
 		goto err0;
 	}
 	if (strlen(C->name) == 0) {
-		fprintf(stderr, "Machine name must be non-empty\n");
+		warn0("Machine name must be non-empty");
 		goto err0;
 	}
 
@@ -80,7 +80,7 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 
 	/* Sanity-check the memory size. */
 	if (maxmem > SIZE_MAX) {
-		fprintf(stderr, "Passphrase memory size is too large\n");
+		warn0("Passphrase memory size is too large");
 		goto err0;
 	}
 
