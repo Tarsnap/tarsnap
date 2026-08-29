@@ -520,6 +520,7 @@ int
 netpacket_close(NETPACKET_CONNECTION * NPC)
 {
 	struct netpacket_op * next;
+	int rc = 0;
 
 	/* Print statistics about network usage (if desired). */
 	if (tarsnap_opt_debug_network_stats)
@@ -527,8 +528,7 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 
 	/* Close the network protocol layer connection if we have one. */
 	if (NPC->NC != NULL)
-		if (netproto_close(NPC->NC))
-			goto err1;
+		rc = netproto_close(NPC->NC);
 
 	/* Free any queued operations. */
 	NPC->pending_current = NPC->pending_head;
@@ -544,20 +544,6 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 	/* Free the cookie. */
 	free(NPC);
 
-	/* Success! */
-	return (0);
-
-err1:
-	NPC->pending_current = NPC->pending_head;
-	while (NPC->pending_current != NULL) {
-		next = NPC->pending_current->next;
-		free(NPC->pending_current);
-		NPC->pending_current = next;
-	}
-
-	free(NPC->useragent);
-	free(NPC);
-
-	/* Failure! */
-	return (-1);
+	/* Report whether netproto_close() had any non-zero return. */
+	return ((rc == 0) ? 0 : -1);
 }
