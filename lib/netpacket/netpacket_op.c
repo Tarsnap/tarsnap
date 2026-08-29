@@ -521,6 +521,10 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 {
 	struct netpacket_op * next;
 
+	/* Print statistics about network usage (if desired). */
+	if (tarsnap_opt_debug_network_stats)
+		netpacket_printstats(NPC);
+
 	/* Close the network protocol layer connection if we have one. */
 	if (NPC->NC != NULL)
 		if (netproto_close(NPC->NC))
@@ -533,10 +537,6 @@ netpacket_close(NETPACKET_CONNECTION * NPC)
 		free(NPC->pending_current);
 		NPC->pending_current = next;
 	}
-
-	/* Print statistics about network usage (if desired). */
-	if (tarsnap_opt_debug_network_stats)
-		netpacket_printstats(NPC);
 
 	/* Free string allocated by strdup. */
 	free(NPC->useragent);
