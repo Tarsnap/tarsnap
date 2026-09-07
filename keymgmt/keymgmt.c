@@ -161,7 +161,7 @@ main(int argc, char **argv)
 			 */
 			if ((optarg_copy = strdup(optarg)) == NULL) {
 				warn0("Out of memory");
-				exit(0);
+				exit(1);
 			}
 			for (tok = strtok_r(optarg_copy, ",", &brkb);
 			     tok;
