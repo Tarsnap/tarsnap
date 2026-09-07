@@ -216,12 +216,40 @@ err0:
 int
 network_writeq_cancel(NETWORK_WRITEQ * Q)
 {
+	struct network_writeq_buf * head_old;
 	int rc = 0, rc2;
 
 	/* Keep on deregistering callbacks until the queue is empty. */
 	while (Q->head != NULL) {
+		/* Remember the head so we can detect a lack of progress. */
+		head_old = Q->head;
+
 		rc2 = network_deregister(Q->fd, NETWORK_OP_WRITE);
 		rc = rc ? rc : rc2;
+
+		/*
+		 * If nothing was registered for this descriptor,
+		 * network_deregister returned without invoking any callback
+		 * and the queue has not advanced.  Dequeue the buffer here
+		 * instead, so that its callback still runs and this loop
+		 * terminates.
+		 */
+		if (Q->head == head_old) {
+			/* Unlink the buffer from the queue. */
+			Q->head = head_old->next;
+
+			/* Update tail pointer if necessary. */
+			if (Q->tailptr == &head_old->next)
+				Q->tailptr = &Q->head;
+
+			/* Call the upstream callback. */
+			rc2 = (head_old->callback)(head_old->cookie,
+			    NETWORK_STATUS_CANCEL);
+			rc = rc ? rc : rc2;
+
+			/* Free the write parameters structure. */
+			free(head_old);
+		}
 	}
 
 	/* Return first non-zero result from deregistration. */
