@@ -70,13 +70,13 @@ storage_directory_read(uint64_t machinenum, char class, int key,
 	if (network_spin(&C.done))
 		goto err2;
 
-	/* Return results. */
-	*flist = C.flist;
-	*nfiles = C.nfiles;
-
 	/* Close netpacket connection. */
 	if (netpacket_close(C.NPC))
 		goto err1;
+
+	/* Return results. */
+	*flist = C.flist;
+	*nfiles = C.nfiles;
 
 	/* Success! */
 	return (0);
