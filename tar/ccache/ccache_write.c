@@ -330,7 +330,9 @@ err0:
 int
 ccache_remove(const char * path)
 {
-	char * s;
+	int ret;
+	char * dir;
+	size_t dirlen;
 
 	/* The caller must pass a file name to be deleted. */
 	assert(path != NULL);
@@ -345,8 +347,34 @@ ccache_remove(const char * path)
 	if (unlink(s)) {
 		if (errno != ENOENT) {
 			warnp("unlink(%s)", s);
+			free(s);
 			goto err1;
 		}
+		/*
+		 * No file was removed; nothing to fsync.
+		 */
+		free(s);
+		return (0);
+	}
+
+	/*
+	 * Make the unlink durable by fsyncing the containing directory.
+	 * This prevents the deleted cache from being resurrected after
+	 * a power loss, which would defeat the purpose of invalidating
+	 * a potentially damaged chunkification cache (e.g. after --fsck).
+	 */
+	dirlen = strlen(path);
+	if ((dir = malloc(dirlen + 1)) == NULL) {
+		warnp("malloc");
+		free(s);
+		goto err1;
+	}
+	memcpy(dir, path, dirlen + 1);
+	ret = dirutil_fsyncdir(dir);
+	free(dir);
+	if (ret) {
+		free(s);
+		goto err1;
 	}
 
 	/* Free string allocated by asprintf. */
