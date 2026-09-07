@@ -18,6 +18,7 @@
 #include "ctassert.h"
 #include "dirutil.h"
 #include "fileutil.h"
+#include "imalloc.h"
 #include "rwhashtab.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -210,14 +211,14 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	 * chunkdata_external in ${cachepath}/directory.
 	 */
 	if (statstape) {
-		ps = malloc(numchunks * sizeof(struct chunkdata_statstape));
+		if (IMALLOC(ps, numchunks, struct chunkdata_statstape))
+			goto err2;
 		*dir = ps;
 	} else {
-		p = malloc(numchunks * sizeof(struct chunkdata));
+		if (IMALLOC(p, numchunks, struct chunkdata))
+			goto err2;
 		*dir = p;
 	}
-	if (*dir == NULL)
-		goto err2;
 
 	/* Open the directory file. */
 	if ((f = fopen(s, "r")) == NULL) {
