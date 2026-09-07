@@ -181,7 +181,7 @@ compare(const struct pnode * n, const uint8_t * key, size_t keylen,
 	}
 
 	/* Compute how the top bits differ. */
-	mm = (n->high ^ key[i]) & ((- n->mask) << 1);
+	mm = (n->high ^ key[i]) & ((-(unsigned int)n->mask) << 1);
 
 	/* If the top bits match, the node is a prefix of the key. */
 	if (mm == 0)
@@ -354,7 +354,7 @@ patricia_insert(PATRICIA * P, const uint8_t * key, size_t keylen, void * rec)
 				pnew->high = 0;
 				pnew->right = pnew2;
 			} else {
-				pnew->high = key[mlen] & ((- mask) << 1);
+				pnew->high = key[mlen] & ((-(unsigned int)mask) << 1);
 
 				/*
 				 * This looks wrong, but it actually works:
