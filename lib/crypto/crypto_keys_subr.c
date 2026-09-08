@@ -11,6 +11,7 @@
 
 #include "crypto_compat.h"
 #include "crypto_entropy.h"
+#include "insecure_memzero.h"
 #include "sysendian.h"
 #include "warnp.h"
 
@@ -78,6 +79,9 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 		warn0("%s", ERR_error_string(ERR_get_error(), NULL));
 		goto err1;
 	}
+
+	/* Zero and free temporary buffer. */
+	insecure_memzero(bnbuf, len);
 	free(bnbuf);
 
 	/* Advance buffer pointer, adjust remaining buffer length. */
@@ -88,6 +92,7 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 	return (0);
 
 err1:
+	insecure_memzero(bnbuf, len);
 	free(bnbuf);
 err0:
 	/* Failure! */
