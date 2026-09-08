@@ -253,10 +253,6 @@ chunks_directory_read(const char * cachepath, void ** dir,
 		p->nrefs = le32dec(che.nrefs);
 		p->ncopies = le32dec(che.ncopies);
 
-		/* ... inserting them into the hash table... */
-		if (rwhashtab_insert(HT, p))
-			goto err4;
-
 #if UINT32_MAX > SSIZE_MAX
 		/* ... paranoid check for number of copies... */
 		if (p->ncopies > SSIZE_MAX)
@@ -265,16 +261,20 @@ chunks_directory_read(const char * cachepath, void ** dir,
 			    SSIZE_MAX);
 #endif
 
-		/* ... and updating the statistics. */
-		chunks_stats_add(stats_unique, p->len, p->zlen_flags, 1);
-		chunks_stats_add(stats_all, p->len, p->zlen_flags,
-		    (ssize_t)p->ncopies);
-
 		/* Sanity check. */
 		if ((p->len == 0) || (p->zlen_flags == 0) || (p->nrefs == 0)) {
 			warn0("on-disk directory is corrupt: %s", s);
 			goto err4;
 		}
+
+		/* ... inserting them into the hash table... */
+		if (rwhashtab_insert(HT, p))
+			goto err4;
+
+		/* ... and updating the statistics. */
+		chunks_stats_add(stats_unique, p->len, p->zlen_flags, 1);
+		chunks_stats_add(stats_all, p->len, p->zlen_flags,
+		    (ssize_t)p->ncopies);
 
 		/* Move to next record. */
 		if (statstape)
