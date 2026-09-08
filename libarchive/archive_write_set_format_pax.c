@@ -218,6 +218,15 @@ utf8_encode(const wchar_t *wval)
 	unsigned long wc;
 	char *utf8_value, *p;
 
+	/* Guard against NULL or empty pathnames from AR archives.
+	 * See: https://github.com/Tarsnap/tarsnap/issues/872 */
+	if (wval == NULL || wval[0] == L'\0') {
+		utf8_value = (char *)malloc(1);
+		if (utf8_value != NULL)
+			utf8_value[0] = '\0';
+		return (utf8_value);
+	}
+
 	utf8len = 0;
 	for (wp = wval; *wp != L'\0'; ) {
 		wc = *wp++;
