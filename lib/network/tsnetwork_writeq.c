@@ -24,6 +24,7 @@ struct network_writeq_internal {
 	int fd;
 	struct network_writeq_buf * head;
 	struct network_writeq_buf ** tailptr;
+	uint64_t head_version;
 };
 
 static int dowrite(struct network_writeq_internal *);
@@ -71,6 +72,7 @@ callback_bufdone(void * cookie, int status)
 	/* Unlink the current buffer from the queue. */
 	head_old = Q->head;
 	Q->head = head_old->next;
+	Q->head_version++;
 
 	/* Update tail pointer if necessary. */
 	if (Q->tailptr == &head_old->next)
@@ -130,6 +132,7 @@ network_writeq_init(int fd)
 	Q->fd = fd;
 	Q->head = NULL;
 	Q->tailptr = &Q->head;
+	Q->head_version = 0;
 
 	/* Success! */
 	return (Q);
@@ -216,12 +219,47 @@ err0:
 int
 network_writeq_cancel(NETWORK_WRITEQ * Q)
 {
+	struct network_writeq_buf * head_old;
+	uint64_t head_version;
 	int rc = 0, rc2;
 
 	/* Keep on deregistering callbacks until the queue is empty. */
 	while (Q->head != NULL) {
+		/*
+		 * Remember a generation, not the head pointer itself: deregistration
+		 * can synchronously invoke callback_bufdone(), which frees that head.
+		 */
+		head_version = Q->head_version;
+
 		rc2 = network_deregister(Q->fd, NETWORK_OP_WRITE);
 		rc = rc ? rc : rc2;
+
+		/*
+		 * If nothing was registered for this descriptor,
+		 * network_deregister returned without invoking any callback
+		 * and the queue has not advanced.  Dequeue the buffer here
+		 * instead, so that its callback still runs and this loop
+		 * terminates.
+		 */
+		if (Q->head_version == head_version) {
+			head_old = Q->head;
+
+			/* Unlink the buffer from the queue. */
+			Q->head = head_old->next;
+			Q->head_version++;
+
+			/* Update tail pointer if necessary. */
+			if (Q->tailptr == &head_old->next)
+				Q->tailptr = &Q->head;
+
+			/* Call the upstream callback. */
+			rc2 = (head_old->callback)(head_old->cookie,
+			    NETWORK_STATUS_CANCEL);
+			rc = rc ? rc : rc2;
+
+			/* Free the write parameters structure. */
+			free(head_old);
+		}
 	}
 
 	/* Return first non-zero result from deregistration. */
