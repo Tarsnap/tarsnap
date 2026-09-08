@@ -37,7 +37,8 @@ static int export_BN(const BIGNUM *, uint8_t **, size_t *, uint32_t *);
 /**
  * import_BN(bn, buf, buflen):
  * Import a large integer from the provided buffer, advance the buffer
- * pointer, and adjust the remaining buffer length.
+ * pointer, and adjust the remaining buffer length.  The resulting large
+ * integer must be greater than zero.
  */
 static int
 import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
@@ -56,7 +57,7 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 	*buflen -= sizeof(uint32_t);
 
 	/* Sanity check. */
-	if (len > INT_MAX) {
+	if ((len > INT_MAX) || (len == 0)) {
 		warn0("Unexpected key length");
 		goto err0;
 	}
@@ -80,6 +81,12 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 		goto err1;
 	}
 
+	/* The number must be positive (and BN_bin2bn cannot be negative). */
+	if (BN_is_zero(*bn)) {
+		warn0("Unexpected zero value in key data");
+		goto err2;
+	}
+
 	/* Zero and free temporary buffer. */
 	insecure_memzero(bnbuf, len);
 	free(bnbuf);
@@ -91,6 +98,9 @@ import_BN(BIGNUM ** bn, const uint8_t ** buf, size_t * buflen)
 	/* Success! */
 	return (0);
 
+err2:
+	BN_clear_free(*bn);
+	*bn = NULL;
 err1:
 	insecure_memzero(bnbuf, len);
 	free(bnbuf);
