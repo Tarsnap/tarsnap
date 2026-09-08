@@ -262,7 +262,8 @@ chunks_directory_read(const char * cachepath, void ** dir,
 #endif
 
 		/* Sanity check. */
-		if ((p->len == 0) || (p->zlen_flags == 0) || (p->nrefs == 0)) {
+		if ((p->len == 0) || (p->zlen_flags == 0) ||
+		    ((p->zlen_flags & CHDATA_FLAGS) != 0) || (p->nrefs == 0)) {
 			warn0("on-disk directory is corrupt: %s", s);
 			goto err4;
 		}
