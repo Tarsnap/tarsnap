@@ -169,8 +169,14 @@ safe_fprintf(FILE *f, const char *fmt, ...)
 			try_wc = 0;
 		}
 
-		/* If our output buffer is full, dump it and keep going. */
-		if (i > (sizeof(outbuff) - 20)) {
+		/*
+		 * If the buffer might not have room for the worst-case
+		 * expansion of the next character -- bsdtar_expand_char()
+		 * can emit four bytes per input byte, and sprintf() adds a
+		 * terminating '\0' after the last of them -- dump it
+		 * and keep going.
+		 */
+		if (i > (sizeof(outbuff) - (4 * (size_t)MB_CUR_MAX + 1))) {
 			outbuff[i++] = '\0';
 			fprintf(f, "%s", outbuff);
 			i = 0;
