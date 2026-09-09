@@ -190,12 +190,14 @@ storage_delete_file(STORAGE_D * S, char class, const uint8_t name[32])
 
 	/* Ask the netpacket layer to send a request and get a response. */
 	if (netpacket_op(S->NPC, callback_delete_file_send, C))
-		goto err0;
+		goto err1;
 
 	/* Success! */
 	return (0);
 
 err1:
+	/* This operation was never issued, so it is not pending. */
+	S->npending -= 1;
 	free(C);
 err0:
 	/* Failure! */
