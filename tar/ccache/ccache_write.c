@@ -222,6 +222,10 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err1;
 	}
 
+	/* We have no last-path buffer yet. */
+	W.sbuf = NULL;
+	W.sbuflen = 0;
+
 	/*-
 	 * We make three passes through the cache tree:
 	 * 1. Counting the number of records which will be written to disk.
@@ -254,13 +258,12 @@ ccache_write(CCACHE * cache, const char * path)
 	}
 
 	/* Write the records and suffixes. */
-	W.sbuf = NULL;
-	W.sbuflen = 0;
 	if (patricia_foreach(C->tree, callback_write_rec, &W)) {
 		warnp("Error writing cache to %s", W.s);
 		goto err2;
 	}
 	free(W.sbuf);
+	W.sbuf = NULL;
 
 	/* Write the chunk headers and compressed entry trailers. */
 	if (patricia_foreach(C->tree, callback_write_data, &W)) {
@@ -314,6 +317,7 @@ ccache_write(CCACHE * cache, const char * path)
 	return (0);
 
 err2:
+	free(W.sbuf);
 	if (fclose(W.f))
 		warnp("fclose");
 err1:
@@ -338,7 +342,7 @@ ccache_remove(const char * path)
 	/* Construct the name of the cache file. */
 	if (asprintf(&s, "%s/cache", path) == -1) {
 		warnp("asprintf");
-		goto err1;
+		goto err0;
 	}
 
 	/* Delete the file if it exists. */
@@ -357,7 +361,7 @@ ccache_remove(const char * path)
 
 err1:
 	free(s);
-
+err0:
 	/* Failure! */
 	return (-1);
 }
