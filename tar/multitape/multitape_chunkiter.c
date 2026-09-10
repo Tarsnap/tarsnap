@@ -93,7 +93,7 @@ multitape_chunkiter_tmd(STORAGE_R * S, CHUNKS_S * C,
 		}
 
 		/* We want to cache this chunk after reading it. */
-		if (chunks_read_cache(CR, ch->hash))
+		if ((rc = chunks_read_cache(CR, ch->hash)) != 0)
 			goto err3;
 
 		/* Read the chunk into buffer. */
