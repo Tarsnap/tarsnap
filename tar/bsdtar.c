@@ -924,8 +924,9 @@ main(int argc, char **argv)
 			bsdtar->conffile = NULL;
 		}
 
-		/* Check if ${XDG_CONFIG_HOME} is set. */
-		if ((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL) {
+		/* Check if ${XDG_CONFIG_HOME} is set and non-empty. */
+		if (((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL) &&
+		    (strlen(xdg_configdir) != 0)) {
 			/*
 			 * If it exists, use
 			 * ${XDG_CONFIG_HOME}/tarsnap/tarsnap.conf
