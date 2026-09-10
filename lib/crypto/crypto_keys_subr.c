@@ -518,6 +518,7 @@ err2:
 	free((*key)->key);
 err1:
 	free(*key);
+	*key = NULL;
 err0:
 	/* Failure! */
 	return (-1);
