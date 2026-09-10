@@ -65,6 +65,14 @@ ssize_t chunks_write_chunk(CHUNKS_W *, const uint8_t *, const uint8_t *,
 int chunks_write_ispresent(CHUNKS_W *, const uint8_t *);
 
 /**
+ * chunks_write_getlens(C, hash, len, zlen):
+ * If a chunk with hash ${hash} exists, store its canonical length and
+ * compressed length into ${len} and ${zlen} and return 0; otherwise,
+ * return 1.
+ */
+int chunks_write_getlens(CHUNKS_W *, const uint8_t *, uint32_t *, uint32_t *);
+
+/**
  * chunks_write_chunkref(C, hash):
  * If a chunk with hash ${hash} exists, mark it as being part of the write
  * transaction associated with the cookie ${C} and return 0.  If it
