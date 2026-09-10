@@ -78,6 +78,12 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err0;
 	}
 
+	/* Sanity-check the key file name. */
+	if (strlen(keyfilename) == 0) {
+		warn0("key filename must be non-empty");
+		goto err0;
+	}
+
 	/* Sanity-check the memory size. */
 	if (maxmem > SIZE_MAX) {
 		warn0("Passphrase memory size is too large");
