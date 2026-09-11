@@ -338,7 +338,7 @@ ccache_remove(const char * path)
 	/* Construct the name of the cache file. */
 	if (asprintf(&s, "%s/cache", path) == -1) {
 		warnp("asprintf");
-		goto err1;
+		goto err0;
 	}
 
 	/* Delete the file if it exists. */
@@ -357,7 +357,7 @@ ccache_remove(const char * path)
 
 err1:
 	free(s);
-
+err0:
 	/* Failure! */
 	return (-1);
 }
