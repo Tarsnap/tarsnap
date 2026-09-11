@@ -540,7 +540,8 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 
 	if (file->offset + file->size > iso9660->volume_size) {
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
-		    "File is beyond end-of-media: %s", file->name);
+		    "File is beyond end-of-media: %s",
+		    file->name.s != NULL ? file->name.s : "(null)");
 		iso9660->entry_bytes_remaining = 0;
 		iso9660->entry_sparse_offset = 0;
 		release_file(iso9660, file);
