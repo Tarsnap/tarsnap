@@ -136,7 +136,7 @@ padme(size_t len, size_t maxlen)
 	}
 
 	/* bitMask = 2^(E - S) - 1. */
-	bitmask = (1 << (e - s)) - 1;
+	bitmask = ((size_t)1 << (e - s)) - 1;
 
 	/* Padded length = (L + bitMask) & ~bitMask. */
 	plen = (len + bitmask) & (~bitmask);
