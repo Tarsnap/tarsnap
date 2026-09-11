@@ -258,6 +258,7 @@ ccache_write(CCACHE * cache, const char * path)
 	W.sbuflen = 0;
 	if (patricia_foreach(C->tree, callback_write_rec, &W)) {
 		warnp("Error writing cache to %s", W.s);
+		free(W.sbuf);
 		goto err2;
 	}
 	free(W.sbuf);
