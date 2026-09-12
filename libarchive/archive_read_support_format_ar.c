@@ -278,7 +278,7 @@ archive_read_format_ar_read_header(struct archive_read *a,
 			return (ARCHIVE_FATAL);
 		}
 		entry_size = (size_t)number;
-		if (entry_size == 0) {
+		if (entry_size == 0 || entry_size > 1024 * 1024 * 1024) {
 			archive_set_error(&a->archive, EINVAL,
 			    "Invalid string table");
 			return (ARCHIVE_WARN);
@@ -353,7 +353,8 @@ archive_read_format_ar_read_header(struct archive_read *a,
 		 * overflowing a size_t and against the filename size
 		 * being larger than the entire entry. */
 		if (number > (uint64_t)(bsd_name_length + 1)
-		    || (off_t)bsd_name_length > ar->entry_bytes_remaining) {
+		    || (off_t)bsd_name_length > ar->entry_bytes_remaining
+		    || bsd_name_length > 1024 * 1024) {
 			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 			    "Bad input file size");
 			return (ARCHIVE_FATAL);
