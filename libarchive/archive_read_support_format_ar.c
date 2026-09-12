@@ -82,8 +82,8 @@ static int	archive_read_format_ar_read_header(struct archive_read *a,
 static uint64_t	ar_atol8(const char *p, unsigned char_cnt);
 static uint64_t	ar_atol10(const char *p, unsigned char_cnt);
 static int	ar_parse_gnu_filename_table(struct archive_read *a);
-static int	ar_parse_common_header(struct ar *ar, struct archive_entry *,
-		    const char *h);
+static int	ar_parse_common_header(struct archive_read *a, struct ar *ar,
+		    struct archive_entry *, const char *h);
 
 int
 archive_read_support_format_ar(struct archive *_a)
@@ -327,13 +327,15 @@ archive_read_format_ar_read_header(struct archive_read *a,
 			    "Can't find long filename for entry");
 			archive_entry_copy_pathname(entry, filename);
 			/* Parse the time, owner, mode, size fields. */
-			ar_parse_common_header(ar, entry, h);
+			r = ar_parse_common_header(a, ar, entry, h);
+			if (r != ARCHIVE_OK)
+				return (r);
 			return (ARCHIVE_WARN);
 		}
 
 		archive_entry_copy_pathname(entry, &ar->strtab[(size_t)number]);
 		/* Parse the time, owner, mode, size fields. */
-		return (ar_parse_common_header(ar, entry, h));
+		return (ar_parse_common_header(a, ar, entry, h));
 	}
 
 	/*
@@ -344,7 +346,9 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	if (strncmp(filename, "#1/", 3) == 0) {
 		/* Parse the time, owner, mode, size fields. */
 		/* This must occur before _read_ahead is called again. */
-		ar_parse_common_header(ar, entry, h);
+		r = ar_parse_common_header(a, ar, entry, h);
+		if (r != ARCHIVE_OK)
+			return (r);
 
 		/* Parse the size of the name, adjust the file size. */
 		number = ar_atol10(h + AR_name_offset + 3, AR_name_size - 3);
@@ -390,7 +394,9 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	if (strcmp(filename, "/") == 0) {
 		archive_entry_copy_pathname(entry, "/");
 		/* Parse the time, owner, mode, size fields. */
-		r = ar_parse_common_header(ar, entry, h);
+		r = ar_parse_common_header(a, ar, entry, h);
+		if (r != ARCHIVE_OK)
+			return (r);
 		/* Force the file type to a regular file. */
 		archive_entry_set_filetype(entry, AE_IFREG);
 		return (r);
@@ -402,7 +408,7 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	if (strcmp(filename, "__.SYMDEF") == 0) {
 		archive_entry_copy_pathname(entry, filename);
 		/* Parse the time, owner, mode, size fields. */
-		return (ar_parse_common_header(ar, entry, h));
+		return (ar_parse_common_header(a, ar, entry, h));
 	}
 
 	/*
@@ -411,12 +417,12 @@ archive_read_format_ar_read_header(struct archive_read *a,
 	 * on our current knowledge of the format.
 	 */
 	archive_entry_copy_pathname(entry, filename);
-	return (ar_parse_common_header(ar, entry, h));
+	return (ar_parse_common_header(a, ar, entry, h));
 }
 
 static int
-ar_parse_common_header(struct ar *ar, struct archive_entry *entry,
-    const char *h)
+ar_parse_common_header(struct archive_read *a, struct ar *ar,
+    struct archive_entry *entry, const char *h)
 {
 	uint64_t n;
 
@@ -430,6 +436,11 @@ ar_parse_common_header(struct ar *ar, struct archive_entry *entry,
 	archive_entry_set_mode(entry,
 	    (mode_t)ar_atol8(h + AR_mode_offset, AR_mode_size));
 	n = ar_atol10(h + AR_size_offset, AR_size_size);
+	if (n > 0xfffffffffffffffLL) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "File size out of range");
+		return (ARCHIVE_FATAL);
+	}
 
 	ar->entry_offset = 0;
 	ar->entry_padding = n % 2;
@@ -454,8 +465,11 @@ archive_read_format_ar_read_data(struct archive_read *a,
 			    "Truncated ar archive");
 			return (ARCHIVE_FATAL);
 		}
-		if (bytes_read < 0)
+		if (bytes_read < 0) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+			    "Error reading ar archive body");
 			return (ARCHIVE_FATAL);
+		}
 		if (bytes_read > ar->entry_bytes_remaining)
 			bytes_read = (ssize_t)ar->entry_bytes_remaining;
 		*size = bytes_read;
@@ -467,8 +481,11 @@ archive_read_format_ar_read_data(struct archive_read *a,
 	} else {
 		while (ar->entry_padding > 0) {
 			*buff = __archive_read_ahead(a, 1, &bytes_read);
-			if (bytes_read <= 0)
+			if (bytes_read <= 0) {
+				archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+				    "Truncated ar archive");
 				return (ARCHIVE_FATAL);
+			}
 			if (bytes_read > ar->entry_padding)
 				bytes_read = (ssize_t)ar->entry_padding;
 			__archive_read_consume(a, (size_t)bytes_read);
