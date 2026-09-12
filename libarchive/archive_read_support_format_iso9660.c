@@ -603,6 +603,7 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 		while (iso9660->entry_bytes_remaining > 0) {
 			const void *block;
 			const unsigned char *p;
+			const unsigned char *block_end;
 			ssize_t step = iso9660->logical_block_size;
 			if (step > iso9660->entry_bytes_remaining)
 				step = iso9660->entry_bytes_remaining;
@@ -616,10 +617,18 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 			__archive_read_consume(a, step);
 			iso9660->current_position += step;
 			iso9660->entry_bytes_remaining -= step;
+			block_end = (const unsigned char *)block + step;
 			for (p = (const unsigned char *)block;
-			     *p != 0 && p < (const unsigned char *)block + step;
+			     p < block_end && *p != 0;
 			     p += *p) {
 				struct file_info *child;
+
+				/*
+				 * Directory records cannot cross sector boundaries
+				 * and must be at least 34 bytes to contain the name fields.
+				 */
+				if (*p < 34 || *p > (size_t)(block_end - p))
+					break;
 
 				/* N.B.: these special directory identifiers
 				 * are 8 bit "values" even on a 
@@ -635,12 +644,14 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 				    && *(p + DR_name_offset) == '\001')
 					continue;
 				child = parse_file_info(iso9660, file, p);
-				add_entry(iso9660, child);
-				if (iso9660->seenRockridge) {
-					a->archive.archive_format =
-					    ARCHIVE_FORMAT_ISO9660_ROCKRIDGE;
-					a->archive.archive_format_name =
-					    "ISO9660 with Rockridge extensions";
+				if (child != NULL) {
+					add_entry(iso9660, child);
+					if (iso9660->seenRockridge) {
+						a->archive.archive_format =
+						    ARCHIVE_FORMAT_ISO9660_ROCKRIDGE;
+						a->archive.archive_format_name =
+						    "ISO9660 with Rockridge extensions";
+					}
 				}
 			}
 		}
@@ -723,7 +734,11 @@ parse_file_info(struct iso9660 *iso9660, struct file_info *parent,
 	const unsigned char *p;
 	int flags;
 
-	/* TODO: Sanity check that name_len doesn't exceed length, etc. */
+	if (isodirrec[DR_length_offset] < 34)
+		return (NULL);
+	name_len = (size_t)isodirrec[DR_name_len_offset];
+	if (DR_name_offset + name_len > isodirrec[DR_length_offset])
+		return (NULL);
 
 	/* Create a new file entry and copy data from the ISO dir record. */
 	file = (struct file_info *)malloc(sizeof(*file));
