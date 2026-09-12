@@ -282,8 +282,11 @@ archive_read_format_cpio_read_data(struct archive_read *a,
 	cpio = (struct cpio *)(a->format->data);
 	if (cpio->entry_bytes_remaining > 0) {
 		*buff = __archive_read_ahead(a, 1, &bytes_read);
-		if (bytes_read <= 0)
+		if (bytes_read <= 0) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+			    "Truncated cpio archive");
 			return (ARCHIVE_FATAL);
+		}
 		if (bytes_read > cpio->entry_bytes_remaining)
 			bytes_read = cpio->entry_bytes_remaining;
 		*size = bytes_read;
@@ -295,8 +298,11 @@ archive_read_format_cpio_read_data(struct archive_read *a,
 	} else {
 		while (cpio->entry_padding > 0) {
 			*buff = __archive_read_ahead(a, 1, &bytes_read);
-			if (bytes_read <= 0)
+			if (bytes_read <= 0) {
+				archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+				    "Truncated cpio archive");
 				return (ARCHIVE_FATAL);
+			}
 			if (bytes_read > cpio->entry_padding)
 				bytes_read = cpio->entry_padding;
 			__archive_read_consume(a, bytes_read);
