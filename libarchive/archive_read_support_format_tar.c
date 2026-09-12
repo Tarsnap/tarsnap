@@ -502,6 +502,11 @@ archive_read_format_tar_read_data(struct archive_read *a,
 	 * current sparse block. */
 	if (tar->sparse_list->remaining < bytes_read)
 		bytes_read = tar->sparse_list->remaining;
+	if (bytes_read < 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "Corrupted sparse block data");
+		return (ARCHIVE_FATAL);
+	}
 	*size = bytes_read;
 	*offset = tar->sparse_list->offset;
 	tar->sparse_list->remaining -= bytes_read;
@@ -1418,7 +1423,10 @@ pax_attribute(struct tar *tar, struct archive_entry *entry,
 		}
 		if (strcmp(key, "GNU.sparse.offset") == 0) {
 			tar->sparse_offset = tar_atol10(value, strlen(value));
-			if (tar->sparse_numbytes != -1) {
+			if (tar->sparse_offset < 0) {
+				tar->sparse_offset = -1;
+				tar->sparse_numbytes = -1;
+			} else if (tar->sparse_numbytes != -1) {
 				gnu_add_sparse_entry(tar,
 				    tar->sparse_offset, tar->sparse_numbytes);
 				tar->sparse_offset = -1;
@@ -1427,7 +1435,10 @@ pax_attribute(struct tar *tar, struct archive_entry *entry,
 		}
 		if (strcmp(key, "GNU.sparse.numbytes") == 0) {
 			tar->sparse_numbytes = tar_atol10(value, strlen(value));
-			if (tar->sparse_numbytes != -1) {
+			if (tar->sparse_numbytes < 0) {
+				tar->sparse_offset = -1;
+				tar->sparse_numbytes = -1;
+			} else if (tar->sparse_offset != -1) {
 				gnu_add_sparse_entry(tar,
 				    tar->sparse_offset, tar->sparse_numbytes);
 				tar->sparse_offset = -1;
@@ -1736,6 +1747,9 @@ gnu_add_sparse_entry(struct tar *tar, off_t offset, off_t remaining)
 {
 	struct sparse_block *p;
 
+	if (offset < 0 || remaining < 0)
+		return;
+
 	p = (struct sparse_block *)malloc(sizeof(*p));
 	if (p == NULL)
 		__archive_errx(1, "Out of memory");
@@ -1815,9 +1829,11 @@ gnu_sparse_old_parse(struct tar *tar,
     const struct gnu_sparse *sparse, int length)
 {
 	while (length > 0 && sparse->offset[0] != 0) {
-		gnu_add_sparse_entry(tar,
-		    tar_atol(sparse->offset, sizeof(sparse->offset)),
-		    tar_atol(sparse->numbytes, sizeof(sparse->numbytes)));
+		off_t offset = tar_atol(sparse->offset, sizeof(sparse->offset));
+		off_t numbytes = tar_atol(sparse->numbytes, sizeof(sparse->numbytes));
+		if (offset < 0 || numbytes < 0)
+			return;
+		gnu_add_sparse_entry(tar, offset, numbytes);
 		sparse++;
 		length--;
 	}
