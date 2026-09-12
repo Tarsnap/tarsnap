@@ -419,6 +419,13 @@ archive_read_format_tar_read_header(struct archive_read *a,
 
 	r = tar_read_header(a, tar, entry);
 
+	if (tar->entry_bytes_remaining < 0
+	    || tar->entry_bytes_remaining >= (1LL << 60)) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+		    "Tar entry size out of range");
+		return (ARCHIVE_FATAL);
+	}
+
 	/*
 	 * "non-sparse" files are really just sparse files with
 	 * a single block.
@@ -939,6 +946,15 @@ header_common(struct archive_read *a, struct tar *tar,
 	archive_entry_set_uid(entry, tar_atol(header->uid, sizeof(header->uid)));
 	archive_entry_set_gid(entry, tar_atol(header->gid, sizeof(header->gid)));
 	tar->entry_bytes_remaining = tar_atol(header->size, sizeof(header->size));
+	if (tar->entry_bytes_remaining < 0
+	    || tar->entry_bytes_remaining >= (1LL << 60)) {
+		tar->entry_bytes_remaining = 0;
+		tar->realsize = 0;
+		archive_entry_set_size(entry, 0);
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+		    "Tar entry size out of range");
+		return (ARCHIVE_FATAL);
+	}
 	tar->realsize = tar->entry_bytes_remaining;
 	archive_entry_set_size(entry, tar->entry_bytes_remaining);
 	archive_entry_set_mtime(entry, tar_atol(header->mtime, sizeof(header->mtime)), 0);
