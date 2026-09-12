@@ -925,8 +925,6 @@ header_common(struct archive_read *a, struct tar *tar,
 	const struct archive_entry_header_ustar	*header;
 	char	tartype;
 
-	(void)a; /* UNUSED */
-
 	header = (const struct archive_entry_header_ustar *)h;
 	if (header->linkname[0])
 		archive_strncpy(&(tar->entry_linkpath), header->linkname,
@@ -939,6 +937,12 @@ header_common(struct archive_read *a, struct tar *tar,
 	archive_entry_set_uid(entry, tar_atol(header->uid, sizeof(header->uid)));
 	archive_entry_set_gid(entry, tar_atol(header->gid, sizeof(header->gid)));
 	tar->entry_bytes_remaining = tar_atol(header->size, sizeof(header->size));
+	if (tar->entry_bytes_remaining < 0) {
+		tar->entry_bytes_remaining = 0;
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "tar archive has invalid entry size");
+		return (ARCHIVE_FATAL);
+	}
 	tar->realsize = tar->entry_bytes_remaining;
 	archive_entry_set_size(entry, tar->entry_bytes_remaining);
 	archive_entry_set_mtime(entry, tar_atol(header->mtime, sizeof(header->mtime)), 0);
@@ -1086,7 +1090,8 @@ header_old_tar(struct archive_read *a, struct tar *tar,
 	archive_entry_copy_pathname(entry, tar->entry_pathname.s);
 
 	/* Grab rest of common fields */
-	header_common(a, tar, entry, h);
+	if (header_common(a, tar, entry, h) != 0)
+		return (ARCHIVE_FATAL);
 
 	tar->entry_padding = 0x1ff & (-tar->entry_bytes_remaining);
 	return (0);
@@ -1166,7 +1171,8 @@ header_ustar(struct archive_read *a, struct tar *tar,
 	archive_entry_copy_pathname(entry, as->s);
 
 	/* Handle rest of common fields. */
-	header_common(a, tar, entry, h);
+	if (header_common(a, tar, entry, h) != 0)
+		return (ARCHIVE_FATAL);
 
 	/* Handle POSIX ustar fields. */
 	archive_strncpy(&(tar->entry_uname), header->uname,
@@ -1678,7 +1684,8 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 	 */
 
 	/* Grab fields common to all tar variants. */
-	header_common(a, tar, entry, h);
+	if (header_common(a, tar, entry, h) != 0)
+		return (ARCHIVE_FATAL);
 
 	/* Copy filename over (to ensure null termination). */
 	header = (const struct archive_entry_header_gnutar *)h;
