@@ -566,9 +566,7 @@ archive_read_format_zip_read_data(struct archive_read *a,
 			    "ZIP compressed data is wrong size");
 			return (ARCHIVE_WARN);
 		}
-		/* Size field only stores the lower 32 bits of the actual size. */
-		if ((zip->uncompressed_size & UINT32_MAX)
-		    != (zip->entry_uncompressed_bytes_read & UINT32_MAX)) {
+		if (zip->uncompressed_size != zip->entry_uncompressed_bytes_read) {
 			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 			    "ZIP uncompressed data is wrong size");
 			return (ARCHIVE_WARN);
