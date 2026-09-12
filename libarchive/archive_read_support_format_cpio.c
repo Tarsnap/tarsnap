@@ -238,6 +238,13 @@ archive_read_format_cpio_read_header(struct archive_read *a,
 	if (r < ARCHIVE_WARN)
 		return (r);
 
+	/* Validate namelength. */
+	if (namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
+
 	/* Read name from buffer. */
 	h = __archive_read_ahead(a, namelength + name_pad, NULL);
 	if (h == NULL)
