@@ -272,7 +272,7 @@ process_global_set(struct archive_read *a,
 		line = next;
 		next = line + strcspn(line, " \t\r\n");
 		eq = strchr(line, '=');
-		if (eq > next)
+		if (eq == NULL || eq > next)
 			len = next - line;
 		else
 			len = eq - line;
@@ -370,7 +370,7 @@ process_add_entry(struct archive_read *a, struct mtree *mtree,
 		line = next;
 		next = line + strcspn(line, " \t\r\n");
 		eq = strchr(line, '=');
-		if (eq > next)
+		if (eq == NULL || eq > next)
 			len = next - line;
 		else
 			len = eq - line;
