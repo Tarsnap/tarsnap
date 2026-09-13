@@ -310,13 +310,9 @@ __LA_DECL int		 archive_read_support_compression_xz(struct archive *);
 
 __LA_DECL int		 archive_read_support_format_all(struct archive *);
 __LA_DECL int		 archive_read_support_format_ar(struct archive *);
-__LA_DECL int		 archive_read_support_format_cpio(struct archive *);
 __LA_DECL int		 archive_read_support_format_empty(struct archive *);
 __LA_DECL int		 archive_read_support_format_gnutar(struct archive *);
-__LA_DECL int		 archive_read_support_format_iso9660(struct archive *);
-__LA_DECL int		 archive_read_support_format_mtree(struct archive *);
 __LA_DECL int		 archive_read_support_format_tar(struct archive *);
-__LA_DECL int		 archive_read_support_format_zip(struct archive *);
 
 
 /* Open the archive using callbacks for archive I/O. */
@@ -531,11 +527,6 @@ __LA_DECL int		 archive_write_set_format(struct archive *, int format_code);
 __LA_DECL int		 archive_write_set_format_by_name(struct archive *,
 		     const char *name);
 /* To minimize link pollution, use one or more of the following. */
-__LA_DECL int		 archive_write_set_format_ar_bsd(struct archive *);
-__LA_DECL int		 archive_write_set_format_ar_svr4(struct archive *);
-__LA_DECL int		 archive_write_set_format_cpio(struct archive *);
-__LA_DECL int		 archive_write_set_format_cpio_newc(struct archive *);
-__LA_DECL int		 archive_write_set_format_mtree(struct archive *);
 /* TODO: int archive_write_set_format_old_tar(struct archive *); */
 __LA_DECL int		 archive_write_set_format_pax(struct archive *);
 __LA_DECL int		 archive_write_set_format_pax_restricted(struct archive *);
