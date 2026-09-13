@@ -1,0 +1,52 @@
+name: Z475 one-shot EXTRA_DIST repair
+
+on:
+  push:
+    branches:
+      - keymgmt-keylist-exit-status
+    paths:
+      - .github/workflows/z475-extra-dist-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: keymgmt-keylist-exit-status
+          fetch-depth: 0
+      - name: Insert packaged regression and remove carrier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("Makefile.am")
+          text = path.read_text(encoding="utf-8")
+          target = "tests/08-keymgmt-keylist-oom.sh"
+          marker = "tests/07-selecting-files.sh"
+          if target in text:
+              raise SystemExit("target already present; refusing duplicate insertion")
+          lines = text.splitlines(keepends=True)
+          matches = [i for i, line in enumerate(lines) if marker in line]
+          if len(matches) != 1:
+              raise SystemExit(f"expected exactly one {marker!r} line, found {len(matches)}")
+          index = matches[0]
+          if not lines[index].rstrip("\n").endswith("\\"):
+              raise SystemExit("marker is not a continued EXTRA_DIST entry")
+          indent = lines[index][: len(lines[index]) - len(lines[index].lstrip())]
+          lines.insert(index + 1, f"{indent}{target}\t\\\n")
+          path.write_text("".join(lines), encoding="utf-8")
+          PY
+          git rm .github/workflows/z475-extra-dist-once.yml
+          git diff --check
+          grep -F 'tests/08-keymgmt-keylist-oom.sh' Makefile.am
+          git config user.name 'Ariadne-Z475'
+          git config user.email 'brycembusiness2@gmail.com'
+          git add Makefile.am
+          git commit -m 'tests: distribute keymgmt keylist OOM regression'
+          git push origin HEAD:keymgmt-keylist-exit-status
