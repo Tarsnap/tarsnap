@@ -883,7 +883,13 @@ parse_keyword(struct archive_read *a, struct mtree *mtree,
 		    strcmp(key, "sha512digest") == 0)
 			break;
 		if (strcmp(key, "size") == 0) {
-			archive_entry_set_size(entry, mtree_atol10(&val));
+			int64_t size = mtree_atol10(&val);
+			if (size < 0 || size > 0xfffffffffffffffLL) {
+				archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+				    "File size out of range");
+				return (ARCHIVE_FATAL);
+			}
+			archive_entry_set_size(entry, size);
 			break;
 		}
 	case 't':
@@ -981,6 +987,11 @@ read_data(struct archive_read *a, const void **buff, size_t *size, off_t *offset
 		*buff = NULL;
 		*offset = 0;
 		*size = 0;
+		if (mtree->cur_size > 0) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+			    "Contents file not found");
+			return (ARCHIVE_FATAL);
+		}
 		return (ARCHIVE_EOF);
 	}
 	if (mtree->buff == NULL) {
