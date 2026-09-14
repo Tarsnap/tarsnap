@@ -238,6 +238,12 @@ archive_read_format_cpio_read_header(struct archive_read *a,
 	if (r < ARCHIVE_WARN)
 		return (r);
 
+	if (namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
+
 	/* Read name from buffer. */
 	h = __archive_read_ahead(a, namelength + name_pad, NULL);
 	if (h == NULL)
@@ -430,6 +436,11 @@ header_newc(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdevminor(entry, atol16(header->c_rdevminor, sizeof(header->c_rdevminor)));
 	archive_entry_set_mtime(entry, atol16(header->c_mtime, sizeof(header->c_mtime)), 0);
 	*namelength = atol16(header->c_namesize, sizeof(header->c_namesize));
+	if (*namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
 	/* Pad name to 2 more than a multiple of 4. */
 	*name_pad = (2 - *namelength) & 3;
 
@@ -562,6 +573,11 @@ header_odc(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdev(entry, atol8(header->c_rdev, sizeof(header->c_rdev)));
 	archive_entry_set_mtime(entry, atol8(header->c_mtime, sizeof(header->c_mtime)), 0);
 	*namelength = atol8(header->c_namesize, sizeof(header->c_namesize));
+	if (*namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
 	*name_pad = 0; /* No padding of filename. */
 
 	/*
@@ -604,6 +620,11 @@ header_bin_le(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdev(entry, header->c_rdev[0] + header->c_rdev[1] * 256);
 	archive_entry_set_mtime(entry, le4(header->c_mtime), 0);
 	*namelength = header->c_namesize[0] + header->c_namesize[1] * 256;
+	if (*namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
 	*name_pad = *namelength & 1; /* Pad to even. */
 
 	cpio->entry_bytes_remaining = le4(header->c_filesize);
@@ -639,6 +660,11 @@ header_bin_be(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdev(entry, header->c_rdev[0] * 256 + header->c_rdev[1]);
 	archive_entry_set_mtime(entry, be4(header->c_mtime), 0);
 	*namelength = header->c_namesize[0] * 256 + header->c_namesize[1];
+	if (*namelength < 1) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has invalid namelength");
+		return (ARCHIVE_FATAL);
+	}
 	*name_pad = *namelength & 1; /* Pad to even. */
 
 	cpio->entry_bytes_remaining = be4(header->c_filesize);

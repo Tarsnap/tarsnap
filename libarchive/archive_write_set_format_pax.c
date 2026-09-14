@@ -218,6 +218,9 @@ utf8_encode(const wchar_t *wval)
 	unsigned long wc;
 	char *utf8_value, *p;
 
+	if (wval == NULL)
+		return (NULL);
+
 	utf8len = 0;
 	for (wp = wval; *wp != L'\0'; ) {
 		wc = *wp++;
