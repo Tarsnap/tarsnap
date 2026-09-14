@@ -106,8 +106,16 @@ netproto_setfd(struct netproto_connection_internal * C, int fd)
 	C->fd = fd;
 
 	/* Create a network layer write queue. */
-	if ((C->Q = network_writeq_init(fd)) == NULL)
+	if ((C->Q = network_writeq_init(fd)) == NULL) {
+		/*
+		 * The connection must not retain ownership of ${fd}: the
+		 * caller closes it on this error path, and a later
+		 * netproto_close() would double-close the (possibly
+		 * reused) descriptor.
+		 */
+		C->fd = -1;
 		goto err0;
+	}
 
 	/* Success! */
 	return (0);
