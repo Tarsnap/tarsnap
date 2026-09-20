@@ -1,5 +1,5 @@
 #!/bin/sh
-# Standalone GNU/POSIX regression. Configure first; no account is required.
+# GNU/POSIX regression used by make test; no account is required.
 set -eu
 ulimit -c 0
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
