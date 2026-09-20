@@ -50,7 +50,7 @@ static void quiet_warning(const char *, ...);
 #define warnp quiet_warning
 #define warn0 quiet_warning
 #ifndef CCACHE_SOURCE
-#define CCACHE_SOURCE "../../../tar/ccache/ccache_write.c"
+#define CCACHE_SOURCE "../../tar/ccache/ccache_write.c"
 #endif
 #include CCACHE_SOURCE
 #undef malloc
@@ -295,7 +295,7 @@ int main(int argc, char ** argv) {
         rc = ccache_write(&cache, directory);
         if (expected == 0) content_ok = verify_file(path, n);
         else if (!is("rename") && !is("dirsync")) content_ok = is_old_file(path);
-        /* Existing unlink-before-rename behavior is outside PR830. */
+        /* Existing unlink-before-rename behavior is outside this regression. */
         patricia_free(cache.tree);
     }
     old_ok = is_old_file(path);
