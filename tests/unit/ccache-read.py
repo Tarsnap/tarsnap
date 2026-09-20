@@ -20,7 +20,7 @@ import tempfile
 import zlib
 
 ROOT = Path(__file__).resolve().parents[2]
-READER = Path('tar/ccache/cccache-read.c')
+READER = Path('tar/ccache/ccache_read.c')
 
 
 def identity(path: Path) -> dict:
