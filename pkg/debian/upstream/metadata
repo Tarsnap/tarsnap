@@ -1,0 +1,11 @@
+# Sort alphabetically by field name (ignoring the trailing ':').
+Bug-Database: https://github.com/Tarsnap/tarsnap/issues
+Bug-Submit: https://github.com/Tarsnap/tarsnap/issues/new
+Changelog: https://www.tarsnap.com/news.html
+Documentation: https://www.tarsnap.com/documentation.html
+FAQ: https://www.tarsnap.com/faq.html
+Other-References: https://www.tarsnap.com/support.html
+Registration: https://www.tarsnap.com/register.cgi
+Repository: https://github.com/Tarsnap/tarsnap.git
+Repository-Browse: https://github.com/Tarsnap/tarsnap
+Security-Contact: mailto:cperciva@tarsnap.com
