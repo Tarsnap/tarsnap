@@ -1,4 +1,4 @@
-/* Native observations for issue831 / PR832. No server or real cache is used.
+/* Native ccache reader regression. No server or real cache is used.
  * Compile the complete production reader and real Patricia implementation.
  * Allocation tracking and optional insertion failure affect only the reader.
  */

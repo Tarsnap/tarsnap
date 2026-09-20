@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run PR832's complete C reader and real Patricia tree on temporary files.
+"""Run the complete ccache reader and real Patricia tree on temporary files.
 
 Requires a configured Linux checkout, Python3.9+, a C99 compiler, and the
 repository's unchanged support sources. No Tarsnap account, keys or server.
@@ -19,8 +19,8 @@ import subprocess
 import tempfile
 import zlib
 
-ROOT = Path(__file__).resolve().parents[3]
-READER = Path('tar/ccache/ccache_read.c')
+ROOT = Path(__file__).resolve().parents[2]
+READER = Path('tar/ccache/cccache-read.c')
 
 
 def identity(path: Path) -> dict:
@@ -99,6 +99,7 @@ def cases(chunk_size: int, mode: str) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT)
+    parser.add_argument('--build-root', type=Path)
     parser.add_argument('--source', type=Path)
     parser.add_argument('--patricia-source', type=Path,
                         help='Explicit dependency source for a labeled composition run')
@@ -108,6 +109,7 @@ def main() -> int:
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     root = args.root.resolve()
+    build_root = (args.build_root or root).resolve()
     source = (args.source or root / READER).resolve()
     patricia = (args.patricia_source or root / 'lib/datastruct/patricia.c').resolve()
     output = args.output.resolve()
@@ -115,22 +117,23 @@ def main() -> int:
     report = dict(status='error', mode=args.mode, compiler=args.cc,
                   sanitized=args.sanitize, cases=[], failed_cases=[])
     try:
-        if not (root / 'config.h').is_file():
+        config = build_root / 'config.h'
+        if not config.is_file():
             raise ValueError('Run autoreconf -i and ./configure before the regression.')
         report['source'] = identity(source)
         report['patricia_source'] = identity(patricia)
         report['dependency_override'] = args.patricia_source is not None
-        report['fixture'] = identity(Path(__file__).with_name('cache_read.c'))
+        report['fixture'] = identity(Path(__file__).with_name('ccache-read.c'))
         report['runner'] = identity(Path(__file__))
-        includes = [root, root / 'lib-platform', root / 'libcperciva/util',
+        includes = [build_root, root, root / 'lib-platform', root / 'libcperciva/util',
                     root / 'libcperciva/crypto', root / 'lib/crypto',
                     root / 'lib/datastruct', root / 'tar/ccache',
                     root / 'tar/multitape', root / 'tar/chunks', root / 'tar/storage']
-        with tempfile.TemporaryDirectory(prefix='pr832-native-') as temporary:
+        with tempfile.TemporaryDirectory(prefix='ccache-read-') as temporary:
             temp = Path(temporary)
             binary = temp / 'cache-read'
             command = shlex.split(args.cc) + [
-                '-std=c99', '-DHAVE_CONFIG_H', '-include', str(root / 'config.h'),
+                '-std=c99', '-DHAVE_CONFIG_H', '-include', str(config),
                 '-O1', '-g', '-Wall', '-Wextra', '-Werror',
             ]
             if args.mode == 'read':
@@ -139,7 +142,7 @@ def main() -> int:
                 command += ['-fsanitize=address,undefined', '-fno-sanitize-recover=all']
             command += ['-I' + str(path) for path in includes]
             command += ['-DCCACHE_SOURCE=' + json.dumps(str(source)),
-                        str(Path(__file__).with_name('cache_read.c')),
+                        str(Path(__file__).with_name('ccache-read.c')),
                         str(patricia),
                         str(root / 'libcperciva/util/asprintf.c'),
                         str(root / 'libcperciva/util/warnp.c'), '-o', str(binary)]
