@@ -713,7 +713,6 @@ EXTRA_DIST+=								\
 	tests/07-selecting-files.sh					\
 	tests/08-storage-directory-unit.sh				\
 	tests/unit/storage-directory.c					\
-	tests/unit/storage-directory.md				\
 	tests/unit/storage-directory.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\

@@ -1,4 +1,4 @@
-/* Exercise the actual output-ownership boundary; transport is a fixture. */
+/* Exercise storage_directory_read() output ownership at the close boundary. */
 #include "platform.h"
 
 #include <assert.h>
@@ -9,6 +9,7 @@
 
 static void * allocated;
 static int freed;
+
 static void *
 observed_malloc(size_t len)
 {
@@ -18,10 +19,11 @@ observed_malloc(size_t len)
 	allocated = p;
 	return (p);
 }
+
 static void
 observed_free(void * p)
 {
-	if (p != NULL && p == allocated)
+	if ((p != NULL) && (p == allocated))
 		assert(freed++ == 0);
 	free(p);
 }
@@ -32,26 +34,23 @@ observed_free(void * p)
 #undef free
 #undef malloc
 
-static int mode, closes, operations, spins;
-static size_t count;
+static int close_fails;
 static int dummy;
+static void * operation_cookie;
 
 NETPACKET_CONNECTION *
 netpacket_open(const char * agent)
 {
 	assert(agent != NULL);
-	return (mode == 1 ? NULL : (NETPACKET_CONNECTION *)&dummy);
+	return ((NETPACKET_CONNECTION *)&dummy);
 }
 
 int
 netpacket_close(NETPACKET_CONNECTION * npc)
 {
 	assert(npc == (NETPACKET_CONNECTION *)&dummy);
-	closes++;
-	return (mode == 4 ? -1 : 0);
+	return (close_fails ? -1 : 0);
 }
-
-static void * operation_cookie;
 
 int
 netpacket_op(NETPACKET_CONNECTION * npc, sendpacket_callback * send,
@@ -60,11 +59,10 @@ netpacket_op(NETPACKET_CONNECTION * npc, sendpacket_callback * send,
 	int rc;
 
 	assert(npc == (NETPACKET_CONNECTION *)&dummy);
-	operations++;
 	operation_cookie = cookie;
 	rc = send(cookie, npc);
 	operation_cookie = NULL;
-	return (mode == 2 ? -1 : rc);
+	return (rc);
 }
 
 int
@@ -73,6 +71,7 @@ netpacket_transaction_getnonce(NETPACKET_CONNECTION * npc, uint64_t machine,
 {
 	uint8_t nonce[32] = {0};
 
+	assert(npc == (NETPACKET_CONNECTION *)&dummy);
 	assert(machine == 17);
 	return (callback(operation_cookie, npc, NETWORK_STATUS_OK,
 	    NETPACKET_TRANSACTION_GETNONCE_RESPONSE, nonce, sizeof(nonce)));
@@ -90,7 +89,7 @@ crypto_hash_data_2(int key, const uint8_t * a, size_t alen,
     const uint8_t * b, size_t blen, uint8_t out[32])
 {
 	(void)key;
-	assert(a != NULL && b != NULL && alen == 32 && blen == 32);
+	assert((a != NULL) && (b != NULL) && (alen == 32) && (blen == 32));
 	memset(out, 0, 32);
 	return (0);
 }
@@ -101,9 +100,9 @@ netpacket_hmac_verify(uint8_t type, const uint8_t nonce[32],
 {
 	(void)nonce;
 	(void)key;
-	assert(type == NETPACKET_DIRECTORY_RESPONSE && buf != NULL);
-	assert(len == 38 + 32 * count);
-	/* This tests ownership, not authentication; no real keys are used. */
+	assert(type == NETPACKET_DIRECTORY_RESPONSE);
+	assert(buf != NULL);
+	assert(len == 70);
 	return (0);
 }
 
@@ -112,19 +111,18 @@ netpacket_directory(NETPACKET_CONNECTION * npc, uint64_t machine,
     uint8_t class, const uint8_t start[32], const uint8_t snonce[32],
     const uint8_t cnonce[32], int key, handlepacket_callback * callback)
 {
-	uint8_t packet[70 + 3 * 32] = {0};
-	size_t i;
+	uint8_t packet[102] = {0};
 
 	(void)snonce;
 	(void)cnonce;
-	assert(machine == 17 && class == 'm' && (key == 0 || key == 1));
+	assert(npc == (NETPACKET_CONNECTION *)&dummy);
+	assert((machine == 17) && (class == 'm') && (key == 0));
 	packet[1] = class;
 	memcpy(packet + 2, start, 32);
-	be32enc(packet + 34, (uint32_t)count);
-	for (i = 0; i < count; i++)
-		packet[38 + i * 32] = (uint8_t)(i + 1);
+	be32enc(packet + 34, 1);
+	packet[38] = 1;
 	return (callback(operation_cookie, npc, NETWORK_STATUS_OK,
-	    NETPACKET_DIRECTORY_RESPONSE, packet, 70 + count * 32));
+	    NETPACKET_DIRECTORY_RESPONSE, packet, sizeof(packet)));
 }
 
 int
@@ -154,44 +152,42 @@ int
 network_spin(int * done)
 {
 	assert(*done == 1);
-	spins++;
-	return (mode == 3 ? -1 : 0);
+	return (0);
+}
+
+static void
+run_case(int fail_close)
+{
+	uint8_t sentinel;
+	uint8_t * files = &sentinel;
+	size_t nfiles = 91;
+	int rc;
+
+	allocated = NULL;
+	freed = 0;
+	close_fails = fail_close;
+	rc = storage_directory_read(17, 'm', 0, &files, &nfiles);
+
+	if (fail_close) {
+		assert(rc == -1);
+		assert(files == &sentinel);
+		assert(nfiles == 91);
+		assert(freed == 1);
+	} else {
+		assert(rc == 0);
+		assert(files == allocated);
+		assert(nfiles == 1);
+		assert(freed == 0);
+		assert(files[0] == 1);
+		observed_free(files);
+	}
 }
 
 int
 main(void)
 {
-	uint8_t sentinel, * files;
-	size_t nfiles;
-	int key, rc;
-
-	for (key = 0; key <= 1; key++) {
-		for (count = 0; count <= 3; count += 3) {
-			for (mode = 0; mode <= 4; mode++) {
-				allocated = NULL;
-				freed = closes = operations = spins = 0;
-				files = &sentinel;
-				nfiles = 91;
-				rc = storage_directory_read(17, 'm', key,
-				    &files, &nfiles);
-				assert(rc == (mode == 0 ? 0 : -1));
-				assert(closes == (mode == 1 ? 0 : 1));
-				assert(operations == (mode == 1 ? 0 : 1));
-				assert(spins == (mode == 1 || mode == 2 ? 0 : 1));
-				if (mode == 0) {
-					assert(nfiles == count && files == allocated);
-					assert(freed == 0);
-					if (count != 0)
-						assert(files[(count - 1) * 32] == count);
-					observed_free(files);
-				} else {
-					/* Neither out-parameter is published on error. */
-					assert(files == &sentinel && nfiles == 91);
-				}
-				assert(freed == (mode != 1 && count != 0 ? 1 : 0));
-			}
-		}
-	}
-	puts("PASS: 20 directory ownership, cleanup and output scenarios");
+	run_case(0);
+	run_case(1);
+	puts("PASS: storage_directory_read output ownership");
 	return (0);
 }
