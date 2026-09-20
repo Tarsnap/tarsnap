@@ -643,6 +643,9 @@ edit_pathname(struct bsdtar *bsdtar, struct archive_entry *entry)
 	/* Safely replace name in archive_entry. */
 	if (name != archive_entry_pathname(entry)) {
 		char *q = strdup(name);
+
+		if (q == NULL)
+			bsdtar_errc(bsdtar, 1, errno, "Out of memory");
 		archive_entry_copy_pathname(entry, q);
 		free(q);
 	}
