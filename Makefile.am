@@ -682,6 +682,7 @@ tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 .PHONY: test
 test: all
 	$(top_srcdir)/tests/test_tarsnap.sh .
+	CC="$(CC)" $(top_srcdir)/tests/unit/chunks-fsck.sh .
 
 # Detect potential memory leaks from libraries.
 tests_valgrind_potential_memleaks_SOURCES = tests/valgrind/potential-memleaks.c
@@ -715,6 +716,9 @@ EXTRA_DIST+=								\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
 	tests/shared_valgrind_functions.sh				\
+	tests/unit/allocations.h					\
+	tests/unit/chunks-fsck.c					\
+	tests/unit/chunks-fsck.sh					\
 	tests/test_tarsnap.sh
 
 #  Tarsnap configuration file
