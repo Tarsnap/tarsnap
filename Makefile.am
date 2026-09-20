@@ -682,6 +682,7 @@ tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 .PHONY: test
 test: all
 	$(top_srcdir)/tests/test_tarsnap.sh .
+	CC="$(CC)" $(SHELL) $(top_srcdir)/tests/unit/padme-shift.sh .
 
 # Detect potential memory leaks from libraries.
 tests_valgrind_potential_memleaks_SOURCES = tests/valgrind/potential-memleaks.c
@@ -711,6 +712,8 @@ EXTRA_DIST+=								\
 	tests/07-selecting-files-nT-full.good				\
 	tests/07-selecting-files-nT-partial.good			\
 	tests/07-selecting-files.sh					\
+	tests/unit/padme-shift.c					\
+	tests/unit/padme-shift.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
