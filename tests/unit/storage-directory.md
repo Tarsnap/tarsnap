@@ -9,7 +9,8 @@ sh tests/unit/storage-directory.sh
 ```
 
 An out-of-tree configured build directory may be passed as the first argument.
-This standalone regression is not automatically invoked by `make test`.
+`make test` also runs this harness as scenario `08-storage-directory-unit` on
+the repository's normal Ubuntu and macOS test paths.
 
 Twenty scenarios execute the real request/response and public API code with
 both key choices, empty/populated synthetic responses, open/request/spin/close

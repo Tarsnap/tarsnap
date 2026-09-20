@@ -1,5 +1,5 @@
 #!/bin/sh
-# Standalone GNU/POSIX regression. Configure first; no account is required.
+# Standalone POSIX regression. Configure first; no account is required.
 set -eu
 ulimit -c 0
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
@@ -10,6 +10,10 @@ if [ ! -f "$build/config.h" ]; then
 fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+case "$(uname -s)" in
+    Darwin) dead_strip='-Wl,-dead_strip' ;;
+    *) dead_strip='-Wl,--gc-sections' ;;
+esac
 set -- -I"$build"
 set -- "$@" -I"$root/lib"
 set -- "$@" -I"$root/lib-platform"
@@ -33,5 +37,5 @@ set -- "$@" -I"$root/tar/storage"
 ${CC:-cc} -DHAVE_CONFIG_H -DUSERAGENT='"unit-regression"' \
     -std=c99 -O2 -Wall -Wextra -Werror -ffunction-sections -fdata-sections \
     "$@" "$root/tests/unit/storage-directory.c" \
-    -Wl,--gc-sections -o "$tmp/storage-directory"
+    $dead_strip -o "$tmp/storage-directory"
 "$tmp/storage-directory"
