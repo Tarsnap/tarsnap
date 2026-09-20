@@ -1,4 +1,4 @@
-/* PR838 regression: compile the real metadata parser/get/free implementation.
+/* Regression for metadata cleanup: compile the real parser/get/free implementation.
  * Storage, signing, hash failures, and allocation failure are local fixtures.
  * This does not contact a server or test cryptographic verification.
  */
@@ -17,7 +17,7 @@ static void tracked_free(void *);
 #define strdup tracked_strdup
 #define free tracked_free
 #ifndef METADATA_SOURCE
-#define METADATA_SOURCE "../../../tar/multitape/multitape_metadata.c"
+#define METADATA_SOURCE "../../tar/multitape/multitape_metadata.c"
 #endif
 #include METADATA_SOURCE
 #undef malloc

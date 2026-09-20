@@ -19,7 +19,7 @@ import tempfile
 def run() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, help='Alternative metadata.c for baseline/control execution')
-    parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[3])
+    parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--cc', default=os.environ.get('CC', 'cc'))
     parser.add_argument('--sanitize', action='store_true')
     parser.add_argument('--output', type=Path)
@@ -32,14 +32,14 @@ def run() -> int:
     includes = [root, root/'lib-platform', root/'lib/crypto', root/'libcperciva/crypto',
                 root/'libcperciva/util', root/'tar/chunks', root/'tar/storage', root/'tar/multitape']
     rows: list[dict] = []
-    with tempfile.TemporaryDirectory(prefix='tarsnap-pr838-') as temp:
+    with tempfile.TemporaryDirectory(prefix='tarsnap-metadata-cleanup-') as temp:
         binary = Path(temp) / 'cleanup'
         command = shlex.split(args.cc) + ['-std=c99', '-DHAVE_CONFIG_H', '-O1', '-g',
             '-Wall', '-Wextra', '-Werror', '-ffunction-sections', '-fdata-sections']
         if args.sanitize:
             command += ['-fsanitize=address,undefined', '-fno-omit-frame-pointer']
         command += ['-I'+str(p) for p in includes]
-        command += ['-DMETADATA_SOURCE='+json.dumps(str(source)), str(Path(__file__).with_name('cleanup.c')),
+        command += ['-DMETADATA_SOURCE='+json.dumps(str(source)), str(Path(__file__).with_name('multitape-metadata-cleanup.c')),
                     str(root/'libcperciva/crypto/crypto_verify_bytes.c'), '-Wl,--gc-sections', '-o', str(binary)]
         build = subprocess.run(command, text=True, capture_output=True, timeout=90)
         if build.returncode:
