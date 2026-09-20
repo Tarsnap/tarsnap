@@ -1,4 +1,4 @@
-/* PR830 regression: real writer + Patricia + stdio, bounded local fault seams. */
+/* Regression: real ccache writer + Patricia + stdio, bounded fault seams. */
 #include "platform.h"
 #include <sys/stat.h>
 #include <assert.h>
@@ -272,7 +272,7 @@ static int is_old_file(const char * path) {
 }
 int main(int argc, char ** argv) {
     struct ccache_internal cache = {0};
-    char directory[] = "/tmp/tarsnap-pr830-XXXXXX", path[256], temp[256];
+    char directory[] = "/tmp/tarsnap-ccache-write-XXXXXX", path[256], temp[256];
     FILE * old;
     int n, rc, expected, content_ok = 1, old_ok, live = 0, buffers = 0, passed, remove_mode;
     size_t i;
