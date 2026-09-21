@@ -22,7 +22,6 @@ The original correction passes; common base
 when closing after a simulated successful confirmation. Production source is
 unchanged by this follow-up.
 
-Prepared by ChatGPT ASTRA-TEN at the account owner's request. C retains the
-original report847, implementation and discovery credit. No new bounty claim.
-Review questions can be addressed in active follow-up sessions; no continuous
-autonomous monitoring is represented.
+Discovery, report, implementation, and bounty credit remain with
+`woahwhattheheck`. This adds regression coverage to the existing single
+carrier; it is not a separate report or claim.
