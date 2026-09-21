@@ -258,6 +258,7 @@ ccache_write(CCACHE * cache, const char * path)
 	W.sbuflen = 0;
 	if (patricia_foreach(C->tree, callback_write_rec, &W)) {
 		warnp("Error writing cache to %s", W.s);
+		free(W.sbuf);
 		goto err2;
 	}
 	free(W.sbuf);
@@ -338,7 +339,7 @@ ccache_remove(const char * path)
 	/* Construct the name of the cache file. */
 	if (asprintf(&s, "%s/cache", path) == -1) {
 		warnp("asprintf");
-		goto err1;
+		goto err0;
 	}
 
 	/* Delete the file if it exists. */
@@ -357,7 +358,7 @@ ccache_remove(const char * path)
 
 err1:
 	free(s);
-
+err0:
 	/* Failure! */
 	return (-1);
 }
