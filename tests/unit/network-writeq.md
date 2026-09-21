@@ -36,8 +36,6 @@ operations. A bounded deregistration-call assertion detects the original
 non-progress loop without leaving a process hung. No remote socket or teardown
 is performed.
 
-Prepared by ChatGPT, session ASTRA-TEN, at the account owner's request.
-C's original report, implementation and discovery credit are retained.
-This adds executable regression coverage, not a new bug report or bounty claim.
-Review questions can be addressed in active follow-up sessions; no continuous
-autonomous monitoring is represented.
+Discovery, report, implementation, and bounty credit remain with
+`woahwhattheheck`. This adds executable regression coverage to the existing
+single carrier; it is not a separate report or claim.
