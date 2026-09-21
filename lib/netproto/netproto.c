@@ -102,12 +102,12 @@ netproto_setfd(struct netproto_connection_internal * C, int fd)
 	C->cancel = NULL;
 	C->cookie = NULL;
 
-	/* We have a file descriptor. */
-	C->fd = fd;
-
 	/* Create a network layer write queue. */
 	if ((C->Q = network_writeq_init(fd)) == NULL)
 		goto err0;
+
+	/* No more errors possible; set the file descriptor. */
+	C->fd = fd;
 
 	/* Success! */
 	return (0);
