@@ -711,6 +711,8 @@ EXTRA_DIST+=								\
 	tests/07-selecting-files-nT-full.good				\
 	tests/07-selecting-files-nT-partial.good			\
 	tests/07-selecting-files.sh					\
+	tests/unit/multitape-metadata-cleanup.c			\
+	tests/unit/multitape-metadata-cleanup.py			\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
