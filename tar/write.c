@@ -1091,6 +1091,7 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 				    "%s: could not open file", pathname);
 			else
 				fprintf(stderr, ": %s", strerror(errno));
+			ccache_entry_free(cce, bsdtar->write_cookie);
 			return;
 		}
 	}
