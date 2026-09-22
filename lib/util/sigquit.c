@@ -11,7 +11,7 @@
 #include "sigquit.h"
 
 /* Set to a non-zero value when SIGQUIT is received. */
-sig_atomic_t sigquit_received;
+volatile sig_atomic_t sigquit_received;
 
 /* Saved terminal settings. */
 static struct termios tc_saved;
