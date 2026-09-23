@@ -701,12 +701,15 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 		sleep(1);
 	} while (1);
 
+	/*
+	 * The server has confirmed the commit, so the data on the server has
+	 * been modified whether or not the rest of this function succeeds.
+	 */
+	*storage_modified = 1;
+
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
 		goto err0;
-
-	/* We've modified the storage. */
-	*storage_modified = 1;
 
 	/* Success! */
 	return (0);
