@@ -330,62 +330,39 @@ err0:
 int
 ccache_remove(const char * path)
 {
-	int ret;
-	char * dir;
-	size_t dirlen;
+    char * s = NULL;
 
-	/* The caller must pass a file name to be deleted. */
-	assert(path != NULL);
+    /* The caller must pass a file name to be deleted. */
+    assert(path != NULL);
 
-	/* Construct the name of the cache file. */
-	if (asprintf(&s, "%s/cache", path) == -1) {
-		warnp("asprintf");
-		goto err1;
-	}
+    /* Construct the name of the cache file. */
+    if (asprintf(&s, "%s/cache", path) == -1) {
+        warnp("asprintf");
+        goto err1;
+    }
 
-	/* Delete the file if it exists. */
-	if (unlink(s)) {
-		if (errno != ENOENT) {
-			warnp("unlink(%s)", s);
-			free(s);
-			goto err1;
-		}
-		/*
-		 * No file was removed; nothing to fsync.
-		 */
-		free(s);
-		return (0);
-	}
+    /* Delete the file if it exists. */
+    if (unlink(s)) {
+        if (errno != ENOENT) {
+            warnp("unlink(%s)", s);
+            goto err1;
+        }
+        /* No file was removed; nothing to fsync. */
+        free(s);
+        return 0;
+    }
 
-	/*
-	 * Make the unlink durable by fsyncing the containing directory.
-	 * This prevents the deleted cache from being resurrected after
-	 * a power loss, which would defeat the purpose of invalidating
-	 * a potentially damaged chunkification cache (e.g. after --fsck).
-	 */
-	dirlen = strlen(path);
-	if ((dir = malloc(dirlen + 1)) == NULL) {
-		warnp("malloc");
-		free(s);
-		goto err1;
-	}
-	memcpy(dir, path, dirlen + 1);
-	ret = dirutil_fsyncdir(dir);
-	free(dir);
-	if (ret) {
-		free(s);
-		goto err1;
-	}
+    /* Make the unlink durable by fsyncing the containing directory. */
+    if (dirutil_fsyncdir(path)) {
+        warnp("dirutil_fsyncdir");
+        goto err1;
+    }
 
-	/* Free string allocated by asprintf. */
-	free(s);
-
-	/* Success! */
-	return (0);
+    /* Free string allocated by asprintf. */
+    free(s);
+    return 0;
 
 err1:
-	free(s);
-
-	/* Failure! */
-	return (-1);
+    free(s);
+    return -1;
 }
