@@ -267,6 +267,30 @@ chunks_write_ispresent(CHUNKS_W * C, const uint8_t * hash)
 }
 
 /**
+ * chunks_write_getlens(C, hash, len, zlen):
+ * If a chunk with hash ${hash} exists, store its canonical length and
+ * compressed length into ${len} and ${zlen} and return 0; otherwise,
+ * return 1.
+ */
+int
+chunks_write_getlens(CHUNKS_W * C, const uint8_t * hash, uint32_t * len,
+    uint32_t * zlen)
+{
+	struct chunkdata * ch;
+
+	/* If the chunk does not exist, we have no lengths to report. */
+	if ((ch = rwhashtab_read(C->HT, hash)) == NULL)
+		return (1);
+
+	/* Report the canonical lengths. */
+	*len = ch->len;
+	*zlen = ch->zlen_flags & CHDATA_ZLEN;
+
+	/* Success! */
+	return (0);
+}
+
+/**
  * chunks_write_chunkref(C, hash):
  * If a chunk with hash ${hash} exists, mark it as being part of the write
  * transaction associated with the cookie ${C} and return 0.  If it
