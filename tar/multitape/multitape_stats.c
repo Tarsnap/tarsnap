@@ -228,7 +228,7 @@ err0:
  */
 int
 statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
-    int print_nulls, int print_hash)
+	struct tapemetadata tmd = {0};
 {
 	struct tapemetadata tmd;
 	char hexstr[65];
