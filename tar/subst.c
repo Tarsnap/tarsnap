@@ -225,6 +225,15 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result, int s
 
 			++i;
 			c = (unsigned char)rule->result[i];
+			if (c == '\0') {
+				/*
+				 * Lone trailing backslash: keep it
+				 * literal and stop, instead of letting
+				 * the loop condition read past the end
+				 * of the allocation.
+				 */
+				break;
+			}
 			switch (c) {
 			case '~':
 			case '\\':
