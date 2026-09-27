@@ -368,8 +368,9 @@ relunitphrase(struct gdstate *gds)
 	    && gds->tokenp[1].token == tSEC_UNIT) {
 		/* "1 day" */
 		gds->HaveRel++;
-		gds->RelSeconds += gds->tokenp[1].value * gds->tokenp[2].value;
-		gds->tokenp += 3;
+		gds->RelSeconds += gds->tokenp[0].value *
+		    gds->tokenp[1].value;
+		gds->tokenp += 2;
 		return 1;
 	}
 	if (gds->tokenp[0].token == '-'
