@@ -340,8 +340,11 @@ NETPACKET_TRANSACTION_ISCHECKPOINTED_RESPONSE (0x96)
 
 Packet contents:
 	uint8_t status
-	uint8_t tnonce[32]
 	uint8_t hmac[32]
+	uint8_t tnonce[32]
+
+The value hmac is HMAC(key, 0x96 || nonce || status), i.e. it covers
+the status byte only; the tnonce follows at offset 33.
 
 The value status is
 	0	No transaction is in progress, the transaction in progress is
