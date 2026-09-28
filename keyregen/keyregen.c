@@ -57,10 +57,10 @@ main(int argc, char **argv)
 	WARNP_INIT;
 
 	/*
-	 * We have no username, machine name, key filename, or old key
+	 * We have no username, machine name, passwd, key filename, or old key
 	 * filename yet.
 	 */
-	C.user = C.name = NULL;
+	C.user = C.name = C.passwd = NULL;
 	keyfilename = NULL;
 	oldkeyfilename = NULL;
 

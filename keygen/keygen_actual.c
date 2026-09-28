@@ -187,8 +187,10 @@ err3:
 err2:
 	unlink(keyfilename);
 err1:
-	insecure_memzero(C->passwd, strlen(C->passwd));
-	free(C->passwd);
+	if (C->passwd != NULL) {
+		insecure_memzero(C->passwd, strlen(C->passwd));
+		free(C->passwd);
+	}
 	if (passphrase != NULL) {
 		insecure_memzero(passphrase, strlen(passphrase));
 		free(passphrase);
