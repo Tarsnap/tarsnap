@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -166,8 +167,10 @@ main(int argc, char **argv)
 			for (tok = strtok_r(optarg_copy, ",", &brkb);
 			     tok;
 			     tok = strtok_r(NULL, ",", &brkb)) {
-				keynum = strtol(tok, &eptr, 0);
-				if ((eptr == tok) ||
+				errno = 0;
+				keynum = strtol(tok, &eptr, 10);
+				if ((errno) || (eptr == tok) ||
+				    (*eptr != '\0') ||
 				    (keynum < 0) || (keynum > 31)) {
 					warn0("Not a valid key number: %s",
 					    tok);
