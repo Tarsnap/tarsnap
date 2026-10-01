@@ -105,7 +105,7 @@ static int	cleanup(struct archive_read *);
 static int	mtree_bid(struct archive_read *);
 static int	parse_file(struct archive_read *, struct archive_entry *,
 		    struct mtree *, struct mtree_entry *, int *);
-static void	parse_escapes(char *, struct mtree_entry *);
+static int	parse_escapes(char *, struct mtree_entry *);
 static int	parse_line(struct archive_read *, struct archive_entry *,
 		    struct mtree *, struct mtree_entry *, int *);
 static int	parse_keyword(struct archive_read *, struct mtree *,
@@ -353,7 +353,11 @@ process_add_entry(struct archive_read *a, struct mtree *mtree,
 
 	memcpy(entry->name, line, len);
 	entry->name[len] = '\0';
-	parse_escapes(entry->name, entry);
+	if (parse_escapes(entry->name, entry)) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "NUL in mtree pathname");
+		return (ARCHIVE_FATAL);
+	}
 
 	line += len;
 	for (iter = *global; iter != NULL; iter = iter->next) {
@@ -1031,7 +1035,7 @@ skip(struct archive_read *a)
  * Since parsing backslash sequences always makes strings shorter,
  * we can always do this conversion in-place.
  */
-static void
+static int
 parse_escapes(char *src, struct mtree_entry *mentry)
 {
 	char *dest = src;
@@ -1098,9 +1102,12 @@ parse_escapes(char *src, struct mtree_entry *mentry)
 				break;
 			}
 		}
+		if (c == '\0')
+			return (1);
 		*dest++ = c;
 	}
 	*dest = '\0';
+	return (0);
 }
 
 /*
