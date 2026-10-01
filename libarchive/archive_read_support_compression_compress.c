@@ -234,6 +234,12 @@ compress_bidder_init(struct archive_read_filter *self)
 
 	code = getbits(self, 8);
 	state->maxcode_bits = code & 0x1f;
+	if (state->maxcode_bits > 16 || state->maxcode_bits < 9) {
+		archive_set_error(&self->archive->archive, EINVAL,
+		    "Invalid .Z max code bits: %d (must be 9-16)",
+		    state->maxcode_bits);
+		return (ARCHIVE_FATAL);
+	}
 	state->maxcode = (1 << state->maxcode_bits);
 	state->use_reset_code = code & 0x80;
 
