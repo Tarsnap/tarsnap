@@ -48,7 +48,7 @@ __FBSDID("$FreeBSD: src/lib/libarchive/archive_read_support_compression_bzip2.c,
 #include "archive_private.h"
 #include "archive_read_private.h"
 
-#if HAVE_BZLIB_H
+#if HAVE_BZLIB_H && HAVE_LIBBZ2
 struct private_data {
 	bz_stream	 stream;
 	char		*out_block;
@@ -86,7 +86,7 @@ archive_read_support_compression_bzip2(struct archive *_a)
 	reader->init = bzip2_reader_init;
 	reader->options = NULL;
 	reader->free = bzip2_reader_free;
-#if HAVE_BZLIB_H
+#if HAVE_BZLIB_H && HAVE_LIBBZ2
 	return (ARCHIVE_OK);
 #else
 	archive_set_error(_a, ARCHIVE_ERRNO_MISC,
