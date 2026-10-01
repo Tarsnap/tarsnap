@@ -888,7 +888,16 @@ parse_keyword(struct archive_read *a, struct mtree *mtree,
 		    strcmp(key, "sha512digest") == 0)
 			break;
 		if (strcmp(key, "size") == 0) {
-			archive_entry_set_size(entry, mtree_atol10(&val));
+			int64_t sz = mtree_atol10(&val);
+			if (sz < 0 || sz > 1073741824LL) {
+				archive_set_error(&a->archive,
+				    EINVAL,
+				    "mtree entry size %jd out of range "
+				    "(max 1 GiB)",
+				    (intmax_t)sz);
+				return (ARCHIVE_FATAL);
+			}
+			archive_entry_set_size(entry, sz);
 			break;
 		}
 	case 't':
