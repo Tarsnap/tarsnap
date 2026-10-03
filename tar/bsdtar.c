@@ -439,12 +439,16 @@ main(int argc, char **argv)
 			break;
 		case OPTION_CREATIONTIME: /* tarsnap */
 			errno = 0;
-			bsdtar->creationtime = strtol(bsdtar->optarg,
-			    NULL, 0);
-			if ((errno) || (bsdtar->creationtime == 0))
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Invalid --creationtime argument: %s",
-				    bsdtar->optarg);
+			{
+				char *ct_endp;
+				bsdtar->creationtime = strtol(bsdtar->optarg,
+				    &ct_endp, 0);
+				if ((errno) || (*ct_endp != '\0') ||
+				    (bsdtar->creationtime == 0))
+					bsdtar_errc(bsdtar, 1, 0,
+					    "Invalid --creationtime argument: %s",
+					    bsdtar->optarg);
+			}
 			break;
 		case OPTION_CSV_FILE: /* tarsnap */
 			if (bsdtar->option_csv_filename != NULL)
