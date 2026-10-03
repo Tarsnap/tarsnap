@@ -167,7 +167,7 @@ main(int argc, char **argv)
 			     tok;
 			     tok = strtok_r(NULL, ",", &brkb)) {
 				keynum = strtol(tok, &eptr, 0);
-				if ((eptr == tok) ||
+				if ((eptr == tok) || (*eptr != '\0') ||
 				    (keynum < 0) || (keynum > 31)) {
 					warn0("Not a valid key number: %s",
 					    tok);
