@@ -234,6 +234,19 @@ compress_bidder_init(struct archive_read_filter *self)
 
 	code = getbits(self, 8);
 	state->maxcode_bits = code & 0x1f;
+	/*
+	 * Valid .Z streams use 9..16 bit codes.  The static mask[] table
+	 * in getbits() has 17 entries (indices 0-16), so any maxcode_bits
+	 * above 16 causes an out-of-bounds read that crashes the process
+	 * (CVE-worthy, see issue #914).  Values below 9 are also invalid
+	 * per the Unix compress specification.  Reject both.
+	 */
+	if (state->maxcode_bits > 16 || state->maxcode_bits < 9) {
+		archive_set_error(&self->archive->archive, ARCHIVE_ERRNO_MISC,
+		    "Invalid compress header: maxbits %d not in 9..16",
+		    state->maxcode_bits);
+		return (ARCHIVE_FATAL);
+	}
 	state->maxcode = (1 << state->maxcode_bits);
 	state->use_reset_code = code & 0x80;
 
