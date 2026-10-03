@@ -1,3 +1,12 @@
+### Tarsnap 1.0.42 (unreleased)
+
+- tarsnap no longer recognizes thar ar, cpio, iso9660, mtree, and zip archive
+  formats, which were in commands such as tarsnap -c -f foo @example.iso.
+  Tarsnap itself writes data in the tar format, which is unaffected by this
+  change.
+- Many minor fixes, particularly in freeing resources in rare error cases.
+
+
 Tarsnap Releases
 ================
 
