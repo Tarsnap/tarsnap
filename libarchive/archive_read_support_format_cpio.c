@@ -430,6 +430,12 @@ header_newc(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdevminor(entry, atol16(header->c_rdevminor, sizeof(header->c_rdevminor)));
 	archive_entry_set_mtime(entry, atol16(header->c_mtime, sizeof(header->c_mtime)), 0);
 	*namelength = atol16(header->c_namesize, sizeof(header->c_namesize));
+	/* Reject zero-length pathnames (can crash in record_hardlink). */
+	if (*namelength == 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has entry with zero-length pathname");
+		return (ARCHIVE_FATAL);
+	}
 	/* Pad name to 2 more than a multiple of 4. */
 	*name_pad = (2 - *namelength) & 3;
 
@@ -562,6 +568,12 @@ header_odc(struct archive_read *a, struct cpio *cpio,
 	archive_entry_set_rdev(entry, atol8(header->c_rdev, sizeof(header->c_rdev)));
 	archive_entry_set_mtime(entry, atol8(header->c_mtime, sizeof(header->c_mtime)), 0);
 	*namelength = atol8(header->c_namesize, sizeof(header->c_namesize));
+	/* Reject zero-length pathnames (can crash in record_hardlink). */
+	if (*namelength == 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "cpio archive has entry with zero-length pathname");
+		return (ARCHIVE_FATAL);
+	}
 	*name_pad = 0; /* No padding of filename. */
 
 	/*
