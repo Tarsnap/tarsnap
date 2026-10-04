@@ -347,10 +347,14 @@ multitape_metadata_get(STORAGE_R * S, CHUNKS_S * C,
 	 * name of the metadata file.
 	 */
 	if (crypto_hash_data(CRYPTO_KEY_HMAC_NAME,
-	    (uint8_t *)mdat->name, strlen(mdat->name), hbuf))
+	    (uint8_t *)mdat->name, strlen(mdat->name), hbuf)) {
+		multitape_metadata_free(mdat);
 		goto err0;
-	if (crypto_verify_bytes(tapehash, hbuf, 32))
+	}
+	if (crypto_verify_bytes(tapehash, hbuf, 32)) {
+		multitape_metadata_free(mdat);
 		goto corrupt;
+	}
 
 	/* Success! */
 	return (0);
