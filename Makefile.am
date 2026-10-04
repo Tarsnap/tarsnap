@@ -679,9 +679,48 @@ tarsnap_keymgmt_man_MANS=	keymgmt/tarsnap-keymgmt.1
 #
 #
 
-.PHONY: test
+.PHONY: test test-edit-pathname-oom
 test: all
 	$(top_srcdir)/tests/test_tarsnap.sh .
+	$(MAKE) test-edit-pathname-oom
+
+test-edit-pathname-oom:
+	@set -e; \
+	tmp=`mktemp -d "$${TMPDIR:-/tmp}/tarsnap-edit-pathname-oom.XXXXXX"`; \
+	trap 'rm -rf "$tmp"' 0 HUP INT TERM; \
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tarsnap_CPPFLAGS) \
+	    $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) \
+	    -Dmain=edit_pathname_oom_unused_main \
+	    -c "$(top_srcdir)/tar/bsdtar.c" -o "$$tmp/bsdtar.$(OBJEXT)"; \
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tarsnap_CPPFLAGS) \
+	    $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) \
+	    -c "$(top_srcdir)/tests/unit/edit-pathname-oom.c" \
+	    -o "$$tmp/test.$(OBJEXT)"; \
+	objects=; \
+	for obj in $(tarsnap_OBJECTS); do \
+		case "$obj" in \
+		tar/tarsnap-bsdtar.$(OBJEXT)) ;; \
+		*) objects="$objects $obj" ;; \
+		esac; \
+	done; \
+	$(CC) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	    -o "$tmp/edit-pathname-oom$(EXEEXT)" \
+	    "$tmp/test.$(OBJEXT)" "$tmp/bsdtar.$(OBJEXT)" $objects \
+	    $(tarsnap_LDADD) $(LIBS); \
+	"$$tmp/edit-pathname-oom$(EXEEXT)" control; \
+	rc=0; \
+	"$$tmp/edit-pathname-oom$(EXEEXT)" fail \
+	    >"$$tmp/stdout" 2>"$$tmp/stderr" || rc=$$?; \
+	if test "$$rc" -ne 1; then \
+		cat "$$tmp/stderr" >&2; \
+		echo "forced strdup failure exited $$rc, expected 1" >&2; \
+		exit 1; \
+	fi; \
+	if ! grep -F "Out of memory" "$$tmp/stderr" >/dev/null; then \
+		cat "$$tmp/stderr" >&2; \
+		echo "forced strdup failure did not report Out of memory" >&2; \
+		exit 1; \
+	fi
 
 # Detect potential memory leaks from libraries.
 tests_valgrind_potential_memleaks_SOURCES = tests/valgrind/potential-memleaks.c
@@ -715,7 +754,8 @@ EXTRA_DIST+=								\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
 	tests/shared_valgrind_functions.sh				\
-	tests/test_tarsnap.sh
+	tests/test_tarsnap.sh						\
+	tests/unit/edit-pathname-oom.c
 
 #  Tarsnap configuration file
 if INSTALL_CONF_NO_SAMPLE
