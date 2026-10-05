@@ -567,6 +567,7 @@ append_archive_filename(struct bsdtar *bsdtar, struct archive *a,
 	if (archive_read_open_file(ina, filename, 10240)) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(ina));
 		bsdtar->return_value = 1;
+		archive_read_finish(ina);
 		return (0);
 	}
 
@@ -598,6 +599,7 @@ append_archive_tarsnap(struct bsdtar *bsdtar, struct archive *a,
 	if (cookie == NULL) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(ina));
 		bsdtar->return_value = 1;
+		archive_read_finish(ina);
 		return (0);
 	}
 
@@ -1091,6 +1093,8 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 				    "%s: could not open file", pathname);
 			else
 				fprintf(stderr, ": %s", strerror(errno));
+			if (cce != NULL)
+				ccache_entry_free(cce, bsdtar->write_cookie);
 			return;
 		}
 	}
