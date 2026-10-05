@@ -53,7 +53,7 @@ enum DSTMODE { DSTon, DSToff, DSTmaybe };
 enum { tAM, tPM };
 /* Token types returned by nexttoken() */
 enum { tAGO = 260, tDAY, tDAYZONE, tAMPM, tMONTH, tMONTH_UNIT, tSEC_UNIT,
-       tUNUMBER, tZONE, tDST };
+       tUNUMBER, tZONE, tDST, tERROR };
 struct token { int token; time_t value; };
 
 /*
@@ -867,9 +867,24 @@ nexttoken(char **in, time_t *value)
 		 * don't deal with signed numbers here.
 		 */
 		if (isdigit((unsigned char)(c = **in))) {
-			for (*value = 0; isdigit((unsigned char)(c = *(*in)++)); )
-				*value = 10 * *value + c - '0';
+			unsigned long long val = 0;
+			int overflow = 0;
+			unsigned long long tmax = ~0ULL;
+			if (sizeof(time_t) == 4)
+				tmax = ((time_t)-1 > 0) ? 0xFFFFFFFFULL : 0x7FFFFFFFULL;
+			else if (sizeof(time_t) == 8)
+				tmax = ((time_t)-1 > 0) ? 0xFFFFFFFFFFFFFFFFULL : 0x7FFFFFFFFFFFFFFFULL;
+
+			for (; isdigit((unsigned char)(c = *(*in)++)); ) {
+				if (val > (~0ULL - (c - '0')) / 10)
+					overflow = 1;
+				else
+					val = 10 * val + c - '0';
+			}
 			(*in)--;
+			if (overflow || val > tmax)
+				return (tERROR);
+			*value = (time_t)val;
 			return (tUNUMBER);
 		}
 
