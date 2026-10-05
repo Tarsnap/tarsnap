@@ -643,6 +643,8 @@ edit_pathname(struct bsdtar *bsdtar, struct archive_entry *entry)
 	/* Safely replace name in archive_entry. */
 	if (name != archive_entry_pathname(entry)) {
 		char *q = strdup(name);
+		if (q == NULL)
+			return (ARCHIVE_FATAL);
 		archive_entry_copy_pathname(entry, q);
 		free(q);
 	}
@@ -797,7 +799,11 @@ list_item_verbose(struct bsdtar *bsdtar, FILE *out, struct archive_entry *entry)
 			fmt = bsdtar->day_first ? "%e %b %H:%M" : "%b %e %H:%M";
 #endif
 	}
-	strftime(tmp, sizeof(tmp), fmt, localtime(&tim));
+	struct tm *lt = localtime(&tim);
+		if (lt == NULL)
+			strftime(tmp, sizeof(tmp), fmt, &(struct tm){0});
+		else
+			strftime(tmp, sizeof(tmp), fmt, lt);
 	print_separator(out, " ", bsdtar->option_null_output, 2);
 	fprintf(out, "%s", tmp);
 	print_separator(out, " ", bsdtar->option_null_output, 2);
