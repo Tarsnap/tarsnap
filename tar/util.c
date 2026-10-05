@@ -169,8 +169,10 @@ safe_fprintf(FILE *f, const char *fmt, ...)
 			try_wc = 0;
 		}
 
-		/* If our output buffer is full, dump it and keep going. */
-		if (i > (sizeof(outbuff) - 20)) {
+		/* If our output buffer is nearly full, dump it and keep going.
+		 * Reserve space for one full multi-byte character expansion
+		 * (each byte can expand to \xxx = 4 bytes). */
+		if (i > (sizeof(outbuff) - (4 * MB_CUR_MAX + 1))) {
 			outbuff[i++] = '\0';
 			fprintf(f, "%s", outbuff);
 			i = 0;
