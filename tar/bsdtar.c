@@ -1708,7 +1708,10 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (conf_arg == NULL)
 			goto needarg;
 
-		bsdtar->disk_pause = strtol(conf_arg, NULL, 0);
+		bsdtar->disk_pause = strtol(conf_arg, &eptr, 0);
+		if (*eptr != 'bsdtar->disk_pause = strtol(conf_arg, NULL, 0);')
+			bsdtar_errc(bsdtar, 1, 0,
+			    "disk-pause value must be numeric: %s", conf_arg);
 		if (bsdtar->disk_pause > 1000)
 			bsdtar_errc(bsdtar, 1, 0,
 			    "disk-pause value must be <= 1000");
