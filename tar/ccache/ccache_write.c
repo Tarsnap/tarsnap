@@ -1,5 +1,6 @@
 #include "platform.h"
 
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include <assert.h>
@@ -347,6 +348,26 @@ ccache_remove(const char * path)
 		if (errno != ENOENT) {
 			warnp("unlink(%s)", s);
 			goto err1;
+		}
+	}
+
+	/*
+	 * Make the deletion durable: fsync the parent directory so
+	 * that the unlink cannot be lost after a power loss on
+	 * filesystems which require a directory fsync to persist
+	 * directory entry changes.
+	 */
+	{
+		int dirfd;
+		char * dir = strdup(path);
+		if (dir != NULL) {
+			dir = dirname(dir);
+			dirfd = open(dir, O_RDONLY);
+			if (dirfd >= 0) {
+				fsync(dirfd);
+				close(dirfd);
+			}
+			free(dir);
 		}
 	}
 
