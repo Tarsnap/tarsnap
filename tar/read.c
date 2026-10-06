@@ -123,10 +123,13 @@ check_skip_file(const char * filename, const struct stat * archive_st)
 	}
 
 	/*
-	 * Compare file size and mtime (seconds).  Some filesystems don't have
-	 * sub-second timestamp precision, so comparing the full timespecs
-	 * would produce a lot of false negatives.
+	 * Compare file type, file size, and mtime (seconds).  Some
+	 * filesystems don't have sub-second timestamp precision, so
+	 * comparing the full timespecs would produce a lot of false
+	 * negatives.
 	 */
+	if ((file_st.st_mode & S_IFMT) != (archive_st->st_mode & S_IFMT))
+		goto noskip;
 	if (file_st.st_size != archive_st->st_size)
 		goto noskip;
 #ifdef POSIXFAIL_STAT_ST_MTIM
