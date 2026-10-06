@@ -70,13 +70,15 @@ storage_directory_read(uint64_t machinenum, char class, int key,
 	if (network_spin(&C.done))
 		goto err2;
 
-	/* Return results. */
-	*flist = C.flist;
-	*nfiles = C.nfiles;
-
 	/* Close netpacket connection. */
 	if (netpacket_close(C.NPC))
 		goto err1;
+
+	/* Return results.  Do this only after everything else has
+	 * succeeded; otherwise the err1 path would free memory the
+	 * caller now owns (a dangling out-parameter). */
+	*flist = C.flist;
+	*nfiles = C.nfiles;
 
 	/* Success! */
 	return (0);
