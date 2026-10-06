@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #include "archive.h"
 #include "multitape.h"
@@ -18,6 +19,12 @@ static off_t	read_skip(struct archive *, void *, off_t);
 static int	read_close(struct archive *, void *);
 static ssize_t	write_write(struct archive *, void *, const void *, size_t);
 static int	write_close(struct archive *, void *);
+
+/* This wrapper is used for write_* callback functions. */
+struct multitape_write_internal_wrapped {
+	struct multitape_write_internal * d;
+	int valid;
+};
 
 static ssize_t
 read_read(struct archive * a, void * cookie, const void ** buffer)
@@ -81,13 +88,13 @@ static ssize_t
 write_write(struct archive * a, void * cookie, const void * buffer,
     size_t nbytes)
 {
-	struct multitape_write_internal * d = cookie;
+	struct multitape_write_internal_wrapped * w = cookie;
 	ssize_t writelen;
 
 	/* Sanity check. */
 	assert(nbytes <= SSIZE_MAX);
 
-	writelen = writetape_write(d, buffer, nbytes);
+	writelen = writetape_write(w->d, buffer, nbytes);
 	if (writelen < 0) {
 		archive_set_error(a, errno, "Error writing archive");
 		goto err0;
@@ -112,17 +119,28 @@ err0:
 static int
 write_close(struct archive * a, void * cookie)
 {
-	struct multitape_write_internal * d = cookie;
+	struct multitape_write_internal_wrapped * w = cookie;
 
-	if (writetape_close(d)) {
-		archive_set_error(a, errno, "Error closing archive");
-		goto err0;
+	if (w->valid) {
+		/* Normal operation: finish tape, uploading, and free it. */
+		if (writetape_close(w->d)) {
+			archive_set_error(a, errno, "Error closing archive");
+			goto err1;
+		}
+	} else {
+		/* If there was an error during initalization, just free it. */
+		writetape_free(w->d);
 	}
+
+	/* Clean up wrapper. */
+	free(w);
 
 	/* Success! */
 	return (ARCHIVE_OK);
 
-err0:
+err1:
+	free(w);
+
 	/* Failure! */
 	return (ARCHIVE_FATAL);
 }
@@ -147,8 +165,17 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 		goto err0;
 	}
 
-	if (archive_read_open2(a, d, NULL, read_read, read_skip, read_close))
+	if (archive_read_open2(a, d, NULL, read_read, read_skip, read_close)) {
+		archive_set_error(a, errno, "Error opening libarchive archive");
+		/*
+		 * We cannot call readtape_close(d) right now, because as long
+		 * as we provide read_read and no opener to
+		 * archive_read_open2(), it still sets the callbacks even if it
+		 * fails.  Later in the error path, libarchive code will call
+		 * read_close(), so no need to do that here.
+		 */
 		goto err0;
+	}
 
 	/* Success! */
 	return (d);
@@ -175,26 +202,46 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
     char ** argv, int printstats, int dryrun, time_t creationtime,
     const char * csv_filename, int * storage_modified)
 {
-	struct multitape_write_internal * d;
+	struct multitape_write_internal_wrapped * w;
 
 	/* Clear any error messages from the archive. */
 	archive_clear_error(a);
 
-	if ((d = writetape_open(machinenum, cachedir, tapename,
+	/* Bake a cookie. */
+	if ((w = malloc(sizeof(struct multitape_write_internal_wrapped)))
+	    == NULL) {
+		archive_set_error(a, errno, "Cannot allocate memory");
+		goto err0;
+	}
+	w->valid = 0;
+
+	if ((w->d = writetape_open(machinenum, cachedir, tapename,
 	    argc, argv, printstats, dryrun, creationtime,
 	    csv_filename, storage_modified)) == NULL) {
 		archive_set_error(a, errno, "Error creating new archive");
+		goto err1;
+	}
+
+	if (archive_write_open(a, w, NULL, write_write, write_close)) {
+		archive_set_error(a, errno,
+		    "Error creating new libarchive archive");
+		/*
+		 * We cannot call writetape_free(d) right now, because even if
+		 * archive_write_open() fails, it still sets the callbacks.
+		 * Later in the error path, libarchive code will call
+		 * write_close(), so that function needs to know that we did
+		 * not properly initialize the archive.
+		 */
 		goto err0;
 	}
 
-	if (archive_write_open(a, d, NULL, write_write, write_close)) {
-		writetape_free(d);
-		goto err0;
-	}
+	w->valid = 1;
 
 	/* Success! */
-	return (d);
+	return (w->d);
 
+err1:
+	free(w);
 err0:
 	/* Failure! */
 	return (NULL);
