@@ -622,7 +622,8 @@ writetape_write(TAPE_W * d, const void * buffer, size_t nbytes)
 		/* FALLTHROUGH */
 	case 0:
 		/* We're in header mode.  Append the data to d->hbuf. */
-		bytebuf_append(d->hbuf, buffer, nbytes);
+		if (bytebuf_append(d->hbuf, buffer, nbytes))
+			goto err0;
 	}
 
 	/* Success! */
