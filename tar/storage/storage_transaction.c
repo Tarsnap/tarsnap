@@ -688,8 +688,24 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 			goto err1;
 
 		/* Did we succeed? */
-		if (C.status == 0)
+		if (C.status == 0) {
+			/*
+			 * The server has confirmed the commit.  Record
+			 * that storage was modified before attempting to
+			 * close the connection, so the user is informed
+			 * even if the close fails.
+			 */
+			*storage_modified = 1;
 			break;
+		}
+
+		/*
+		 * The server has confirmed the commit at this point
+		 * (status == 1 means "commit in progress, retry").
+		 * Record that storage was modified regardless of whether
+		 * the subsequent netpacket_close succeeds.
+		 */
+		*storage_modified = 1;
 
 		/* Sanity check status. */
 		if (C.status != 1) {
@@ -704,9 +720,6 @@ storage_transaction_commit(uint64_t machinenum, const uint8_t seqnum[32],
 	/* Close netpacket connection. */
 	if (netpacket_close(NPC))
 		goto err0;
-
-	/* We've modified the storage. */
-	*storage_modified = 1;
 
 	/* Success! */
 	return (0);

@@ -169,6 +169,28 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err2;
 	}
 
+	/*
+	 * Make the key file durable: fsync the (already closed) file
+	 * descriptor to flush data, then fsync the parent directory
+	 * to persist the directory entry.  Without this, a power loss
+	 * after fclose returns can lose the only local copy of the
+	 * keys even though the command reported success.
+	 */
+	{
+		int dirfd;
+		char * keydir;
+
+		if ((keydir = strdup(keyfilename)) != NULL) {
+			keydir = dirname(keydir);
+			dirfd = open(keydir, O_RDONLY);
+			if (dirfd >= 0) {
+				fsync(dirfd);
+				close(dirfd);
+			}
+			free(keydir);
+		}
+	}
+
 	/* Free allocated memory.  C->passwd is a NUL-terminated string. */
 	insecure_memzero(C->passwd, strlen(C->passwd));
 	free(C->passwd);
