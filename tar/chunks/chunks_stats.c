@@ -123,14 +123,19 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	if (storage_directory_read(machinenum, 'c', 0, &flist, &nfiles))
 		goto err2;
 
-	/* Construct a chunkdata_statstape structure for each file. */
+	/*
+	 * Construct a chunkdata_statstape structure for each file.
+	 * Use calloc(1, ...) when nfiles is 0 so that we never call
+	 * malloc(0), which is permitted by C99 to return NULL.
+	 */
 	if (nfiles > SIZE_MAX / sizeof(struct chunkdata_statstape)) {
 		errno = ENOMEM;
 		free(flist);
 		goto err2;
 	}
-	if ((C->dir =
-	    malloc(nfiles * sizeof(struct chunkdata_statstape))) == NULL) {
+	if ((C->dir = (nfiles > 0) ?
+	    malloc(nfiles * sizeof(struct chunkdata_statstape)) :
+	    calloc(1, sizeof(struct chunkdata_statstape))) == NULL) {
 		free(flist);
 		goto err2;
 	}
@@ -146,7 +151,7 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	/* Create an empty chunk directory. */
 	C->HT = rwhashtab_init(offsetof(struct chunkdata, hash), 32);
 	if (C->HT == NULL)
-		goto err2;
+		goto err3;
 
 	/* Insert the chunkdata structures we constructed above. */
 	for (file = 0; file < nfiles; file++) {
@@ -163,6 +168,7 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	return (C);
 
 err3:
+	free(C->dir);
 	rwhashtab_free(C->HT);
 err2:
 	free(C->cachepath);
