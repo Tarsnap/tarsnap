@@ -208,12 +208,19 @@ chunks_directory_read(const char * cachepath, void ** dir,
 	 * Allocate memory to ${*dir} large enough to store a struct
 	 * chunkdata or struct chunkdata_statstape for each struct
 	 * chunkdata_external in ${cachepath}/directory.
+	 *
+	 * Use calloc(1, ...) when numchunks is 0 so that we never
+	 * call malloc(0), which is permitted by C99 to return NULL.
 	 */
 	if (statstape) {
-		ps = malloc(numchunks * sizeof(struct chunkdata_statstape));
+		ps = (numchunks > 0) ?
+		    malloc(numchunks * sizeof(struct chunkdata_statstape)) :
+		    calloc(1, sizeof(struct chunkdata_statstape));
 		*dir = ps;
 	} else {
-		p = malloc(numchunks * sizeof(struct chunkdata));
+		p = (numchunks > 0) ?
+		    malloc(numchunks * sizeof(struct chunkdata)) :
+		    calloc(1, sizeof(struct chunkdata));
 		*dir = p;
 	}
 	if (*dir == NULL)

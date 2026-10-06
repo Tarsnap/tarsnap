@@ -303,12 +303,28 @@ datephrase(struct gdstate *gds)
 
 	if (gds->tokenp[0].token == tMONTH
 	    && gds->tokenp[1].token == tUNUMBER) {
-		/* "May 3" */
+		/* "May 3" or "Jun 15 2020" */
 		gds->HaveMonth++;
 		gds->HaveDay++;
 		gds->Month = gds->tokenp[0].value;
 		gds->Day = gds->tokenp[1].value;
-		gds->tokenp += 2;
+
+		/*
+		 * If the next token is also a number that looks like
+		 * a year (>= 100 for 4-digit years, or > 31 for
+		 * 2-digit years that cannot be day-of-month), treat
+		 * this as "Month Day Year" instead of leaving the
+		 * year to be misparsed as a time (e.g., "20:20").
+		 */
+		if ((gds->tokenp[2].token == tUNUMBER) &&
+		    ((gds->tokenp[2].value >= 100) ||
+		     (gds->tokenp[2].value > 31))) {
+			gds->HaveYear++;
+			gds->Year = gds->tokenp[2].value;
+			gds->tokenp += 3;
+		} else {
+			gds->tokenp += 2;
+		}
 		return 1;
 	}
 
