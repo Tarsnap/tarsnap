@@ -356,8 +356,17 @@ multitape_metadata_get(STORAGE_R * S, CHUNKS_S * C,
 	return (0);
 
 corrupt1:
-	free(mbuf);
 corrupt:
+	/*
+	 * Free the metadata buffer.  This is reached both from corrupt1
+	 * (after a failed parse) and directly (after a failed HMAC
+	 * verification); without this, the second path leaks ${mbuf}.
+	 * Note that fields allocated within ${*mdat} are intentionally
+	 * NOT freed here, since some callers free the metadata on
+	 * failure paths (e.g., multitape_stats) while others do not;
+	 * changing that contract would risk double-frees.
+	 */
+	free(mbuf);
 	if (quiet == 0) {
 		if (tapename)
 			warn0("Archive metadata is corrupt: %s", tapename);
