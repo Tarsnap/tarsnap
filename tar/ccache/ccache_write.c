@@ -285,20 +285,21 @@ ccache_write(CCACHE * cache, const char * path)
 		goto err1;
 	}
 
-	/* Delete the old file, if it exists. */
-	if (unlink(s_old)) {
-		if (errno != ENOENT) {
+	/* Atomically move the new cache file into place.
+	 * Do NOT unlink the old file first — that creates a crash window
+	 * where no cache exists between unlink and rename. */
+	if (rename(W.s, s_old)) {
+		/* Rename failed; may need to unlink first (e.g. cross-device). */
+		if (unlink(s_old) && errno != ENOENT) {
 			warnp("unlink(%s)", s_old);
 			free(s_old);
 			goto err1;
 		}
-	}
-
-	/* Move the new cache file into place. */
-	if (rename(W.s, s_old)) {
-		warnp("rename(%s, %s)", W.s, s_old);
-		free(s_old);
-		goto err1;
+		if (rename(W.s, s_old)) {
+			warnp("rename(%s, %s)", W.s, s_old);
+			free(s_old);
+			goto err1;
+		}
 	}
 
 	/* Make sure the rename is durable. */
