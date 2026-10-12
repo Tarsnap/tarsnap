@@ -1,71 +1,45 @@
-.TH TARSNAP.CONF 5 "@DATE@" ""
+.ie n \{\
+ .  ds ... \(bu
+ .\}
+.el \{\
+ .  ds ... \(em
+.\}
+.TH "TARSNAP.CONF" "5" "2026-10-12" "Tarsnap Backup" "User Manuals"
+.ad l
 .SH NAME
-.ad l
-\fB\%tarsnap.conf\fP
-\- configuration file for
-\fBtarsnap\fP(1)
+tarsnap.conf \- tarsnap configuration file
+.SH SYNOPSIS
+\fBtarsnap\fR
+.RS
+.PP
+Reads configuration from
+.I @sysconfdir@/tarsnap.conf
+and
+.IR ~/.tarsnaprc .
+.RE
 .SH DESCRIPTION
-.ad l
 The
-\fB\%tarsnap.conf\fP
-file is read by the
-\fBtarsnap\fP(1)
-utility and specifies default options which will be
-ignored if the options in question are specified at
-the command line.
-Options may be specified in
-\fI@sysconfdir@/tarsnap.conf\fP,
-\fI$XDG_CONFIG_HOME/tarsnap/tarsnap.conf\fP,
-and/or
-\fI~/.tarsnaprc\fP;
-if those files conflict, the file listed last takes precedence.
-.PP
-The
-\fB\%tarsnap.conf\fP
-file(s) contain lines consisting of a case-sensitive option name and
-zero or one parameters depending upon the option.
-Empty lines and lines starting with a
-Ql #
-character are ignored.
-.PP
-If a parameter begins with a
-Ql ~
-character, it will be replaced by the home directory of the effective user ID.
-.PP
+.B tarsnap
+configuration file is a simple text file containing one option per
+line.
+A line beginning with the character
+.Ql #
+is treated as a comment.
+Options are specified as name\-value pairs, separated by a single space
+character.
+For options that do not accept a value (flags), only the name is
+specified.
 The following options may be specified:
-.RS 5
 .TP
-\fBaggressive-networking\fP
-.TP
-\fBcachedir\fP \fIcache-dir\fP
-.TP
-\fBcheckpoint-bytes\fP \fIbytespercheckpoint\fP
-.TP
-\fBdisk-pause\fP \fIX\fP
-.TP
-\fBexclude\fP \fIpattern\fP
-.TP
-\fBforce-resources\fP
-.TP
-\fBhumanize-numbers\fP
-.TP
-\fBinclude\fP \fIpattern\fP
-.TP
-\fBinsane-filesystems\fP
-.TP
-\fBiso-dates\fP
-.TP
-\fBkeyfile\fP \fIkey-file\fP
-.TP
-\fBlowmem\fP
+\fBgzip\-compression\fP \fIX\fP
 .TP
 \fBmaxbw\fP
-.TP
-\fBmaxbw-rate\fP
 .TP
 \fBmaxbw-rate-down\fP
 .TP
 \fBmaxbw-rate-up\fP
+.TP
+\fBnoatime\fP
 .TP
 \fBnodump\fP
 .TP
@@ -73,31 +47,21 @@ The following options may be specified:
 .TP
 \fBno-aggressive-networking\fP
 .TP
-\fBno-config-exclude\fP
+\fBno-backup-metadata\fP
 .TP
-\fBno-config-include\fP
+\fBno-compression-sample\fP
 .TP
-\fBno-disk-pause\fP
+\fBno-cpupri\fP
 .TP
-\fBno-force-resources\fP
+\fBno\-debug\fP
 .TP
-\fBno-humanize-numbers\fP
+\fBno-force-tar\fP
 .TP
-\fBno-insane-filesystems\fP
-.TP
-\fBno-iso-dates\fP
-.TP
-\fBno-maxbw\fP
-.TP
-\fBno-maxbw-rate-down\fP
-.TP
-\fBno-maxbw-rate-up\fP
-.TP
-\fBno-nodump\fP
+\fBno\-list\-all\-keyfiles\fP
 .TP
 \fBno-print-stats\fP
 .TP
-\fBno-quiet\fP
+\fBno\-quiet\fP
 .TP
 \fBno-retry-forever\fP
 .TP
@@ -105,70 +69,41 @@ The following options may be specified:
 .TP
 \fBno-store-atime\fP
 .TP
-\fBno-totals\fP
+\fBno\-totals\fP
+.TP
+\fBpassphrase\fP \fImethod:arg\fP
 .TP
 \fBprint-stats\fP
+.TP
+\fBprogress-bytes\fP \fIX\fP
 .TP
 \fBquiet\fP
 .TP
 \fBretry-forever\fP
 .TP
 \fBsnaptime\fP \fIfile\fP
-.TP
-\fBstore-atime\fP
-.TP
-\fBtotals\fP
-.TP
-\fBverylowmem\fP
-.RE
-.PP
-Each option is handled the same way as the corresponding
-\fB\--option\fP;
-see
-\fBtarsnap\fP(1)
-for more details.
-Note that the
-\fBnormalmem\fP
-and
-\fBno-*\fP
-options are only useful in the user-specific
-\fI~/.tarsnaprc\fP
-configuration file, at which point they act to override options set in the
-global
-\fI@sysconfdir@/tarsnap.conf\fP
-configuration file.
 .SH FILES
 .ad l
 .RS 5
 .TP
-.B @sysconfdir@/tarsnap.conf
-The system global
-\fB\%tarsnap.conf\fP
-configuration file.
-Parameters specified here only take effect if they are not
-specified via the current user's local configuration file
-or via the per-user XDG configuration file or via the command line.
+.I @sysconfdir@/tarsnap.conf
+System\-wide configuration file.
 .TP
-.B $XDG_CONFIG_HOME/tarsnap/tarsnap.conf
-The XDG per-user
-\fB\%tarsnap.conf\fP
-configuration file.
-If
-.IR XDG_CONFIG_HOME
-is unset,
-\fI~/.config/tarsnap/tarsnap.conf\fP
-is used instead.
-Parameters specified here take effect unless they are
-specified via the current user's local configuration file
-or via the command line.
-.TP
-.B ~/.tarsnaprc
-The
-\fB\%tarsnap.conf\fP
-configuration file for the current user.
-Parameters specified here take effect unless they are
-specified via the command line.
+.I ~/.tarsnaprc
+User\-specific configuration file.
 .RE
-.SH SEE ALSO
-.ad l
-\fBtarsnap\fP(1)
+.SH NOTES
+Note that the
+.B no-*
+options are only useful in the user-specific
+.I ~/.tarsnaprc
+configuration file, at which point they act to override options set in the
+global
+.I @sysconfdir@/tarsnap.conf
+configuration file.
+.SH "SEE ALSO"
+.BR tarsnap (1)
+.SH AUTHOR
+.nf
+Ian Goldberg <ian@cse.uwaterloo.ca>
+.na
