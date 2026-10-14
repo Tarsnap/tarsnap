@@ -1091,6 +1091,7 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 				    "%s: could not open file", pathname);
 			else
 				fprintf(stderr, ": %s", strerror(errno));
+			bsdtar->return_value = 1;
 			return;
 		}
 	}
