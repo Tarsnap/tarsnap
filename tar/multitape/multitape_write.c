@@ -644,11 +644,27 @@ err0:
 ssize_t
 writetape_ischunkpresent(TAPE_W * d, struct chunkheader * ch)
 {
+	uint32_t clen;
+	uint32_t czlen;
 
-	if (chunks_write_ispresent(d->C, ch->hash) == 0)
-		return ((ssize_t)le32dec(ch->len));
-	else
+	if (chunks_write_ispresent(d->C, ch->hash) != 0)
 		return (0);
+
+	/*
+	 * The cached header might be corrupt; compare its lengths against
+	 * the canonical values in the chunk directory.  On a mismatch,
+	 * treat the chunk as not present so that it gets re-chunkified,
+	 * rather than writing the corrupt lengths into the archive's
+	 * chunk index.
+	 */
+	if (chunks_write_getlens(d->C, ch->hash, &clen, &czlen))
+		return (0);
+	if ((le32dec(ch->len) != clen) || (le32dec(ch->zlen) != czlen)) {
+		warn0("Cached chunk header is corrupt");
+		return (0);
+	}
+
+	return ((ssize_t)le32dec(ch->len));
 }
 
 /**
