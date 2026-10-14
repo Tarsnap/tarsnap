@@ -898,7 +898,13 @@ callback_ischeckpointed_response(void * cookie, NETPACKET_CONNECTION * NPC,
 
 	/* Record status. */
 	C->status = packetbuf[0];
-	memcpy(C->tnonce, &packetbuf[1], 32);
+	/*
+	 * The response layout is status[1] || hmac[32] || tnonce[32]:
+	 * netpacket_hmac_verify(..., 1, ...) checks packetbuf[1..32]
+	 * against HMAC(status), so the transaction nonce begins at
+	 * offset 33.
+	 */
+	memcpy(C->tnonce, &packetbuf[33], 32);
 
 	/* We're done! */
 	C->done = 1;
