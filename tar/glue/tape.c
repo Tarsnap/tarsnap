@@ -209,7 +209,7 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 				bsdtar_warnc(bsdtar, 0,
 				    "Invalid archive hash: %s",
 				    bsdtar->tapenames[i]);
-				goto err1;
+				goto err2;
 			}
 
 			/* Print desired metadata about the archive. */
