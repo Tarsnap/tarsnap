@@ -199,6 +199,9 @@ err1:
 	events_timer_cancel(c->event_timer);
 	c->event_timer = NULL;
 err0:
+	/* Clear the slot so deregister won't dispatch a stale callback. */
+	c->callback = NULL;
+	c->cookie = NULL;
 	/* Failure! */
 	return (-1);
 }
