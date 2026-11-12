@@ -100,6 +100,10 @@ tarsnap_mode_r(struct bsdtar *bsdtar)
 	if (readtape_close(d))
 		goto err1;
 
+	/* Flush buffered output so the caller sees complete data. */
+	if (fflush(stdout))
+		goto err1;
+
 	/* Success! */
 	return;
 
@@ -209,7 +213,7 @@ tarsnap_mode_list_archives(struct bsdtar *bsdtar, int print_hashes)
 				bsdtar_warnc(bsdtar, 0,
 				    "Invalid archive hash: %s",
 				    bsdtar->tapenames[i]);
-				goto err1;
+				goto err2;
 			}
 
 			/* Print desired metadata about the archive. */
