@@ -98,6 +98,12 @@ ssize_t writetape_ischunkpresent(TAPE_W *, struct chunkheader *);
 ssize_t writetape_writechunk(TAPE_W *, struct chunkheader *);
 
 /**
+ * writetape_set_deferred_free(d):
+ * Do not use this writetape any more; write_close() should free it instead.
+ */
+void writetape_set_deferred_free(TAPE_W *);
+
+/**
  * writetape_setmode(d, mode):
  * Set the tape mode to 0 (HEADER), 1 (DATA), or 2 (finished archive entry).
  */

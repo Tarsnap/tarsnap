@@ -92,6 +92,9 @@ struct multitape_write_internal {
 
 	/* Used for communication with the storage layer. */
 	int * storage_modified;
+
+	/* Clean up. */
+	int deferred_free;
 };
 
 static int tapepresent(STORAGE_W *, const char *, const char *);
@@ -706,6 +709,17 @@ err0:
 }
 
 /**
+ * writetape_set_deferred_free(d):
+ * Do not use this writetape any more; write_close() should free it instead.
+ */
+void
+writetape_set_deferred_free(TAPE_W * d)
+{
+
+	d->deferred_free = 1;
+}
+
+/**
  * writetape_setmode(d, mode):
  * Set the tape mode to 0 (HEADER), 1 (DATA), or 2 (finished archive entry).
  */
@@ -941,6 +955,12 @@ writetape_close(TAPE_W * d)
 {
 	FILE * output = stderr;
 	int csv = 0;
+
+	/* If we have a deferred free, do so and bail. */
+	if (d->deferred_free) {
+		writetape_free(d);
+		return (0);
+	}
 
 	/* Should we output to a CSV file? */
 	if (d->csv_filename != NULL)

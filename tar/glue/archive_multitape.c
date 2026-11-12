@@ -147,8 +147,17 @@ archive_read_open_multitape(struct archive * a, uint64_t machinenum,
 		goto err0;
 	}
 
-	if (archive_read_open2(a, d, NULL, read_read, read_skip, read_close))
+	if (archive_read_open2(a, d, NULL, read_read, read_skip, read_close)) {
+		archive_set_error(a, errno, "Error opening libarchive archive");
+		/*
+		 * We cannot call readtape_close(d) right now, because as long
+		 * as we provide read_read and no opener to
+		 * archive_read_open2(), it still sets the callbacks even if it
+		 * fails.  Later in the error path, libarchive code will call
+		 * read_close(), so no need to do that here.
+		 */
 		goto err0;
+	}
 
 	/* Success! */
 	return (d);
@@ -188,7 +197,17 @@ archive_write_open_multitape(struct archive * a, uint64_t machinenum,
 	}
 
 	if (archive_write_open(a, d, NULL, write_write, write_close)) {
-		writetape_free(d);
+		archive_set_error(a, errno,
+		    "Error creating new libarchive archive");
+		/*
+		 * We cannot call writetape_free(d) right now, because even if
+		 * archive_write_open() fails, it still sets the callbacks.
+		 * Later in the error path, libarchive code will call
+		 * write_close(), which will then call writetape_close(), so
+		 * that function needs to know that we did not properly
+		 * initialize the archive.
+		 */
+		writetape_set_deferred_free(d);
 		goto err0;
 	}
 
