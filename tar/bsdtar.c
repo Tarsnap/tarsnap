@@ -790,13 +790,17 @@ main(int argc, char **argv)
 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_OWNER;
 			break;
 		case OPTION_STRIP_COMPONENTS: /* GNU tar 1.15 */
-			errno = 0;
-			bsdtar->strip_components = strtol(bsdtar->optarg,
-			    NULL, 0);
-			if (errno)
-				bsdtar_errc(bsdtar, 1, 0,
-				    "Invalid --strip-components argument: %s",
-				    bsdtar->optarg);
+			{
+				char *sc_eptr;
+				errno = 0;
+				bsdtar->strip_components = strtol(bsdtar->optarg,
+				    &sc_eptr, 10);
+				if (errno || *sc_eptr != '\0' ||
+				    bsdtar->strip_components < 0)
+					bsdtar_errc(bsdtar, 1, 0,
+					    "Invalid --strip-components argument: %s",
+					    bsdtar->optarg);
+			}
 			break;
 		case 'T': /* GNU tar */
 			bsdtar->names_from_file = bsdtar->optarg;
@@ -924,9 +928,10 @@ main(int argc, char **argv)
 			bsdtar->conffile = NULL;
 		}
 
-		/* Check if ${XDG_CONFIG_HOME} is set and non-empty. */
+		/* Check if ${XDG_CONFIG_HOME} is set, non-empty, and absolute. */
 		if (((xdg_configdir = getenv("XDG_CONFIG_HOME")) != NULL) &&
-		    (xdg_configdir[0] != '\0')) {
+		    (xdg_configdir[0] != '\0') &&
+		    (xdg_configdir[0] == '/')) {
 			/*
 			 * If it exists, use
 			 * ${XDG_CONFIG_HOME}/tarsnap/tarsnap.conf
@@ -1708,7 +1713,10 @@ dooption(struct bsdtar *bsdtar, const char * conf_opt,
 		if (conf_arg == NULL)
 			goto needarg;
 
-		bsdtar->disk_pause = strtol(conf_arg, NULL, 0);
+		bsdtar->disk_pause = strtol(conf_arg, &eptr, 0);
+		if (*eptr != 'bsdtar->disk_pause = strtol(conf_arg, NULL, 0);')
+			bsdtar_errc(bsdtar, 1, 0,
+			    "disk-pause value must be numeric: %s", conf_arg);
 		if (bsdtar->disk_pause > 1000)
 			bsdtar_errc(bsdtar, 1, 0,
 			    "disk-pause value must be <= 1000");
