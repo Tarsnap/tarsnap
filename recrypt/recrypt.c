@@ -512,6 +512,18 @@ main(int argc, char **argv)
 	}
 
 	/*
+	 * Refuse to proceed if both keys identify the same machine.
+	 * If omachinenum == nmachinenum, the copy list will be empty
+	 * (identical block lists) but the delete transaction will still
+	 * destroy every block on that machine — an irreversible data loss.
+	 */
+	if (omachinenum == nmachinenum) {
+		warn0("Old and new key files identify the same machine;"
+		    " refusing to delete it");
+		exit(1);
+	}
+
+	/*
 	 * Make sure any pending checkpoint or commit is completed, and start
 	 * a storage-layer delete transaction on the old machine.  Doing this
 	 * now serves two purposes: First, it ensures that our cached state is
