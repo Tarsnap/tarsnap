@@ -84,12 +84,6 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 		goto err0;
 	}
 
-	/* Get a password. */
-	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
-		warnp("Error reading password");
-		goto err0;
-	}
-
 	/*
 	 * Create key file -- we do this now rather than later so that we
 	 * avoid registering with the server if we won't be able to create
@@ -97,12 +91,18 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	 */
 	if ((keyfile = keyfile_write_open(keyfilename)) == NULL) {
 		warnp("Cannot create %s", keyfilename);
-		goto err1;
+		goto err0;
 	}
 
 	/* Initialize key cache. */
 	if (crypto_keys_init()) {
 		warnp("Key cache initialization failed");
+		goto err3;
+	}
+
+	/* Get a password. */
+	if (readpass(&C->passwd, "Enter tarsnap account password", NULL, 0)) {
+		warnp("Error reading password");
 		goto err3;
 	}
 
@@ -186,9 +186,10 @@ err3:
 	fclose(keyfile);
 err2:
 	unlink(keyfilename);
-err1:
-	insecure_memzero(C->passwd, strlen(C->passwd));
-	free(C->passwd);
+	if (C->passwd != NULL) {
+		insecure_memzero(C->passwd, strlen(C->passwd));
+		free(C->passwd);
+	}
 	if (passphrase != NULL) {
 		insecure_memzero(passphrase, strlen(passphrase));
 		free(passphrase);
