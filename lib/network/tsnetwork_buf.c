@@ -73,7 +73,7 @@ callback_buf(void * cookie, int status)
 
 	if (status != NETWORK_STATUS_OK) {
 		/* If we have no data, mark a timeout as "no data" instead. */
-		if ((C->bufpos != 0) && (status == NETWORK_STATUS_TIMEOUT))
+		if ((C->bufpos == 0) && (status == NETWORK_STATUS_TIMEOUT))
 			status = NETWORK_STATUS_NODATA;
 		goto docallback;
 	}
