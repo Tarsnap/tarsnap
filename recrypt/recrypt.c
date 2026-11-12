@@ -511,6 +511,13 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	/* PEBKAC check: make sure the old and new keys are for different machines. */
+	if (omachinenum == nmachinenum) {
+		warn0("Old and new key files identify the same machine;"
+		    " refusing to delete it");
+		exit(1);
+	}
+
 	/*
 	 * Make sure any pending checkpoint or commit is completed, and start
 	 * a storage-layer delete transaction on the old machine.  Doing this
