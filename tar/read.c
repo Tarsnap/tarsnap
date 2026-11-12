@@ -243,7 +243,7 @@ read_archive(struct bsdtar *bsdtar, char mode)
 			    <= bsdtar->newer_ctime_nsec)
 				continue; /* Too old, skip it. */
 		}
-		if (bsdtar->newer_mtime_sec > 0) {
+		if (bsdtar->newer_mtime_sec >= 0 && (bsdtar->newer_mtime_sec || bsdtar->newer_mtime_nsec)) {
 			if (st->st_mtime < bsdtar->newer_mtime_sec)
 				continue; /* Too old, skip it. */
 			if (st->st_mtime == bsdtar->newer_mtime_sec
