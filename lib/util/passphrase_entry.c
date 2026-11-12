@@ -38,10 +38,20 @@ passphrase_entry_parse(const char * arg,
 		}
 	}
 	if (strncmp(arg, "env:", 4) == 0) {
+		if (p[1] == '\0') {
+			warn0("Invalid option: --passphrase %s"
+			    " (empty environment variable name)", arg);
+			goto err1;
+		}
 		*passphrase_entry_p = PASSPHRASE_ENV;
 		goto success;
 	}
 	if (strncmp(arg, "file:", 5) == 0) {
+		if (p[1] == '\0') {
+			warn0("Invalid option: --passphrase %s"
+			    " (empty file path)", arg);
+			goto err1;
+		}
 		*passphrase_entry_p = PASSPHRASE_FILE;
 		goto success;
 	}
