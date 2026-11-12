@@ -96,7 +96,7 @@ static struct ftyperec {
 #ifdef EXT4_SUPER_MAGIC
 	{EXT4_SUPER_MAGIC, "ext4"},
 #endif
-#ifdef HTPFS_SUPER_MAGIC
+#ifdef HPFS_SUPER_MAGIC
 	{HPFS_SUPER_MAGIC, "hpfs"},
 #endif
 #ifdef ISOFS_SUPER_MAGIC
