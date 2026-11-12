@@ -67,6 +67,8 @@ The following options may be specified:
 .TP
 \fBmaxbw-rate-up\fP
 .TP
+\fBnoatime\fP
+.TP
 \fBnodump\fP
 .TP
 \fBnormalmem\fP
@@ -93,9 +95,13 @@ The following options may be specified:
 .TP
 \fBno-maxbw-rate-up\fP
 .TP
+\fBno-noatime\fP
+.TP
 \fBno-nodump\fP
 .TP
 \fBno-print-stats\fP
+.TP
+\fBno-progress-bytes\fP
 .TP
 \fBno-quiet\fP
 .TP
@@ -107,7 +113,11 @@ The following options may be specified:
 .TP
 \fBno-totals\fP
 .TP
+\fBpassphrase\fP \fImethod:arg\fP
+.TP
 \fBprint-stats\fP
+.TP
+\fBprogress-bytes\fP \fIX\fP
 .TP
 \fBquiet\fP
 .TP
@@ -131,9 +141,10 @@ Note that the
 \fBnormalmem\fP
 and
 \fBno-*\fP
-options are only useful in the user-specific
-\fI~/.tarsnaprc\fP
-configuration file, at which point they act to override options set in the
+options are useful in per-user configuration files
+(\fI~/.tarsnaprc\fP or
+\fI$XDG_CONFIG_HOME/tarsnap/tarsnap.conf\fP),
+at which point they act to override options set in the
 global
 \fI@sysconfdir@/tarsnap.conf\fP
 configuration file.
