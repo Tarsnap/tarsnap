@@ -163,6 +163,12 @@ keygen_actual(struct register_internal * C, const char * keyfilename,
 	    CRYPTO_KEYMASK_USER, passphrase, (size_t)maxmem, maxtime))
 		goto err3;
 
+	/* Sync key file to disk for durability. */
+	if (fsync(fileno(keyfile))) {
+		warnp("Cannot sync key file");
+		goto err3;
+	}
+
 	/* Close the key file. */
 	if (fclose(keyfile)) {
 		warnp("Error closing key file");
