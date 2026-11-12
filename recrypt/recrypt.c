@@ -645,6 +645,10 @@ main(int argc, char **argv)
 	printf(" done.\n");
 
 	/* Close the old and new chunk directories. */
+	if (fsync(fileno(ndir))) {
+		warnp("Cannot sync new chunk directory");
+		exit(1);
+	}
 	if (fclose(ndir) || fclose(odir)) {
 		warnp("Error closing chunk directory");
 		exit(1);
