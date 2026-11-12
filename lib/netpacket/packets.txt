@@ -40,7 +40,7 @@ Packet contents:
 	uint8_t serverpub[CRYPTO_DH_PUBLEN]
 
 The client must compute DH parameters (priv, pub) from the salt and
-password, and then compute K = serverpub^priv.  It must then send back a
+password, and then compute K = serverpub^(2^258 + priv).  It must then send back a
 NETPACKET_REGISTER_CHA_RESPONSE packet.
 
 NOTE: The value serverpub[] expires when the network protocol connection is
@@ -213,7 +213,7 @@ the ckptnonce value must be identical.
 
 The value nonce is the transaction nonce of the current write transaction.
 
-The value hmac is HMAC(0x13 || [packet minus final hmac]).
+The value hmac is HMAC(key, 0x13 || [packet minus final hmac]).
 
 NETPACKET_TRANSACTION_CHECKPOINT_RESPONSE (0x93)
 ------------------------------------------------
@@ -404,7 +404,7 @@ The value nonce is the transaction nonce of the current transaction.
 
 The value filelen is at most 262144 (2^18).
 
-The value hmac is HMACW(0x20 || [packet minus final hmac]).
+The value hmac is HMACW(0x21 || [packet minus final hmac]).
 
 NETPACKET_WRITE_FILE_RESPONSE (0xa1)
 ------------------------------------

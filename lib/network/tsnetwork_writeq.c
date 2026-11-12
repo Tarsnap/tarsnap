@@ -222,6 +222,8 @@ network_writeq_cancel(NETWORK_WRITEQ * Q)
 	while (Q->head != NULL) {
 		rc2 = network_deregister(Q->fd, NETWORK_OP_WRITE);
 		rc = rc ? rc : rc2;
+		if (rc2 == 0)
+			break; /* No callback registered; queue won't shrink */
 	}
 
 	/* Return first non-zero result from deregistration. */

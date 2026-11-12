@@ -181,7 +181,8 @@ compare(const struct pnode * n, const uint8_t * key, size_t keylen,
 	}
 
 	/* Compute how the top bits differ. */
-	mm = (n->high ^ key[i]) & ((- n->mask) << 1);
+	/* Cast to unsigned before left-shifting to avoid UB on negative shift. */
+	mm = (n->high ^ key[i]) & ((unsigned int)(uint8_t)(-(int)(n->mask)) << 1);
 
 	/* If the top bits match, the node is a prefix of the key. */
 	if (mm == 0)
