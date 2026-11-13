@@ -113,7 +113,8 @@ netproto_setfd(struct netproto_connection_internal * C, int fd)
 	return (0);
 
 err0:
-	/* Failure! */
+	/* Failure: close fd since we took ownership */
+	close(fd);
 	return (-1);
 }
 
