@@ -711,6 +711,10 @@ EXTRA_DIST+=								\
 	tests/07-selecting-files-nT-full.good				\
 	tests/07-selecting-files-nT-partial.good			\
 	tests/07-selecting-files.sh					\
+	tests/08-chunks-directory.sh					\
+	tests/unit/allocations.h					\
+	tests/unit/chunks-directory.c					\
+	tests/unit/chunks-directory.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
