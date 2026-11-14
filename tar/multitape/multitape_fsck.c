@@ -292,9 +292,10 @@ nextfile:	;
 	}
 
 	/* Allocate an array for keeping track of which files are needed. */
-	if ((neededvec = malloc(nfiles)) == NULL)
+	if (IMALLOC(neededvec, nfiles, uint8_t))
 		goto err1;
-	memset(neededvec, 0, nfiles);
+	if (nfiles > 0)
+		memset(neededvec, 0, nfiles);
 
 	/* Mark files as needed. */
 	for (file = 0; file < nmdat; file++) {
