@@ -1,6 +1,5 @@
 #include "platform.h"
 
-#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +8,7 @@
 
 #include "chunks_internal.h"
 #include "hexify.h"
+#include "imalloc.h"
 #include "rwhashtab.h"
 #include "storage.h"
 
@@ -124,13 +124,7 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 		goto err2;
 
 	/* Construct a chunkdata_statstape structure for each file. */
-	if (nfiles > SIZE_MAX / sizeof(struct chunkdata_statstape)) {
-		errno = ENOMEM;
-		free(flist);
-		goto err2;
-	}
-	if ((C->dir =
-	    malloc(nfiles * sizeof(struct chunkdata_statstape))) == NULL) {
+	if (IMALLOC(C->dir, nfiles, struct chunkdata_statstape)) {
 		free(flist);
 		goto err2;
 	}
@@ -146,12 +140,12 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	/* Create an empty chunk directory. */
 	C->HT = rwhashtab_init(offsetof(struct chunkdata, hash), 32);
 	if (C->HT == NULL)
-		goto err2;
+		goto err3;
 
 	/* Insert the chunkdata structures we constructed above. */
 	for (file = 0; file < nfiles; file++) {
 		if (rwhashtab_insert(C->HT, &C->dir[file]))
-			goto err3;
+			goto err4;
 	}
 
 	/* Zero statistics. */
@@ -162,8 +156,10 @@ chunks_fsck_start(uint64_t machinenum, const char * cachepath)
 	/* Success! */
 	return (C);
 
-err3:
+err4:
 	rwhashtab_free(C->HT);
+err3:
+	free(C->dir);
 err2:
 	free(C->cachepath);
 err1:
