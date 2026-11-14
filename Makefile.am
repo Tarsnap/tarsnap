@@ -711,6 +711,9 @@ EXTRA_DIST+=								\
 	tests/07-selecting-files-nT-full.good				\
 	tests/07-selecting-files-nT-partial.good			\
 	tests/07-selecting-files.sh					\
+	tests/08-list-archives.sh					\
+	tests/unit/list-archives.c					\
+	tests/unit/list-archives.sh					\
 	tests/fake-passphrased.keys					\
 	tests/fake.keys							\
 	tests/shared_test_functions.sh					\
