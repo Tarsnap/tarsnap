@@ -122,6 +122,15 @@ int writetape_checkpoint(TAPE_W *);
 int writetape_close(TAPE_W *);
 
 /**
+ * writetape_steal_lockfd(d):
+ * Return (and clear) the cachedir lock file descriptor from ${d} without
+ * closing it.  The caller is responsible for closing this fd when
+ * appropriate (e.g., after cache writes complete).  Returns -1 if no
+ * lock is held.
+ */
+int writetape_steal_lockfd(TAPE_W *);
+
+/**
  * writetape_free(d):
  * Free memory associated with ${d}; the archive is being cancelled.
  */

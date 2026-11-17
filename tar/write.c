@@ -95,6 +95,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #include "tree.h"
 
 #include "archive_multitape.h"
+#include "multitape.h"
 #include "ccache.h"
 #include "fileutil.h"
 #include "sigquit.h"
@@ -320,7 +321,16 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	/*
 	 * write_archive(a, bsdtar) calls archive_write_finish(a), so we set
 	 * a = NULL to avoid doing this again in err1.
+	 *
+	 * Steal the cachedir lockfd before write_archive so that we can
+	 * hold the lock through ccache_write().  writetape_close() (called
+	 * internally by write_archive) will skip closing it since we've
+	 * stolen it.
 	 */
+	int cachedir_lockfd = -1;
+	if (bsdtar->write_cookie != NULL)
+		cachedir_lockfd = writetape_steal_lockfd(bsdtar->write_cookie);
+
 	write_archive(a, bsdtar);
 	a = NULL;
 
@@ -331,8 +341,16 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if ((bsdtar->option_dryrun == 0) && (bsdtar->cachecrunch < 2)) {
 		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir)) {
 			bsdtar_warnc(bsdtar, errno, "Error writing cache");
+			if (cachedir_lockfd != -1)
+				close(cachedir_lockfd);
 			goto err2;
 		}
+	}
+
+	/* Release the cachedir lock (if we stole it earlier). */
+	if (cachedir_lockfd != -1) {
+		if (close(cachedir_lockfd))
+			bsdtar_warnc(bsdtar, errno, "close: cachedir lock");
 	}
 
 	/* Free the chunkification cache. */
