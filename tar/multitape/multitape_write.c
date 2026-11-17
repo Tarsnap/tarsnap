@@ -1003,9 +1003,14 @@ writetape_close(TAPE_W * d)
 			goto err1;
 	}
 
-	/* Unlock the cache directory (if applicable). */
+	/*
+	 * Unlock the cache directory (if applicable), unless the caller
+	 * has stolen the lockfd via writetape_steal_lockfd() for deferred
+	 * closing.
+	 */
 	if ((d->lockfd != -1) && close(d->lockfd))
 		warnp("close");
+	d->lockfd = -1;
 
 	/* Free memory. */
 	chunkify_free(d->c_file);
@@ -1040,6 +1045,22 @@ err1:
 
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * writetape_steal_lockfd(d):
+ * Return the cachedir lock file descriptor from ${d} without closing it,
+ * and clear the internal fd to -1 so that subsequent close/free operations
+ * will not attempt to close it.  The caller must close the returned fd
+ * when appropriate (e.g., after ccache_write completes).
+ */
+int
+writetape_steal_lockfd(TAPE_W * d)
+{
+	int lockfd = d->lockfd;
+
+	d->lockfd = -1;
+	return (lockfd);
 }
 
 /**

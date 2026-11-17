@@ -95,6 +95,7 @@ __FBSDID("$FreeBSD: src/usr.bin/tar/write.c,v 1.79 2008/11/27 05:49:52 kientzle 
 #include "tree.h"
 
 #include "archive_multitape.h"
+#include "multitape.h"
 #include "ccache.h"
 #include "fileutil.h"
 #include "sigquit.h"
@@ -320,7 +321,16 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	/*
 	 * write_archive(a, bsdtar) calls archive_write_finish(a), so we set
 	 * a = NULL to avoid doing this again in err1.
+	 *
+	 * Steal the cachedir lockfd before write_archive so that we can
+	 * hold the lock through ccache_write().  writetape_close() (called
+	 * internally by write_archive) will skip closing it since we've
+	 * stolen it.
 	 */
+	int cachedir_lockfd = -1;
+	if (bsdtar->write_cookie != NULL)
+		cachedir_lockfd = writetape_steal_lockfd(bsdtar->write_cookie);
+
 	write_archive(a, bsdtar);
 	a = NULL;
 
@@ -331,8 +341,16 @@ tarsnap_mode_c(struct bsdtar *bsdtar)
 	if ((bsdtar->option_dryrun == 0) && (bsdtar->cachecrunch < 2)) {
 		if (ccache_write(bsdtar->chunk_cache, bsdtar->cachedir)) {
 			bsdtar_warnc(bsdtar, errno, "Error writing cache");
+			if (cachedir_lockfd != -1)
+				close(cachedir_lockfd);
 			goto err2;
 		}
+	}
+
+	/* Release the cachedir lock (if we stole it earlier). */
+	if (cachedir_lockfd != -1) {
+		if (close(cachedir_lockfd))
+			bsdtar_warnc(bsdtar, errno, "close: cachedir lock");
 	}
 
 	/* Free the chunkification cache. */
@@ -567,6 +585,7 @@ append_archive_filename(struct bsdtar *bsdtar, struct archive *a,
 	if (archive_read_open_file(ina, filename, 10240)) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(ina));
 		bsdtar->return_value = 1;
+		archive_read_finish(ina);
 		return (0);
 	}
 
@@ -598,6 +617,7 @@ append_archive_tarsnap(struct bsdtar *bsdtar, struct archive *a,
 	if (cookie == NULL) {
 		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(ina));
 		bsdtar->return_value = 1;
+		archive_read_finish(ina);
 		return (0);
 	}
 
@@ -1091,6 +1111,8 @@ write_entry_backend(struct bsdtar *bsdtar, struct archive *a,
 				    "%s: could not open file", pathname);
 			else
 				fprintf(stderr, ": %s", strerror(errno));
+			if (cce != NULL)
+				ccache_entry_free(cce, bsdtar->write_cookie);
 			return;
 		}
 	}
@@ -1279,7 +1301,7 @@ new_enough(struct bsdtar *bsdtar, const char *path, const struct stat *st)
 		    <= bsdtar->newer_ctime_nsec)
 			return (0); /* Too old, skip it. */
 	}
-	if (bsdtar->newer_mtime_sec > 0) {
+	if (bsdtar->newer_mtime_sec >= 0 && (bsdtar->newer_mtime_sec || bsdtar->newer_mtime_nsec)) {
 		if (st->st_mtime < bsdtar->newer_mtime_sec)
 			return (0); /* Too old, skip it. */
 		if (st->st_mtime == bsdtar->newer_mtime_sec
