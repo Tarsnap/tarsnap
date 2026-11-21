@@ -135,7 +135,7 @@ static int	zip_read_data_none(struct archive_read *a, const void **buff,
 static int	zip_read_file_header(struct archive_read *a,
 		    struct archive_entry *entry, struct zip *zip);
 static time_t	zip_time(const char *);
-static void process_extra(const void* extra, struct zip* zip);
+static int	process_extra(struct archive_read *a, const void* extra, struct zip* zip);
 
 int
 archive_read_support_format_zip(struct archive *_a)
@@ -436,7 +436,8 @@ zip_read_file_header(struct archive_read *a, struct archive_entry *entry,
 		    "Truncated ZIP file header");
 		return (ARCHIVE_FATAL);
 	}
-	process_extra(h, zip);
+	if (process_extra(a, h, zip))
+		return (ARCHIVE_FATAL);
 	__archive_read_consume(a, zip->extra_length);
 
 	/* Populate some additional entry fields: */
@@ -449,6 +450,17 @@ zip_read_file_header(struct archive_read *a, struct archive_entry *entry,
 	/* Set the size only if it's meaningful. */
 	if (0 == (zip->flags & ZIP_LENGTH_AT_END))
 		archive_entry_set_size(entry, zip->uncompressed_size);
+
+	/*
+	 * If the uncompressed size is non-zero, the compressed size
+	 * cannot be zero.
+	 */
+	if (0 == (zip->flags & ZIP_LENGTH_AT_END)
+	    && zip->uncompressed_size > 0 && zip->compressed_size == 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "Truncated ZIP file data");
+		return (ARCHIVE_FATAL);
+	}
 
 	zip->entry_bytes_remaining = zip->compressed_size;
 	zip->entry_offset = 0;
@@ -611,6 +623,12 @@ zip_read_data_none(struct archive_read *a, const void **buff,
 	zip = (struct zip *)(a->format->data);
 
 	if (zip->entry_bytes_remaining == 0) {
+		if (0 == (zip->flags & ZIP_LENGTH_AT_END) &&
+		    zip->entry_uncompressed_bytes_read < zip->uncompressed_size) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+			    "Truncated ZIP file data");
+			return (ARCHIVE_FATAL);
+		}
 		*buff = NULL;
 		*size = 0;
 		*offset = zip->entry_offset;
@@ -817,8 +835,8 @@ archive_read_format_zip_cleanup(struct archive_read *a)
  *	id1+size1+data1 + id2+size2+data2 ...
  *  triplets.  id and size are 2 bytes each.
  */
-static void
-process_extra(const void* extra, struct zip* zip)
+static int
+process_extra(struct archive_read *a, const void* extra, struct zip* zip)
 {
 	int offset = 0;
 	const char *p = (const char *)extra;
@@ -835,12 +853,30 @@ process_extra(const void* extra, struct zip* zip)
 #endif
 		switch (headerid) {
 		case 0x0001:
+		{
 			/* Zip64 extended information extra field. */
-			if (datasize >= 8)
-				zip->uncompressed_size = archive_le64dec(p + offset);
-			if (datasize >= 16)
-				zip->compressed_size = archive_le64dec(p + offset + 8);
+			if (datasize >= 8) {
+				uint64_t u_size = archive_le64dec(p + offset);
+				if (u_size > 0xfffffffffffffffLL) {
+					archive_set_error(&a->archive,
+					    ARCHIVE_ERRNO_FILE_FORMAT,
+					    "Malformed ZIP64 uncompressed size");
+					return (ARCHIVE_FATAL);
+				}
+				zip->uncompressed_size = (int64_t)u_size;
+			}
+			if (datasize >= 16) {
+				uint64_t c_size = archive_le64dec(p + offset + 8);
+				if (c_size > 0xfffffffffffffffLL) {
+					archive_set_error(&a->archive,
+					    ARCHIVE_ERRNO_FILE_FORMAT,
+					    "Malformed ZIP64 compressed size");
+					return (ARCHIVE_FATAL);
+				}
+				zip->compressed_size = (int64_t)c_size;
+			}
 			break;
+		}
 		case 0x5455:
 		{
 			/* Extended time field "UT". */
@@ -903,4 +939,5 @@ process_extra(const void* extra, struct zip* zip)
 		    "Extra data field contents do not match reported size!\n");
 	}
 #endif
+	return (ARCHIVE_OK);
 }
