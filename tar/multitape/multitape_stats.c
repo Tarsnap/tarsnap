@@ -236,6 +236,12 @@ statstape_printlist_item(TAPE_S * d, const uint8_t tapehash[32], int verbose,
 	char datebuf[DATEBUFLEN];
 	int arg;
 
+	/*
+	 * tmd is not filled in until multitape_metadata_get_byhash() below,
+	 * but the error path frees it; make that safe.
+	 */
+	memset(&tmd, 0, sizeof(tmd));
+
 	/* Print archive hash. */
 	if (print_hash) {
 		hexify(tapehash, hexstr, 32);
