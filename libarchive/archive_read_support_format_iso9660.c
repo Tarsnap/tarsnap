@@ -617,7 +617,10 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 			iso9660->current_position += step;
 			iso9660->entry_bytes_remaining -= step;
 			for (p = (const unsigned char *)block;
-			     *p != 0 && p < (const unsigned char *)block + step;
+			     p < (const unsigned char *)block + step
+			     && (size_t)((const unsigned char *)block + step - p) > DR_name_offset
+			     && *p != 0
+			     && *p <= (size_t)((const unsigned char *)block + step - p);
 			     p += *p) {
 				struct file_info *child;
 
