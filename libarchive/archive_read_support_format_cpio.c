@@ -383,6 +383,11 @@ find_newc_header(struct archive_read *a)
 			}
 		}
 		skip = p - (const char *)h;
+		if (skip == 0) {
+			if (bytes <= (ssize_t)sizeof(struct cpio_newc_header))
+				return (ARCHIVE_FATAL);
+			skip = 1;
+		}
 		__archive_read_consume(a, skip);
 		skipped += skip;
 	}
@@ -523,6 +528,11 @@ find_odc_header(struct archive_read *a)
 			}
 		}
 		skip = p - (const char *)h;
+		if (skip == 0) {
+			if (bytes <= (ssize_t)sizeof(struct cpio_odc_header))
+				return (ARCHIVE_FATAL);
+			skip = 1;
+		}
 		__archive_read_consume(a, skip);
 		skipped += skip;
 	}
