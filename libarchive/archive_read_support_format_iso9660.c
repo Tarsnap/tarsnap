@@ -538,7 +538,9 @@ archive_read_format_iso9660_read_header(struct archive_read *a,
 	iso9660->entry_bytes_remaining = file->size;
 	iso9660->entry_sparse_offset = 0; /* Offset for sparse-file-aware clients. */
 
-	if (file->offset + file->size > iso9660->volume_size) {
+	if (file->size < 0 ||
+	    file->offset > UINT64_MAX - (uint64_t)file->size ||
+	    file->offset + file->size > iso9660->volume_size) {
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 		    "File is beyond end-of-media: %s", file->name);
 		iso9660->entry_bytes_remaining = 0;
@@ -675,7 +677,7 @@ archive_read_format_iso9660_read_data(struct archive_read *a,
 	}
 
 	*buff = __archive_read_ahead(a, 1, &bytes_read);
-	if (bytes_read == 0)
+	if (bytes_read <= 0)
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 		    "Truncated input file");
 	if (*buff == NULL)
