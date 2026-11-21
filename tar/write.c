@@ -747,6 +747,10 @@ copy_file_data(struct bsdtar *bsdtar, struct archive *a, struct archive *ina)
 		bytes_read = archive_read_data(ina, bsdtar->buff,
 		    FILEDATABUFLEN);
 	}
+	if (bytes_read < 0) {
+		bsdtar_warnc(bsdtar, 0, "%s", archive_error_string(ina));
+		return (-1);
+	}
 
 	return (0);
 }
