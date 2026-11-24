@@ -162,7 +162,7 @@ chunkify_start(CHUNKIFIER * c)
  *
  * If an error occurs, NULL is returned.
  *
- * The parameter ${meanlen} must be at most 1262226.
+ * The parameter ${meanlen} must be at least 4 and at most 1262226.
  * The probability of a chunk being x bytes or longer is approximately
  * 0.267 ^ ((x / meanlen)^(3/2)).
  * The most common chunk length is approximately ${0.65 * meanlen}.
@@ -180,7 +180,7 @@ chunkify_init(uint32_t meanlen, uint32_t maxlen,
 	/*
 	 * Parameter verification.
 	 */
-	if ((meanlen > 1262226) || (maxlen <= meanlen)) {
+	if ((meanlen < 4) || (meanlen > 1262226) || (maxlen <= meanlen)) {
 		warn0("Incorrect API usage");
 		return (NULL);
 	}
