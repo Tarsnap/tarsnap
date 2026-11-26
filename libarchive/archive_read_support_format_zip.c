@@ -406,6 +406,12 @@ zip_read_file_header(struct archive_read *a, struct archive_entry *entry,
 	zip->gid = 0;
 	zip->crc32 = archive_le32dec(p->crc32);
 	zip->filename_length = archive_le16dec(p->filename_length);
+	/* Reject zero-length filenames (causes OOB read at pathname.s[-1]). */
+	if (zip->filename_length == 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "ZIP entry has zero-length filename");
+		return (ARCHIVE_FATAL);
+	}
 	zip->extra_length = archive_le16dec(p->extra_length);
 	zip->uncompressed_size = archive_le32dec(p->uncompressed_size);
 	zip->compressed_size = archive_le32dec(p->compressed_size);
