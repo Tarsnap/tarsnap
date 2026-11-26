@@ -537,6 +537,12 @@ archive_write_pax_header(struct archive_write *a,
 	 * name must have non-ASCII characters.)
 	 */
 	if (path == NULL) {
+		if (path_w == NULL) {
+			/* Malformed entry: no pathname in either form. */
+			archive_set_error(&a->archive, EINVAL,
+			    "Entry has no pathname");
+			return (ARCHIVE_FAILED);
+		}
 		/* We don't have a narrow version, so we have to store
 		 * the wide version. */
 		add_pax_attr_w(&(pax->pax_header), "path", path_w);
