@@ -212,6 +212,8 @@ archive_read_format_zip_bid(struct archive_read *a)
 			/* Get 4k of data beyond where we stopped. */
 			buff = __archive_read_ahead(a, offset + 4096,
 			    &bytes_avail);
+			if (buff == NULL)
+				break;
 			if (bytes_avail < offset + 1)
 				break;
 			p = (const char *)buff + offset;
