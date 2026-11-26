@@ -267,8 +267,11 @@ ccache_read(const char * path)
 	for (i = 0; i < R.N; i++) {
 		if ((ccr = read_rec(&R)) == NULL)
 			goto err5;
-		if (patricia_insert(C->tree, R.sbuf, R.slen, ccr))
+		if (patricia_insert(C->tree, R.sbuf, R.slen, ccr)) {
+			/* The record was never inserted; free it. */
+			free(ccr);
 			goto err5;
+		}
 		C->chunksusage += ccr->nch * sizeof(struct chunkheader);
 		C->trailerusage += ccr->tzlen;
 	}
@@ -313,7 +316,8 @@ ccache_read(const char * path)
 	C->datalen = R.datalen;
 	if (((C->data = malloc(C->datalen)) == NULL) && (C->datalen > 0))
 		goto err5;
-	if (fread(C->data, C->datalen, 1, R.f) != 1) {
+	/* Skip the fread when datalen is 0; fread(_, 0, 1, _) returns 0. */
+	if ((C->datalen > 0) && (fread(C->data, C->datalen, 1, R.f) != 1)) {
 		warnp("fread(%s)", R.s);
 		goto err6;
 	}
