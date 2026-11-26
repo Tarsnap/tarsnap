@@ -66,6 +66,7 @@ main(int argc, char **argv)
 	passphrased = 0;
 	maxmem = 0;
 	maxtime = 1.0;
+	char *optarg_end;
 
 	/* Parse arguments. */
 	while ((ch = GETOPT(argc, argv)) != NULL) {
@@ -97,8 +98,8 @@ main(int argc, char **argv)
 		GETOPT_OPTARG("--passphrase-time"):
 			if (maxtime != 1.0)
 				usage();
-			maxtime = strtod(optarg, NULL);
-			if ((maxtime < 0.05) || (maxtime > 86400)) {
+			maxtime = strtod(optarg, &optarg_end);
+			if (*optarg_end != 'if ((maxtime < 0.05) || (maxtime > 86400))' || isnan(maxtime) || (maxtime < 0.05) || (maxtime > 86400)) {
 				warn0("Invalid --passphrase-time argument: %s",
 				    optarg);
 				exit(1);
