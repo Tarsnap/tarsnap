@@ -1256,6 +1256,14 @@ write_file_data(struct bsdtar *bsdtar, struct archive *a,
 		progress += bytes_written;
 		bytes_read = read(fd, bsdtar->buff, FILEDATABUFLEN);
 	}
+
+	/* Check for read error (as opposed to clean EOF). */
+	if (bytes_read < 0) {
+		bsdtar_warnc(bsdtar, errno, "%s: Read error",
+		    archive_entry_pathname(entry));
+		return (-1);
+	}
+
 	return 0;
 }
 
