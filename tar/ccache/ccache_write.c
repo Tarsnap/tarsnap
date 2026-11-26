@@ -331,34 +331,41 @@ err0:
 int
 ccache_remove(const char * path)
 {
-	char * s;
+    char * s = NULL;
 
-	/* The caller must pass a file name to be deleted. */
-	assert(path != NULL);
+    /* The caller must pass a file name to be deleted. */
+    assert(path != NULL);
 
-	/* Construct the name of the cache file. */
-	if (asprintf(&s, "%s/cache", path) == -1) {
-		warnp("asprintf");
-		goto err0;
-	}
+    /* Construct the name of the cache file. */
+    if (asprintf(&s, "%s/cache", path) == -1) {
+        warnp("asprintf");
+        goto err0;
+    }
 
-	/* Delete the file if it exists. */
-	if (unlink(s)) {
-		if (errno != ENOENT) {
-			warnp("unlink(%s)", s);
-			goto err1;
-		}
-	}
+    /* Delete the file if it exists. */
+    if (unlink(s)) {
+        if (errno != ENOENT) {
+            warnp("unlink(%s)", s);
+            goto err1;
+        }
+        /* No file was removed; nothing to fsync. */
+        free(s);
+        return 0;
+    }
 
-	/* Free string allocated by asprintf. */
-	free(s);
+    /* Make the unlink durable by fsyncing the containing directory. */
+    if (dirutil_fsyncdir(path)) {
+        warnp("dirutil_fsyncdir");
+        goto err1;
+    }
 
-	/* Success! */
-	return (0);
+    /* Free string allocated by asprintf. */
+    free(s);
+    return 0;
 
 err1:
-	free(s);
+    free(s);
 err0:
-	/* Failure! */
-	return (-1);
+    /* Failure! */
+    return (-1);
 }
