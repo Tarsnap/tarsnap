@@ -332,6 +332,15 @@ archive_read_format_ar_read_header(struct archive_read *a,
 		}
 
 		archive_entry_copy_pathname(entry, &ar->strtab[(size_t)number]);
+		/* Reject empty pathnames from GNU long filename table. */
+		if (archive_entry_pathname(entry) == NULL ||
+		    archive_entry_pathname(entry)[0] == '\0') {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+			    "GNU long filename table entry is empty");
+			archive_entry_copy_pathname(entry, "empty");
+			/* Parse the time, owner, mode, size fields. */
+			return (ar_parse_common_header(ar, entry, h));
+		}
 		/* Parse the time, owner, mode, size fields. */
 		return (ar_parse_common_header(ar, entry, h));
 	}
@@ -356,6 +365,12 @@ archive_read_format_ar_read_header(struct archive_read *a,
 		    || (off_t)bsd_name_length > ar->entry_bytes_remaining) {
 			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
 			    "Bad input file size");
+			return (ARCHIVE_FATAL);
+		}
+		/* Reject zero-length BSD long filenames. */
+		if (bsd_name_length == 0) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+			    "BSD long filename has zero length");
 			return (ARCHIVE_FATAL);
 		}
 		ar->entry_bytes_remaining -= bsd_name_length;
