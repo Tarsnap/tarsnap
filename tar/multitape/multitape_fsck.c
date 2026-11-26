@@ -292,7 +292,7 @@ nextfile:	;
 	}
 
 	/* Allocate an array for keeping track of which files are needed. */
-	if ((neededvec = malloc(nfiles)) == NULL)
+	if ((neededvec = malloc((nfiles > 0) ? nfiles : 1)) == NULL)
 		goto err1;
 	memset(neededvec, 0, nfiles);
 
