@@ -261,6 +261,7 @@ main(int argc, char **argv)
 	int			 j;
 	char			*tapename_cmdline;
 	char			*xdg_configdir;
+	char			*endptr;
 
 	WARNP_INIT;
 
@@ -440,8 +441,9 @@ main(int argc, char **argv)
 		case OPTION_CREATIONTIME: /* tarsnap */
 			errno = 0;
 			bsdtar->creationtime = strtol(bsdtar->optarg,
-			    NULL, 0);
-			if ((errno) || (bsdtar->creationtime == 0))
+			    &endptr, 10);
+			if ((errno) || (*endptr != '\0') || (endptr == bsdtar->optarg) ||
+			    (bsdtar->creationtime <= 0))
 				bsdtar_errc(bsdtar, 1, 0,
 				    "Invalid --creationtime argument: %s",
 				    bsdtar->optarg);
