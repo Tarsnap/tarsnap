@@ -355,6 +355,14 @@ process_add_entry(struct archive_read *a, struct mtree *mtree,
 	entry->name[len] = '\0';
 	parse_escapes(entry->name, entry);
 
+	/* Reject empty pathnames (e.g., from \0 escape decoding to nothing). */
+	if (entry->name[0] == '\0') {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+		    "mtree entry has empty pathname after escape processing");
+		free(entry);
+		return (ARCHIVE_FATAL);
+	}
+
 	line += len;
 	for (iter = *global; iter != NULL; iter = iter->next) {
 		r = add_option(a, &entry->options, iter->value,
@@ -1048,6 +1056,9 @@ parse_escapes(char *src, struct mtree_entry *mentry)
 			switch (src[0]) {
 			case '0':
 				if (src[1] < '0' || src[1] > '7') {
+					/* Reject NUL bytes in entry pathnames. */
+					if (mentry != NULL)
+						continue; /* skip the \0 */
 					c = 0;
 					++src;
 					break;
