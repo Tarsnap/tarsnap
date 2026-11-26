@@ -180,7 +180,7 @@ static void	 gnu_add_sparse_entry(struct tar *,
 static void	gnu_clear_sparse_list(struct tar *);
 static int	gnu_sparse_old_read(struct archive_read *, struct tar *,
 		    const struct archive_entry_header_gnutar *header);
-static void	gnu_sparse_old_parse(struct tar *,
+static int	gnu_sparse_old_parse(struct archive_read *, struct tar *,
 		    const struct gnu_sparse *sparse, int length);
 static int	gnu_sparse_01_parse(struct tar *, const char *);
 static ssize_t	gnu_sparse_10_read(struct archive_read *, struct tar *);
@@ -471,7 +471,7 @@ archive_read_format_tar_read_data(struct archive_read *a,
 
 	/* Remove exhausted entries from sparse list. */
 	while (tar->sparse_list != NULL &&
-	    tar->sparse_list->remaining == 0) {
+	    tar->sparse_list->remaining <= 0) {
 		p = tar->sparse_list;
 		tar->sparse_list = p->next;
 		free(p);
@@ -502,6 +502,8 @@ archive_read_format_tar_read_data(struct archive_read *a,
 	 * current sparse block. */
 	if (tar->sparse_list->remaining < bytes_read)
 		bytes_read = tar->sparse_list->remaining;
+	if (bytes_read < 0)
+		bytes_read = 0;
 	*size = bytes_read;
 	*offset = tar->sparse_list->offset;
 	tar->sparse_list->remaining -= bytes_read;
@@ -1721,7 +1723,8 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 	}
 
 	if (header->sparse[0].offset[0] != 0) {
-		gnu_sparse_old_read(a, tar, header);
+		if (gnu_sparse_old_read(a, tar, header) != ARCHIVE_OK)
+			return (ARCHIVE_FATAL);
 	} else {
 		if (header->isextended[0] != 0) {
 			/* XXX WTF? XXX */
@@ -1735,6 +1738,9 @@ static void
 gnu_add_sparse_entry(struct tar *tar, off_t offset, off_t remaining)
 {
 	struct sparse_block *p;
+
+	if (offset < 0 || remaining < 0)
+		return;
 
 	p = (struct sparse_block *)malloc(sizeof(*p));
 	if (p == NULL)
@@ -1787,7 +1793,8 @@ gnu_sparse_old_read(struct archive_read *a, struct tar *tar,
 	};
 	const struct extended *ext;
 
-	gnu_sparse_old_parse(tar, header->sparse, 4);
+	if (gnu_sparse_old_parse(a, tar, header->sparse, 4) != ARCHIVE_OK)
+		return (ARCHIVE_FATAL);
 	if (header->isextended[0] == 0)
 		return (ARCHIVE_OK);
 
@@ -1803,24 +1810,33 @@ gnu_sparse_old_read(struct archive_read *a, struct tar *tar,
 		}
 		__archive_read_consume(a, 512);
 		ext = (const struct extended *)data;
-		gnu_sparse_old_parse(tar, ext->sparse, 21);
+		if (gnu_sparse_old_parse(a, tar, ext->sparse, 21) != ARCHIVE_OK)
+			return (ARCHIVE_FATAL);
 	} while (ext->isextended[0] != 0);
 	if (tar->sparse_list != NULL)
 		tar->entry_offset = tar->sparse_list->offset;
 	return (ARCHIVE_OK);
 }
 
-static void
-gnu_sparse_old_parse(struct tar *tar,
+static int
+gnu_sparse_old_parse(struct archive_read *a, struct tar *tar,
     const struct gnu_sparse *sparse, int length)
 {
+	int64_t offset, bytes;
+
 	while (length > 0 && sparse->offset[0] != 0) {
-		gnu_add_sparse_entry(tar,
-		    tar_atol(sparse->offset, sizeof(sparse->offset)),
-		    tar_atol(sparse->numbytes, sizeof(sparse->numbytes)));
+		offset = tar_atol(sparse->offset, sizeof(sparse->offset));
+		bytes = tar_atol(sparse->numbytes, sizeof(sparse->numbytes));
+		if (offset < 0 || bytes < 0) {
+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+			    "Corrupt sparse map data");
+			return (ARCHIVE_FATAL);
+		}
+		gnu_add_sparse_entry(tar, offset, bytes);
 		sparse++;
 		length--;
 	}
+	return (ARCHIVE_OK);
 }
 
 /*
