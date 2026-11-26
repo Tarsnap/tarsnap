@@ -354,6 +354,11 @@ process_add_entry(struct archive_read *a, struct mtree *mtree,
 	memcpy(entry->name, line, len);
 	entry->name[len] = '\0';
 	parse_escapes(entry->name, entry);
+	if (entry->name[0] == '\0') {
+		archive_set_error(&a->archive, EINVAL,
+		    "Pathname is empty after escape decoding");
+		return (ARCHIVE_FATAL);
+	}
 
 	line += len;
 	for (iter = *global; iter != NULL; iter = iter->next) {
