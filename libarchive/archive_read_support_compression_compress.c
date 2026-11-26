@@ -370,14 +370,29 @@ next_code(struct archive_read_filter *self)
 
 	/* Special case for KwKwK string. */
 	if (code >= state->free_ent) {
+		if (state->stackp >= state->stack + sizeof(state->stack) - 1) {
+			archive_set_error(&(self->archive->archive), -1,
+			    "Compressed data expansion exceeds stack limit");
+			return (ARCHIVE_FATAL);
+		}
 		*state->stackp++ = state->finbyte;
 		code = state->oldcode;
 	}
 
 	/* Generate output characters in reverse order. */
 	while (code >= 256) {
+		if (state->stackp >= state->stack + sizeof(state->stack) - 1) {
+			archive_set_error(&(self->archive->archive), -1,
+			    "Compressed data expansion exceeds stack limit");
+			return (ARCHIVE_FATAL);
+		}
 		*state->stackp++ = state->suffix[code];
 		code = state->prefix[code];
+	}
+	if (state->stackp >= state->stack + sizeof(state->stack)) {
+		archive_set_error(&(self->archive->archive), -1,
+		    "Compressed data expansion exceeds stack limit");
+		return (ARCHIVE_FATAL);
 	}
 	*state->stackp++ = state->finbyte = code;
 
