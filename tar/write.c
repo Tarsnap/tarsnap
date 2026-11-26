@@ -1279,7 +1279,7 @@ new_enough(struct bsdtar *bsdtar, const char *path, const struct stat *st)
 		    <= bsdtar->newer_ctime_nsec)
 			return (0); /* Too old, skip it. */
 	}
-	if (bsdtar->newer_mtime_sec > 0) {
+	if (bsdtar->newer_mtime_sec >= 0 && (bsdtar->newer_mtime_sec || bsdtar->newer_mtime_nsec)) {
 		if (st->st_mtime < bsdtar->newer_mtime_sec)
 			return (0); /* Too old, skip it. */
 		if (st->st_mtime == bsdtar->newer_mtime_sec
