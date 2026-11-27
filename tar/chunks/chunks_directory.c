@@ -159,6 +159,18 @@ chunks_directory_read(const char * cachepath, void ** dir,
 			goto err2;
 		}
 
+		/* Prevent silent incomplete rebuild: check if cseq remains. */
+		char * s_cseq;
+		struct stat sb_cseq;
+		if (asprintf(&s_cseq, "%s/cseq", cachepath) != -1) {
+			if (stat(s_cseq, &sb_cseq) == 0) {
+				warn0("Cache directory %s is corrupt (directory missing but cseq exists). Run --fsck.", cachepath);
+				free(s_cseq);
+				goto err2;
+			}
+			free(s_cseq);
+		}
+
 		/*
 		 * ${cachepath}/directory does not exist; set ${*dir} to NULL
 		 * and return the empty hash table.
